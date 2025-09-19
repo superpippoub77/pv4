@@ -1,0 +1,1354 @@
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generatore Allenamenti - Valsesia Team Volley</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            display: flex;
+            min-height: 600px;
+        }
+
+        .sidebar {
+            width: 350px;
+            background: #f8f9fa;
+            padding: 30px;
+            border-right: 3px solid #e9ecef;
+            overflow-y: auto;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .form-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border-left: 5px solid #667eea;
+        }
+
+        .form-section h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .form-group.full-width {
+            flex: 100%;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #34495e;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .exercise-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px dashed #dee2e6;
+        }
+
+        .exercise-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .exercise-number {
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-weight: bold;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+
+        .actions {
+            text-align: center;
+            padding: 30px;
+            background: #f8f9fa;
+            border-top: 3px solid #e9ecef;
+        }
+
+        .actions .btn {
+            margin: 0 10px 10px 0;
+        }
+
+        .preview {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .preview h2 {
+            color: #2c3e50;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .preview h3 {
+            color: #34495e;
+            margin: 25px 0 15px 0;
+            background: #f8f9fa;
+            padding: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .preview table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .preview th, .preview td {
+            border: 1px solid #dee2e6;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .preview th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .phase-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #28a745;
+        }
+
+        .exercise-item {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .material-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+        }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; border-radius: 0; }
+            .content { display: block; }
+            .sidebar { display: none; }
+            .actions { display: none; }
+        }
+
+        @media (max-width: 768px) {
+            .content { flex-direction: column; }
+            .sidebar { width: 100%; }
+            .form-row { flex-direction: column; }
+            .header h1 { font-size: 2em; }
+        }
+
+        .floating-add {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .floating-add:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.6);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏐 Valsesia Team Volley</h1>
+            <p>Generatore Allenamenti - Stagione 2025/2026</p>
+        </div>
+
+        <div class="content">
+            <div class="sidebar">
+                <div class="form-section">
+                    <h3>📋 Informazioni Generali</h3>
+                    <div class="form-group">
+                        <label>Numero Allenamento:</label>
+                        <input type="number" id="trainingNumber" value="003">
+                    </div>
+                    <div class="form-group">
+                        <label>Palestra:</label>
+                        <input type="text" id="gym" value="Crevacuore">
+                    </div>
+                    <div class="form-group">
+                        <label>Durata:</label>
+                        <input type="text" id="duration" value="2h">
+                    </div>
+                    <div class="form-group">
+                        <label>Periodo:</label>
+                        <select id="period">
+                            <option value="Pre">Pre campionato</option>
+                            <option value="Durante">Durante campionato</option>
+                            <option value="Post">Post campionato</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>🎯 Obiettivo</h3>
+                    <div class="form-group">
+                        <textarea id="objective" placeholder="Descrivi l'obiettivo principale dell'allenamento...">Mobilità e resistenza della parte superiore del corpo concentrandosi sulle braccia. Introduzione e ripasso dall'appoggio alla schiacciata prima impostazione di gioco</textarea>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>📊 Caratteristiche</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Liv. Tecnico:</label>
+                            <select id="techLevel">
+                                <option value="Basso">Basso</option>
+                                <option value="Medio">Medio</option>
+                                <option value="Alto">Alto</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Liv. Tattico:</label>
+                            <select id="tacticalLevel">
+                                <option value="Basso">Basso</option>
+                                <option value="Medio" selected>Medio</option>
+                                <option value="Alto">Alto</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>% Allenamento:</label>
+                        <input type="number" id="trainingPercent" value="100" min="0" max="100">
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>🏐 Materiali</h3>
+                    <div class="material-grid">
+                        <div class="form-group">
+                            <label>Palloni:</label>
+                            <input type="number" id="balls" value="20">
+                        </div>
+                        <div class="form-group">
+                            <label>Tappetini:</label>
+                            <input type="number" id="mats" value="2">
+                        </div>
+                        <div class="form-group">
+                            <label>Panche:</label>
+                            <input type="number" id="benches" value="2">
+                        </div>
+                        <div class="form-group">
+                            <label>Cinesini:</label>
+                            <input type="number" id="cones" value="0">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>👥 Staff & Atleti</h3>
+                    <div class="form-group">
+                        <label>Allenatore:</label>
+                        <input type="text" id="coach" value="Filippo">
+                    </div>
+                    <div class="form-group">
+                        <label>Collaboratore:</label>
+                        <input type="text" id="assistant" value="Lisa">
+                    </div>
+                    <div class="form-group">
+                        <label>Libero (R):</label>
+                        <input type="text" id="libero" value="Marco">
+                    </div>
+                    <div class="form-group">
+                        <label>Altri Atleti:</label>
+                        <input type="text" id="players" value="G2, G3, G4, G5">
+                    </div>
+                </div>
+            </div>
+
+            <div class="main-content">
+                <div id="exercisesSections">
+                    <!-- Le sezioni degli esercizi verranno generate qui -->
+                </div>
+                
+                <button class="floating-add" onclick="addExercise()" title="Aggiungi Esercizio">+</button>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-primary" onclick="generatePreview()">👁️ Anteprima Allenamento</button>
+            <button class="btn btn-success" onclick="exportTraining()">💾 Esporta PDF</button>
+            <button class="btn btn-secondary" onclick="saveTraining()">🔄 Salva Bozza</button>
+            <button class="btn btn-danger" onclick="clearAll()">🗑️ Cancella Tutto</button>
+        </div>
+    </div>
+
+    <!-- Modal per l'anteprima -->
+    <div id="previewModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; overflow-y: auto;">
+        <div style="background: white; margin: 20px; border-radius: 15px; position: relative;">
+            <div style="position: sticky; top: 0; background: #667eea; color: white; padding: 20px; border-radius: 15px 15px 0 0; z-index: 2001;">
+                <h2>📋 Anteprima Allenamento</h2>
+                <button onclick="closePreview()" style="position: absolute; right: 20px; top: 20px; background: none; border: none; color: white; font-size: 24px; cursor: pointer;">×</button>
+            </div>
+            <div id="previewContent" class="preview"></div>
+        </div>
+    </div>
+
+    <script>
+        let exerciseCounter = 0;
+        let exercises = {};
+
+        // Inizializza l'applicazione
+        function init() {
+            // Crea le sezioni delle fasi di allenamento
+            createPhaseSections();
+            loadSavedData();
+        }
+
+        function createPhaseSections() {
+            const container = document.getElementById('exercisesSections');
+            const phases = [
+                { id: 'analitica', name: 'FASE ANALITICA O INIZIALE', color: '#28a745', icon: '🟢' },
+                { id: 'sintetica', name: 'FASE SINTETICA O CENTRALE', color: '#ffc107', icon: '🟡' },
+                { id: 'globale', name: 'FASE GLOBALE O FINALE', color: '#dc3545', icon: '🔴' }
+            ];
+
+            phases.forEach(phase => {
+                const section = document.createElement('div');
+                section.className = 'form-section';
+                section.innerHTML = `
+                    <h3>${phase.icon} ${phase.name}</h3>
+                    <div id="${phase.id}-exercises">
+                        <button class="btn btn-primary btn-small" onclick="addExercise('${phase.id}')">
+                            ➕ Aggiungi Esercizio
+                        </button>
+                    </div>
+                `;
+                container.appendChild(section);
+            });
+        }
+
+        function addExercise(phase = 'analitica', exerciseData = null) {
+            exerciseCounter++;
+            const exerciseId = `exercise-${exerciseCounter}`;
+            
+            const exerciseDiv = document.createElement('div');
+            exerciseDiv.className = 'exercise-section';
+            exerciseDiv.id = exerciseId;
+            exerciseDiv.innerHTML = `
+                <div class="exercise-header">
+                    <span class="exercise-number">Esercizio ${exerciseCounter}</span>
+                    <div>
+                        <button class="btn btn-secondary btn-small" onclick="saveExerciseToLibrary('${exerciseId}')" title="Salva in libreria">💾</button>
+                        <button class="btn btn-danger btn-small" onclick="removeExercise('${exerciseId}')">🗑️</button>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Titolo:</label>
+                        <input type="text" id="${exerciseId}-title" placeholder="Es: Palleggio a coppie" value="${exerciseData?.title || ''}">
+                    </div>
+                    <div class="form-group">
+                        <label>Durata/Ripetizioni:</label>
+                        <input type="text" id="${exerciseId}-duration" placeholder="Es: 5' o x4 - 40''" value="${exerciseData?.duration || ''}">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Categoria:</label>
+                        <select id="${exerciseId}-category">
+                            <option value="">Seleziona categoria</option>
+                            <option value="riscaldamento" ${exerciseData?.category === 'riscaldamento' ? 'selected' : ''}>🔥 Riscaldamento</option>
+                            <option value="tecnica" ${exerciseData?.category === 'tecnica' ? 'selected' : ''}>⚡ Tecnica</option>
+                            <option value="tattica" ${exerciseData?.category === 'tattica' ? 'selected' : ''}>🧠 Tattica</option>
+                            <option value="fisica" ${exerciseData?.category === 'fisica' ? 'selected' : ''}>💪 Preparazione Fisica</option>
+                            <option value="gioco" ${exerciseData?.category === 'gioco' ? 'selected' : ''}>🏐 Situazioni di Gioco</option>
+                            <option value="mobilita" ${exerciseData?.category === 'mobilita' ? 'selected' : ''}>🤸 Mobilità</option>
+                            <option value="coordinazione" ${exerciseData?.category === 'coordinazione' ? 'selected' : ''}>🎯 Coordinazione</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Ruolo Specifico:</label>
+                        <select id="${exerciseId}-role">
+                            <option value="tutti" ${exerciseData?.role === 'tutti' ? 'selected' : ''}>👥 Tutti i ruoli</option>
+                            <option value="alzatore" ${exerciseData?.role === 'alzatore' ? 'selected' : ''}>🎯 Alzatore</option>
+                            <option value="schiacciatore" ${exerciseData?.role === 'schiacciatore' ? 'selected' : ''}>⚡ Schiacciatore</option>
+                            <option value="centrale" ${exerciseData?.role === 'centrale' ? 'selected' : ''}>🏗️ Centrale</option>
+                            <option value="opposto" ${exerciseData?.role === 'opposto' ? 'selected' : ''}>🎪 Opposto</option>
+                            <option value="libero" ${exerciseData?.role === 'libero' ? 'selected' : ''}>🛡️ Libero</option>
+                            <option value="ricevitori" ${exerciseData?.role === 'ricevitori' ? 'selected' : ''}>📨 Ricevitori</option>
+                            <option value="attaccanti" ${exerciseData?.role === 'attaccanti' ? 'selected' : ''}>🔥 Attaccanti</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Dettagli:</label>
+                    <textarea id="${exerciseId}-details" placeholder="Descrivi dettagliatamente l'esercizio...">${exerciseData?.details || ''}</textarea>
+                </div>
+                <div class="form-group">
+                    <label>Note/Osservazioni:</label>
+                    <input type="text" id="${exerciseId}-notes" placeholder="Es: Introdurre, Sfida, Correzioni specifiche" value="${exerciseData?.notes || ''}">
+                </div>
+            `;
+
+            const container = document.getElementById(`${phase}-exercises`);
+            if (container) {
+                const addButton = container.querySelector('button');
+                if (addButton && addButton.parentNode === container) {
+                    container.insertBefore(exerciseDiv, addButton);
+                } else {
+                    container.appendChild(exerciseDiv);
+                }
+                exercises[exerciseId] = { phase: phase };
+            } else {
+                console.error(`Container per la fase ${phase} non trovato`);
+            }
+        }
+
+        function removeExercise(exerciseId) {
+            const element = document.getElementById(exerciseId);
+            if (element && confirm('Sei sicuro di voler rimuovere questo esercizio?')) {
+                element.remove();
+                delete exercises[exerciseId];
+            }
+        }
+
+        // Gestione della libreria esercizi
+        function saveExerciseToLibrary(exerciseId) {
+            const title = document.getElementById(`${exerciseId}-title`).value;
+            const duration = document.getElementById(`${exerciseId}-duration`).value;
+            const category = document.getElementById(`${exerciseId}-category`).value;
+            const role = document.getElementById(`${exerciseId}-role`).value;
+            const details = document.getElementById(`${exerciseId}-details`).value;
+            const notes = document.getElementById(`${exerciseId}-notes`).value;
+
+            if (!title.trim()) {
+                alert('⚠️ Inserisci un titolo per salvare l\'esercizio!');
+                return;
+            }
+
+            const exerciseData = {
+                id: Date.now().toString(),
+                title: title,
+                duration: duration,
+                category: category,
+                role: role,
+                details: details,
+                notes: notes,
+                dateCreated: new Date().toLocaleDateString('it-IT')
+            };
+
+            // Salva nella libreria
+            const library = JSON.parse(localStorage.getItem('volleyball_exercise_library') || '[]');
+            library.push(exerciseData);
+            localStorage.setItem('volleyball_exercise_library', JSON.stringify(library));
+
+            alert(`✅ Esercizio "${title}" salvato nella libreria!`);
+        }
+
+        function openExerciseLibrary() {
+            const library = JSON.parse(localStorage.getItem('volleyball_exercise_library') || '[]');
+            
+            let libraryHTML = `
+                <div style="max-height: 400px; overflow-y: auto;">
+                    <div style="margin-bottom: 20px;">
+                        <input type="text" id="library-search" placeholder="🔍 Cerca esercizi..." style="width: 100%; padding: 10px; margin-bottom: 10px;">
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <select id="library-filter-category" style="flex: 1;">
+                                <option value="">Tutte le categorie</option>
+                                <option value="riscaldamento">🔥 Riscaldamento</option>
+                                <option value="tecnica">⚡ Tecnica</option>
+                                <option value="tattica">🧠 Tattica</option>
+                                <option value="fisica">💪 Prep. Fisica</option>
+                                <option value="gioco">🏐 Gioco</option>
+                                <option value="mobilita">🤸 Mobilità</option>
+                                <option value="coordinazione">🎯 Coordinazione</option>
+                            </select>
+                            <select id="library-filter-role" style="flex: 1;">
+                                <option value="">Tutti i ruoli</option>
+                                <option value="alzatore">🎯 Alzatore</option>
+                                <option value="schiacciatore">⚡ Schiacciatore</option>
+                                <option value="centrale">🏗️ Centrale</option>
+                                <option value="opposto">🎪 Opposto</option>
+                                <option value="libero">🛡️ Libero</option>
+                                <option value="ricevitori">📨 Ricevitori</option>
+                                <option value="attaccanti">🔥 Attaccanti</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="library-exercises">
+            `;
+
+            if (library.length === 0) {
+                libraryHTML += '<p style="text-align: center; color: #666;">📚 Nessun esercizio salvato nella libreria</p>';
+            } else {
+                library.forEach((exercise, index) => {
+                    const categoryIcon = getCategoryIcon(exercise.category);
+                    const roleIcon = getRoleIcon(exercise.role);
+                    
+                    libraryHTML += `
+                        <div class="library-exercise" data-category="${exercise.category}" data-role="${exercise.role}" data-title="${exercise.title.toLowerCase()}">
+                            <div style="background: white; border-radius: 8px; padding: 15px; margin: 10px 0; border-left: 4px solid #667eea; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 10px;">
+                                    <h4 style="margin: 0; color: #2c3e50;">${exercise.title}</h4>
+                                    <div style="display: flex; gap: 5px;">
+                                        <button class="btn btn-primary btn-small" onclick="addExerciseFromLibrary('${index}', 'analitica')" title="Fase Analitica">🟢</button>
+                                        <button class="btn btn-primary btn-small" onclick="addExerciseFromLibrary('${index}', 'sintetica')" title="Fase Sintetica">🟡</button>
+                                        <button class="btn btn-primary btn-small" onclick="addExerciseFromLibrary('${index}', 'globale')" title="Fase Globale">🔴</button>
+                                        <button class="btn btn-danger btn-small" onclick="removeFromLibrary('${index}')" title="Elimina">🗑️</button>
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 15px; margin-bottom: 10px; font-size: 12px;">
+                                    <span style="background: #f8f9fa; padding: 4px 8px; border-radius: 4px;">${categoryIcon} ${exercise.category || 'Non categorizzato'}</span>
+                                    <span style="background: #f8f9fa; padding: 4px 8px; border-radius: 4px;">${roleIcon} ${exercise.role || 'tutti'}</span>
+                                    <span style="background: #f8f9fa; padding: 4px 8px; border-radius: 4px;">⏱️ ${exercise.duration || 'N/A'}</span>
+                                </div>
+                                <p style="margin: 0; color: #666; font-size: 14px;">${exercise.details ? (exercise.details.length > 100 ? exercise.details.substring(0, 100) + '...' : exercise.details) : 'Nessun dettaglio'}</p>
+                                <small style="color: #999;">Creato il: ${exercise.dateCreated}</small>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            libraryHTML += `
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-secondary" onclick="exportLibrary()">📥 Esporta Libreria</button>
+                    <button class="btn btn-secondary" onclick="importLibrary()">📤 Importa Libreria</button>
+                    <button class="btn btn-danger" onclick="clearLibrary()">🗑️ Svuota Libreria</button>
+                </div>
+            `;
+
+            document.getElementById('previewContent').innerHTML = libraryHTML;
+            document.getElementById('previewModal').style.display = 'block';
+
+            // Aggiungi event listeners per filtri e ricerca
+            document.getElementById('library-search').addEventListener('input', filterLibraryExercises);
+            document.getElementById('library-filter-category').addEventListener('change', filterLibraryExercises);
+            document.getElementById('library-filter-role').addEventListener('change', filterLibraryExercises);
+        }
+
+        function getCategoryIcon(category) {
+            const icons = {
+                'riscaldamento': '🔥',
+                'tecnica': '⚡',
+                'tattica': '🧠',
+                'fisica': '💪',
+                'gioco': '🏐',
+                'mobilita': '🤸',
+                'coordinazione': '🎯'
+            };
+            return icons[category] || '📝';
+        }
+
+        function getRoleIcon(role) {
+            const icons = {
+                'tutti': '👥',
+                'alzatore': '🎯',
+                'schiacciatore': '⚡',
+                'centrale': '🏗️',
+                'opposto': '🎪',
+                'libero': '🛡️',
+                'ricevitori': '📨',
+                'attaccanti': '🔥'
+            };
+            return icons[role] || '👤';
+        }
+
+        function filterLibraryExercises() {
+            const search = document.getElementById('library-search').value.toLowerCase();
+            const categoryFilter = document.getElementById('library-filter-category').value;
+            const roleFilter = document.getElementById('library-filter-role').value;
+
+            const exercises = document.querySelectorAll('.library-exercise');
+            
+            exercises.forEach(exercise => {
+                const title = exercise.getAttribute('data-title');
+                const category = exercise.getAttribute('data-category');
+                const role = exercise.getAttribute('data-role');
+
+                const matchesSearch = !search || title.includes(search);
+                const matchesCategory = !categoryFilter || category === categoryFilter;
+                const matchesRole = !roleFilter || role === roleFilter;
+
+                exercise.style.display = (matchesSearch && matchesCategory && matchesRole) ? 'block' : 'none';
+            });
+        }
+
+        function addExerciseFromLibrary(index, phase) {
+            const library = JSON.parse(localStorage.getItem('volleyball_exercise_library') || '[]');
+            const exerciseData = library[index];
+            
+            if (exerciseData) {
+                addExercise(phase, exerciseData);
+                closePreview();
+                alert(`✅ Esercizio "${exerciseData.title}" aggiunto alla fase ${phase}!`);
+            }
+        }
+
+        function removeFromLibrary(index) {
+            const library = JSON.parse(localStorage.getItem('volleyball_exercise_library') || '[]');
+            const exercise = library[index];
+            
+            if (confirm(`⚠️ Sei sicuro di voler eliminare "${exercise.title}" dalla libreria?`)) {
+                library.splice(index, 1);
+                localStorage.setItem('volleyball_exercise_library', JSON.stringify(library));
+                openExerciseLibrary(); // Ricarica la libreria
+            }
+        }
+
+        function exportLibrary() {
+            const library = JSON.parse(localStorage.getItem('volleyball_exercise_library') || '[]');
+            const blob = new Blob([JSON.stringify(library, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'libreria_esercizi_pallavolo.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            alert('📥 Libreria esportata con successo!');
+        }
+
+        function importLibrary() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            const importedLibrary = JSON.parse(e.target.result);
+                            const currentLibrary = JSON.parse(localStorage.getItem('volleyball_exercise_library') || '[]');
+                            const mergedLibrary = [...currentLibrary, ...importedLibrary];
+                            localStorage.setItem('volleyball_exercise_library', JSON.stringify(mergedLibrary));
+                            openExerciseLibrary(); // Ricarica la libreria
+                            alert(`✅ ${importedLibrary.length} esercizi importati nella libreria!`);
+                        } catch (error) {
+                            alert('❌ Errore nell\'importazione del file!');
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            };
+            input.click();
+        }
+
+        function clearLibrary() {
+            if (confirm('⚠️ Sei sicuro di voler svuotare completamente la libreria? Questa azione non può essere annullata.')) {
+                localStorage.removeItem('volleyball_exercise_library');
+                openExerciseLibrary(); // Ricarica la libreria vuota
+                alert('🗑️ Libreria svuotata!');
+            }
+        }
+
+        function generatePreview() {
+            const preview = generateTrainingDocument();
+            document.getElementById('previewContent').innerHTML = preview;
+            document.getElementById('previewModal').style.display = 'block';
+        }
+
+        function closePreview() {
+            document.getElementById('previewModal').style.display = 'none';
+        }
+
+        function generateTrainingDocument() {
+            const trainingNumber = document.getElementById('trainingNumber').value;
+            const gym = document.getElementById('gym').value;
+            const duration = document.getElementById('duration').value;
+            const period = document.getElementById('period').value;
+            const objective = document.getElementById('objective').value;
+            const techLevel = document.getElementById('techLevel').value;
+            const tacticalLevel = document.getElementById('tacticalLevel').value;
+            const trainingPercent = document.getElementById('trainingPercent').value;
+            
+            const balls = document.getElementById('balls').value;
+            const mats = document.getElementById('mats').value;
+            const benches = document.getElementById('benches').value;
+            const cones = document.getElementById('cones').value;
+            
+            const coach = document.getElementById('coach').value;
+            const assistant = document.getElementById('assistant').value;
+            const libero = document.getElementById('libero').value;
+            const players = document.getElementById('players').value;
+
+            let html = `
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <h1 style="color: #2c3e50; font-size: 2.5em;">🏐 Valsesia Team Volley</h1>
+                    <h2 style="color: #34495e;">Stagione 2025/2026 - Categoria: Maschile 1Div</h2>
+                    <p><strong>Allenamento:</strong> ${trainingNumber.padStart(3, '0')} | <strong>Palestra:</strong> ${gym} | <strong>Durata:</strong> ${duration} | <strong>Periodo:</strong> ${period}</p>
+                </div>
+
+                <h3>🎯 Obiettivo</h3>
+                <p style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea;">${objective}</p>
+
+                <h3>📊 Caratteristiche Prestative</h3>
+                <table style="margin-bottom: 20px;">
+                    <tr>
+                        <th>Categoria</th><th>Età</th><th>Campionato</th><th>Liv. Tecnico</th><th>Liv. Tattico</th><th>% All.</th><th>Fattibilità</th>
+                    </tr>
+                    <tr>
+                        <td>Maschile</td><td>15-40</td><td>Federazione</td><td>${techLevel}</td><td>${tacticalLevel}</td><td>${trainingPercent}</td><td>100</td>
+                    </tr>
+                </table>
+
+                <h3>🏐 Materiale Occorrente</h3>
+                <table style="margin-bottom: 20px;">
+                    <tr>
+                        <th>Palloni</th><th>Muro</th><th>Tappetini</th><th>Spalliere</th><th>Panche</th><th>Cinesini</th><th>Seggiolone</th><th>Palline tennis</th>
+                    </tr>
+                    <tr>
+                        <td>${balls}</td><td>0</td><td>${mats}</td><td>0</td><td>${benches}</td><td>${cones}</td><td>0</td><td>0</td>
+                    </tr>
+                </table>
+
+                <h3>👥 Staff</h3>
+                <p><strong>Allenatore:</strong> ${coach} | <strong>Collaboratore:</strong> ${assistant} | <strong>Presidente:</strong> Alessia | <strong>Aiuto Allenatore:</strong> Marco</p>
+
+                <h3>🏃‍♂️ Atleti</h3>
+                <p><strong>R:</strong> ${libero} | ${players}</p>
+            `;
+
+            // Genera le sezioni degli esercizi per fase
+            const phases = [
+                { id: 'analitica', name: 'FASE ANALITICA O INIZIALE', icon: '🟢' },
+                { id: 'sintetica', name: 'FASE SINTETICA O CENTRALE', icon: '🟡' },
+                { id: 'globale', name: 'FASE GLOBALE O FINALE', icon: '🔴' }
+            ];
+
+            phases.forEach(phase => {
+                const phaseExercises = getExercisesByPhase(phase.id);
+                if (phaseExercises.length > 0) {
+                    html += `
+                        <div class="phase-section">
+                            <h2>${phase.icon} ${phase.name}</h2>
+                    `;
+                    
+                    phaseExercises.forEach((exercise, index) => {
+                        const categoryIcon = getCategoryIcon(exercise.category);
+                        const roleIcon = getRoleIcon(exercise.role);
+                        
+                        html += `
+                            <div class="exercise-item">
+                                <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 10px;">
+                                    <h4>Esercizio ${index + 1}.0 - ${exercise.title} - <em>${exercise.duration}</em></h4>
+                                    <div style="display: flex; gap: 10px; font-size: 12px;">
+                                        ${exercise.category ? `<span style="background: #f8f9fa; padding: 4px 8px; border-radius: 4px;">${categoryIcon} ${exercise.category}</span>` : ''}
+                                        ${exercise.role && exercise.role !== 'tutti' ? `<span style="background: #e3f2fd; padding: 4px 8px; border-radius: 4px;">${roleIcon} ${exercise.role}</span>` : ''}
+                                    </div>
+                                </div>
+                                <p><strong>Dettagli:</strong><br>${exercise.details.replace(/\n/g, '<br>')}</p>
+                                ${exercise.notes ? `<p><strong>Note:</strong> ${exercise.notes}</p>` : ''}
+                            </div>
+                        `;
+                    });
+                    
+                    html += `</div>`;
+                }
+            });
+
+            html += `
+                <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #e9ecef;">
+                    <p><strong>Data:</strong> ${new Date().toLocaleDateString('it-IT')} | <strong>Firma Allenatore:</strong> _______________</p>
+                </div>
+            `;
+
+            return html;
+        }
+
+        function getExercisesByPhase(phase) {
+            const result = [];
+            Object.keys(exercises).forEach(exerciseId => {
+                if (exercises[exerciseId].phase === phase) {
+                    const titleElement = document.getElementById(`${exerciseId}-title`);
+                    const durationElement = document.getElementById(`${exerciseId}-duration`);
+                    const categoryElement = document.getElementById(`${exerciseId}-category`);
+                    const roleElement = document.getElementById(`${exerciseId}-role`);
+                    const detailsElement = document.getElementById(`${exerciseId}-details`);
+                    const notesElement = document.getElementById(`${exerciseId}-notes`);
+                    
+                    if (titleElement && titleElement.value.trim()) {
+                        result.push({
+                            title: titleElement.value,
+                            duration: durationElement ? durationElement.value : '',
+                            category: categoryElement ? categoryElement.value : '',
+                            role: roleElement ? roleElement.value : '',
+                            details: detailsElement ? detailsElement.value : '',
+                            notes: notesElement ? notesElement.value : ''
+                        });
+                    }
+                }
+            });
+            return result;
+        }
+
+        function exportTraining() {
+            const content = generateTrainingDocument();
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Allenamento ${document.getElementById('trainingNumber').value} - Valsesia Team Volley</title>
+                    <meta charset="UTF-8">
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }
+                        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        th { background-color: #f2f2f2; }
+                        .phase-section { background: #f8f9fa; padding: 20px; margin: 20px 0; border-radius: 8px; border-left: 5px solid #28a745; }
+                        .exercise-item { background: white; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 4px solid #667eea; }
+                        h1, h2, h3 { color: #2c3e50; }
+                        @media print { body { margin: 0; } }
+                    </style>
+                </head>
+                <body>
+                    ${content}
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        function saveTraining() {
+            const data = {
+                general: {
+                    trainingNumber: document.getElementById('trainingNumber').value,
+                    gym: document.getElementById('gym').value,
+                    duration: document.getElementById('duration').value,
+                    period: document.getElementById('period').value,
+                    objective: document.getElementById('objective').value,
+                    techLevel: document.getElementById('techLevel').value,
+                    tacticalLevel: document.getElementById('tacticalLevel').value,
+                    trainingPercent: document.getElementById('trainingPercent').value
+                },
+                materials: {
+                    balls: document.getElementById('balls').value,
+                    mats: document.getElementById('mats').value,
+                    benches: document.getElementById('benches').value,
+                    cones: document.getElementById('cones').value
+                },
+                staff: {
+                    coach: document.getElementById('coach').value,
+                    assistant: document.getElementById('assistant').value,
+                    libero: document.getElementById('libero').value,
+                    players: document.getElementById('players').value
+                },
+                exercises: exercises,
+                exerciseCounter: exerciseCounter
+            };
+
+            // Salva nel browser (localStorage)
+            const trainingName = `training_${data.general.trainingNumber}`;
+            const allTrainings = JSON.parse(localStorage.getItem('volleyball_trainings') || '{}');
+            allTrainings[trainingName] = data;
+            localStorage.setItem('volleyball_trainings', JSON.stringify(allTrainings));
+
+            // Crea link per download
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `allenamento_${data.general.trainingNumber.padStart(3, '0')}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            alert('✅ Allenamento salvato con successo!');
+        }
+
+        function loadSavedData() {
+            // Carica i dati salvati se esistono
+            const allTrainings = JSON.parse(localStorage.getItem('volleyball_trainings') || '{}');
+            console.log('Allenamenti salvati:', Object.keys(allTrainings));
+        }
+
+        function clearAll() {
+            if (confirm('⚠️ Sei sicuro di voler cancellare tutto? Questa azione non può essere annullata.')) {
+                // Reset form
+                document.getElementById('trainingNumber').value = '003';
+                document.getElementById('objective').value = 'Mobilità e resistenza della parte superiore del corpo concentrandosi sulle braccia. Introduzione e ripasso dall\'appoggio alla schiacciata prima impostazione di gioco';
+                
+                // Rimuovi tutti gli esercizi
+                Object.keys(exercises).forEach(exerciseId => {
+                    const element = document.getElementById(exerciseId);
+                    if (element) element.remove();
+                });
+                exercises = {};
+                exerciseCounter = 0;
+                
+                alert('🗑️ Tutto cancellato!');
+            }
+        }
+
+        function loadTraining() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            const data = JSON.parse(e.target.result);
+                            loadTrainingData(data);
+                            alert('✅ Allenamento caricato con successo!');
+                        } catch (error) {
+                            alert('❌ Errore nel caricamento del file!');
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            };
+            input.click();
+        }
+
+        function loadTrainingData(data) {
+            // Carica dati generali
+            if (data.general) {
+                Object.keys(data.general).forEach(key => {
+                    const element = document.getElementById(key);
+                    if (element) element.value = data.general[key];
+                });
+            }
+
+            // Carica materiali
+            if (data.materials) {
+                Object.keys(data.materials).forEach(key => {
+                    const element = document.getElementById(key);
+                    if (element) element.value = data.materials[key];
+                });
+            }
+
+            // Carica staff
+            if (data.staff) {
+                Object.keys(data.staff).forEach(key => {
+                    const element = document.getElementById(key);
+                    if (element) element.value = data.staff[key];
+                });
+            }
+
+            // Carica esercizi
+            if (data.exercises && data.exerciseCounter) {
+                // Prima cancella esercizi esistenti
+                Object.keys(exercises).forEach(exerciseId => {
+                    const element = document.getElementById(exerciseId);
+                    if (element) element.remove();
+                });
+
+                exercises = data.exercises;
+                exerciseCounter = data.exerciseCounter;
+
+                // Ricrea gli esercizi
+                Object.keys(exercises).forEach(exerciseId => {
+                    const exercise = exercises[exerciseId];
+                    // Qui dovresti ricreare gli esercizi con i dati salvati
+                    // Implementazione semplificata per ora
+                });
+            }
+        }
+
+        // Aggiungi esempi di esercizi predefiniti
+        function addSampleExercises() {
+            // Prima pulisce eventuali esercizi esistenti
+            if (Object.keys(exercises).length > 0) {
+                if (!confirm('Ci sono già degli esercizi. Vuoi sostituirli con gli esempi?')) {
+                    return;
+                }
+                clearAllExercises();
+            }
+
+            // Fase Analitica
+            setTimeout(() => {
+                addExercise('analitica');
+                const currentId = `exercise-${exerciseCounter}`;
+                document.getElementById(`${currentId}-title`).value = "Palleggio vs muro e rimbalzo";
+                document.getElementById(`${currentId}-duration`).value = "5'";
+                document.getElementById(`${currentId}-details`).value = "Da P1 palleggio vs 4 e poi vs 5 al rimbalzo";
+                document.getElementById(`${currentId}-notes`).value = "Introdurre";
+
+                setTimeout(() => {
+                    addExercise('analitica');
+                    const currentId2 = `exercise-${exerciseCounter}`;
+                    document.getElementById(`${currentId2}-title`).value = "Controllo in palleggio a coppie";
+                    document.getElementById(`${currentId2}-duration`).value = "5'";
+                    document.getElementById(`${currentId2}-details`).value = "Da P5 palleggio in P5/P1 con bagher in P4. Lancio del pallone a coppie su controllo in palleggio";
+                    document.getElementById(`${currentId2}-notes`).value = "Sfida";
+
+                    // Fase Sintetica
+                    setTimeout(() => {
+                        addExercise('sintetica');
+                        const currentId3 = `exercise-${exerciseCounter}`;
+                        document.getElementById(`${currentId3}-title`).value = "Circuito Braccia";
+                        document.getElementById(`${currentId3}-duration`).value = "x4 - 40''";
+                        document.getElementById(`${currentId3}-details`).value = "1. Passaggio del pallone laterale\n2. Lancio della palla medica frontale e indietro (5 e cambio)\n3. Flessioni sul primo piolo della spalliera\n4. Plank\n5. Addominali a coppie con passaggio del pallone\n6. Palleggio andata e ritorno sembra braccia alzate\n7. Deltoidi";
+                        document.getElementById(`${currentId3}-notes`).value = "Preparazione fisica superiore";
+
+                        setTimeout(() => {
+                            addExercise('sintetica');
+                            const currentId4 = `exercise-${exerciseCounter}`;
+                            document.getElementById(`${currentId4}-title`).value = "Palleggio a coppie a cavallo della rete";
+                            document.getElementById(`${currentId4}-duration`).value = "5'";
+                            document.getElementById(`${currentId4}-details`).value = "Gruppi di 3, un palleggio a testa, palleggio dentro 3 metri, uno in campo, in attesa fuori dai 3 metri, palleggio diretto";
+                            document.getElementById(`${currentId4}-notes`).value = "Sfida ai 10 punti";
+
+                            // Fase Globale
+                            setTimeout(() => {
+                                addExercise('globale');
+                                const currentId5 = `exercise-${exerciseCounter}`;
+                                document.getElementById(`${currentId5}-title`).value = "6 vs 6 con ingresso libero";
+                                document.getElementById(`${currentId5}-duration`).value = "10'";
+                                document.getElementById(`${currentId5}-details`).value = "Mini set con ingresso del pallone da libero diretto. Primo attacco vs zona 1 o 5 senza punto. Non è possibile attaccare 2 volte con lo stesso giocatore, poi azione punto. Centro sempre a disposizione";
+                                document.getElementById(`${currentId5}-notes`).value = "Mini set agli 8";
+
+                                alert('✅ Esempi di esercizi aggiunti!');
+                            }, 100);
+                        }, 100);
+                    }, 100);
+                }, 100);
+            }, 100);
+        }
+
+        function clearAllExercises() {
+            Object.keys(exercises).forEach(exerciseId => {
+                const element = document.getElementById(exerciseId);
+                if (element) element.remove();
+            });
+            exercises = {};
+            exerciseCounter = 0;
+        }
+
+        // Funzione per esportare template vuoto
+        function exportTemplate() {
+            const templateData = {
+                general: {
+                    trainingNumber: "",
+                    gym: "Crevacuore",
+                    duration: "2h",
+                    period: "Pre",
+                    objective: "",
+                    techLevel: "Medio",
+                    tacticalLevel: "Medio",
+                    trainingPercent: "100"
+                },
+                materials: {
+                    balls: "20",
+                    mats: "2",
+                    benches: "2",
+                    cones: "0"
+                },
+                staff: {
+                    coach: "Filippo",
+                    assistant: "Lisa",
+                    libero: "",
+                    players: "G2, G3, G4, G5"
+                },
+                exercises: {},
+                exerciseCounter: 0
+            };
+
+            const blob = new Blob([JSON.stringify(templateData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'template_allenamento.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            alert('📥 Template scaricato!');
+        }
+
+        // Aggiorna le azioni nella barra inferiore
+        function updateActionBar() {
+            const actionsDiv = document.querySelector('.actions');
+            actionsDiv.innerHTML = `
+                <button class="btn btn-primary" onclick="generatePreview()">👁️ Anteprima Allenamento</button>
+                <button class="btn btn-success" onclick="exportTraining()">🖨️ Stampa PDF</button>
+                <button class="btn btn-secondary" onclick="saveTraining()">💾 Salva Allenamento</button>
+                <button class="btn btn-secondary" onclick="loadTraining()">📁 Carica Allenamento</button>
+                <button class="btn btn-primary" onclick="openExerciseLibrary()">📚 Libreria Esercizi</button>
+                <button class="btn btn-primary" onclick="addSampleExercises()">📋 Esempi Esercizi</button>
+                <button class="btn btn-secondary" onclick="exportTemplate()">📥 Scarica Template</button>
+                <button class="btn btn-danger" onclick="clearAll()">🗑️ Cancella Tutto</button>
+            `;
+        }
+
+        // Funzione per validazione form
+        function validateForm() {
+            const requiredFields = ['trainingNumber', 'gym', 'duration', 'objective'];
+            const missing = [];
+
+            requiredFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (!field.value.trim()) {
+                    missing.push(fieldId);
+                    field.style.borderColor = '#dc3545';
+                } else {
+                    field.style.borderColor = '#e9ecef';
+                }
+            });
+
+            if (missing.length > 0) {
+                alert(`⚠️ Compila i campi obbligatori: ${missing.join(', ')}`);
+                return false;
+            }
+
+            return true;
+        }
+
+        // Auto-save ogni 30 secondi
+        function setupAutoSave() {
+            setInterval(() => {
+                const data = {
+                    timestamp: Date.now(),
+                    general: {
+                        trainingNumber: document.getElementById('trainingNumber').value,
+                        gym: document.getElementById('gym').value,
+                        duration: document.getElementById('duration').value,
+                        period: document.getElementById('period').value,
+                        objective: document.getElementById('objective').value
+                    }
+                };
+                
+                localStorage.setItem('volleyball_training_autosave', JSON.stringify(data));
+            }, 30000); // 30 secondi
+        }
+
+        // Inizializzazione
+        document.addEventListener('DOMContentLoaded', function() {
+            init();
+            updateActionBar();
+            setupAutoSave();
+
+            // Carica auto-save se esiste
+            const autoSave = localStorage.getItem('volleyball_training_autosave');
+            if (autoSave) {
+                const data = JSON.parse(autoSave);
+                const timeDiff = Date.now() - data.timestamp;
+                
+                // Se l'auto-save è recente (meno di 1 ora), chiedi se caricare
+                if (timeDiff < 3600000 && confirm('🔄 Trovata una bozza salvata automaticamente. Vuoi caricarla?')) {
+                    Object.keys(data.general).forEach(key => {
+                        const element = document.getElementById(key);
+                        if (element) element.value = data.general[key];
+                    });
+                }
+            }
+
+            // Aggiungi event listener per validazione in tempo reale
+            const inputs = document.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                input.addEventListener('blur', function() {
+                    if (this.value.trim()) {
+                        this.style.borderColor = '#28a745';
+                    }
+                });
+            });
+
+            console.log('🏐 Applicazione Valsesia Team Volley caricata con successo!');
+        });
+
+        // Aggiungi supporto per drag & drop dei file JSON
+        document.addEventListener('dragover', function(e) {
+            e.preventDefault();
+        });
+
+        document.addEventListener('drop', function(e) {
+            e.preventDefault();
+            const files = e.dataTransfer.files;
+            
+            if (files.length > 0 && files[0].name.endsWith('.json')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        loadTrainingData(data);
+                        alert('✅ Allenamento caricato tramite drag & drop!');
+                    } catch (error) {
+                        alert('❌ Errore nel caricamento del file!');
+                    }
+                };
+                reader.readAsText(files[0]);
+            }
+        });
+
+        // Supporto per tasti di scorciatoia
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + S = Salva
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                if (validateForm()) {
+                    saveTraining();
+                }
+            }
+            
+            // Ctrl/Cmd + P = Anteprima/Stampa
+            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                e.preventDefault();
+                if (validateForm()) {
+                    generatePreview();
+                }
+            }
+            
+            // Ctrl/Cmd + N = Nuovo (Cancella tutto)
+            if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+                e.preventDefault();
+                clearAll();
+            }
+        });
+    </script>
+</body>
+</html>
