@@ -6,7 +6,8 @@
 <title>Editor con libreria di componenti</title>
 <style>
     body{font-family:Arial,Helvetica,sans-serif;margin:0;display:flex;justify-content:center;align-items:center;height:100vh;background:#f0f0f0}
-    .container{display:flex;width:92%;height:92%;border:1px solid #ccc;box-shadow:0 0 10px rgba(0,0,0,.1);background:#fff;position:relative}
+    .container{display:flex;flex-direction: column;width:92%;height:92%;border:1px solid #ccc;box-shadow:0 0 10px rgba(0,0,0,.1);background:#fff;position:relative}
+    .main-content { display: flex; flex-grow: 1; position: relative; padding-top: 10px; }
     .sidebar{width:200px;padding:20px;background:#f9f9f9;border-right:1px solid #ccc;flex-shrink:0;overflow-y:auto}
     .object-category{margin-bottom:10px}
     .category-header{padding:10px;background:#e0e0e0;cursor:pointer;font-weight:bold;border-radius:5px;transition:background-color .2s}
@@ -14,9 +15,12 @@
     .category-content{display:none;padding:10px 0;border:1px solid #ccc;border-top:none;border-radius:0 0 5px 5px}
     .category-content.active{display:flex;flex-wrap:wrap;gap:5px;padding:10px}
     .object{padding:8px;border:1px solid #ddd;cursor:grab;text-align:center;background:#e9e9e9;border-radius:5px;flex-basis:calc(50% - 5px);box-sizing:border-box;font-size:12px}
-    .canvas{flex-grow:1;position:relative;overflow:hidden;background-color: transparent;}
-    .canvas-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform-origin: top left; }
+    .canvas-wrapper{flex-grow:1;position:relative;overflow:hidden;}
+    .canvas-page { flex-grow: 1; position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; }
+    .canvas-page.active { display: block; }
+    .canvas{position:relative;width:100%;height:100%; background-color: transparent;}
     .canvas.grayscale { filter: grayscale(100%); }
+    .canvas-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform-origin: top left; }
     #connection-layer{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
     .dropped-object{position:absolute;border:2px solid transparent;cursor:move;display:flex;justify-content:center;align-items:center;font-weight:bold;font-size:14px;text-align:center;box-sizing:border-box;pointer-events:all}
     .dropped-object.selected{border:2px dashed #007bff}
@@ -75,7 +79,7 @@
     .file-controls input[type="text"] {
         width: 150px;
     }
-	
+    
     .player-object{
         background-color: #007bff;
         border-radius: 50%;
@@ -152,7 +156,7 @@
         width: 60px;
         height: 60px;
         background: transparent;
-        border: 3px solid #ff8c00; /* Arancione per l'anello */
+        border: 3px solid #ff8c00;
         border-radius: 50%;
         position: relative;
     }
@@ -173,7 +177,7 @@
     .plinth-object {
         width: 60px;
         height: 40px;
-        background-color: #8b4513; /* Colore legno scuro */
+        background-color: #8b4513;
         border: 2px solid #5c3317;
         position: relative;
         clip-path: polygon(20% 0, 80% 0, 100% 100%, 0% 100%);
@@ -200,7 +204,7 @@
     .whistle-object {
         width: 50px;
         height: 20px;
-        background-color: #333; /* Nero per il corpo */
+        background-color: #333;
         position: relative;
         border-radius: 5px;
     }
@@ -341,120 +345,186 @@
     .dropdown.active .dropdown-content {
         display: block;
     }
+
+    .tabs {
+        display: flex;
+        gap: 2px;
+        align-items: flex-end;
+        padding: 5px 10px 0;
+        background-color: #f0f0f0;
+        border-bottom: 1px solid #ccc;
+        box-sizing: border-box;
+        overflow-x: auto;
+        white-space: nowrap;
+        min-height: 40px;
+    }
+    .tab-btn {
+        padding: 8px 15px;
+        border: 1px solid #ccc;
+        border-bottom: none;
+        background-color: #e0e0e0;
+        cursor: pointer;
+        border-radius: 5px 5px 0 0;
+        font-size: 14px;
+        font-weight: bold;
+        transition: background-color 0.2s;
+        min-width: 120px;
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        position: relative;
+    }
+    .tab-btn.active {
+        background-color: #fff;
+        border-top: 2px solid #007bff;
+        border-bottom: 1px solid #fff;
+        margin-top: -1px;
+    }
+    .tab-btn:hover {
+        background-color: #d0d0d0;
+    }
+    .tab-btn.active:hover {
+        background-color: #fff;
+    }
+    #add-tab-btn {
+        font-size: 24px;
+        padding: 4px 10px;
+        border-radius: 50%;
+        border: 1px solid #ccc;
+        background-color: #e0e0e0;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    .close-tab-btn {
+        position: absolute;
+        top: 2px;
+        right: 5px;
+        font-size: 10px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #888;
+        font-weight: bold;
+    }
 </style>
 </head>
 <body>
 <div class="container">
-    <div class="sidebar">
-        <h3>Libreria Componenti</h3>
-        <div class="object-category">
-            <div class="category-header">Giocatori</div>
-            <div class="category-content" data-category="giocatori">
-                <div class="object" draggable="true" data-shape="player" data-text="L1">L1</div>
-                <div class="object" draggable="true" data-shape="player" data-text="L2">L2</div>
-                <div class="object" draggable="true" data-shape="player" data-text="S1">S1</div>
-                <div class="object" draggable="true" data-shape="player" data-text="S2">S2</div>
-                <div class="object" draggable="true" data-shape="player" data-text="C1">C1</div>
-                <div class="object" draggable="true" data-shape="player" data-text="C2">C2</div>
-                <div class="object" draggable="true" data-shape="player" data-text="O">O</div>
-                <div class="object" draggable="true" data-shape="player" data-text="P">P</div>
-                <div class="object" draggable="true" data-shape="player" data-text="All">All</div>
-                <div class="object" draggable="true" data-shape="player" data-text="Extra">Extra</div>
-            </div>
-        </div>
-
-        <div class="object-category">
-            <div class="category-header">Materiale</div>
-            <div class="category-content" data-category="materiale">
-                <div class="object" draggable="true" data-shape="mat" data-text="Tappetino">Tappetino</div>
-                <div class="object" draggable="true" data-shape="ball-cart" data-text="">Carrello palloni</div>
-                <div class="object" draggable="true" data-shape="ball" data-text="">pallone</div>
-                <div class="object" draggable="true" data-shape="whistle" data-text="fischietto">fischietto</div>
-                <div class="object" draggable="true" data-shape="plinth" data-text="">plinto</div>
-                <div class="object" draggable="true" data-shape="net" data-text="">rete</div>
-                <div class="object" draggable="true" data-shape="cone" data-text="">cinesino</div>
-                <div class="object" draggable="true" data-shape="hoop" data-text="">canestro</div>
-                <div class="object" draggable="true" data-shape="hoop-side" data-text="">canestro fr</div>
-                <div class="object" draggable="true" data-shape="square" data-text="tappetone">tappetone</div>
-                <div class="object" draggable="true" data-shape="wall" data-text="">muro palestra</div>
-                <div class="object" draggable="true" data-shape="timer" data-text="00:00">timer</div>
-                <div class="object" draggable="true" data-shape="arrow" data-text="">freccia</div>
-            </div>
-        </div>
-        
-        <div class="object-category">
-            <div class="category-header">Strumenti</div>
-            <div class="category-content" data-category="strumenti">
-                <div class="tool-btn active" data-tool="curved">Freccia Curva</div>
-                <div class="tool-btn" data-tool="linear">Freccia Lineare</div>
-                <div class="tool-btn" data-tool="zigzag">Freccia a Zigzag</div>
-            </div>
-        </div>
-
-        <div class="object-category">
-            <div class="category-header">Campi</div>
-            <div class="category-content" data-category="campi">
-                <div class="object" draggable="true" data-shape="square" data-text="Singolo">Singolo</div>
-                <div class="object" draggable="true" data-shape="square" data-text="Completo">Completo</div>
-                <div class="object" draggable="true" data-shape="3D">3D</div>
-            </div>
-        </div>
-
-        <div class="object-category">
-            <div class="category-header">Corpo</div>
-            <div class="category-content" data-category="corpo">
-                <div class="object" draggable="true" data-shape="square" data-text="Mani">Mani</div>
-                <div class="object" draggable="true" data-shape="square" data-text="bagher">bagher</div>
-                <div class="object" draggable="true" data-shape="square" data-text="palleggio">palleggio</div>
-                <div class="object" draggable="true" data-shape="square" data-text="schiacciata">schiacciata</div>
-                <div class="object" draggable="true" data-shape="square" data-text="difesa">difesa</div>
-                <div class="object" draggable="true" data-shape="square" data-text="ricezione">ricezione</div>
-                <div class="object" draggable="true" data-shape="square" data-text="servizio">servizio</div>
-            </div>
-        </div>
-
-        <div class="object-category">
-            <div class="category-header">Testo</div>
-            <div class="category-content" data-category="testo">
-                <div class="object" draggable="true" data-shape="text-box" data-text="Note">Note</div>
-            </div>
-        </div>
-        
-        <div class="object-category">
-            <div class="category-header">Dettagli</div>
-            <div class="category-content" data-category="details">
-                <div class="object" draggable="true" data-shape="text-box" data-text="x1">x1</div>
-                <div class="object" draggable="true" data-shape="text-box" data-text="x2">x2</div>
-                <div class="object" draggable="true" data-shape="text-box" data-text="x3">x3</div>
-                <div class="object" draggable="true" data-shape="text-box" data-text="x4">x4</div>
-                <div class="object" draggable="true" data-shape="text-box" data-text="10''">10''</div>
-                <div class="object" draggable="true" data-shape="text-box" data-text="20''">20''</div>
-                <div class="object" draggable="true" data-shape="text-box" data-text="30''">30''</div>
-                <div class="object" draggable="true" data-shape="text-box" data-text="40''">40''</div>
-                <div class="object" draggable="true" data-shape="text-box" data-text="50''">50''</div>
-                <div class="object" draggable="true" data-shape="text-box" data-text="1'">1'</div>
-                <div class="object" draggable="true" data-shape="text-box" data-text="10'">10'</div>
-                <div class="object" draggable="true" data-shape="text-box" data-text="20'">20'</div>
-                <div class="object" draggable="true" data-shape="text-box" data-text="30'">30'</div>
-                <div class="object" draggable="true" data-shape="text-box" data-text="x2S">x2S</div>
-                <div class="object" draggable="true" data-shape="text-box" data-text="x4S">x4S</div>
-            </div>
-        </div>
-
-        <div style="margin-top:18px">
-            <strong>Shortcuts</strong>
-            <div>Delete → elimina</div>
-            <div>Ctrl+Z → undo</div>
-            <div>Ctrl+Y → redo</div>
-        </div>
-
-        <div style="margin-top:18px">
-            <strong>Descrizione Esercizio</strong>
-            <textarea id="exercise-description" placeholder="Inserisci la descrizione dell'esercizio..." style="width:100%; height:100px; padding:5px; box-sizing:border-box;"></textarea>
-        </div>
+    <div class="tabs">
+        <button id="add-tab-btn">+</button>
     </div>
+    <div class="main-content">
+        <div class="sidebar">
+            <h3>Libreria Componenti</h3>
+            <div class="object-category">
+                <div class="category-header">Giocatori</div>
+                <div class="category-content" data-category="giocatori">
+                    <div class="object" draggable="true" data-shape="player" data-text="L1">L1</div>
+                    <div class="object" draggable="true" data-shape="player" data-text="L2">L2</div>
+                    <div class="object" draggable="true" data-shape="player" data-text="S1">S1</div>
+                    <div class="object" draggable="true" data-shape="player" data-text="S2">S2</div>
+                    <div class="object" draggable="true" data-shape="player" data-text="C1">C1</div>
+                    <div class="object" draggable="true" data-shape="player" data-text="C2">C2</div>
+                    <div class="object" draggable="true" data-shape="player" data-text="O">O</div>
+                    <div class="object" draggable="true" data-shape="player" data-text="P">P</div>
+                    <div class="object" draggable="true" data-shape="player" data-text="All">All</div>
+                    <div class="object" draggable="true" data-shape="player" data-text="Extra">Extra</div>
+                </div>
+            </div>
 
-    <div class="canvas" id="canvas">
+            <div class="object-category">
+                <div class="category-header">Materiale</div>
+                <div class="category-content" data-category="materiale">
+                    <div class="object" draggable="true" data-shape="mat" data-text="Tappetino">Tappetino</div>
+                    <div class="object" draggable="true" data-shape="ball-cart" data-text="">Carrello palloni</div>
+                    <div class="object" draggable="true" data-shape="ball" data-text="">pallone</div>
+                    <div class="object" draggable="true" data-shape="whistle" data-text="fischietto">fischietto</div>
+                    <div class="object" draggable="true" data-shape="plinth" data-text="">plinto</div>
+                    <div class="object" draggable="true" data-shape="net" data-text="">rete</div>
+                    <div class="object" draggable="true" data-shape="cone" data-text="">cinesino</div>
+                    <div class="object" draggable="true" data-shape="hoop" data-text="">canestro</div>
+                    <div class="object" draggable="true" data-shape="hoop-side" data-text="">canestro fr</div>
+                    <div class="object" draggable="true" data-shape="square" data-text="tappetone">tappetone</div>
+                    <div class="object" draggable="true" data-shape="wall" data-text="">muro palestra</div>
+                    <div class="object" draggable="true" data-shape="timer" data-text="00:00">timer</div>
+                    <div class="object" draggable="true" data-shape="arrow" data-text="">freccia</div>
+                </div>
+            </div>
+            
+            <div class="object-category">
+                <div class="category-header">Strumenti</div>
+                <div class="category-content" data-category="strumenti">
+                    <div class="tool-btn active" data-tool="curved">Freccia Curva</div>
+                    <div class="tool-btn" data-tool="linear">Freccia Lineare</div>
+                    <div class="tool-btn" data-tool="zigzag">Freccia a Zigzag</div>
+                </div>
+            </div>
+
+            <div class="object-category">
+                <div class="category-header">Campi</div>
+                <div class="category-content" data-category="campi">
+                    <div class="object" draggable="true" data-shape="square" data-text="Singolo">Singolo</div>
+                    <div class="object" draggable="true" data-shape="square" data-text="Completo">Completo</div>
+                    <div class="object" draggable="true" data-shape="3D">3D</div>
+                </div>
+            </div>
+
+            <div class="object-category">
+                <div class="category-header">Corpo</div>
+                <div class="category-content" data-category="corpo">
+                    <div class="object" draggable="true" data-shape="square" data-text="Mani">Mani</div>
+                    <div class="object" draggable="true" data-shape="square" data-text="bagher">bagher</div>
+                    <div class="object" draggable="true" data-shape="square" data-text="palleggio">palleggio</div>
+                    <div class="object" draggable="true" data-shape="square" data-text="schiacciata">schiacciata</div>
+                    <div class="object" draggable="true" data-shape="square" data-text="difesa">difesa</div>
+                    <div class="object" draggable="true" data-shape="square" data-text="ricezione">ricezione</div>
+                    <div class="object" draggable="true" data-shape="square" data-text="servizio">servizio</div>
+                </div>
+            </div>
+
+            <div class="object-category">
+                <div class="category-header">Testo</div>
+                <div class="category-content" data-category="testo">
+                    <div class="object" draggable="true" data-shape="text-box" data-text="Note">Note</div>
+                </div>
+            </div>
+            
+            <div class="object-category">
+                <div class="category-header">Dettagli</div>
+                <div class="category-content" data-category="details">
+                    <div class="object" draggable="true" data-shape="text-box" data-text="x1">x1</div>
+                    <div class="object" draggable="true" data-shape="text-box" data-text="x2">x2</div>
+                    <div class="object" draggable="true" data-shape="text-box" data-text="x3">x3</div>
+                    <div class="object" draggable="true" data-shape="text-box" data-text="x4">x4</div>
+                    <div class="object" draggable="true" data-shape="text-box" data-text="10''">10''</div>
+                    <div class="object" draggable="true" data-shape="text-box" data-text="20''">20''</div>
+                    <div class="object" draggable="true" data-shape="text-box" data-text="30''">30''</div>
+                    <div class="object" draggable="true" data-shape="text-box" data-text="40''">40''</div>
+                    <div class="object" draggable="true" data-shape="text-box" data-text="50''">50''</div>
+                    <div class="object" draggable="true" data-shape="text-box" data-text="1'">1'</div>
+                    <div class="object" draggable="true" data-shape="text-box" data-text="10'">10'</div>
+                    <div class="object" draggable="true" data-shape="text-box" data-text="20'">20'</div>
+                    <div class="object" draggable="true" data-shape="text-box" data-text="30'">30'</div>
+                    <div class="object" draggable="true" data-shape="text-box" data-text="x2S">x2S</div>
+                    <div class="object" draggable="true" data-shape="text-box" data-text="x4S">x4S</div>
+                </div>
+            </div>
+
+            <div style="margin-top:18px">
+                <strong>Shortcuts</strong>
+                <div>Delete → elimina</div>
+                <div>Ctrl+Z → undo</div>
+                <div>Ctrl+Y → redo</div>
+            </div>
+
+            <div style="margin-top:18px">
+                <strong>Descrizione Esercizio</strong>
+                <textarea id="exercise-description" placeholder="Inserisci la descrizione dell'esercizio..." style="width:100%; height:100px; padding:5px; box-sizing:border-box;"></textarea>
+            </div>
+        </div>
+        <div class="canvas-wrapper" id="canvas-wrapper">
+            </div>
         <div class="top-controls">
             <select id="background-selector">
                 <option value="none">Trasparente</option>
@@ -504,21 +574,11 @@
             <label for="file-input">Carica Disegno:</label>
             <input type="file" id="file-input" accept=".json">
         </div>
-        <div class="canvas-container" id="canvas-container">
-            <svg id="background-layer" class="background-container"></svg>
-            <svg id="connection-layer">
-                <defs>
-                    <marker id="arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#333" />
-                    </marker>
-                </defs>
-            </svg>
-        </div>
-    </div>
 
-    <div class="controls" id="object-controls">
-        <label for="color-picker">Colore:</label>
-        <input type="color" id="color-picker" value="#4682b4">
+        <div class="controls" id="object-controls">
+            <label for="color-picker">Colore:</label>
+            <input type="color" id="color-picker" value="#4682b4">
+        </div>
     </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -528,50 +588,34 @@
 document.addEventListener('DOMContentLoaded', () => {
     const sidebarObjects = document.querySelectorAll('.object');
     const categoryHeaders = document.querySelectorAll('.category-header');
-    const canvas = document.getElementById('canvas');
-    const canvasContainer = document.getElementById('canvas-container');
-    const svg = document.getElementById('connection-layer');
-    const backgroundSvg = document.getElementById('background-layer');
+    const canvasWrapper = document.getElementById('canvas-wrapper');
     const controls = document.getElementById('object-controls');
     const colorPicker = document.getElementById('color-picker');
-    const backgroundSelector = document.getElementById('background-selector');
-    const zoomInBtn = document.getElementById('zoom-in-btn');
-    const zoomOutBtn = document.getElementById('zoom-out-btn');
-    const zoomLevelSpan = document.getElementById('zoom-level');
-    const toggleGridBtn = document.getElementById('toggle-grid-btn');
-    const saveBtn = document.getElementById('save-btn');
+    const addTabBtn = document.getElementById('add-tab-btn');
+    const tabsContainer = document.querySelector('.tabs');
     const fileInput = document.getElementById('file-input');
-    const drawingTitleInput = document.getElementById('drawing-title');
-    const drawingCategorySelect = document.getElementById('drawing-category');
-    const drawingTypologySelect = document.getElementById('drawing-typology');
-    const exerciseDescriptionTextarea = document.getElementById('exercise-description');
+    const saveBtn = document.getElementById('save-btn');
     const toolButtons = document.querySelectorAll('.tool-btn');
-    const bwToggle = document.getElementById('bw-toggle');
-    const exportBtn = document.querySelector('.export-btn');
-    const exportPngBtn = document.getElementById('export-png-btn');
-    const exportJpgBtn = document.getElementById('export-jpg-btn');
-    const exportPdfBtn = document.getElementById('export-pdf-btn');
     const exportDropdown = document.querySelector('.dropdown');
-
-    let selectedObject = null;
-    let selectedLine = null;
-    let isDragging = false, isResizing = false, isRotating = false, isConnecting = false, isDraggingCurve = false;
-    let startX = 0, startY = 0, dragOffsetX = 0, dragOffsetY = 0;
-    let startWidth = 0, startHeight = 0, startAngle = 0;
-    let currentLine = null, startNode = null;
-    let zoomLevel = 1.0;
-    let isGridEnabled = false;
-    let isGrayscaleEnabled = false;
-    let currentArrowType = 'curved'; // New state variable
-
-    let connections = [];
-    let undoStack = [], redoStack = [];
-
-    const defaultCurveOffset = { x: 0, y: 0 };
+    
+    let allDrawings = [];
+    let activeDrawingIndex = -1;
+    let currentArrowType = 'curved';
 
     function uid(prefix='o'){ return prefix + '-' + Date.now().toString(36) + '-' + Math.floor(Math.random()*1000) }
 
-    function getCanvasRect(){ return canvasContainer.getBoundingClientRect() }
+    function getActiveCanvasPage() {
+        return canvasWrapper.querySelector('.canvas-page.active');
+    }
+    
+    function getActiveState() {
+        if (activeDrawingIndex === -1) return null;
+        return allDrawings[activeDrawingIndex];
+    }
+    
+    function getCanvasRect(canvasPage) {
+        return canvasPage.querySelector('.canvas-container').getBoundingClientRect();
+    }
 
     function parsePos(val){
         if(val === undefined || val === null || val === '') return 0;
@@ -597,21 +641,21 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'triangle': return '#3cb371';
             case 'text-box': return '#000';
             case 'arrow': return '#333';
-            case '3D': return '#4682b4'; // Assumi un colore per la rappresentazione 3D se necessario
-            default: return '#4682b4'; // Colore di fallback
+            case '3D': return '#4682b4';
+            default: return '#4682b4';
         }
     }
 
-    function createObjectElement(model){
+    function createObjectElement(model, canvasContainer){
         const newObject = document.createElement('div');
         newObject.className = `dropped-object ${model.shape}-object`;
         newObject.id = model.id;
-        newObject.style.left = (model.x || 0) + 'px';
-        newObject.style.top = (model.y || 0) + 'px';
         
         if (model.width) newObject.style.width = model.width + 'px';
         if (model.height) newObject.style.height = model.height + 'px';
-        if (model.rotation) newObject.style.transform = `rotate(${model.rotation}deg)`;
+        newObject.style.left = (model.x || 0) + 'px';
+        newObject.style.top = (model.y || 0) + 'px';
+        newObject.style.transform = `rotate(${model.rotation || 0}deg)`;
 
         if (model.shape === 'triangle'){
             newObject.style.borderBottomColor = model.color || getInitialColor(model.shape);
@@ -644,171 +688,139 @@ document.addEventListener('DOMContentLoaded', () => {
         return newObject;
     }
 
-    function serializeState(){
-        const objs = [];
-        canvasContainer.querySelectorAll('.dropped-object').forEach(el=>{
-            const shape = Array.from(el.classList).find(c=>c.endsWith('-object') && !c.includes('dropped')).replace('-object','');
-            objs.push({
-                id: el.id,
-                shape,
-                x: parsePos(el.style.left || getComputedStyle(el).left),
-                y: parsePos(el.style.top || getComputedStyle(el).top),
-                width: el.style.width ? parsePos(el.style.width) : (el.offsetWidth || undefined),
-                height: el.style.height ? parsePos(el.style.height) : (el.offsetHeight || undefined),
-                text: (el.querySelector('.object-text')?.textContent) || '',
-                color: el.style.color || el.style.backgroundColor || getComputedStyle(el).borderBottomColor || '',
-                rotation: el.style.transform.includes('rotate') ? parseFloat(el.style.transform.replace(/[^0-9-.]/g, '')) || 0 : 0
-            });
-        });
-
-        const conns = connections.map(c => ({
-            startId: c.startId,
-            startPos: c.startPos,
-            endId: c.endId,
-            endPos: c.endPos,
-            curveOffset: c.curveOffset,
-            arrowType: c.arrowType // Save arrow type
-        }));
-
-        const background = backgroundSelector.value;
-        const zoom = zoomLevel;
-        const grid = isGridEnabled;
-        const grayscale = isGrayscaleEnabled;
-        const title = drawingTitleInput.value;
-        const category = drawingCategorySelect.value;
-        const typology = drawingTypologySelect.value;
-        const description = exerciseDescriptionTextarea.value;
-
-
-        return { objects: objs, connections: conns, background, zoom, grid, grayscale, title, category, typology, description };
-    }
-
-    function restoreState(snapshot){
-        const defs = svg.querySelector('defs');
-        const defsClone = defs ? defs.cloneNode(true) : null;
-
+    function restoreState(drawingState, canvasPage){
+        const canvasContainer = canvasPage.querySelector('.canvas-container');
+        const svg = canvasPage.querySelector('#connection-layer');
+        const controls = document.getElementById('object-controls');
+        
         canvasContainer.querySelectorAll('.dropped-object').forEach(el=>el.remove());
         while(svg.firstChild) svg.removeChild(svg.firstChild);
-        if (defsClone) svg.appendChild(defsClone);
+        
+        const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+        const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+        marker.id = 'arrowhead';
+        marker.setAttribute('viewBox', '0 0 10 10');
+        marker.setAttribute('refX', '8');
+        marker.setAttribute('refY', '5');
+        marker.setAttribute('markerWidth', '6');
+        marker.setAttribute('markerHeight', '6');
+        marker.setAttribute('orient', 'auto-start-reverse');
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
+        path.setAttribute('fill', '#333');
+        marker.appendChild(path);
+        defs.appendChild(marker);
+        svg.appendChild(defs);
 
         canvasContainer.querySelectorAll('.curve-handle').forEach(el => el.remove());
 
-        connections = [];
-
-        snapshot.objects.forEach(m=>{
-            createObjectElement(m);
+        drawingState.objects.forEach(m=>{
+            createObjectElement(m, canvasContainer);
         });
 
-        snapshot.connections.forEach(c=>{
-            const startParent = document.getElementById(c.startId);
-            const endParent = document.getElementById(c.endId);
-            if (!startParent || !endParent) return;
-            const startNode = Array.from(startParent.querySelectorAll('.connection-node')).find(n=>n.dataset.pos===c.startPos);
-            const endNode = Array.from(endParent.querySelectorAll('.connection-node')).find(n=>n.dataset.pos===c.endPos);
-            if (!startNode || !endNode) return;
+        drawingState.connections.forEach(c => {
             const path = document.createElementNS('http://www.w3.org/2000/svg','path');
             path.setAttribute('class','connection-line');
             path.setAttribute('pointer-events','stroke');
-            path.dataset.startId = c.startId;
-            path.dataset.startPos = c.startPos;
-            path.dataset.endId = c.endId;
-            path.dataset.endPos = c.endPos;
             path.setAttribute('fill', 'none');
             path.setAttribute('stroke', '#333');
             path.setAttribute('marker-end', 'url(#arrowhead)');
             svg.appendChild(path);
+            c.lineElement = path;
 
-            let curveHandle = null;
-            if (c.arrowType === 'curved' && c.curveOffset) {
-                curveHandle = document.createElement('div');
+            if (c.arrowType === 'curved') {
+                const curveHandle = document.createElement('div');
                 curveHandle.className = 'curve-handle';
+                curveHandle.dataset.connId = c.id;
                 canvasContainer.appendChild(curveHandle);
+                c.curveHandle = curveHandle;
             }
-            
-            connections.push({
-                startId: c.startId, 
-                startPos: c.startPos, 
-                endId: c.endId, 
-                endPos: c.endPos, 
-                lineElement: path, 
-                startNode, 
-                endNode, 
-                curveHandle, 
-                curveOffset: c.curveOffset || defaultCurveOffset,
-                arrowType: c.arrowType || 'curved'
-            });
         });
 
-        if (snapshot.background) {
-            backgroundSelector.value = snapshot.background;
-            updateBackground();
+        const backgroundSelector = document.getElementById('background-selector');
+        const toggleGridBtn = document.getElementById('toggle-grid-btn');
+        const bwToggle = document.getElementById('bw-toggle');
+        const drawingTitleInput = document.getElementById('drawing-title');
+        const drawingCategorySelect = document.getElementById('drawing-category');
+        const drawingTypologySelect = document.getElementById('drawing-typology');
+        const exerciseDescriptionTextarea = document.getElementById('exercise-description');
+
+        if (drawingState.background) {
+            backgroundSelector.value = drawingState.background;
+            updateBackground(canvasPage);
         }
-        if (snapshot.zoom) {
-            zoomLevel = snapshot.zoom;
-            updateZoom();
+        if (drawingState.zoom) {
+            drawingState.zoomLevel = drawingState.zoom;
+            updateZoom(canvasPage);
         }
-        if (snapshot.grid !== undefined) {
-            isGridEnabled = snapshot.grid;
-            if (isGridEnabled) {
-                canvas.classList.add('canvas-grid');
+        if (drawingState.grid !== undefined) {
+            drawingState.isGridEnabled = drawingState.grid;
+            if (drawingState.isGridEnabled) {
+                canvasPage.querySelector('.canvas').classList.add('canvas-grid');
                 toggleGridBtn.textContent = 'Griglia ON';
             } else {
-                canvas.classList.remove('canvas-grid');
+                canvasPage.querySelector('.canvas').classList.remove('canvas-grid');
                 toggleGridBtn.textContent = 'Griglia OFF';
             }
         }
-        if (snapshot.grayscale !== undefined) {
-            isGrayscaleEnabled = snapshot.grayscale;
-            bwToggle.checked = isGrayscaleEnabled;
-            if (isGrayscaleEnabled) {
-                canvas.classList.add('grayscale');
+        if (drawingState.grayscale !== undefined) {
+            drawingState.isGrayscaleEnabled = drawingState.grayscale;
+            bwToggle.checked = drawingState.isGrayscaleEnabled;
+            if (drawingState.isGrayscaleEnabled) {
+                canvasPage.querySelector('.canvas').classList.add('grayscale');
             } else {
-                canvas.classList.remove('grayscale');
+                canvasPage.querySelector('.canvas').classList.remove('grayscale');
             }
         }
-        if (snapshot.title !== undefined) {
-            drawingTitleInput.value = snapshot.title;
+        if (drawingState.title !== undefined) {
+            drawingTitleInput.value = drawingState.title;
         }
-        if (snapshot.category !== undefined) {
-            drawingCategorySelect.value = snapshot.category;
+        if (drawingState.category !== undefined) {
+            drawingCategorySelect.value = drawingState.category;
         }
-        if (snapshot.typology !== undefined) {
-            drawingTypologySelect.value = snapshot.typology;
+        if (drawingState.typology !== undefined) {
+            drawingTypologySelect.value = drawingState.typology;
         }
-        if (snapshot.description !== undefined) {
-            exerciseDescriptionTextarea.value = snapshot.description;
+        if (drawingState.description !== undefined) {
+            exerciseDescriptionTextarea.value = drawingState.description;
         }
 
-        updateConnections();
+        updateConnections(drawingState, canvasPage);
     }
-
+    
     function saveState(pushToUndo=true){
-        const snapshot = serializeState();
-        if (pushToUndo){
-            undoStack.push(JSON.stringify(snapshot));
-            if (undoStack.length > 100) undoStack.shift();
-            redoStack = [];
+        const activeState = getActiveState();
+        if (!activeState) return;
+        
+        if (pushToUndo) {
+            const stateToSave = { ...activeState, objects: [...activeState.objects], connections: [...activeState.connections.map(c => ({...c, lineElement: null, startNode: null, endNode: null, curveHandle: null}))] };
+            activeState.undoStack.push(JSON.stringify(stateToSave));
+            if (activeState.undoStack.length > 100) activeState.undoStack.shift();
+            activeState.redoStack = [];
         }
     }
 
     function doUndo(){
-        if (undoStack.length <= 1) return;
-        const top = undoStack.pop();
-        redoStack.push(top);
-        const prev = undoStack[undoStack.length-1];
-        if (prev) restoreState(JSON.parse(prev));
+        const activeState = getActiveState();
+        if (!activeState || activeState.undoStack.length <= 1) return;
+        const top = activeState.undoStack.pop();
+        activeState.redoStack.push(top);
+        const prev = activeState.undoStack[activeState.undoStack.length-1];
+        if (prev) restoreState(JSON.parse(prev), getActiveCanvasPage());
     }
 
     function doRedo(){
-        if (redoStack.length === 0) return;
-        const next = redoStack.pop();
-        undoStack.push(next);
-        restoreState(JSON.parse(next));
+        const activeState = getActiveState();
+        if (!activeState || activeState.redoStack.length === 0) return;
+        const next = activeState.redoStack.pop();
+        activeState.undoStack.push(next);
+        restoreState(JSON.parse(next), getActiveCanvasPage());
     }
-
-    function getNodeCenterByIds(parentEl, nodeEl){
+    
+    function getNodeCenter(nodeEl, canvasPage){
+        const parentEl = nodeEl.parentElement;
         const parentRect = parentEl.getBoundingClientRect();
-        const canvasRect = getCanvasRect();
+        const canvasRect = getCanvasRect(canvasPage);
         let x = parentRect.left - canvasRect.left;
         let y = parentRect.top - canvasRect.top;
         const w = parentRect.width;
@@ -839,37 +851,23 @@ document.addEventListener('DOMContentLoaded', () => {
         return path.join(' ');
     }
 
-    function updateConnections(){
-        for (let i = connections.length - 1; i >= 0; i--) {
-            const c = connections[i];
-            const startParent = document.getElementById(c.startId);
-            const endParent = document.getElementById(c.endId);
+    function updateConnections(drawingState, canvasPage){
+        const canvasContainer = canvasPage.querySelector('.canvas-container');
+        drawingState.connections.forEach(c => {
+            const startParent = canvasContainer.querySelector(`#${c.startId}`);
+            const endParent = canvasContainer.querySelector(`#${c.endId}`);
+            const startNode = startParent ? startParent.querySelector(`.connection-node[data-pos="${c.startPos}"]`) : null;
+            const endNode = endParent ? endParent.querySelector(`.connection-node[data-pos="${c.endPos}"]`) : null;
 
-            if (!startParent || !endParent) {
-                if (c.lineElement && c.lineElement.parentNode === svg) svg.removeChild(c.lineElement);
-                if (c.curveHandle && c.curveHandle.parentNode === canvasContainer) canvasContainer.removeChild(c.curveHandle);
-                if (selectedLine && c.lineElement === selectedLine) selectedLine = null;
-                connections.splice(i, 1);
-                continue;
+            if (!startParent || !endParent || !startNode || !endNode) {
+                if (c.lineElement && c.lineElement.parentNode) c.lineElement.remove();
+                if (c.curveHandle && c.curveHandle.parentNode) c.curveHandle.remove();
+                c.isDeleted = true;
+                return;
             }
 
-            if (!c.startNode) c.startNode = startParent.querySelector(`.connection-node[data-pos="${c.startPos}"]`);
-            if (!c.endNode) c.endNode = endParent.querySelector(`.connection-node[data-pos="${c.endPos}"]`);
-            if (!c.startNode || !c.endNode) continue;
-
-            const s = getNodeCenterByIds(startParent, c.startNode);
-            const e = getNodeCenterByIds(endParent, c.endNode);
-
-            if (!c.lineElement){
-                const path = document.createElementNS('http://www.w3.org/2000/svg','path');
-                path.setAttribute('class','connection-line');
-                path.setAttribute('pointer-events','stroke');
-                path.setAttribute('fill', 'none');
-                path.setAttribute('stroke', '#333');
-                path.setAttribute('marker-end', 'url(#arrowhead)');
-                c.lineElement = path;
-                svg.appendChild(path);
-            }
+            const s = getNodeCenter(startNode, canvasPage);
+            const e = getNodeCenter(endNode, canvasPage);
             
             let d = '';
             let showHandle = false;
@@ -883,11 +881,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     const cp = { x: midpoint.x + (c.curveOffset?.x || 0), y: midpoint.y + (c.curveOffset?.y || 0) };
                     d = `M ${s.x} ${s.y} Q ${cp.x} ${cp.y} ${e.x} ${e.y}`;
                     c.lineElement.dataset.curveHandlePos = `${cp.x},${cp.y}`;
-                    c.lineElement.dataset.connIndex = i;
                     if (!c.curveHandle) {
-                        c.curveHandle = document.createElement('div');
-                        c.curveHandle.className = 'curve-handle';
-                        canvasContainer.appendChild(c.curveHandle);
+                        const curveHandle = document.createElement('div');
+                        curveHandle.className = 'curve-handle';
+                        curveHandle.dataset.connId = c.id;
+                        canvasContainer.appendChild(curveHandle);
+                        c.curveHandle = curveHandle;
                     }
                     c.curveHandle.style.left = `${cp.x - 5}px`;
                     c.curveHandle.style.top = `${cp.y - 5}px`;
@@ -901,78 +900,69 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (c.curveHandle) {
                 c.curveHandle.style.display = showHandle ? 'block' : 'none';
-                c.curveHandle.dataset.connIndex = i;
             }
-        }
+        });
+        drawingState.connections = drawingState.connections.filter(c => !c.isDeleted);
     }
     
-    // New accordion logic
     categoryHeaders.forEach(header => {
         header.addEventListener('click', () => {
             const content = header.nextElementSibling;
             const wasActive = content.classList.contains('active');
             
-            // Close all
             document.querySelectorAll('.category-content').forEach(c => c.classList.remove('active'));
             
-            // Open clicked one if it was not active
             if (!wasActive) {
                 content.classList.add('active');
             }
         });
     });
 
-    // New tool button logic
-    toolButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            toolButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            currentArrowType = btn.dataset.tool;
-        });
-    });
-
-    bwToggle.addEventListener('change', () => {
-        isGrayscaleEnabled = bwToggle.checked;
-        if (isGrayscaleEnabled) {
-            canvas.classList.add('grayscale');
-        } else {
-            canvas.classList.remove('grayscale');
-        }
-        saveState();
-    });
-
-    sidebarObjects.forEach(obj=>{
-        obj.addEventListener('dragstart', e=>{
-            e.dataTransfer.setData('text/plain', JSON.stringify({
+    sidebarObjects.forEach(obj => {
+        obj.addEventListener('dragstart', (e) => {
+            const data = {
                 shape: e.target.dataset.shape,
                 text: e.target.dataset.text
-            }));
+            };
+            e.dataTransfer.setData('text/plain', JSON.stringify(data));
         });
     });
 
-    canvas.addEventListener('dragover', e=>e.preventDefault());
-
-    canvas.addEventListener('drop', e=>{
+    canvasWrapper.addEventListener('dragover', e=>e.preventDefault());
+    canvasWrapper.addEventListener('drop', e => {
+        const canvasPage = e.target.closest('.canvas-page');
+        const activeState = getActiveState();
+        if (!canvasPage || !canvasPage.classList.contains('active') || !activeState) return;
+        
         e.preventDefault();
         try {
             const data = JSON.parse(e.dataTransfer.getData('text/plain'));
             const shapeType = data.shape;
             const text = data.text;
             if (!shapeType) return;
-            const rect = getCanvasRect();
-            const coords = { x: (e.clientX - rect.left) / zoomLevel, y: (e.clientY - rect.top) / zoomLevel };
-            // Usa la nuova funzione per ottenere il colore iniziale corretto
+            const canvasContainer = canvasPage.querySelector('.canvas-container');
+            const rect = getCanvasRect(canvasPage);
+            const coords = { x: (e.clientX - rect.left) / activeState.zoomLevel, y: (e.clientY - rect.top) / activeState.zoomLevel };
             const initialColor = getInitialColor(shapeType);
-            const model = { id: uid('obj'), shape: shapeType, x: coords.x, y: coords.y, text: text, color: initialColor };
-            createObjectElement(model);
-            updateConnections();
+            const model = { id: uid('obj'), shape: shapeType, x: coords.x, y: coords.y, width: 50, height: 50, text: text, color: initialColor, rotation: 0 };
+            
+            activeState.objects.push(model);
+            createObjectElement(model, canvasContainer);
+            updateConnections(activeState, canvasPage);
             saveState();
         } catch (error) {
             console.error('Failed to parse dropped data:', error);
         }
     });
-    
-    canvas.addEventListener('mousedown', (e) => {
+
+    canvasWrapper.addEventListener('mousedown', e => {
+        const canvasPage = e.target.closest('.canvas-page');
+        const activeState = getActiveState();
+        if (!canvasPage || !canvasPage.classList.contains('active') || !activeState) return;
+
+        const canvasContainer = canvasPage.querySelector('.canvas-container');
+        const svg = canvasPage.querySelector('#connection-layer');
+        
         const objectTarget = e.target.closest('.dropped-object');
         const lineTarget = e.target.closest('path.connection-line');
         const curveHandleTarget = e.target.closest('.curve-handle');
@@ -980,96 +970,91 @@ document.addEventListener('DOMContentLoaded', () => {
         const resizerTarget = e.target.closest('.resizer');
         const rotatorTarget = e.target.closest('.rotator');
         
-        if (!resizerTarget && !rotatorTarget && !curveHandleTarget && !nodeTarget) {
-            deselectAll(); 
-        }
+        activeState.selectedObject = null;
+        activeState.selectedLine = null;
+        deselectAll(activeState, canvasPage);
 
         if (nodeTarget) {
-            const parentId = nodeTarget.dataset.parent;
-            const pos = nodeTarget.dataset.pos;
-            const existingConnIndex = connections.findIndex(c => (c.startId === parentId && c.startPos === pos) || (c.endId === parentId && c.endPos === pos));
-
-            if (existingConnIndex !== -1) {
-                const existingConn = connections[existingConnIndex];
-                if (existingConn.lineElement) {
-                    existingConn.lineElement.remove();
-                }
-                if (existingConn.curveHandle) {
-                    existingConn.curveHandle.remove();
-                }
-                connections.splice(existingConnIndex, 1);
-            }
-
-            isConnecting = true;
-            startNode = nodeTarget;
-            document.querySelectorAll('.dropped-object').forEach(o => o.classList.add('show-nodes'));
-            const startParent = nodeTarget.parentElement;
-            const startCenter = getNodeCenterByIds(startParent, startNode);
-            currentLine = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            currentLine.setAttribute('class', 'connection-line');
-            currentLine.setAttribute('fill', 'none');
-            currentLine.setAttribute('stroke', '#333');
-            currentLine.setAttribute('marker-end', 'url(#arrowhead)');
-            currentLine.setAttribute('pointer-events', 'none');
-            svg.appendChild(currentLine);
+            activeState.isConnecting = true;
+            activeState.startNode = nodeTarget;
+            canvasContainer.querySelectorAll('.dropped-object').forEach(o => o.classList.add('show-nodes'));
+            activeState.currentLine = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            activeState.currentLine.setAttribute('class', 'connection-line');
+            activeState.currentLine.setAttribute('fill', 'none');
+            activeState.currentLine.setAttribute('stroke', '#333');
+            activeState.currentLine.setAttribute('marker-end', 'url(#arrowhead)');
+            activeState.currentLine.setAttribute('pointer-events', 'none');
+            svg.appendChild(activeState.currentLine);
             return;
         }
 
         if (curveHandleTarget) {
-            isDraggingCurve = true;
-            const connIndex = parseInt(curveHandleTarget.dataset.connIndex);
-            if (connections[connIndex]) {
-                selectLine(connections[connIndex].lineElement);
+            activeState.isDraggingCurve = true;
+            const connId = curveHandleTarget.dataset.connId;
+            activeState.selectedLine = activeState.connections.find(c => c.id === connId);
+            if (activeState.selectedLine) {
+                selectLine(activeState.selectedLine.lineElement, activeState, canvasPage);
             }
             return;
         }
 
         if (resizerTarget) {
-            isResizing = true; 
-            selectedObject = resizerTarget.parentElement; 
-            startX = e.clientX; 
-            startY = e.clientY; 
-            startWidth = selectedObject.offsetWidth; 
-            startHeight = selectedObject.offsetHeight;
+            activeState.isResizing = true; 
+            const parentObj = resizerTarget.parentElement;
+            activeState.selectedObject = activeState.objects.find(obj => obj.id === parentObj.id);
+            activeState.selectedObjectDom = parentObj;
+            activeState.startX = e.clientX; 
+            activeState.startY = e.clientY; 
+            activeState.startWidth = parentObj.offsetWidth; 
+            activeState.startHeight = parentObj.offsetHeight;
             return;
         }
 
         if (rotatorTarget) {
-            isRotating = true; 
-            selectedObject = rotatorTarget.parentElement; 
-            const rect = selectedObject.getBoundingClientRect(); 
-            startX = rect.left + rect.width/2; 
-            startY = rect.top + rect.height/2; 
-            const dx = e.clientX - startX, dy = e.clientY - startY; 
-            startAngle = Math.atan2(dy, dx) * 180 / Math.PI; 
-            const currentTransform = new WebKitCSSMatrix(window.getComputedStyle(selectedObject).transform); 
-            startAngle -= Math.atan2(currentTransform.c, currentTransform.a) * 180 / Math.PI;
+            activeState.isRotating = true; 
+            const parentObj = rotatorTarget.parentElement;
+            activeState.selectedObject = activeState.objects.find(obj => obj.id === parentObj.id);
+            activeState.selectedObjectDom = parentObj;
+            const rect = parentObj.getBoundingClientRect(); 
+            activeState.startX = rect.left + rect.width/2; 
+            activeState.startY = rect.top + rect.height/2; 
+            const dx = e.clientX - activeState.startX, dy = e.clientY - activeState.startY; 
+            activeState.startAngle = Math.atan2(dy, dx) * 180 / Math.PI; 
+            activeState.startAngle -= activeState.selectedObject.rotation;
             return;
         }
         
         if (objectTarget) {
-            selectObject(objectTarget);
-            const canvasRect = getCanvasRect();
-            const currentLeft = parsePos(selectedObject.style.left);
-            const currentTop = parsePos(selectedObject.style.top);
-            const mouseX_unscaled = (e.clientX - canvasRect.left) / zoomLevel;
-            const mouseY_unscaled = (e.clientY - canvasRect.top) / zoomLevel;
-            dragOffsetX = mouseX_unscaled - currentLeft;
-            dragOffsetY = mouseY_unscaled - currentTop;
-            isDragging = true;
+            const objectModel = activeState.objects.find(obj => obj.id === objectTarget.id);
+            if(objectModel){
+                selectObject(objectTarget, activeState, canvasPage);
+                const rect = getCanvasRect(canvasPage);
+                const mouseX_unscaled = (e.clientX - rect.left) / activeState.zoomLevel;
+                const mouseY_unscaled = (e.clientY - rect.top) / activeState.zoomLevel;
+                activeState.dragOffsetX = mouseX_unscaled - objectModel.x;
+                activeState.dragOffsetY = mouseY_unscaled - objectModel.y;
+                activeState.isDragging = true;
+            }
         } else if (lineTarget) {
-            selectLine(lineTarget);
+            const conn = activeState.connections.find(c => c.lineElement === lineTarget);
+            if(conn) selectLine(conn.lineElement, activeState, canvasPage);
         }
     });
 
-    canvas.addEventListener('mousemove', (e)=>{
-        const rect = getCanvasRect();
-        const mouseX = (e.clientX - rect.left) / zoomLevel;
-        const mouseY = (e.clientY - rect.top) / zoomLevel;
+    document.addEventListener('mousemove', e => {
+        const activeState = getActiveState();
+        if (!activeState) return;
+        
+        const canvasPage = getActiveCanvasPage();
+        if (!canvasPage) return;
 
-        if (isConnecting && currentLine){
-            const startParent = startNode.parentElement;
-            const startCenter = getNodeCenterByIds(startParent, startNode);
+        const rect = getCanvasRect(canvasPage);
+        const mouseX = (e.clientX - rect.left) / activeState.zoomLevel;
+        const mouseY = (e.clientY - rect.top) / activeState.zoomLevel;
+
+        if (activeState.isConnecting && activeState.currentLine){
+            const startParent = activeState.startNode.parentElement;
+            const startCenter = getNodeCenter(activeState.startNode, canvasPage);
             let d = '';
             if (currentArrowType === 'linear') {
                 d = `M ${startCenter.x} ${startCenter.y} L ${mouseX} ${mouseY}`;
@@ -1078,112 +1063,114 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (currentArrowType === 'zigzag') {
                 d = getZigZagPath(startCenter, {x: mouseX, y: mouseY});
             }
-            currentLine.setAttribute('d', d);
+            activeState.currentLine.setAttribute('d', d);
             return;
         }
         
-        if (isDraggingCurve && selectedLine) {
-            const connIndex = parseInt(selectedLine.dataset.connIndex);
-            if (connections[connIndex]) {
-                const conn = connections[connIndex];
-                const s = getNodeCenterByIds(document.getElementById(conn.startId), conn.startNode);
-                const e = getNodeCenterByIds(document.getElementById(conn.endId), conn.endNode);
-                const midpoint = { x: (s.x + e.x) / 2, y: (s.y + e.y) / 2 };
-                conn.curveOffset = { x: mouseX - midpoint.x, y: mouseY - midpoint.y };
-                updateConnections();
-                return;
-            }
-        }
-
-        if (isDragging && selectedObject){
-            const newLeft = mouseX - dragOffsetX;
-            const newTop = mouseY - dragOffsetY;
-            selectedObject.style.left = newLeft + 'px';
-            selectedObject.style.top = newTop + 'px';
-            updateConnections();
+        if (activeState.isDraggingCurve && activeState.selectedLine) {
+            const conn = activeState.selectedLine;
+            const startParent = document.getElementById(conn.startId);
+            const endParent = document.getElementById(conn.endId);
+            if (!startParent || !endParent) return;
+            const sNode = startParent.querySelector(`.connection-node[data-pos="${conn.startPos}"]`);
+            const eNode = endParent.querySelector(`.connection-node[data-pos="${conn.endPos}"]`);
+            const s = getNodeCenter(sNode, canvasPage);
+            const e = getNodeCenter(eNode, canvasPage);
+            const midpoint = { x: (s.x + e.x) / 2, y: (s.y + e.y) / 2 };
+            conn.curveOffset = { x: mouseX - midpoint.x, y: mouseY - midpoint.y };
+            updateConnections(activeState, canvasPage);
             return;
         }
 
-        if (isResizing && selectedObject){
-            const newWidth = startWidth + (e.clientX - startX) / zoomLevel;
-            const newHeight = startHeight + (e.clientY - startY) / zoomLevel;
-            selectedObject.style.width = `${newWidth > 10 ? newWidth : 10}px`;
-            selectedObject.style.height = `${newHeight > 10 ? newHeight : 10}px`;
-            updateConnections();
+        if (activeState.isDragging && activeState.selectedObject){
+            const newLeft = mouseX - activeState.dragOffsetX;
+            const newTop = mouseY - activeState.dragOffsetY;
+            activeState.selectedObject.x = newLeft;
+            activeState.selectedObject.y = newTop;
+            activeState.selectedObjectDom.style.left = newLeft + 'px';
+            activeState.selectedObjectDom.style.top = newTop + 'px';
+            updateConnections(activeState, canvasPage);
             return;
         }
 
-        if (isRotating && selectedObject){
-            const dx = e.clientX - startX; const dy = e.clientY - startY;
+        if (activeState.isResizing && activeState.selectedObject){
+            const newWidth = activeState.startWidth + (e.clientX - activeState.startX) / activeState.zoomLevel;
+            const newHeight = activeState.startHeight + (e.clientY - activeState.startY) / activeState.zoomLevel;
+            activeState.selectedObject.width = newWidth > 10 ? newWidth : 10;
+            activeState.selectedObject.height = newHeight > 10 ? newHeight : 10;
+            activeState.selectedObjectDom.style.width = `${activeState.selectedObject.width}px`;
+            activeState.selectedObjectDom.style.height = `${activeState.selectedObject.height}px`;
+            updateConnections(activeState, canvasPage);
+            return;
+        }
+
+        if (activeState.isRotating && activeState.selectedObject){
+            const dx = e.clientX - activeState.startX; const dy = e.clientY - activeState.startY;
             const newAngle = Math.atan2(dy, dx) * 180 / Math.PI;
-            const rotation = newAngle - startAngle;
-            selectedObject.style.transform = `rotate(${rotation}deg)`;
-            updateConnections();
+            const rotation = newAngle - activeState.startAngle;
+            activeState.selectedObject.rotation = rotation;
+            activeState.selectedObjectDom.style.transform = `rotate(${rotation}deg)`;
+            updateConnections(activeState, canvasPage);
             return;
         }
     });
 
-    document.addEventListener('mouseup', (e)=>{
-        if (isConnecting){
+    document.addEventListener('mouseup', e => {
+        const activeState = getActiveState();
+        if (!activeState) return;
+        
+        const canvasPage = getActiveCanvasPage();
+        if (!canvasPage) return;
+
+        if (activeState.isConnecting){
             const endNode = e.target.closest && e.target.closest('.connection-node');
-            if (endNode && startNode && startNode.dataset.parent !== endNode.dataset.parent){
-                const startParent = startNode.parentElement;
+            if (endNode && activeState.startNode && activeState.startNode.dataset.parent !== endNode.dataset.parent){
+                const startParent = activeState.startNode.parentElement;
                 const endParent = endNode.parentElement;
                 
-                const path = document.createElementNS('http://www.w3.org/2000/svg','path');
-                path.setAttribute('class','connection-line');
-                path.setAttribute('pointer-events','stroke');
-                path.setAttribute('d', currentLine.getAttribute('d'));
-                path.setAttribute('fill', 'none');
-                path.setAttribute('stroke', '#333');
-                path.setAttribute('marker-end', 'url(#arrowhead)');
-
-                let curveHandle = null;
-                let curveOffset = null;
-                if (currentArrowType === 'curved') {
-                    curveHandle = document.createElement('div');
-                    curveHandle.className = 'curve-handle';
-                    canvasContainer.appendChild(curveHandle);
-                    const rect = getCanvasRect();
-                    const mouseX_unscaled = (e.clientX - rect.left) / zoomLevel;
-                    const mouseY_unscaled = (e.clientY - rect.top) / zoomLevel;
-                    const s = getNodeCenterByIds(startParent, startNode);
-                    const end = getNodeCenterByIds(endParent, endNode);
-                    const midpoint = { x: (s.x + end.x) / 2, y: (s.y + end.y) / 2 };
-                    curveOffset = { x: mouseX_unscaled - midpoint.x, y: mouseY_unscaled - midpoint.y };
-                }
-
-                const conn = { 
+                const newConnection = { 
+                    id: uid('conn'),
                     startId: startParent.id, 
-                    startPos: startNode.dataset.pos, 
+                    startPos: activeState.startNode.dataset.pos, 
                     endId: endParent.id, 
                     endPos: endNode.dataset.pos,
-                    lineElement: path, 
-                    startNode, 
-                    endNode,
-                    curveHandle,
-                    curveOffset: curveOffset || defaultCurveOffset,
+                    curveOffset: currentArrowType === 'curved' ? { x: 0, y: 0 } : null,
                     arrowType: currentArrowType
                 };
                 
-                svg.appendChild(path);
-                connections.push(conn);
-                updateConnections();
+                const startCenter = getNodeCenter(activeState.startNode, canvasPage);
+                const endCenter = getNodeCenter(endNode, canvasPage);
+
+                if (currentArrowType === 'curved') {
+                     const rect = getCanvasRect(canvasPage);
+                     const mouseX_unscaled = (e.clientX - rect.left) / activeState.zoomLevel;
+                     const mouseY_unscaled = (e.clientY - rect.top) / activeState.zoomLevel;
+                     const midpoint = { x: (startCenter.x + endCenter.x) / 2, y: (startCenter.y + endCenter.y) / 2 };
+                     newConnection.curveOffset = { x: mouseX_unscaled - midpoint.x, y: mouseY_unscaled - midpoint.y };
+                }
+
+                activeState.connections.push(newConnection);
+                restoreState(activeState, canvasPage);
+                selectLine(activeState.connections.find(c => c.id === newConnection.id).lineElement, activeState, canvasPage);
                 saveState();
             }
 
-            if (currentLine && currentLine.parentNode === svg) svg.removeChild(currentLine);
-            document.querySelectorAll('.dropped-object').forEach(o=>o.classList.remove('show-nodes'));
-            isConnecting = false; 
-            currentLine = null; 
-            startNode = null;
+            if (activeState.currentLine && activeState.currentLine.parentNode) activeState.currentLine.remove();
+            canvasPage.querySelector('.canvas-container').querySelectorAll('.dropped-object').forEach(o=>o.classList.remove('show-nodes'));
+            activeState.isConnecting = false; 
+            activeState.currentLine = null; 
+            activeState.startNode = null;
         }
 
-        if (isDragging || isDraggingCurve){ saveState(); }
-        isDragging = isResizing = isRotating = isDraggingCurve = false;
+        if (activeState.isDragging || activeState.isDraggingCurve || activeState.isResizing || activeState.isRotating){ saveState(); }
+        activeState.isDragging = activeState.isResizing = activeState.isRotating = activeState.isDraggingCurve = false;
+        activeState.selectedObjectDom = null;
     });
     
     document.addEventListener('keydown', (e) => {
+        const activeState = getActiveState();
+        if (!activeState) return;
+
         const activeElement = document.activeElement;
         const isInputActive = activeElement && (activeElement.classList.contains('object-text') || activeElement.id === 'drawing-title' || activeElement.id === 'drawing-category' || activeElement.id === 'drawing-typology' || activeElement.id === 'exercise-description');
         if (isInputActive) {
@@ -1191,26 +1178,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         if (e.key === 'Delete'){
-            if (selectedObject){
-                for (let i = connections.length - 1; i >= 0; i--){
-                    const c = connections[i];
-                    if (c.startId === selectedObject.id || c.endId === selectedObject.id){
-                        if (c.lineElement && c.lineElement.parentNode === svg) svg.removeChild(c.lineElement);
-                        if (c.curveHandle && c.curveHandle.parentNode === canvasContainer) canvasContainer.removeChild(c.curveHandle);
-                        if (selectedLine && selectedLine === c.lineElement) selectedLine = null;
-                        connections.splice(i,1);
-                    }
-                }
-                selectedObject.remove(); selectedObject = null; updateConnections(); saveState();
-            } else if (selectedLine){
-                const idx = connections.findIndex(c=>c.lineElement === selectedLine);
-                if (idx !== -1){ 
-                    const c = connections[idx]; 
-                    if (c.lineElement && c.lineElement.parentNode === svg) svg.removeChild(c.lineElement); 
-                    if (c.curveHandle && c.curveHandle.parentNode === canvasContainer) canvasContainer.removeChild(c.curveHandle);
-                    connections.splice(idx,1); 
-                    selectedLine = null; 
-                    saveState(); 
+            if (activeState.selectedObject){
+                activeState.objects = activeState.objects.filter(o => o.id !== activeState.selectedObject.id);
+                activeState.connections = activeState.connections.filter(c => c.startId !== activeState.selectedObject.id && c.endId !== activeState.selectedObject.id);
+                restoreState(activeState, getActiveCanvasPage());
+                saveState();
+                activeState.selectedObject = null;
+            } else if (activeState.selectedLine){
+                const connToRemove = activeState.connections.find(c => c.lineElement === activeState.selectedLine);
+                if (connToRemove) {
+                    activeState.connections = activeState.connections.filter(c => c.id !== connToRemove.id);
+                    restoreState(activeState, getActiveCanvasPage());
+                    saveState();
+                    activeState.selectedLine = null;
                 }
             }
         }
@@ -1218,106 +1198,109 @@ document.addEventListener('DOMContentLoaded', () => {
         if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || e.key === 'Y')){ e.preventDefault(); doRedo(); }
     });
     
-    function selectObject(el){ 
-        if (!el) return; 
-        el.classList.add('selected'); 
-        selectedObject = el; 
+    function selectObject(domElement, activeState, canvasPage){ 
+        if (!domElement) return; 
+        deselectAll(activeState, canvasPage);
+        domElement.classList.add('selected'); 
+        activeState.selectedObject = activeState.objects.find(o => o.id === domElement.id);
+        activeState.selectedObjectDom = domElement;
         controls.classList.add('visible'); 
-        const shapeType = Array.from(el.classList).find(c=>c.endsWith('-object')).replace('-object','');
+        const shapeType = activeState.selectedObject.shape;
         let currentColor; 
         if (shapeType === 'triangle'){ 
-            currentColor = getComputedStyle(el).borderBottomColor; 
+            currentColor = getComputedStyle(domElement).borderBottomColor; 
         } else if (shapeType === 'text-box' || shapeType === 'net') {
-            currentColor = getComputedStyle(el).color;
+            currentColor = getComputedStyle(domElement).color;
         } else { 
-            currentColor = getComputedStyle(el).backgroundColor; 
+            currentColor = getComputedStyle(domElement).backgroundColor; 
         } 
         colorPicker.value = rgbToHex(currentColor); 
         
-        const textDiv = el.querySelector('.object-text'); 
+        const textDiv = domElement.querySelector('.object-text'); 
         if (textDiv) textDiv.focus(); 
         
-        canvasContainer.querySelectorAll('.curve-handle').forEach(el => el.style.display = 'none');
+        canvasPage.querySelectorAll('.curve-handle').forEach(el => el.style.display = 'none');
     }
 
-    function selectLine(lineElement) {
-        if (selectedObject) {
-            selectedObject.classList.remove('selected');
-        }
-        if (selectedLine) {
-            selectedLine.classList.remove('selected-line');
-            const oldConn = connections.find(c => c.lineElement === selectedLine);
-            if (oldConn) {
-                if (oldConn.arrowType === 'curved' && oldConn.curveHandle) {
-                    oldConn.curveHandle.style.display = 'none';
-                }
-            }
-        }
-        selectedLine = lineElement;
-        selectedLine.classList.add('selected-line');
-        const conn = connections.find(c => c.lineElement === selectedLine);
-        if (conn && conn.arrowType === 'curved') {
+    function selectLine(lineElement, activeState, canvasPage) {
+        deselectAll(activeState, canvasPage);
+        const conn = activeState.connections.find(c => c.lineElement === lineElement);
+        if(!conn) return;
+
+        activeState.selectedLine = conn;
+        lineElement.classList.add('selected-line');
+        
+        if (conn.arrowType === 'curved' && conn.curveHandle) {
             conn.curveHandle.style.display = 'block';
         }
     }
 
-    function deselectAll(){ 
-        const curObj = canvasContainer.querySelector('.dropped-object.selected'); 
+    function deselectAll(activeState, canvasPage){ 
+        const curObj = canvasPage.querySelector('.dropped-object.selected'); 
         if (curObj) { 
             curObj.classList.remove('selected'); 
             const t = curObj.querySelector('.object-text'); 
             if (t) t.blur(); 
         } 
-        selectedObject = null; 
+        activeState.selectedObject = null; 
+        activeState.selectedObjectDom = null;
         controls.classList.remove('visible'); 
         
-        if (selectedLine){
-            selectedLine.classList.remove('selected-line');
-            const conn = connections.find(c => c.lineElement === selectedLine);
-            if(conn && conn.curveHandle) {
-                conn.curveHandle.style.display = 'none';
+        if (activeState.selectedLine){
+            activeState.selectedLine.lineElement.classList.remove('selected-line');
+            if (activeState.selectedLine.curveHandle) {
+                activeState.selectedLine.curveHandle.style.display = 'none';
             }
-            selectedLine = null;
+            activeState.selectedLine = null;
         }
+        canvasPage.querySelectorAll('.curve-handle').forEach(el => el.style.display = 'none');
     }
 
     colorPicker.addEventListener('input', (e)=>{ 
-        if (!selectedObject) return; 
-        const s = Array.from(selectedObject.classList).find(c=>c.endsWith('-object')).replace('-object','');
+        const activeState = getActiveState();
+        if (!activeState || !activeState.selectedObject) return; 
+        const selectedObject = activeState.objects.find(o => o.id === activeState.selectedObject.id);
+        if(!selectedObject) return;
+
+        const s = selectedObject.shape;
+        selectedObject.color = e.target.value;
+        const domEl = document.getElementById(selectedObject.id);
+
         if (s === 'triangle'){ 
-            selectedObject.style.borderBottomColor = e.target.value; 
+            domEl.style.borderBottomColor = e.target.value; 
         } else if (s === 'text-box' || s === 'net') {
-             selectedObject.style.color = e.target.value;
+             domEl.style.color = e.target.value;
         } else if (s === 'arrow'){
-            selectedObject.style.backgroundColor = e.target.value;
-            selectedObject.style.setProperty('--arrow-color', e.target.value);
+            domEl.style.backgroundColor = e.target.value;
+            domEl.style.setProperty('--arrow-color', e.target.value);
             const sheet = document.styleSheets[0];
             const rule = Array.from(sheet.cssRules).find(r => r.selectorText === '.arrow-object::before');
             if(rule) rule.style.borderLeftColor = e.target.value;
         }
         else { 
-            selectedObject.style.backgroundColor = e.target.value; 
+            domEl.style.backgroundColor = e.target.value; 
         } 
         saveState(); 
     });
 
-    canvas.addEventListener('click', (e)=>{ 
+    canvasWrapper.addEventListener('click', e => { 
+        const activeState = getActiveState();
+        if (!activeState) return;
+        const canvasPage = getActiveCanvasPage();
         const obj = e.target.closest('.dropped-object'); 
         const line = e.target.closest('path.connection-line');
         const node = e.target.closest('.connection-node');
         
         if (obj){ 
-            if (obj !== selectedObject) {
-                deselectAll(); 
-                selectObject(obj); 
+            if (obj !== activeState.selectedObjectDom) {
+                selectObject(obj, activeState, canvasPage); 
             }
         } else if (line){
-            if (e.target !== selectedLine) {
-                deselectAll();
-                selectLine(e.target);
+            if (e.target !== (activeState.selectedLine?.lineElement || null)) {
+                selectLine(e.target, activeState, canvasPage);
             }
         } else if (!node) {
-            deselectAll();
+            deselectAll(activeState, canvasPage);
         }
     });
 
@@ -1332,41 +1315,32 @@ document.addEventListener('DOMContentLoaded', () => {
         return rgb; 
     }
 
-    function updateZoom() {
-        canvasContainer.style.transform = `scale(${zoomLevel})`;
-        svg.style.transform = `scale(${zoomLevel})`;
-        backgroundSvg.style.transform = `scale(${zoomLevel})`;
-        zoomLevelSpan.textContent = `${Math.round(zoomLevel * 100)}%`;
-        updateConnections();
+    function updateZoom(canvasPage) {
+        const activeState = getActiveState();
+        if (!activeState) return;
+        const canvasContainer = canvasPage.querySelector('.canvas-container');
+        const svg = canvasPage.querySelector('#connection-layer');
+        const backgroundSvg = canvasPage.querySelector('#background-layer');
+        canvasContainer.style.transform = `scale(${activeState.zoomLevel})`;
+        svg.style.transform = `scale(${activeState.zoomLevel})`;
+        if(backgroundSvg) backgroundSvg.style.transform = `scale(${activeState.zoomLevel})`;
+        const zoomLevelSpan = document.getElementById('zoom-level');
+        zoomLevelSpan.textContent = `${Math.round(activeState.zoomLevel * 100)}%`;
+        updateConnections(activeState, canvasPage);
     }
 
-    zoomInBtn.addEventListener('click', () => {
-        zoomLevel = Math.min(2.0, zoomLevel + 0.1);
-        updateZoom();
-    });
-
-    zoomOutBtn.addEventListener('click', () => {
-        zoomLevel = Math.max(0.5, zoomLevel - 0.1);
-        updateZoom();
-    });
-
-    canvas.addEventListener('wheel', (e) => {
-        e.preventDefault();
-        const delta = e.deltaY > 0 ? -0.1 : 0.1;
-        zoomLevel = Math.max(0.5, Math.min(2.0, zoomLevel + delta));
-        updateZoom();
-        updateConnections();
-    });
-
-    function updateBackground() {
+    function updateBackground(canvasPage) {
+        const activeState = getActiveState();
+        if (!activeState) return;
+        const backgroundSvg = canvasPage.querySelector('#background-layer');
+        const canvas = canvasPage.querySelector('.canvas');
         backgroundSvg.innerHTML = '';
-        const canvasPadding = 100; // distanza dai bordi
-        const selected = backgroundSelector.value;
+        const canvasPadding = 100;
+        const selected = document.getElementById('background-selector').value;
         const width = canvas.offsetWidth;
         const height = canvas.offsetHeight;
-        const strokeColor = '#666'; // Colore più scuro per le linee del campo
+        const strokeColor = '#666';
         
-        // Ensure background is transparent, only drawing lines
         backgroundSvg.style.backgroundColor = 'transparent';
 
         function createPath(lines) {
@@ -1445,14 +1419,167 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    backgroundSelector.addEventListener('change', () => {
-        updateBackground();
-        saveState();
+    addTabBtn.addEventListener('click', () => {
+        createTab();
+        switchToTab(allDrawings.length - 1);
     });
+    
+    function createTab(initialState = {}) {
+        const newDrawing = {
+            id: uid('drawing'),
+            title: initialState.title || `Nuovo Disegno ${allDrawings.length + 1}`,
+            objects: initialState.objects || [],
+            connections: initialState.connections || [],
+            zoomLevel: initialState.zoom || 1.0,
+            background: initialState.background || 'none',
+            isGridEnabled: initialState.grid || false,
+            isGrayscaleEnabled: initialState.grayscale || false,
+            category: initialState.category || '',
+            typology: initialState.typology || '',
+            description: initialState.description || '',
+            undoStack: [],
+            redoStack: [],
+            selectedObject: null,
+            selectedObjectDom: null,
+            selectedLine: null,
+            isConnecting: false,
+            isDragging: false,
+            isResizing: false,
+            isRotating: false,
+            isDraggingCurve: false,
+            startX: null, startY: null, startWidth: null, startHeight: null, startAngle: null, dragOffsetX: null, dragOffsetY: null,
+            startNode: null,
+            currentLine: null
+        };
+        allDrawings.push(newDrawing);
+        
+        const tabBtn = document.createElement('button');
+        tabBtn.className = 'tab-btn';
+        tabBtn.dataset.index = allDrawings.length - 1;
+        tabBtn.innerHTML = `<span>${newDrawing.title}</span><button class="close-tab-btn">x</button>`;
+        tabsContainer.insertBefore(tabBtn, addTabBtn);
+        
+        tabBtn.addEventListener('click', e => {
+            if (e.target.classList.contains('close-tab-btn')) {
+                e.stopPropagation();
+                closeTab(parseInt(tabBtn.dataset.index));
+            } else {
+                switchToTab(parseInt(tabBtn.dataset.index));
+            }
+        });
 
-    toggleGridBtn.addEventListener('click', () => {
-        isGridEnabled = !isGridEnabled;
-        if (isGridEnabled) {
+        const canvasPage = document.createElement('div');
+        canvasPage.className = 'canvas-page';
+        canvasPage.id = `canvas-page-${newDrawing.id}`;
+        canvasPage.innerHTML = `
+            <div class="canvas" id="canvas-${newDrawing.id}">
+                <div class="canvas-container" id="canvas-container-${newDrawing.id}">
+                    <svg id="background-layer" class="background-container"></svg>
+                    <svg id="connection-layer">
+                    </svg>
+                </div>
+            </div>
+        `;
+        canvasWrapper.appendChild(canvasPage);
+    }
+    
+    function switchToTab(index) {
+        if (index === activeDrawingIndex) return;
+        
+        if (activeDrawingIndex !== -1) {
+            saveState(false);
+        }
+        
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.canvas-page').forEach(page => page.classList.remove('active'));
+
+        const newTab = tabsContainer.querySelector(`.tab-btn[data-index="${index}"]`);
+        const newPage = canvasWrapper.querySelector(`#canvas-page-${allDrawings[index].id}`);
+        if (newTab && newPage) {
+            newTab.classList.add('active');
+            newPage.classList.add('active');
+            activeDrawingIndex = index;
+            restoreState(allDrawings[index], newPage);
+            attachTabControls();
+        }
+    }
+    
+    function attachTabControls() {
+        const activePage = getActiveCanvasPage();
+        if(!activePage) return;
+
+        const backgroundSelector = document.getElementById('background-selector');
+        const zoomInBtn = document.getElementById('zoom-in-btn');
+        const zoomOutBtn = document.getElementById('zoom-out-btn');
+        const toggleGridBtn = document.getElementById('toggle-grid-btn');
+        const bwToggle = document.getElementById('bw-toggle');
+        const exportBtn = document.querySelector('.export-btn');
+        const exportPngBtn = document.getElementById('export-png-btn');
+        const exportJpgBtn = document.getElementById('export-jpg-btn');
+        const exportPdfBtn = document.getElementById('export-pdf-btn');
+        const drawingTitleInput = document.getElementById('drawing-title');
+        const drawingCategorySelect = document.getElementById('drawing-category');
+        const drawingTypologySelect = document.getElementById('drawing-typology');
+        const exerciseDescriptionTextarea = document.getElementById('exercise-description');
+        
+        backgroundSelector.removeEventListener('change', onBackgroundChange);
+        zoomInBtn.removeEventListener('click', onZoomIn);
+        zoomOutBtn.removeEventListener('click', onZoomOut);
+        toggleGridBtn.removeEventListener('click', onToggleGrid);
+        bwToggle.removeEventListener('change', onToggleBW);
+        exportBtn.removeEventListener('click', onExportClick);
+        exportPngBtn.removeEventListener('click', onExportPng);
+        exportJpgBtn.removeEventListener('click', onExportJpg);
+        exportPdfBtn.removeEventListener('click', onExportPdf);
+        drawingTitleInput.removeEventListener('input', onDrawingInfoUpdate);
+        drawingCategorySelect.removeEventListener('change', onDrawingInfoUpdate);
+        drawingTypologySelect.removeEventListener('change', onDrawingInfoUpdate);
+        exerciseDescriptionTextarea.removeEventListener('input', onDrawingInfoUpdate);
+
+        backgroundSelector.addEventListener('change', onBackgroundChange);
+        zoomInBtn.addEventListener('click', onZoomIn);
+        zoomOutBtn.addEventListener('click', onZoomOut);
+        toggleGridBtn.addEventListener('click', onToggleGrid);
+        bwToggle.addEventListener('change', onToggleBW);
+        exportBtn.addEventListener('click', onExportClick);
+        exportPngBtn.addEventListener('click', onExportPng);
+        exportJpgBtn.addEventListener('click', onExportJpg);
+        exportPdfBtn.addEventListener('click', onExportPdf);
+        drawingTitleInput.addEventListener('input', onDrawingInfoUpdate);
+        drawingCategorySelect.addEventListener('change', onDrawingInfoUpdate);
+        drawingTypologySelect.addEventListener('change', onDrawingInfoUpdate);
+        exerciseDescriptionTextarea.addEventListener('input', onDrawingInfoUpdate);
+    }
+    
+    function onBackgroundChange() {
+        const activeState = getActiveState();
+        const backgroundSelector = document.getElementById('background-selector');
+        if (!activeState) return;
+        activeState.background = backgroundSelector.value;
+        updateBackground(getActiveCanvasPage());
+        saveState();
+    }
+    function onZoomIn() {
+        const activeState = getActiveState();
+        if (!activeState) return;
+        activeState.zoomLevel = Math.min(2.0, activeState.zoomLevel + 0.1);
+        updateZoom(getActiveCanvasPage());
+        saveState();
+    }
+    function onZoomOut() {
+        const activeState = getActiveState();
+        if (!activeState) return;
+        activeState.zoomLevel = Math.max(0.5, activeState.zoomLevel - 0.1);
+        updateZoom(getActiveCanvasPage());
+        saveState();
+    }
+    function onToggleGrid() {
+        const activeState = getActiveState();
+        const toggleGridBtn = document.getElementById('toggle-grid-btn');
+        if (!activeState) return;
+        activeState.isGridEnabled = !activeState.isGridEnabled;
+        const canvas = getActiveCanvasPage().querySelector('.canvas');
+        if (activeState.isGridEnabled) {
             canvas.classList.add('canvas-grid');
             toggleGridBtn.textContent = 'Griglia ON';
         } else {
@@ -1460,95 +1587,120 @@ document.addEventListener('DOMContentLoaded', () => {
             toggleGridBtn.textContent = 'Griglia OFF';
         }
         saveState();
-    });
-
-    saveBtn.addEventListener('click', () => {
-        const state = serializeState();
-        const jsonString = JSON.stringify(state, null, 2);
-        const blob = new Blob([jsonString], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        const title = drawingTitleInput.value.replace(/[^a-z0-9]/gi, '_') || 'disegno';
-        a.download = `${title}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    });
-
-    fileInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            try {
-                const state = JSON.parse(event.target.result);
-                restoreState(state);
-                undoStack = [];
-                redoStack = [];
-                saveState();
-                alert('Disegno caricato con successo!');
-            } catch (error) {
-                console.error('Errore nel caricamento del file:', error);
-                alert('Errore nel caricamento del file. Assicurati che sia un file JSON valido.');
-            }
-        };
-        reader.readAsText(file);
-    });
-
-    // Export functionality
-    exportBtn.addEventListener('click', () => {
-        exportDropdown.classList.toggle('active');
-    });
-
-    document.addEventListener('click', (e) => {
-        if (!exportDropdown.contains(e.target)) {
-            exportDropdown.classList.remove('active');
+    }
+    function onToggleBW() {
+        const activeState = getActiveState();
+        const bwToggle = document.getElementById('bw-toggle');
+        if (!activeState) return;
+        activeState.isGrayscaleEnabled = bwToggle.checked;
+        const canvas = getActiveCanvasPage().querySelector('.canvas');
+        if (activeState.isGrayscaleEnabled) {
+            canvas.classList.add('grayscale');
+        } else {
+            canvas.classList.remove('grayscale');
         }
+        saveState();
+    }
+    function onDrawingInfoUpdate() {
+        const activeState = getActiveState();
+        const drawingTitleInput = document.getElementById('drawing-title');
+        const drawingCategorySelect = document.getElementById('drawing-category');
+        const drawingTypologySelect = document.getElementById('drawing-typology');
+        const exerciseDescriptionTextarea = document.getElementById('exercise-description');
+
+        if (!activeState) return;
+        activeState.title = drawingTitleInput.value;
+        activeState.category = drawingCategorySelect.value;
+        activeState.typology = drawingTypologySelect.value;
+        activeState.description = exerciseDescriptionTextarea.value;
+        const activeTabBtn = tabsContainer.querySelector('.tab-btn.active');
+        if (activeTabBtn) {
+            activeTabBtn.querySelector('span').textContent = drawingTitleInput.value;
+        }
+        saveState();
+    }
+    function onExportClick() { exportDropdown.classList.toggle('active'); }
+    function onExportPng() { exportCanvas('png'); }
+    function onExportJpg() { exportCanvas('jpg'); }
+    function onExportPdf() { exportCanvas('pdf'); }
+
+    toolButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            toolButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentArrowType = btn.dataset.tool;
+        });
     });
 
+    window.addEventListener('resize', () => {
+        const activePage = getActiveCanvasPage();
+        if (activePage) updateBackground(activePage);
+    });
+
+    function closeTab(index) {
+        if (allDrawings.length <= 1) {
+            alert("Non puoi chiudere l'ultimo disegno.");
+            return;
+        }
+
+        const tabBtn = tabsContainer.querySelector(`.tab-btn[data-index="${index}"]`);
+        const canvasPage = canvasWrapper.querySelector(`#canvas-page-${allDrawings[index].id}`);
+        
+        tabBtn.remove();
+        canvasPage.remove();
+        allDrawings.splice(index, 1);
+        
+        tabsContainer.querySelectorAll('.tab-btn').forEach((btn, i) => {
+            btn.dataset.index = i;
+        });
+
+        if (activeDrawingIndex === index) {
+            switchToTab(Math.max(0, index - 1));
+        } else if (activeDrawingIndex > index) {
+            activeDrawingIndex--;
+        }
+    }
+    
     async function exportCanvas(format) {
-        // Temporarily hide UI elements that are not part of the drawing
+        const activePage = getActiveCanvasPage();
+        if (!activePage) return;
+
+        const canvasContainer = activePage.querySelector('.canvas-container');
+        
         const elementsToHide = [
             document.querySelector('.top-controls'),
             document.querySelector('.file-controls'),
             document.querySelector('.controls'),
-            document.querySelector('.sidebar')
+            document.querySelector('.sidebar'),
+            document.querySelector('.tabs')
         ];
         
         elementsToHide.forEach(el => { if (el) el.style.display = 'none'; });
 
-        // Temporarily change background to white for better export
         const originalBodyBg = document.body.style.backgroundColor;
         document.body.style.backgroundColor = 'white';
 
-        // Add a temporary background to the canvas container for export if it's transparent
-        const originalCanvasBg = canvas.style.backgroundColor;
-        canvas.style.backgroundColor = 'white';
+        const originalCanvasBg = activePage.querySelector('.canvas').style.backgroundColor;
+        activePage.querySelector('.canvas').style.backgroundColor = 'white';
         
-        // Hide the grid for the export
-        const wasGridEnabled = isGridEnabled;
+        const wasGridEnabled = getActiveState().isGridEnabled;
         if (wasGridEnabled) {
-            canvas.classList.remove('canvas-grid');
+            activePage.querySelector('.canvas').classList.remove('canvas-grid');
         }
 
-        // Hide curve handles
-        canvasContainer.querySelectorAll('.curve-handle').forEach(el => el.style.display = 'none');
+        activePage.querySelectorAll('.curve-handle').forEach(el => el.style.display = 'none');
         
-        // Deselect any selected object
-        deselectAll();
+        deselectAll(getActiveState(), activePage);
 
         try {
             const canvasElement = await html2canvas(canvasContainer, {
-                scale: 2, // Improves resolution
-                backgroundColor: null, // Allow canvas to be transparent
+                scale: 2, 
+                backgroundColor: null, 
                 allowTaint: true,
                 useCORS: true
             });
 
-            const drawingTitle = drawingTitleInput.value || 'disegno';
+            const drawingTitle = document.getElementById('drawing-title').value || 'disegno';
 
             if (format === 'png' || format === 'jpg') {
                 const dataUrl = format === 'png' ? canvasElement.toDataURL('image/png') : canvasElement.toDataURL('image/jpeg', 0.9);
@@ -1580,27 +1732,70 @@ document.addEventListener('DOMContentLoaded', () => {
                 pdf.save(`${drawingTitle}.pdf`);
             }
         } finally {
-            // Restore UI elements and styles
             elementsToHide.forEach(el => { if (el) el.style.display = ''; });
             document.body.style.backgroundColor = originalBodyBg;
-            canvas.style.backgroundColor = originalCanvasBg;
+            activePage.querySelector('.canvas').style.backgroundColor = originalCanvasBg;
             if (wasGridEnabled) {
-                canvas.classList.add('canvas-grid');
+                activePage.querySelector('.canvas').classList.add('canvas-grid');
             }
-            canvasContainer.querySelectorAll('.curve-handle').forEach(el => el.style.display = 'block');
+            const activeState = getActiveState();
+            if (activeState && activeState.selectedLine && activeState.selectedLine.arrowType === 'curved' && activeState.selectedLine.curveHandle) {
+                activeState.selectedLine.curveHandle.style.display = 'block';
+            }
         }
     }
+    
+    // Global Listeners for file I/O
+    saveBtn.addEventListener('click', () => {
+        saveState(false);
+        const jsonString = JSON.stringify(allDrawings.map(d => ({ ...d, selectedObject: null, selectedObjectDom: null, selectedLine: null, startNode: null, currentLine: null, undoStack: [], redoStack: [] })), null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const title = "tutti_i_disegni"
+        a.download = `${title}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
 
-    exportPngBtn.addEventListener('click', () => exportCanvas('png'));
-    exportJpgBtn.addEventListener('click', () => exportCanvas('jpg'));
-    exportPdfBtn.addEventListener('click', () => exportCanvas('pdf'));
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
 
-    window.addEventListener('resize', updateBackground);
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const loadedDrawings = JSON.parse(event.target.result);
+                allDrawings = [];
+                tabsContainer.querySelectorAll('.tab-btn').forEach(btn => btn.remove());
+                canvasWrapper.innerHTML = '';
+                
+                loadedDrawings.forEach(d => createTab(d));
+                switchToTab(0);
+                alert('Disegni caricati con successo!');
+            } catch (error) {
+                console.error('Errore nel caricamento del file:', error);
+                alert('Errore nel caricamento del file. Assicurati che sia un file JSON valido.');
+            }
+        };
+        reader.readAsText(file);
+    });
 
+    // Final deselect listener
+    document.addEventListener('click', (e) => {
+        if (exportDropdown && !exportDropdown.contains(e.target)) {
+            exportDropdown.classList.remove('active');
+        }
+    });
+
+    // Initial setup
     function initialSetup(){ 
+        createTab({ title: 'Nuovo Disegno 1' });
+        switchToTab(0);
         document.querySelector('.object-category .category-header').click();
-        saveState(); 
-        updateBackground();
     }
     
     initialSetup();
