@@ -1,1477 +1,1863 @@
 <!DOCTYPE html>
 <html lang="it">
+
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Editor con libreria di componenti</title>
-<style>
-    body{font-family:Arial,Helvetica,sans-serif;margin:0;display:flex;justify-content:center;align-items:center;height:100vh;background:#f0f0f0}
-    .container{display:flex;flex-direction: column;width:92%;height:92%;border:1px solid #ccc;box-shadow:0 0 10px rgba(0,0,0,.1);background:#fff;position:relative}
-    .main-content { display: flex; flex-grow: 1; position: relative; padding-top: 10px; }
-    .sidebar{width:200px;padding:20px;background:#f9f9f9;border-right:1px solid #ccc;flex-shrink:0;overflow-y:auto}
-    .object-category{margin-bottom:10px}
-    .category-header{padding:10px;background:#e0e0e0;cursor:pointer;font-weight:bold;border-radius:5px;transition:background-color .2s}
-    .category-header:hover{background-color:#d0d0d0}
-    .category-content{display:none;padding:10px 0;border:1px solid #ccc;border-top:none;border-radius:0 0 5px 5px}
-    .category-content.active{display:flex;flex-wrap:wrap;gap:5px;padding:10px}
-    .object{padding:8px;border:1px solid #ddd;cursor:grab;text-align:center;background:#e9e9e9;border-radius:5px;flex-basis:calc(50% - 5px);box-sizing:border-box;font-size:12px}
-    .canvas-wrapper{flex-grow:1;position:relative;overflow:hidden;}
-    .canvas-page { flex-grow: 1; position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; }
-    .canvas-page.active { display: block; }
-    .canvas{position:relative;width:100%;height:100%; background-color: transparent;}
-    .canvas.grayscale { filter: grayscale(100%); }
-    .canvas-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform-origin: top left; }
-    #connection-layer{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
-    .dropped-object{position:absolute;border:2px solid transparent;cursor:move;display:flex;justify-content:center;align-items:center;font-weight:bold;font-size:14px;text-align:center;box-sizing:border-box;pointer-events:all}
-    .dropped-object.selected{border:2px dashed #007bff}
-    .dropped-object .resizer,.dropped-object .rotator{position:absolute;width:10px;height:10px;background:#007bff;border:1px solid #fff;border-radius:50%;display:none;pointer-events:all}
-    .dropped-object.selected .resizer,.dropped-object.selected .rotator{display:block}
-    .resizer{bottom:-5px;right:-5px;cursor:nwse-resize}
-    .rotator{top:-15px;left:50%;transform:translateX(-50%);cursor:grab}
-    .circle-object{width:50px;height:50px;border-radius:50%;color:#fff;background:#4682b4}
-    .square-object{width:50px;height:50px;color:#fff;background:#4682b4}
-    .triangle-object{width:0;height:0;border-left:25px solid transparent;border-right:25px solid transparent;border-bottom:50px solid #3cb371;position:relative}
-    .triangle-object .object-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:max-content;color:#fff}
-    .object-text{pointer-events:auto;padding:5px;min-width:10px;min-height:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;user-select:text}
-    .text-box-object{background:transparent;border:2px solid transparent;color:#000;padding:10px;min-width:100px;min-height:30px;pointer-events:auto}
-    .text-box-object .object-text{white-space:normal;text-overflow:clip;text-align:left;font-weight:normal;color:#000}
-    .dropped-object.selected .object-text:focus{outline:1px dotted #fff}
-    .controls{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:#fff;padding:10px 20px;border:1px solid #ccc;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,.1);display:none;gap:10px;align-items:center;z-index:1000}
-    .controls.visible{display:flex}
-    .controls label{font-weight:bold;font-size:14px}
-    .controls input[type=color]{border:none;width:30px;height:30px;border-radius:50%;padding:0;cursor:pointer}
-    .connection-node{position:absolute;width:10px;height:10px;background:#333;border-radius:50%;cursor:crosshair;z-index:10;display:none;pointer-events:all}
-    .dropped-object.selected .connection-node,.dropped-object.show-nodes .connection-node{display:block}
-    .connection-node.top{top:-5px;left:calc(50% - 5px)}
-    .connection-node.bottom{bottom:-5px;left:calc(50% - 5px)}
-    .connection-node.left{left:-5px;top:calc(50% - 5px)}
-    .connection-node.right{right:-5px;top:calc(50% - 5px)}
-    .connection-line{stroke:#333;stroke-width:2;pointer-events:auto;fill:none;marker-end:url(#arrowhead);}
-    .selected-line{stroke:red;stroke-width:3}
-    .curve-handle{position:absolute;width:10px;height:10px;background:#007bff;border:1px solid #fff;border-radius:50%;cursor:grab;z-index:10;display:none;pointer-events:all;}
-    .top-controls { position:absolute; top:10px; left:10px; display:flex; gap:10px; align-items:center; z-index:1000; }
-    .top-controls button { width: 30px; height: 30px; font-size: 20px; font-weight: bold; }
-    #zoom-level { min-width: 50px; text-align: center; }
-    .background-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background-color: transparent;}
-    .canvas-grid {
-        background-image: linear-gradient(to right, #e0e0e0 1px, transparent 1px),
-                          linear-gradient(to bottom, #e0e0e0 1px, transparent 1px);
-        background-size: 20px 20px;
-    }
-    .file-controls {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-        z-index: 1000;
-        padding: 10px;
-        background-color: rgba(255, 255, 255, 0.8);
-        border-radius: 8px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
-    .file-controls input, .file-controls select, .file-controls button {
-        padding: 5px;
-        border-radius: 4px;
-        border: 1px solid #ccc;
-    }
-    .file-controls input[type="text"] {
-        width: 150px;
-    }
-    
-    .player-object{
-        background-color: #007bff;
-        border-radius: 50%;
-        width: 50px;
-        height: 50px;
-        color: white;
-    }
-    .mat-object{
-        width: 100px;
-        height: 50px;
-        background-color: #8B4513;
-        border: 2px solid #5C3317;
-    }
-    .wall-object{
-        width: 250px;
-        height: 20px;
-        background-color: #a0422d;
-        background-image: linear-gradient(45deg, rgba(0,0,0,.1) 25%, transparent 25%, transparent 75%, rgba(0,0,0,.1) 75%, rgba(0,0,0,.1)), linear-gradient(45deg, rgba(0,0,0,.1) 25%, transparent 25%, transparent 75%, rgba(0,0,0,.1) 75%, rgba(0,0,0,.1));
-        background-size: 15px 15px;
-        background-position: 0 0, 7.5px 7.5px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-    .ball-cart-object{
-        width: 80px;
-        height: 60px;
-        background-color: #555;
-        position: relative;
-        clip-path: polygon(10% 0, 90% 0, 100% 100%, 0% 100%);
-        box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
-    }
-    .ball-cart-object:after, .ball-cart-object:before{
-        content: '';
-        position: absolute;
-        bottom: -10px;
-        width: 15px;
-        height: 15px;
-        background-color: #333;
-        border-radius: 50%;
-        border: 2px solid #ccc;
-        z-index: -1;
-    }
-    .ball-cart-object:before{left: 5px;}
-    .ball-cart-object:after{right: 5px;}
-    .ball-object {
-        width: 25px;
-        height: 25px;
-        border-radius: 50%;
-        background-color: white;
-        border: 1px solid #ccc;
-        box-shadow: inset -1px -1px 3px rgba(0,0,0,0.2);
-    }
-    .net-object{
-        width: 150px;
-        height: 5px;
-        background-image: linear-gradient(to right, #ccc 1px, transparent 1px), linear-gradient(to bottom, #ccc 1px, transparent 1px);
-        background-size: 10px 10px;
-        background-color: transparent;
-        border: none;
-        position: relative;
-    }
-    .net-object::before, .net-object::after{
-        content: '';
-        position: absolute;
-        top: -20px;
-        width: 5px;
-        height: 25px;
-        background-color: #666;
-        border: 1px solid #444;
-    }
-    .net-object::before{ left: 0; }
-    .net-object::after{ right: 0; }
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Editor con libreria di componenti</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #f0f0f0
+        }
 
-    .hoop-object {
-        width: 60px;
-        height: 60px;
-        background: transparent;
-        border: 3px solid #ff8c00;
-        border-radius: 50%;
-        position: relative;
-    }
-    .hoop-object::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 40px;
-        height: 40px;
-        transform: translate(-50%, -50%);
-        background-image: linear-gradient(45deg, transparent 49%, #fff 49%, #fff 51%, transparent 51%),
-                          linear-gradient(135deg, transparent 49%, #fff 49%, #fff 51%, transparent 51%);
-        background-size: 10px 10px;
-        background-color: transparent;
-        border: none;
-    }
-    .plinth-object {
-        width: 60px;
-        height: 40px;
-        background-color: #8b4513;
-        border: 2px solid #5c3317;
-        position: relative;
-        clip-path: polygon(20% 0, 80% 0, 100% 100%, 0% 100%);
-    }
-    .cone-object {
-        width: 40px;
-        height: 40px;
-        background-color: #ff4500;
-        position: relative;
-        border-radius: 50%;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-    }
-    .cone-object::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 10px;
-        height: 10px;
-        background-color: white;
-        border-radius: 50%;
-    }
-    .whistle-object {
-        width: 50px;
-        height: 20px;
-        background-color: #333;
-        position: relative;
-        border-radius: 5px;
-    }
-    .whistle-object::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: -10px;
-        transform: translateY(-50%);
-        width: 15px;
-        height: 15px;
-        border: 2px solid #555;
-        border-radius: 50%;
-    }
-    .timer-object {
-        width: 60px;
-        height: 35px;
-        background-color: #333;
-        position: relative;
-        border-radius: 5px;
-        box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
-    }
-    .timer-object::before {
-        content: '';
-        position: absolute;
-        top: -5px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 10px;
-        height: 10px;
-        background-color: #e0e0e0;
-        border: 1px solid #555;
-        border-radius: 50%;
-    }
-    .hoop-side-object {
-        width: 80px;
-        height: 60px;
-        background-color: #f0f0f0;
-        border: 2px solid #333;
-        position: relative;
-        box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
-        transform: perspective(100px) rotateX(10deg);
-    }
-    .hoop-side-object::before {
-        content: '';
-        position: absolute;
-        bottom: -15px;
-        left: 10px;
-        width: 60px;
-        height: 10px;
-        border: 2px solid #ff8c00;
-        border-radius: 50%;
-        transform: rotateX(80deg) scaleY(0.7);
-        background-color: transparent;
-    }
-    .hoop-side-object::after {
-        content: '';
-        position: absolute;
-        bottom: -25px;
-        left: 10px;
-        width: 60px;
-        height: 15px;
-        background-image: linear-gradient(45deg, transparent 49%, #fff 49%, #fff 51%, transparent 51%),
-                          linear-gradient(135deg, transparent 49%, #fff 49%, #fff 51%, transparent 51%);
-        background-size: 10px 10px;
-        background-color: transparent;
-        border: none;
-    }
-    .tool-btn {
-        padding: 8px;
-        border: 1px solid #ddd;
-        cursor: pointer;
-        text-align: center;
-        background: #e9e9e9;
-        border-radius: 5px;
-        flex-basis: 100%;
-        box-sizing: border-box;
-        font-size: 12px;
-        margin-bottom: 5px;
-    }
-    .tool-btn.active {
-        background-color: #007bff;
-        color: white;
-    }
+        .container {
+            display: flex;
+            flex-direction: column;
+            width: 92%;
+            height: 92%;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 10px rgba(0, 0, 0, .1);
+            background: #fff;
+            position: relative
+        }
 
-    /* New Arrow Object Style */
-    .arrow-object {
-        width: 60px;
-        height: 15px;
-        background-color: #333;
-        position: relative;
-    }
-    .arrow-object::before {
-        content: '';
-        position: absolute;
-        right: -15px;
-        top: 0;
-        width: 0;
-        height: 0;
-        border-top: 7.5px solid transparent;
-        border-bottom: 7.5px solid transparent;
-        border-left: 15px solid;
-    }
+        .main-content {
+            display: flex;
+            flex-grow: 1;
+            position: relative;
+            padding-top: 10px;
+        }
 
-    .dropdown {
-        position: relative;
-        display: inline-block;
-    }
+        .sidebar {
+            width: 200px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-right: 1px solid #ccc;
+            flex-shrink: 0;
+            overflow-y: auto
+        }
 
-    .dropdown-content {
-        display: none;
-        position: absolute;
-        background-color: #f9f9f9;
-        min-width: 100px;
-        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-        z-index: 1;
-        right: 0;
-        top: 100%;
-        border-radius: 5px;
-    }
+        .object-category {
+            margin-bottom: 10px
+        }
 
-    .dropdown-content button {
-        color: black;
-        padding: 8px 12px;
-        text-decoration: none;
-        display: block;
-        width: 100%;
-        text-align: left;
-        border: none;
-        background: none;
-        cursor: pointer;
-    }
+        .category-header {
+            padding: 10px;
+            background: #e0e0e0;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 5px;
+            transition: background-color .2s
+        }
 
-    .dropdown-content button:hover {
-        background-color: #f1f1f1;
-    }
+        .category-header:hover {
+            background-color: #d0d0d0
+        }
 
-    .dropdown.active .dropdown-content {
-        display: block;
-    }
+        .category-content {
+            display: none;
+            padding: 10px 0;
+            border: 1px solid #ccc;
+            border-top: none;
+            border-radius: 0 0 5px 5px
+        }
 
-    .tabs {
-        display: flex;
-        gap: 2px;
-        align-items: flex-end;
-        padding: 5px 10px 0;
-        background-color: #f0f0f0;
-        border-bottom: 1px solid #ccc;
-        box-sizing: border-box;
-        overflow-x: auto;
-        white-space: nowrap;
-        min-height: 40px;
-    }
-    .tab-btn {
-        padding: 8px 15px;
-        border: 1px solid #ccc;
-        border-bottom: none;
-        background-color: #e0e0e0;
-        cursor: pointer;
-        border-radius: 5px 5px 0 0;
-        font-size: 14px;
-        font-weight: bold;
-        transition: background-color 0.2s;
-        min-width: 120px;
-        max-width: 200px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        position: relative;
-    }
-    .tab-btn.active {
-        background-color: #fff;
-        border-top: 2px solid #007bff;
-        border-bottom: 1px solid #fff;
-        margin-top: -1px;
-    }
-    .tab-btn:hover {
-        background-color: #d0d0d0;
-    }
-    .tab-btn.active:hover {
-        background-color: #fff;
-    }
-    #add-tab-btn {
-        font-size: 24px;
-        padding: 4px 10px;
-        border-radius: 50%;
-        border: 1px solid #ccc;
-        background-color: #e0e0e0;
-        cursor: pointer;
-        font-weight: bold;
-    }
-    .close-tab-btn {
-        position: absolute;
-        top: 2px;
-        right: 5px;
-        font-size: 10px;
-        background: none;
-        border: none;
-        cursor: pointer;
-        color: #888;
-        font-weight: bold;
-    }
-</style>
+        .category-content.active {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            padding: 10px
+        }
+
+        .object {
+            padding: 8px;
+            border: 1px solid #ddd;
+            cursor: grab;
+            text-align: center;
+            background: #e9e9e9;
+            border-radius: 5px;
+            flex-basis: calc(50% - 5px);
+            box-sizing: border-box;
+            font-size: 12px
+        }
+
+        .canvas-wrapper {
+            flex-grow: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .canvas-page {
+            flex-grow: 1;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+        }
+
+        .canvas-page.active {
+            display: block;
+        }
+
+        .canvas {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background-color: transparent;
+        }
+
+        .canvas.grayscale {
+            filter: grayscale(100%);
+        }
+
+        .canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform-origin: top left;
+        }
+
+        #connection-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0
+        }
+
+        .dropped-object {
+            position: absolute;
+            border: 2px solid transparent;
+            cursor: move;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 14px;
+            text-align: center;
+            box-sizing: border-box;
+            pointer-events: all
+        }
+
+        .dropped-object.selected {
+            border: 2px dashed #007bff
+        }
+
+        .dropped-object .resizer,
+        .dropped-object .rotator {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #007bff;
+            border: 1px solid #fff;
+            border-radius: 50%;
+            display: none;
+            pointer-events: all
+        }
+
+        .dropped-object.selected .resizer,
+        .dropped-object.selected .rotator {
+            display: block
+        }
+
+        .resizer {
+            bottom: -5px;
+            right: -5px;
+            cursor: nwse-resize
+        }
+
+        .rotator {
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            cursor: grab
+        }
+
+        .circle-object {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            color: #fff;
+            background: #4682b4
+        }
+
+        .square-object {
+            width: 50px;
+            height: 50px;
+            color: #fff;
+            background: #4682b4
+        }
+
+        .triangle-object {
+            width: 0;
+            height: 0;
+            border-left: 25px solid transparent;
+            border-right: 25px solid transparent;
+            border-bottom: 50px solid #3cb371;
+            position: relative
+        }
+
+        .triangle-object .object-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: max-content;
+            color: #fff
+        }
+
+        .object-text {
+            pointer-events: auto;
+            padding: 5px;
+            min-width: 10px;
+            min-height: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            user-select: text
+        }
+
+        .text-box-object {
+            background: transparent;
+            border: 2px solid transparent;
+            color: #000;
+            padding: 10px;
+            min-width: 100px;
+            min-height: 30px;
+            pointer-events: auto
+        }
+
+        .text-box-object .object-text {
+            white-space: normal;
+            text-overflow: clip;
+            text-align: left;
+            font-weight: normal;
+            color: #000
+        }
+
+        .dropped-object.selected .object-text:focus {
+            outline: 1px dotted #fff
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #fff;
+            padding: 10px 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, .1);
+            display: none;
+            gap: 10px;
+            align-items: center;
+            z-index: 1000
+        }
+
+        .controls.visible {
+            display: flex
+        }
+
+        .controls label {
+            font-weight: bold;
+            font-size: 14px
+        }
+
+        .controls input[type=color] {
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            padding: 0;
+            cursor: pointer
+        }
+
+        .connection-node {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #333;
+            border-radius: 50%;
+            cursor: crosshair;
+            z-index: 10;
+            display: none;
+            pointer-events: all
+        }
+
+        .dropped-object.selected .connection-node,
+        .dropped-object.show-nodes .connection-node {
+            display: block
+        }
+
+        .connection-node.top {
+            top: -5px;
+            left: calc(50% - 5px)
+        }
+
+        .connection-node.bottom {
+            bottom: -5px;
+            left: calc(50% - 5px)
+        }
+
+        .connection-node.left {
+            left: -5px;
+            top: calc(50% - 5px)
+        }
+
+        .connection-node.right {
+            right: -5px;
+            top: calc(50% - 5px)
+        }
+
+        .connection-line {
+            stroke: #333;
+            stroke-width: 2;
+            pointer-events: auto;
+            fill: none;
+            marker-end: url(#arrowhead);
+        }
+
+        .selected-line {
+            stroke: red;
+            stroke-width: 3
+        }
+
+        .curve-handle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #007bff;
+            border: 1px solid #fff;
+            border-radius: 50%;
+            cursor: grab;
+            z-index: 10;
+            display: none;
+            pointer-events: all;
+        }
+
+        .top-controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .top-controls button {
+            width: 30px;
+            height: 30px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        #zoom-level {
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .background-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-color: transparent;
+        }
+
+        .canvas-grid {
+            background-image: linear-gradient(to right, #e0e0e0 1px, transparent 1px),
+                linear-gradient(to bottom, #e0e0e0 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .file-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            z-index: 1000;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .file-controls input,
+        .file-controls select,
+        .file-controls button {
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        .file-controls input[type="text"] {
+            width: 150px;
+        }
+
+        .player-object {
+            background-color: #007bff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            color: white;
+        }
+
+        .mat-object {
+            width: 100px;
+            height: 50px;
+            background-color: #8B4513;
+            border: 2px solid #5C3317;
+        }
+
+        .wall-object {
+            width: 250px;
+            height: 20px;
+            background-color: #a0422d;
+            background-image: linear-gradient(45deg, rgba(0, 0, 0, .1) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, .1) 75%, rgba(0, 0, 0, .1)), linear-gradient(45deg, rgba(0, 0, 0, .1) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, .1) 75%, rgba(0, 0, 0, .1));
+            background-size: 15px 15px;
+            background-position: 0 0, 7.5px 7.5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .ball-cart-object {
+            width: 80px;
+            height: 60px;
+            background-color: #555;
+            position: relative;
+            clip-path: polygon(10% 0, 90% 0, 100% 100%, 0% 100%);
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .ball-cart-object:after,
+        .ball-cart-object:before {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            width: 15px;
+            height: 15px;
+            background-color: #333;
+            border-radius: 50%;
+            border: 2px solid #ccc;
+            z-index: -1;
+        }
+
+        .ball-cart-object:before {
+            left: 5px;
+        }
+
+        .ball-cart-object:after {
+            right: 5px;
+        }
+
+        .ball-object {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background-color: white;
+            border: 1px solid #ccc;
+            box-shadow: inset -1px -1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .net-object {
+            width: 150px;
+            height: 5px;
+            background-image: linear-gradient(to right, #ccc 1px, transparent 1px), linear-gradient(to bottom, #ccc 1px, transparent 1px);
+            background-size: 10px 10px;
+            background-color: transparent;
+            border: none;
+            position: relative;
+        }
+
+        .net-object::before,
+        .net-object::after {
+            content: '';
+            position: absolute;
+            top: -20px;
+            width: 5px;
+            height: 25px;
+            background-color: #666;
+            border: 1px solid #444;
+        }
+
+        .net-object::before {
+            left: 0;
+        }
+
+        .net-object::after {
+            right: 0;
+        }
+
+        .hoop-object {
+            width: 60px;
+            height: 60px;
+            background: transparent;
+            border: 3px solid #ff8c00;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .hoop-object::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 40px;
+            height: 40px;
+            transform: translate(-50%, -50%);
+            background-image: linear-gradient(45deg, transparent 49%, #fff 49%, #fff 51%, transparent 51%),
+                linear-gradient(135deg, transparent 49%, #fff 49%, #fff 51%, transparent 51%);
+            background-size: 10px 10px;
+            background-color: transparent;
+            border: none;
+        }
+
+        .plinth-object {
+            width: 60px;
+            height: 40px;
+            background-color: #8b4513;
+            border: 2px solid #5c3317;
+            position: relative;
+            clip-path: polygon(20% 0, 80% 0, 100% 100%, 0% 100%);
+        }
+
+        .cone-object {
+            width: 40px;
+            height: 40px;
+            background-color: #ff4500;
+            position: relative;
+            border-radius: 50%;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .cone-object::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 10px;
+            height: 10px;
+            background-color: white;
+            border-radius: 50%;
+        }
+
+        .whistle-object {
+            width: 50px;
+            height: 20px;
+            background-color: #333;
+            position: relative;
+            border-radius: 5px;
+        }
+
+        .whistle-object::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: -10px;
+            transform: translateY(-50%);
+            width: 15px;
+            height: 15px;
+            border: 2px solid #555;
+            border-radius: 50%;
+        }
+
+        .timer-object {
+            width: 60px;
+            height: 35px;
+            background-color: #333;
+            position: relative;
+            border-radius: 5px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .timer-object::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 10px;
+            background-color: #e0e0e0;
+            border: 1px solid #555;
+            border-radius: 50%;
+        }
+
+        .hoop-side-object {
+            width: 80px;
+            height: 60px;
+            background-color: #f0f0f0;
+            border: 2px solid #333;
+            position: relative;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+            transform: perspective(100px) rotateX(10deg);
+        }
+
+        .hoop-side-object::before {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 10px;
+            width: 60px;
+            height: 10px;
+            border: 2px solid #ff8c00;
+            border-radius: 50%;
+            transform: rotateX(80deg) scaleY(0.7);
+            background-color: transparent;
+        }
+
+        .hoop-side-object::after {
+            content: '';
+            position: absolute;
+            bottom: -25px;
+            left: 10px;
+            width: 60px;
+            height: 15px;
+            background-image: linear-gradient(45deg, transparent 49%, #fff 49%, #fff 51%, transparent 51%),
+                linear-gradient(135deg, transparent 49%, #fff 49%, #fff 51%, transparent 51%);
+            background-size: 10px 10px;
+            background-color: transparent;
+            border: none;
+        }
+
+        .tool-btn {
+            padding: 8px;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            text-align: center;
+            background: #e9e9e9;
+            border-radius: 5px;
+            flex-basis: 100%;
+            box-sizing: border-box;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .tool-btn.active {
+            background-color: #007bff;
+            color: white;
+        }
+
+        /* New Arrow Object Style */
+        .arrow-object {
+            width: 60px;
+            height: 15px;
+            background-color: #333;
+            position: relative;
+        }
+
+        .arrow-object::before {
+            content: '';
+            position: absolute;
+            right: -15px;
+            top: 0;
+            width: 0;
+            height: 0;
+            border-top: 7.5px solid transparent;
+            border-bottom: 7.5px solid transparent;
+            border-left: 15px solid;
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 100px;
+            box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+            right: 0;
+            top: 100%;
+            border-radius: 5px;
+        }
+
+        .dropdown-content button {
+            color: black;
+            padding: 8px 12px;
+            text-decoration: none;
+            display: block;
+            width: 100%;
+            text-align: left;
+            border: none;
+            background: none;
+            cursor: pointer;
+        }
+
+        .dropdown-content button:hover {
+            background-color: #f1f1f1;
+        }
+
+        .dropdown.active .dropdown-content {
+            display: block;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 2px;
+            align-items: flex-end;
+            padding: 5px 10px 0;
+            background-color: #f0f0f0;
+            border-bottom: 1px solid #ccc;
+            box-sizing: border-box;
+            overflow-x: auto;
+            white-space: nowrap;
+            min-height: 40px;
+        }
+
+        .tab-btn {
+            padding: 8px 15px;
+            border: 1px solid #ccc;
+            border-bottom: none;
+            background-color: #e0e0e0;
+            cursor: pointer;
+            border-radius: 5px 5px 0 0;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background-color 0.2s;
+            min-width: 120px;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            position: relative;
+        }
+
+        .tab-btn.active {
+            background-color: #fff;
+            border-top: 2px solid #007bff;
+            border-bottom: 1px solid #fff;
+            margin-top: -1px;
+        }
+
+        .tab-btn:hover {
+            background-color: #d0d0d0;
+        }
+
+        .tab-btn.active:hover {
+            background-color: #fff;
+        }
+
+        #add-tab-btn {
+            font-size: 24px;
+            padding: 4px 10px;
+            border-radius: 50%;
+            border: 1px solid #ccc;
+            background-color: #e0e0e0;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .close-tab-btn {
+            position: absolute;
+            top: 2px;
+            right: 5px;
+            font-size: 10px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #888;
+            font-weight: bold;
+        }
+    </style>
 </head>
+
 <body>
-<div class="container">
-    <div class="tabs">
-        <button id="add-tab-btn">+</button>
+    <div class="container">
+        <div class="tabs">
+            <button id="add-tab-btn">+</button>
+        </div>
+        <div class="main-content">
+            <div class="sidebar">
+                <h3>Libreria Componenti</h3>
+                <div class="object-category">
+                    <div class="category-header">Giocatori</div>
+                    <div class="category-content" data-category="giocatori">
+                        <div class="object" draggable="true" data-shape="player" data-text="L1">L1</div>
+                        <div class="object" draggable="true" data-shape="player" data-text="L2">L2</div>
+                        <div class="object" draggable="true" data-shape="player" data-text="S1">S1</div>
+                        <div class="object" draggable="true" data-shape="player" data-text="S2">S2</div>
+                        <div class="object" draggable="true" data-shape="player" data-text="C1">C1</div>
+                        <div class="object" draggable="true" data-shape="player" data-text="C2">C2</div>
+                        <div class="object" draggable="true" data-shape="player" data-text="O">O</div>
+                        <div class="object" draggable="true" data-shape="player" data-text="P">P</div>
+                        <div class="object" draggable="true" data-shape="player" data-text="All">All</div>
+                        <div class="object" draggable="true" data-shape="player" data-text="Extra">Extra</div>
+                    </div>
+                </div>
+
+                <div class="object-category">
+                    <div class="category-header">Materiale</div>
+                    <div class="category-content" data-category="materiale">
+                        <div class="object" draggable="true" data-shape="mat" data-text="Tappetino">Tappetino</div>
+                        <div class="object" draggable="true" data-shape="ball-cart" data-text="">Carrello palloni</div>
+                        <div class="object" draggable="true" data-shape="ball" data-text="">pallone</div>
+                        <div class="object" draggable="true" data-shape="whistle" data-text="fischietto">fischietto
+                        </div>
+                        <div class="object" draggable="true" data-shape="plinth" data-text="">plinto</div>
+                        <div class="object" draggable="true" data-shape="net" data-text="">rete</div>
+                        <div class="object" draggable="true" data-shape="cone" data-text="">cinesino</div>
+                        <div class="object" draggable="true" data-shape="hoop" data-text="">canestro</div>
+                        <div class="object" draggable="true" data-shape="hoop-side" data-text="">canestro fr</div>
+                        <div class="object" draggable="true" data-shape="square" data-text="tappetone">tappetone</div>
+                        <div class="object" draggable="true" data-shape="wall" data-text="">muro palestra</div>
+                        <div class="object" draggable="true" data-shape="timer" data-text="00:00">timer</div>
+                        <div class="object" draggable="true" data-shape="arrow" data-text="">freccia</div>
+                    </div>
+                </div>
+
+                <div class="object-category">
+                    <div class="category-header">Strumenti</div>
+                    <div class="category-content" data-category="strumenti">
+                        <div class="tool-btn active" data-tool="curved">Freccia Curva</div>
+                        <div class="tool-btn" data-tool="linear">Freccia Lineare</div>
+                        <div class="tool-btn" data-tool="zigzag">Freccia a Zigzag</div>
+                    </div>
+                </div>
+
+                <div class="object-category">
+                    <div class="category-header">Campi</div>
+                    <div class="category-content" data-category="campi">
+                        <div class="object" draggable="true" data-shape="square" data-text="Singolo">Singolo</div>
+                        <div class="object" draggable="true" data-shape="square" data-text="Completo">Completo</div>
+                        <div class="object" draggable="true" data-shape="3D">3D</div>
+                    </div>
+                </div>
+
+                <div class="object-category">
+                    <div class="category-header">Corpo</div>
+                    <div class="category-content" data-category="corpo">
+                        <div class="object" draggable="true" data-shape="square" data-text="Mani">Mani</div>
+                        <div class="object" draggable="true" data-shape="square" data-text="bagher">bagher</div>
+                        <div class="object" draggable="true" data-shape="square" data-text="palleggio">palleggio</div>
+                        <div class="object" draggable="true" data-shape="square" data-text="schiacciata">schiacciata
+                        </div>
+                        <div class="object" draggable="true" data-shape="square" data-text="difesa">difesa</div>
+                        <div class="object" draggable="true" data-shape="square" data-text="ricezione">ricezione</div>
+                        <div class="object" draggable="true" data-shape="square" data-text="servizio">servizio</div>
+                    </div>
+                </div>
+
+                <div class="object-category">
+                    <div class="category-header">Testo</div>
+                    <div class="category-content" data-category="testo">
+                        <div class="object" draggable="true" data-shape="text-box" data-text="Note">Note</div>
+                    </div>
+                </div>
+
+                <div class="object-category">
+                    <div class="category-header">Dettagli</div>
+                    <div class="category-content" data-category="details">
+                        <div class="object" draggable="true" data-shape="text-box" data-text="x1">x1</div>
+                        <div class="object" draggable="true" data-shape="text-box" data-text="x2">x2</div>
+                        <div class="object" draggable="true" data-shape="text-box" data-text="x3">x3</div>
+                        <div class="object" draggable="true" data-shape="text-box" data-text="x4">x4</div>
+                        <div class="object" draggable="true" data-shape="text-box" data-text="10''">10''</div>
+                        <div class="object" draggable="true" data-shape="text-box" data-text="20''">20''</div>
+                        <div class="object" draggable="true" data-shape="text-box" data-text="30''">30''</div>
+                        <div class="object" draggable="true" data-shape="text-box" data-text="40''">40''</div>
+                        <div class="object" draggable="true" data-shape="text-box" data-text="50''">50''</div>
+                        <div class="object" draggable="true" data-shape="text-box" data-text="1'">1'</div>
+                        <div class="object" draggable="true" data-shape="text-box" data-text="10'">10'</div>
+                        <div class="object" draggable="true" data-shape="text-box" data-text="20'">20'</div>
+                        <div class="object" draggable="true" data-shape="text-box" data-text="30'">30'</div>
+                        <div class="object" draggable="true" data-shape="text-box" data-text="x2S">x2S</div>
+                        <div class="object" draggable="true" data-shape="text-box" data-text="x4S">x4S</div>
+                    </div>
+                </div>
+
+                <div style="margin-top:18px">
+                    <strong>Shortcuts</strong>
+                    <div>Delete → elimina</div>
+                    <div>Ctrl+Z → undo</div>
+                    <div>Ctrl+Y → redo</div>
+                </div>
+
+                <div style="margin-top:18px">
+                    <strong>Descrizione Esercizio</strong>
+                    <textarea id="exercise-description" placeholder="Inserisci la descrizione dell'esercizio..."
+                        style="width:100%; height:100px; padding:5px; box-sizing:border-box;"></textarea>
+                </div>
+            </div>
+            <div class="canvas-wrapper" id="canvas-wrapper">
+            </div>
+            <div class="top-controls">
+                <select id="background-selector">
+                    <option value="none">Trasparente</option>
+                    <option value="half-court">Metà Campo</option>
+                    <option value="full-court">Campo Completo</option>
+                    <option value="3d-court">Campo 3D</option>
+                </select>
+                <button id="toggle-grid-btn">Griglia OFF</button>
+                <label for="bw-toggle">B/N</label>
+                <input type="checkbox" id="bw-toggle">
+                <button id="zoom-out-btn">-</button>
+                <span id="zoom-level">100%</span>
+                <button id="zoom-in-btn">+</button>
+                <div class="dropdown">
+                    <button class="export-btn">Esporta</button>
+                    <div class="dropdown-content">
+                        <button id="export-png-btn">PNG</button>
+                        <button id="export-jpg-btn">JPG</button>
+                        <button id="export-pdf-btn">PDF</button>
+                    </div>
+                </div>
+            </div>
+            <div class="file-controls">
+                <label for="drawing-title">Titolo:</label>
+                <input type="text" id="drawing-title" placeholder="Inserisci titolo">
+                <label for="drawing-category">Categoria:</label>
+                <select id="drawing-category">
+                    <option value="">Seleziona...</option>
+                    <option value="riscaldamento">Riscaldamento</option>
+                    <option value="attivazione">Attivazione</option>
+                    <option value="analitico">Analitico</option>
+                    <option value="super-analitico">Super Analitico</option>
+                    <option value="sintetico">Sintetico</option>
+                    <option value="globale">Globale</option>
+                    <option value="globale-punteggio">Globale con punteggio</option>
+                    <option value="globale-gioco">Globale di gioco</option>
+                </select>
+                <label for="drawing-typology">Tipologia:</label>
+                <select id="drawing-typology">
+                    <option value="">Seleziona...</option>
+                    <option value="preparazione">Preparazione</option>
+                    <option value="pre-campionato">Pre-campionato</option>
+                    <option value="post-campionato">Post-campionato</option>
+                    <option value="transitorio">Transitorio</option>
+                </select>
+                <button id="save-btn">Salva Disegno</button>
+                <label for="file-input">Carica Disegno:</label>
+                <input type="file" id="file-input" accept=".json">
+            </div>
+
+            <div class="controls" id="object-controls">
+                <label for="color-picker">Colore:</label>
+                <input type="color" id="color-picker" value="#4682b4">
+            </div>
+        </div>
     </div>
-    <div class="main-content">
-        <div class="sidebar">
-            <h3>Libreria Componenti</h3>
-            <div class="object-category">
-                <div class="category-header">Giocatori</div>
-                <div class="category-content" data-category="giocatori">
-                    <div class="object" draggable="true" data-shape="player" data-text="L1">L1</div>
-                    <div class="object" draggable="true" data-shape="player" data-text="L2">L2</div>
-                    <div class="object" draggable="true" data-shape="player" data-text="S1">S1</div>
-                    <div class="object" draggable="true" data-shape="player" data-text="S2">S2</div>
-                    <div class="object" draggable="true" data-shape="player" data-text="C1">C1</div>
-                    <div class="object" draggable="true" data-shape="player" data-text="C2">C2</div>
-                    <div class="object" draggable="true" data-shape="player" data-text="O">O</div>
-                    <div class="object" draggable="true" data-shape="player" data-text="P">P</div>
-                    <div class="object" draggable="true" data-shape="player" data-text="All">All</div>
-                    <div class="object" draggable="true" data-shape="player" data-text="Extra">Extra</div>
-                </div>
-            </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-            <div class="object-category">
-                <div class="category-header">Materiale</div>
-                <div class="category-content" data-category="materiale">
-                    <div class="object" draggable="true" data-shape="mat" data-text="Tappetino">Tappetino</div>
-                    <div class="object" draggable="true" data-shape="ball-cart" data-text="">Carrello palloni</div>
-                    <div class="object" draggable="true" data-shape="ball" data-text="">pallone</div>
-                    <div class="object" draggable="true" data-shape="whistle" data-text="fischietto">fischietto</div>
-                    <div class="object" draggable="true" data-shape="plinth" data-text="">plinto</div>
-                    <div class="object" draggable="true" data-shape="net" data-text="">rete</div>
-                    <div class="object" draggable="true" data-shape="cone" data-text="">cinesino</div>
-                    <div class="object" draggable="true" data-shape="hoop" data-text="">canestro</div>
-                    <div class="object" draggable="true" data-shape="hoop-side" data-text="">canestro fr</div>
-                    <div class="object" draggable="true" data-shape="square" data-text="tappetone">tappetone</div>
-                    <div class="object" draggable="true" data-shape="wall" data-text="">muro palestra</div>
-                    <div class="object" draggable="true" data-shape="timer" data-text="00:00">timer</div>
-                    <div class="object" draggable="true" data-shape="arrow" data-text="">freccia</div>
-                </div>
-            </div>
-            
-            <div class="object-category">
-                <div class="category-header">Strumenti</div>
-                <div class="category-content" data-category="strumenti">
-                    <div class="tool-btn active" data-tool="curved">Freccia Curva</div>
-                    <div class="tool-btn" data-tool="linear">Freccia Lineare</div>
-                    <div class="tool-btn" data-tool="zigzag">Freccia a Zigzag</div>
-                </div>
-            </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebarObjects = document.querySelectorAll('.object');
+            const categoryHeaders = document.querySelectorAll('.category-header');
+            const canvasWrapper = document.getElementById('canvas-wrapper');
+            const controls = document.getElementById('object-controls');
+            const colorPicker = document.getElementById('color-picker');
+            const addTabBtn = document.getElementById('add-tab-btn');
+            const tabsContainer = document.querySelector('.tabs');
+            const fileInput = document.getElementById('file-input');
+            const saveBtn = document.getElementById('save-btn');
+            const toolButtons = document.querySelectorAll('.tool-btn');
+            const exportDropdown = document.querySelector('.dropdown');
 
-            <div class="object-category">
-                <div class="category-header">Campi</div>
-                <div class="category-content" data-category="campi">
-                    <div class="object" draggable="true" data-shape="square" data-text="Singolo">Singolo</div>
-                    <div class="object" draggable="true" data-shape="square" data-text="Completo">Completo</div>
-                    <div class="object" draggable="true" data-shape="3D">3D</div>
-                </div>
-            </div>
+            let allDrawings = [];
+            let activeDrawingIndex = -1;
+            let currentArrowType = 'curved';
 
-            <div class="object-category">
-                <div class="category-header">Corpo</div>
-                <div class="category-content" data-category="corpo">
-                    <div class="object" draggable="true" data-shape="square" data-text="Mani">Mani</div>
-                    <div class="object" draggable="true" data-shape="square" data-text="bagher">bagher</div>
-                    <div class="object" draggable="true" data-shape="square" data-text="palleggio">palleggio</div>
-                    <div class="object" draggable="true" data-shape="square" data-text="schiacciata">schiacciata</div>
-                    <div class="object" draggable="true" data-shape="square" data-text="difesa">difesa</div>
-                    <div class="object" draggable="true" data-shape="square" data-text="ricezione">ricezione</div>
-                    <div class="object" draggable="true" data-shape="square" data-text="servizio">servizio</div>
-                </div>
-            </div>
+            function uid(prefix = 'o') { return prefix + '-' + Date.now().toString(36) + '-' + Math.floor(Math.random() * 1000) }
 
-            <div class="object-category">
-                <div class="category-header">Testo</div>
-                <div class="category-content" data-category="testo">
-                    <div class="object" draggable="true" data-shape="text-box" data-text="Note">Note</div>
-                </div>
-            </div>
-            
-            <div class="object-category">
-                <div class="category-header">Dettagli</div>
-                <div class="category-content" data-category="details">
-                    <div class="object" draggable="true" data-shape="text-box" data-text="x1">x1</div>
-                    <div class="object" draggable="true" data-shape="text-box" data-text="x2">x2</div>
-                    <div class="object" draggable="true" data-shape="text-box" data-text="x3">x3</div>
-                    <div class="object" draggable="true" data-shape="text-box" data-text="x4">x4</div>
-                    <div class="object" draggable="true" data-shape="text-box" data-text="10''">10''</div>
-                    <div class="object" draggable="true" data-shape="text-box" data-text="20''">20''</div>
-                    <div class="object" draggable="true" data-shape="text-box" data-text="30''">30''</div>
-                    <div class="object" draggable="true" data-shape="text-box" data-text="40''">40''</div>
-                    <div class="object" draggable="true" data-shape="text-box" data-text="50''">50''</div>
-                    <div class="object" draggable="true" data-shape="text-box" data-text="1'">1'</div>
-                    <div class="object" draggable="true" data-shape="text-box" data-text="10'">10'</div>
-                    <div class="object" draggable="true" data-shape="text-box" data-text="20'">20'</div>
-                    <div class="object" draggable="true" data-shape="text-box" data-text="30'">30'</div>
-                    <div class="object" draggable="true" data-shape="text-box" data-text="x2S">x2S</div>
-                    <div class="object" draggable="true" data-shape="text-box" data-text="x4S">x4S</div>
-                </div>
-            </div>
-
-            <div style="margin-top:18px">
-                <strong>Shortcuts</strong>
-                <div>Delete → elimina</div>
-                <div>Ctrl+Z → undo</div>
-                <div>Ctrl+Y → redo</div>
-            </div>
-
-            <div style="margin-top:18px">
-                <strong>Descrizione Esercizio</strong>
-                <textarea id="exercise-description" placeholder="Inserisci la descrizione dell'esercizio..." style="width:100%; height:100px; padding:5px; box-sizing:border-box;"></textarea>
-            </div>
-        </div>
-        <div class="canvas-wrapper" id="canvas-wrapper">
-            </div>
-        <div class="top-controls">
-            <select id="background-selector">
-                <option value="none">Trasparente</option>
-                <option value="half-court">Metà Campo</option>
-                <option value="full-court">Campo Completo</option>
-                <option value="3d-court">Campo 3D</option>
-            </select>
-            <button id="toggle-grid-btn">Griglia OFF</button>
-            <label for="bw-toggle">B/N</label>
-            <input type="checkbox" id="bw-toggle">
-            <button id="zoom-out-btn">-</button>
-            <span id="zoom-level">100%</span>
-            <button id="zoom-in-btn">+</button>
-            <div class="dropdown">
-                <button class="export-btn">Esporta</button>
-                <div class="dropdown-content">
-                    <button id="export-png-btn">PNG</button>
-                    <button id="export-jpg-btn">JPG</button>
-                    <button id="export-pdf-btn">PDF</button>
-                </div>
-            </div>
-        </div>
-        <div class="file-controls">
-            <label for="drawing-title">Titolo:</label>
-            <input type="text" id="drawing-title" placeholder="Inserisci titolo">
-            <label for="drawing-category">Categoria:</label>
-            <select id="drawing-category">
-                <option value="">Seleziona...</option>
-                <option value="riscaldamento">Riscaldamento</option>
-                <option value="attivazione">Attivazione</option>
-                <option value="analitico">Analitico</option>
-                <option value="super-analitico">Super Analitico</option>
-                <option value="sintetico">Sintetico</option>
-                <option value="globale">Globale</option>
-                <option value="globale-punteggio">Globale con punteggio</option>
-                <option value="globale-gioco">Globale di gioco</option>
-            </select>
-            <label for="drawing-typology">Tipologia:</label>
-            <select id="drawing-typology">
-                <option value="">Seleziona...</option>
-                <option value="preparazione">Preparazione</option>
-                <option value="pre-campionato">Pre-campionato</option>
-                <option value="post-campionato">Post-campionato</option>
-                <option value="transitorio">Transitorio</option>
-            </select>
-            <button id="save-btn">Salva Disegno</button>
-            <label for="file-input">Carica Disegno:</label>
-            <input type="file" id="file-input" accept=".json">
-        </div>
-
-        <div class="controls" id="object-controls">
-            <label for="color-picker">Colore:</label>
-            <input type="color" id="color-picker" value="#4682b4">
-        </div>
-    </div>
-</div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const sidebarObjects = document.querySelectorAll('.object');
-    const categoryHeaders = document.querySelectorAll('.category-header');
-    const canvasWrapper = document.getElementById('canvas-wrapper');
-    const controls = document.getElementById('object-controls');
-    const colorPicker = document.getElementById('color-picker');
-    const addTabBtn = document.getElementById('add-tab-btn');
-    const tabsContainer = document.querySelector('.tabs');
-    const fileInput = document.getElementById('file-input');
-    const saveBtn = document.getElementById('save-btn');
-    const toolButtons = document.querySelectorAll('.tool-btn');
-    const exportDropdown = document.querySelector('.dropdown');
-    
-    let allDrawings = [];
-    let activeDrawingIndex = -1;
-    let currentArrowType = 'curved';
-
-    function uid(prefix='o'){ return prefix + '-' + Date.now().toString(36) + '-' + Math.floor(Math.random()*1000) }
-
-    function getActiveCanvasPage() {
-        return canvasWrapper.querySelector('.canvas-page.active');
-    }
-    
-    function getActiveState() {
-        if (activeDrawingIndex === -1) return null;
-        return allDrawings[activeDrawingIndex];
-    }
-    
-    function getCanvasRect(canvasPage) {
-        return canvasPage.querySelector('.canvas-container').getBoundingClientRect();
-    }
-
-    function parsePos(val){
-        if(val === undefined || val === null || val === '') return 0;
-        return parseFloat((val+'').replace('px','')) || 0;
-    }
-
-    function getInitialColor(shape) {
-        switch(shape) {
-            case 'player': return '#007bff';
-            case 'mat': return '#8B4513';
-            case 'wall': return '#a0422d';
-            case 'ball-cart': return '#555';
-            case 'ball': return 'white';
-            case 'whistle': return '#333';
-            case 'plinth': return '#8b4513';
-            case 'net': return 'transparent';
-            case 'cone': return '#ff4500';
-            case 'hoop': return 'transparent';
-            case 'hoop-side': return '#f0f0f0';
-            case 'timer': return '#333';
-            case 'circle': return '#4682b4';
-            case 'square': return '#4682b4';
-            case 'triangle': return '#3cb371';
-            case 'text-box': return '#000';
-            case 'arrow': return '#333';
-            case '3D': return '#4682b4';
-            default: return '#4682b4';
-        }
-    }
-
-    function createObjectElement(model, canvasContainer){
-        const newObject = document.createElement('div');
-        newObject.className = `dropped-object ${model.shape}-object`;
-        newObject.id = model.id;
-        
-        if (model.width) newObject.style.width = model.width + 'px';
-        if (model.height) newObject.style.height = model.height + 'px';
-        newObject.style.left = (model.x || 0) + 'px';
-        newObject.style.top = (model.y || 0) + 'px';
-        newObject.style.transform = `rotate(${model.rotation || 0}deg)`;
-
-        if (model.shape === 'triangle'){
-            newObject.style.borderBottomColor = model.color || getInitialColor(model.shape);
-        } else if (model.shape === 'text-box' || model.shape === 'net'){
-            newObject.style.color = model.color || getInitialColor(model.shape);
-        } else {
-            newObject.style.backgroundColor = model.color || getInitialColor(model.shape);
-        }
-
-        if (model.shape !== 'text-box' && model.shape !== 'arrow' && model.shape !== 'net') {
-            const resizer = document.createElement('div'); resizer.className='resizer'; newObject.appendChild(resizer);
-            const rotator = document.createElement('div'); rotator.className='rotator'; newObject.appendChild(rotator);
-        }
-
-        const textDiv = document.createElement('div'); textDiv.className='object-text'; textDiv.contentEditable="true";
-        textDiv.textContent = model.text || '';
-        newObject.appendChild(textDiv);
-
-        if (model.shape !== 'text-box' && model.shape !== 'arrow' && model.shape !== 'net'){
-            ['top','bottom','left','right'].forEach(pos=>{
-                const node = document.createElement('div');
-                node.className = `connection-node ${pos}`;
-                node.dataset.parent = model.id;
-                node.dataset.pos = pos;
-                newObject.appendChild(node);
-            });
-        }
-
-        canvasContainer.appendChild(newObject);
-        return newObject;
-    }
-
-    function restoreState(drawingState, canvasPage){
-        const canvasContainer = canvasPage.querySelector('.canvas-container');
-        const svg = canvasPage.querySelector('#connection-layer');
-        const controls = document.getElementById('object-controls');
-        
-        canvasContainer.querySelectorAll('.dropped-object').forEach(el=>el.remove());
-        while(svg.firstChild) svg.removeChild(svg.firstChild);
-        
-        const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-        const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
-        marker.id = 'arrowhead';
-        marker.setAttribute('viewBox', '0 0 10 10');
-        marker.setAttribute('refX', '8');
-        marker.setAttribute('refY', '5');
-        marker.setAttribute('markerWidth', '6');
-        marker.setAttribute('markerHeight', '6');
-        marker.setAttribute('orient', 'auto-start-reverse');
-        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        path.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
-        path.setAttribute('fill', '#333');
-        marker.appendChild(path);
-        defs.appendChild(marker);
-        svg.appendChild(defs);
-
-        canvasContainer.querySelectorAll('.curve-handle').forEach(el => el.remove());
-
-        drawingState.objects.forEach(m=>{
-            createObjectElement(m, canvasContainer);
-        });
-
-        drawingState.connections.forEach(c => {
-            const path = document.createElementNS('http://www.w3.org/2000/svg','path');
-            path.setAttribute('class','connection-line');
-            path.setAttribute('pointer-events','stroke');
-            path.setAttribute('fill', 'none');
-            path.setAttribute('stroke', '#333');
-            path.setAttribute('marker-end', 'url(#arrowhead)');
-            svg.appendChild(path);
-            c.lineElement = path;
-
-            if (c.arrowType === 'curved') {
-                const curveHandle = document.createElement('div');
-                curveHandle.className = 'curve-handle';
-                curveHandle.dataset.connId = c.id;
-                canvasContainer.appendChild(curveHandle);
-                c.curveHandle = curveHandle;
-            }
-        });
-
-        const backgroundSelector = document.getElementById('background-selector');
-        const toggleGridBtn = document.getElementById('toggle-grid-btn');
-        const bwToggle = document.getElementById('bw-toggle');
-        const drawingTitleInput = document.getElementById('drawing-title');
-        const drawingCategorySelect = document.getElementById('drawing-category');
-        const drawingTypologySelect = document.getElementById('drawing-typology');
-        const exerciseDescriptionTextarea = document.getElementById('exercise-description');
-
-        if (drawingState.background) {
-            backgroundSelector.value = drawingState.background;
-            updateBackground(canvasPage);
-        }
-        if (drawingState.zoom) {
-            drawingState.zoomLevel = drawingState.zoom;
-            updateZoom(canvasPage);
-        }
-        if (drawingState.grid !== undefined) {
-            drawingState.isGridEnabled = drawingState.grid;
-            if (drawingState.isGridEnabled) {
-                canvasPage.querySelector('.canvas').classList.add('canvas-grid');
-                toggleGridBtn.textContent = 'Griglia ON';
-            } else {
-                canvasPage.querySelector('.canvas').classList.remove('canvas-grid');
-                toggleGridBtn.textContent = 'Griglia OFF';
-            }
-        }
-        if (drawingState.grayscale !== undefined) {
-            drawingState.isGrayscaleEnabled = drawingState.grayscale;
-            bwToggle.checked = drawingState.isGrayscaleEnabled;
-            if (drawingState.isGrayscaleEnabled) {
-                canvasPage.querySelector('.canvas').classList.add('grayscale');
-            } else {
-                canvasPage.querySelector('.canvas').classList.remove('grayscale');
-            }
-        }
-        if (drawingState.title !== undefined) {
-            drawingTitleInput.value = drawingState.title;
-        }
-        if (drawingState.category !== undefined) {
-            drawingCategorySelect.value = drawingState.category;
-        }
-        if (drawingState.typology !== undefined) {
-            drawingTypologySelect.value = drawingState.typology;
-        }
-        if (drawingState.description !== undefined) {
-            exerciseDescriptionTextarea.value = drawingState.description;
-        }
-
-        updateConnections(drawingState, canvasPage);
-    }
-    
-    function saveState(pushToUndo=true){
-        const activeState = getActiveState();
-        if (!activeState) return;
-        
-        if (pushToUndo) {
-            const stateToSave = { ...activeState, objects: [...activeState.objects], connections: [...activeState.connections.map(c => ({...c, lineElement: null, startNode: null, endNode: null, curveHandle: null}))] };
-            activeState.undoStack.push(JSON.stringify(stateToSave));
-            if (activeState.undoStack.length > 100) activeState.undoStack.shift();
-            activeState.redoStack = [];
-        }
-    }
-
-    function doUndo(){
-        const activeState = getActiveState();
-        if (!activeState || activeState.undoStack.length <= 1) return;
-        const top = activeState.undoStack.pop();
-        activeState.redoStack.push(top);
-        const prev = activeState.undoStack[activeState.undoStack.length-1];
-        if (prev) restoreState(JSON.parse(prev), getActiveCanvasPage());
-    }
-
-    function doRedo(){
-        const activeState = getActiveState();
-        if (!activeState || activeState.redoStack.length === 0) return;
-        const next = activeState.redoStack.pop();
-        activeState.undoStack.push(next);
-        restoreState(JSON.parse(next), getActiveCanvasPage());
-    }
-    
-    function getNodeCenter(nodeEl, canvasPage){
-        const parentEl = nodeEl.parentElement;
-        const parentRect = parentEl.getBoundingClientRect();
-        const canvasRect = getCanvasRect(canvasPage);
-        let x = parentRect.left - canvasRect.left;
-        let y = parentRect.top - canvasRect.top;
-        const w = parentRect.width;
-        const h = parentRect.height;
-        switch(nodeEl.dataset.pos){
-            case 'top': x += w/2; y += 0; break;
-            case 'bottom': x += w/2; y += h; break;
-            case 'left': x += 0; y += h/2; break;
-            case 'right': x += w; y += h/2; break;
-        }
-        return {x,y};
-    }
-
-    function getZigZagPath(s, e, numPoints = 5) {
-        const path = [`M ${s.x} ${s.y}`];
-        for (let i = 1; i < numPoints; i++) {
-            const t = i / numPoints;
-            const px = s.x + t * (e.x - s.x);
-            const py = s.y + t * (e.y - s.y);
-            const perp = {
-                x: (e.y - s.y) * 10,
-                y: -(e.x - s.x) * 10
-            };
-            const offset = (i % 2 === 0) ? -1 : 1;
-            path.push(`L ${px + offset * perp.x} ${py + offset * perp.y}`);
-        }
-        path.push(`L ${e.x} ${e.y}`);
-        return path.join(' ');
-    }
-
-    function updateConnections(drawingState, canvasPage){
-        const canvasContainer = canvasPage.querySelector('.canvas-container');
-        drawingState.connections.forEach(c => {
-            const startParent = canvasContainer.querySelector(`#${c.startId}`);
-            const endParent = canvasContainer.querySelector(`#${c.endId}`);
-            const startNode = startParent ? startParent.querySelector(`.connection-node[data-pos="${c.startPos}"]`) : null;
-            const endNode = endParent ? endParent.querySelector(`.connection-node[data-pos="${c.endPos}"]`) : null;
-
-            if (!startParent || !endParent || !startNode || !endNode) {
-                if (c.lineElement && c.lineElement.parentNode) c.lineElement.remove();
-                if (c.curveHandle && c.curveHandle.parentNode) c.curveHandle.remove();
-                c.isDeleted = true;
-                return;
+            function getActiveCanvasPage() {
+                return canvasWrapper.querySelector('.canvas-page.active');
             }
 
-            const s = getNodeCenter(startNode, canvasPage);
-            const e = getNodeCenter(endNode, canvasPage);
-            
-            let d = '';
-            let showHandle = false;
-            switch(c.arrowType) {
-                case 'linear':
-                    d = `M ${s.x} ${s.y} L ${e.x} ${e.y}`;
-                    break;
-                case 'curved':
-                    showHandle = true;
-                    const midpoint = { x: (s.x + e.x) / 2, y: (s.y + e.y) / 2 };
-                    const cp = { x: midpoint.x + (c.curveOffset?.x || 0), y: midpoint.y + (c.curveOffset?.y || 0) };
-                    d = `M ${s.x} ${s.y} Q ${cp.x} ${cp.y} ${e.x} ${e.y}`;
-                    c.lineElement.dataset.curveHandlePos = `${cp.x},${cp.y}`;
-                    if (!c.curveHandle) {
+            function getActiveState() {
+                if (activeDrawingIndex === -1) return null;
+                return allDrawings[activeDrawingIndex];
+            }
+
+            function getCanvasRect(canvasPage) {
+                return canvasPage.querySelector('.canvas-container').getBoundingClientRect();
+            }
+
+            function parsePos(val) {
+                if (val === undefined || val === null || val === '') return 0;
+                return parseFloat((val + '').replace('px', '')) || 0;
+            }
+
+            function getInitialColor(shape) {
+                switch (shape) {
+                    case 'player': return '#007bff';
+                    case 'mat': return '#8B4513';
+                    case 'wall': return '#a0422d';
+                    case 'ball-cart': return '#555';
+                    case 'ball': return 'white';
+                    case 'whistle': return '#333';
+                    case 'plinth': return '#8b4513';
+                    case 'net': return 'transparent';
+                    case 'cone': return '#ff4500';
+                    case 'hoop': return 'transparent';
+                    case 'hoop-side': return '#f0f0f0';
+                    case 'timer': return '#333';
+                    case 'circle': return '#4682b4';
+                    case 'square': return '#4682b4';
+                    case 'triangle': return '#3cb371';
+                    case 'text-box': return '#000';
+                    case 'arrow': return '#333';
+                    case '3D': return '#4682b4';
+                    default: return '#4682b4';
+                }
+            }
+
+            function createObjectElement(model, canvasContainer) {
+                const newObject = document.createElement('div');
+                newObject.className = `dropped-object ${model.shape}-object`;
+                newObject.id = model.id;
+
+                if (model.width) newObject.style.width = model.width + 'px';
+                if (model.height) newObject.style.height = model.height + 'px';
+                newObject.style.left = (model.x || 0) + 'px';
+                newObject.style.top = (model.y || 0) + 'px';
+                newObject.style.transform = `rotate(${model.rotation || 0}deg)`;
+
+                if (model.shape === 'triangle') {
+                    newObject.style.borderBottomColor = model.color || getInitialColor(model.shape);
+                } else if (model.shape === 'text-box' || model.shape === 'net') {
+                    newObject.style.color = model.color || getInitialColor(model.shape);
+                } else {
+                    newObject.style.backgroundColor = model.color || getInitialColor(model.shape);
+                }
+
+                if (model.shape !== 'text-box' && model.shape !== 'arrow' && model.shape !== 'net') {
+                    const resizer = document.createElement('div'); resizer.className = 'resizer'; newObject.appendChild(resizer);
+                    const rotator = document.createElement('div'); rotator.className = 'rotator'; newObject.appendChild(rotator);
+                }
+
+                const textDiv = document.createElement('div'); textDiv.className = 'object-text'; textDiv.contentEditable = "true";
+                textDiv.textContent = model.text || '';
+                newObject.appendChild(textDiv);
+
+                if (model.shape !== 'text-box' && model.shape !== 'arrow' && model.shape !== 'net') {
+                    ['top', 'bottom', 'left', 'right'].forEach(pos => {
+                        const node = document.createElement('div');
+                        node.className = `connection-node ${pos}`;
+                        node.dataset.parent = model.id;
+                        node.dataset.pos = pos;
+                        newObject.appendChild(node);
+                    });
+                }
+
+                canvasContainer.appendChild(newObject);
+                return newObject;
+            }
+
+            function restoreState(drawingState, canvasPage) {
+                const canvasContainer = canvasPage.querySelector('.canvas-container');
+                const svg = canvasPage.querySelector('#connection-layer');
+                const controls = document.getElementById('object-controls');
+
+                canvasContainer.querySelectorAll('.dropped-object').forEach(el => el.remove());
+                while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+                const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+                const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+                marker.id = 'arrowhead';
+                marker.setAttribute('viewBox', '0 0 10 10');
+                marker.setAttribute('refX', '8');
+                marker.setAttribute('refY', '5');
+                marker.setAttribute('markerWidth', '6');
+                marker.setAttribute('markerHeight', '6');
+                marker.setAttribute('orient', 'auto-start-reverse');
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
+                path.setAttribute('fill', '#333');
+                marker.appendChild(path);
+                defs.appendChild(marker);
+                svg.appendChild(defs);
+
+                canvasContainer.querySelectorAll('.curve-handle').forEach(el => el.remove());
+
+                drawingState.objects.forEach(m => {
+                    createObjectElement(m, canvasContainer);
+                });
+
+                drawingState.connections.forEach(c => {
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path.setAttribute('class', 'connection-line');
+                    path.setAttribute('pointer-events', 'stroke');
+                    path.setAttribute('fill', 'none');
+                    path.setAttribute('stroke', '#333');
+                    path.setAttribute('marker-end', 'url(#arrowhead)');
+                    svg.appendChild(path);
+                    c.lineElement = path;
+
+                    if (c.arrowType === 'curved') {
                         const curveHandle = document.createElement('div');
                         curveHandle.className = 'curve-handle';
                         curveHandle.dataset.connId = c.id;
                         canvasContainer.appendChild(curveHandle);
                         c.curveHandle = curveHandle;
                     }
-                    c.curveHandle.style.left = `${cp.x - 5}px`;
-                    c.curveHandle.style.top = `${cp.y - 5}px`;
-                    break;
-                case 'zigzag':
-                    d = getZigZagPath(s, e);
-                    break;
-            }
+                });
 
-            c.lineElement.setAttribute('d', d);
+                const backgroundSelector = document.getElementById('background-selector');
+                const toggleGridBtn = document.getElementById('toggle-grid-btn');
+                const bwToggle = document.getElementById('bw-toggle');
+                const drawingTitleInput = document.getElementById('drawing-title');
+                const drawingCategorySelect = document.getElementById('drawing-category');
+                const drawingTypologySelect = document.getElementById('drawing-typology');
+                const exerciseDescriptionTextarea = document.getElementById('exercise-description');
 
-            if (c.curveHandle) {
-                c.curveHandle.style.display = showHandle ? 'block' : 'none';
-            }
-        });
-        drawingState.connections = drawingState.connections.filter(c => !c.isDeleted);
-    }
-    
-    categoryHeaders.forEach(header => {
-        header.addEventListener('click', () => {
-            const content = header.nextElementSibling;
-            const wasActive = content.classList.contains('active');
-            
-            document.querySelectorAll('.category-content').forEach(c => c.classList.remove('active'));
-            
-            if (!wasActive) {
-                content.classList.add('active');
-            }
-        });
-    });
-
-    sidebarObjects.forEach(obj => {
-        obj.addEventListener('dragstart', (e) => {
-            const data = {
-                shape: e.target.dataset.shape,
-                text: e.target.dataset.text
-            };
-            e.dataTransfer.setData('text/plain', JSON.stringify(data));
-        });
-    });
-
-    canvasWrapper.addEventListener('dragover', e=>e.preventDefault());
-    canvasWrapper.addEventListener('drop', e => {
-        const canvasPage = e.target.closest('.canvas-page');
-        const activeState = getActiveState();
-        if (!canvasPage || !canvasPage.classList.contains('active') || !activeState) return;
-        
-        e.preventDefault();
-        try {
-            const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-            const shapeType = data.shape;
-            const text = data.text;
-            if (!shapeType) return;
-            const canvasContainer = canvasPage.querySelector('.canvas-container');
-            const rect = getCanvasRect(canvasPage);
-            const coords = { x: (e.clientX - rect.left) / activeState.zoomLevel, y: (e.clientY - rect.top) / activeState.zoomLevel };
-            const initialColor = getInitialColor(shapeType);
-            const model = { id: uid('obj'), shape: shapeType, x: coords.x, y: coords.y, width: 50, height: 50, text: text, color: initialColor, rotation: 0 };
-            
-            activeState.objects.push(model);
-            createObjectElement(model, canvasContainer);
-            updateConnections(activeState, canvasPage);
-            saveState();
-        } catch (error) {
-            console.error('Failed to parse dropped data:', error);
-        }
-    });
-
-    canvasWrapper.addEventListener('mousedown', e => {
-        const canvasPage = e.target.closest('.canvas-page');
-        const activeState = getActiveState();
-        if (!canvasPage || !canvasPage.classList.contains('active') || !activeState) return;
-
-        const canvasContainer = canvasPage.querySelector('.canvas-container');
-        const svg = canvasPage.querySelector('#connection-layer');
-        
-        const objectTarget = e.target.closest('.dropped-object');
-        const lineTarget = e.target.closest('path.connection-line');
-        const curveHandleTarget = e.target.closest('.curve-handle');
-        const nodeTarget = e.target.closest('.connection-node');
-        const resizerTarget = e.target.closest('.resizer');
-        const rotatorTarget = e.target.closest('.rotator');
-        
-        activeState.selectedObject = null;
-        activeState.selectedLine = null;
-        deselectAll(activeState, canvasPage);
-
-        if (nodeTarget) {
-            activeState.isConnecting = true;
-            activeState.startNode = nodeTarget;
-            canvasContainer.querySelectorAll('.dropped-object').forEach(o => o.classList.add('show-nodes'));
-            activeState.currentLine = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            activeState.currentLine.setAttribute('class', 'connection-line');
-            activeState.currentLine.setAttribute('fill', 'none');
-            activeState.currentLine.setAttribute('stroke', '#333');
-            activeState.currentLine.setAttribute('marker-end', 'url(#arrowhead)');
-            activeState.currentLine.setAttribute('pointer-events', 'none');
-            svg.appendChild(activeState.currentLine);
-            return;
-        }
-
-        if (curveHandleTarget) {
-            activeState.isDraggingCurve = true;
-            const connId = curveHandleTarget.dataset.connId;
-            activeState.selectedLine = activeState.connections.find(c => c.id === connId);
-            if (activeState.selectedLine) {
-                selectLine(activeState.selectedLine.lineElement, activeState, canvasPage);
-            }
-            return;
-        }
-
-        if (resizerTarget) {
-            activeState.isResizing = true; 
-            const parentObj = resizerTarget.parentElement;
-            activeState.selectedObject = activeState.objects.find(obj => obj.id === parentObj.id);
-            activeState.selectedObjectDom = parentObj;
-            activeState.startX = e.clientX; 
-            activeState.startY = e.clientY; 
-            activeState.startWidth = parentObj.offsetWidth; 
-            activeState.startHeight = parentObj.offsetHeight;
-            return;
-        }
-
-        if (rotatorTarget) {
-            activeState.isRotating = true; 
-            const parentObj = rotatorTarget.parentElement;
-            activeState.selectedObject = activeState.objects.find(obj => obj.id === parentObj.id);
-            activeState.selectedObjectDom = parentObj;
-            const rect = parentObj.getBoundingClientRect(); 
-            activeState.startX = rect.left + rect.width/2; 
-            activeState.startY = rect.top + rect.height/2; 
-            const dx = e.clientX - activeState.startX, dy = e.clientY - activeState.startY; 
-            activeState.startAngle = Math.atan2(dy, dx) * 180 / Math.PI; 
-            activeState.startAngle -= activeState.selectedObject.rotation;
-            return;
-        }
-        
-        if (objectTarget) {
-            const objectModel = activeState.objects.find(obj => obj.id === objectTarget.id);
-            if(objectModel){
-                selectObject(objectTarget, activeState, canvasPage);
-                const rect = getCanvasRect(canvasPage);
-                const mouseX_unscaled = (e.clientX - rect.left) / activeState.zoomLevel;
-                const mouseY_unscaled = (e.clientY - rect.top) / activeState.zoomLevel;
-                activeState.dragOffsetX = mouseX_unscaled - objectModel.x;
-                activeState.dragOffsetY = mouseY_unscaled - objectModel.y;
-                activeState.isDragging = true;
-            }
-        } else if (lineTarget) {
-            const conn = activeState.connections.find(c => c.lineElement === lineTarget);
-            if(conn) selectLine(conn.lineElement, activeState, canvasPage);
-        }
-    });
-
-    document.addEventListener('mousemove', e => {
-        const activeState = getActiveState();
-        if (!activeState) return;
-        
-        const canvasPage = getActiveCanvasPage();
-        if (!canvasPage) return;
-
-        const rect = getCanvasRect(canvasPage);
-        const mouseX = (e.clientX - rect.left) / activeState.zoomLevel;
-        const mouseY = (e.clientY - rect.top) / activeState.zoomLevel;
-
-        if (activeState.isConnecting && activeState.currentLine){
-            const startParent = activeState.startNode.parentElement;
-            const startCenter = getNodeCenter(activeState.startNode, canvasPage);
-            let d = '';
-            if (currentArrowType === 'linear') {
-                d = `M ${startCenter.x} ${startCenter.y} L ${mouseX} ${mouseY}`;
-            } else if (currentArrowType === 'curved') {
-                d = `M ${startCenter.x} ${startCenter.y} Q ${mouseX} ${mouseY} ${mouseX} ${mouseY}`;
-            } else if (currentArrowType === 'zigzag') {
-                d = getZigZagPath(startCenter, {x: mouseX, y: mouseY});
-            }
-            activeState.currentLine.setAttribute('d', d);
-            return;
-        }
-        
-        if (activeState.isDraggingCurve && activeState.selectedLine) {
-            const conn = activeState.selectedLine;
-            const startParent = document.getElementById(conn.startId);
-            const endParent = document.getElementById(conn.endId);
-            if (!startParent || !endParent) return;
-            const sNode = startParent.querySelector(`.connection-node[data-pos="${conn.startPos}"]`);
-            const eNode = endParent.querySelector(`.connection-node[data-pos="${conn.endPos}"]`);
-            const s = getNodeCenter(sNode, canvasPage);
-            const e = getNodeCenter(eNode, canvasPage);
-            const midpoint = { x: (s.x + e.x) / 2, y: (s.y + e.y) / 2 };
-            conn.curveOffset = { x: mouseX - midpoint.x, y: mouseY - midpoint.y };
-            updateConnections(activeState, canvasPage);
-            return;
-        }
-
-        if (activeState.isDragging && activeState.selectedObject){
-            const newLeft = mouseX - activeState.dragOffsetX;
-            const newTop = mouseY - activeState.dragOffsetY;
-            activeState.selectedObject.x = newLeft;
-            activeState.selectedObject.y = newTop;
-            activeState.selectedObjectDom.style.left = newLeft + 'px';
-            activeState.selectedObjectDom.style.top = newTop + 'px';
-            updateConnections(activeState, canvasPage);
-            return;
-        }
-
-        if (activeState.isResizing && activeState.selectedObject){
-            const newWidth = activeState.startWidth + (e.clientX - activeState.startX) / activeState.zoomLevel;
-            const newHeight = activeState.startHeight + (e.clientY - activeState.startY) / activeState.zoomLevel;
-            activeState.selectedObject.width = newWidth > 10 ? newWidth : 10;
-            activeState.selectedObject.height = newHeight > 10 ? newHeight : 10;
-            activeState.selectedObjectDom.style.width = `${activeState.selectedObject.width}px`;
-            activeState.selectedObjectDom.style.height = `${activeState.selectedObject.height}px`;
-            updateConnections(activeState, canvasPage);
-            return;
-        }
-
-        if (activeState.isRotating && activeState.selectedObject){
-            const dx = e.clientX - activeState.startX; const dy = e.clientY - activeState.startY;
-            const newAngle = Math.atan2(dy, dx) * 180 / Math.PI;
-            const rotation = newAngle - activeState.startAngle;
-            activeState.selectedObject.rotation = rotation;
-            activeState.selectedObjectDom.style.transform = `rotate(${rotation}deg)`;
-            updateConnections(activeState, canvasPage);
-            return;
-        }
-    });
-
-    document.addEventListener('mouseup', e => {
-        const activeState = getActiveState();
-        if (!activeState) return;
-        
-        const canvasPage = getActiveCanvasPage();
-        if (!canvasPage) return;
-
-        if (activeState.isConnecting){
-            const endNode = e.target.closest && e.target.closest('.connection-node');
-            if (endNode && activeState.startNode && activeState.startNode.dataset.parent !== endNode.dataset.parent){
-                const startParent = activeState.startNode.parentElement;
-                const endParent = endNode.parentElement;
-                
-                const newConnection = { 
-                    id: uid('conn'),
-                    startId: startParent.id, 
-                    startPos: activeState.startNode.dataset.pos, 
-                    endId: endParent.id, 
-                    endPos: endNode.dataset.pos,
-                    curveOffset: currentArrowType === 'curved' ? { x: 0, y: 0 } : null,
-                    arrowType: currentArrowType
-                };
-                
-                const startCenter = getNodeCenter(activeState.startNode, canvasPage);
-                const endCenter = getNodeCenter(endNode, canvasPage);
-
-                if (currentArrowType === 'curved') {
-                     const rect = getCanvasRect(canvasPage);
-                     const mouseX_unscaled = (e.clientX - rect.left) / activeState.zoomLevel;
-                     const mouseY_unscaled = (e.clientY - rect.top) / activeState.zoomLevel;
-                     const midpoint = { x: (startCenter.x + endCenter.x) / 2, y: (startCenter.y + endCenter.y) / 2 };
-                     newConnection.curveOffset = { x: mouseX_unscaled - midpoint.x, y: mouseY_unscaled - midpoint.y };
+                if (drawingState.background) {
+                    backgroundSelector.value = drawingState.background;
+                    updateBackground(canvasPage);
+                }
+                if (drawingState.zoom) {
+                    drawingState.zoomLevel = drawingState.zoom;
+                    updateZoom(canvasPage);
+                }
+                if (drawingState.grid !== undefined) {
+                    drawingState.isGridEnabled = drawingState.grid;
+                    if (drawingState.isGridEnabled) {
+                        canvasPage.querySelector('.canvas').classList.add('canvas-grid');
+                        toggleGridBtn.textContent = 'Griglia ON';
+                    } else {
+                        canvasPage.querySelector('.canvas').classList.remove('canvas-grid');
+                        toggleGridBtn.textContent = 'Griglia OFF';
+                    }
+                }
+                if (drawingState.grayscale !== undefined) {
+                    drawingState.isGrayscaleEnabled = drawingState.grayscale;
+                    bwToggle.checked = drawingState.isGrayscaleEnabled;
+                    if (drawingState.isGrayscaleEnabled) {
+                        canvasPage.querySelector('.canvas').classList.add('grayscale');
+                    } else {
+                        canvasPage.querySelector('.canvas').classList.remove('grayscale');
+                    }
+                }
+                if (drawingState.title !== undefined) {
+                    drawingTitleInput.value = drawingState.title;
+                }
+                if (drawingState.category !== undefined) {
+                    drawingCategorySelect.value = drawingState.category;
+                }
+                if (drawingState.typology !== undefined) {
+                    drawingTypologySelect.value = drawingState.typology;
+                }
+                if (drawingState.description !== undefined) {
+                    exerciseDescriptionTextarea.value = drawingState.description;
                 }
 
-                activeState.connections.push(newConnection);
-                restoreState(activeState, canvasPage);
-                selectLine(activeState.connections.find(c => c.id === newConnection.id).lineElement, activeState, canvasPage);
-                saveState();
+                updateConnections(drawingState, canvasPage);
             }
 
-            if (activeState.currentLine && activeState.currentLine.parentNode) activeState.currentLine.remove();
-            canvasPage.querySelector('.canvas-container').querySelectorAll('.dropped-object').forEach(o=>o.classList.remove('show-nodes'));
-            activeState.isConnecting = false; 
-            activeState.currentLine = null; 
-            activeState.startNode = null;
-        }
+            function saveState(pushToUndo = true) {
+                const activeState = getActiveState();
+                if (!activeState) return;
 
-        if (activeState.isDragging || activeState.isDraggingCurve || activeState.isResizing || activeState.isRotating){ saveState(); }
-        activeState.isDragging = activeState.isResizing = activeState.isRotating = activeState.isDraggingCurve = false;
-        activeState.selectedObjectDom = null;
-    });
-    
-    document.addEventListener('keydown', (e) => {
-        const activeState = getActiveState();
-        if (!activeState) return;
+                if (pushToUndo) {
+                    const stateToSave = { ...activeState, objects: [...activeState.objects], connections: [...activeState.connections.map(c => ({ ...c, lineElement: null, startNode: null, endNode: null, curveHandle: null }))] };
+                    activeState.undoStack.push(JSON.stringify(stateToSave));
+                    if (activeState.undoStack.length > 100) activeState.undoStack.shift();
+                    activeState.redoStack = [];
+                }
+            }
 
-        const activeElement = document.activeElement;
-        const isInputActive = activeElement && (activeElement.classList.contains('object-text') || activeElement.id === 'drawing-title' || activeElement.id === 'drawing-category' || activeElement.id === 'drawing-typology' || activeElement.id === 'exercise-description');
-        if (isInputActive) {
-            return;
-        }
-        
-        if (e.key === 'Delete'){
-            if (activeState.selectedObject){
-                activeState.objects = activeState.objects.filter(o => o.id !== activeState.selectedObject.id);
-                activeState.connections = activeState.connections.filter(c => c.startId !== activeState.selectedObject.id && c.endId !== activeState.selectedObject.id);
-                restoreState(activeState, getActiveCanvasPage());
-                saveState();
-                activeState.selectedObject = null;
-            } else if (activeState.selectedLine){
-                const connToRemove = activeState.connections.find(c => c.lineElement === activeState.selectedLine);
-                if (connToRemove) {
-                    activeState.connections = activeState.connections.filter(c => c.id !== connToRemove.id);
-                    restoreState(activeState, getActiveCanvasPage());
+            function doUndo() {
+                const activeState = getActiveState();
+                if (!activeState || activeState.undoStack.length <= 1) return;
+                const top = activeState.undoStack.pop();
+                activeState.redoStack.push(top);
+                const prev = activeState.undoStack[activeState.undoStack.length - 1];
+                if (prev) restoreState(JSON.parse(prev), getActiveCanvasPage());
+            }
+
+            function doRedo() {
+                const activeState = getActiveState();
+                if (!activeState || activeState.redoStack.length === 0) return;
+                const next = activeState.redoStack.pop();
+                activeState.undoStack.push(next);
+                restoreState(JSON.parse(next), getActiveCanvasPage());
+            }
+
+            function getNodeCenter(nodeEl, canvasPage) {
+                const parentEl = nodeEl.parentElement;
+                const parentRect = parentEl.getBoundingClientRect();
+                const canvasRect = getCanvasRect(canvasPage);
+                let x = parentRect.left - canvasRect.left;
+                let y = parentRect.top - canvasRect.top;
+                const w = parentRect.width;
+                const h = parentRect.height;
+                switch (nodeEl.dataset.pos) {
+                    case 'top': x += w / 2; y += 0; break;
+                    case 'bottom': x += w / 2; y += h; break;
+                    case 'left': x += 0; y += h / 2; break;
+                    case 'right': x += w; y += h / 2; break;
+                }
+                return { x, y };
+            }
+
+            function getZigZagPath(s, e, numPoints = 5) {
+                const path = [`M ${s.x} ${s.y}`];
+                for (let i = 1; i < numPoints; i++) {
+                    const t = i / numPoints;
+                    const px = s.x + t * (e.x - s.x);
+                    const py = s.y + t * (e.y - s.y);
+                    const perp = {
+                        x: (e.y - s.y) * 10,
+                        y: -(e.x - s.x) * 10
+                    };
+                    const offset = (i % 2 === 0) ? -1 : 1;
+                    path.push(`L ${px + offset * perp.x} ${py + offset * perp.y}`);
+                }
+                path.push(`L ${e.x} ${e.y}`);
+                return path.join(' ');
+            }
+
+            function updateConnections(drawingState, canvasPage) {
+                const canvasContainer = canvasPage.querySelector('.canvas-container');
+                drawingState.connections.forEach(c => {
+                    const startParent = canvasContainer.querySelector(`#${c.startId}`);
+                    const endParent = canvasContainer.querySelector(`#${c.endId}`);
+                    const startNode = startParent ? startParent.querySelector(`.connection-node[data-pos="${c.startPos}"]`) : null;
+                    const endNode = endParent ? endParent.querySelector(`.connection-node[data-pos="${c.endPos}"]`) : null;
+
+                    if (!startParent || !endParent || !startNode || !endNode) {
+                        if (c.lineElement && c.lineElement.parentNode) c.lineElement.remove();
+                        if (c.curveHandle && c.curveHandle.parentNode) c.curveHandle.remove();
+                        c.isDeleted = true;
+                        return;
+                    }
+
+                    const s = getNodeCenter(startNode, canvasPage);
+                    const e = getNodeCenter(endNode, canvasPage);
+
+                    let d = '';
+                    let showHandle = false;
+                    switch (c.arrowType) {
+                        case 'linear':
+                            d = `M ${s.x} ${s.y} L ${e.x} ${e.y}`;
+                            break;
+                        case 'curved':
+                            showHandle = true;
+                            const midpoint = { x: (s.x + e.x) / 2, y: (s.y + e.y) / 2 };
+                            const cp = { x: midpoint.x + (c.curveOffset?.x || 0), y: midpoint.y + (c.curveOffset?.y || 0) };
+                            d = `M ${s.x} ${s.y} Q ${cp.x} ${cp.y} ${e.x} ${e.y}`;
+                            c.lineElement.dataset.curveHandlePos = `${cp.x},${cp.y}`;
+                            if (!c.curveHandle) {
+                                const curveHandle = document.createElement('div');
+                                curveHandle.className = 'curve-handle';
+                                curveHandle.dataset.connId = c.id;
+                                canvasContainer.appendChild(curveHandle);
+                                c.curveHandle = curveHandle;
+                            }
+                            c.curveHandle.style.left = `${cp.x - 5}px`;
+                            c.curveHandle.style.top = `${cp.y - 5}px`;
+                            break;
+                        case 'zigzag':
+                            d = getZigZagPath(s, e);
+                            break;
+                    }
+
+                    c.lineElement.setAttribute('d', d);
+
+                    if (c.curveHandle) {
+                        c.curveHandle.style.display = showHandle ? 'block' : 'none';
+                    }
+                });
+                drawingState.connections = drawingState.connections.filter(c => !c.isDeleted);
+            }
+
+            categoryHeaders.forEach(header => {
+                header.addEventListener('click', () => {
+                    const content = header.nextElementSibling;
+                    const wasActive = content.classList.contains('active');
+
+                    document.querySelectorAll('.category-content').forEach(c => c.classList.remove('active'));
+
+                    if (!wasActive) {
+                        content.classList.add('active');
+                    }
+                });
+            });
+
+            sidebarObjects.forEach(obj => {
+                obj.addEventListener('dragstart', (e) => {
+                    const data = {
+                        shape: e.target.dataset.shape,
+                        text: e.target.dataset.text
+                    };
+                    e.dataTransfer.setData('text/plain', JSON.stringify(data));
+                });
+            });
+
+            canvasWrapper.addEventListener('dragover', e => e.preventDefault());
+            canvasWrapper.addEventListener('drop', e => {
+                const canvasPage = e.target.closest('.canvas-page');
+                const activeState = getActiveState();
+                if (!canvasPage || !canvasPage.classList.contains('active') || !activeState) return;
+
+                e.preventDefault();
+                try {
+                    const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+                    const shapeType = data.shape;
+                    const text = data.text;
+                    if (!shapeType) return;
+                    const canvasContainer = canvasPage.querySelector('.canvas-container');
+                    const rect = getCanvasRect(canvasPage);
+                    const coords = { x: (e.clientX - rect.left) / activeState.zoomLevel, y: (e.clientY - rect.top) / activeState.zoomLevel };
+                    const initialColor = getInitialColor(shapeType);
+                    const model = { id: uid('obj'), shape: shapeType, x: coords.x, y: coords.y, width: 50, height: 50, text: text, color: initialColor, rotation: 0 };
+
+                    activeState.objects.push(model);
+                    createObjectElement(model, canvasContainer);
+                    updateConnections(activeState, canvasPage);
                     saveState();
+                } catch (error) {
+                    console.error('Failed to parse dropped data:', error);
+                }
+            });
+
+            canvasWrapper.addEventListener('mousedown', e => {
+                const canvasPage = e.target.closest('.canvas-page');
+                const activeState = getActiveState();
+                if (!canvasPage || !canvasPage.classList.contains('active') || !activeState) return;
+
+                const canvasContainer = canvasPage.querySelector('.canvas-container');
+                const svg = canvasPage.querySelector('#connection-layer');
+
+                const objectTarget = e.target.closest('.dropped-object');
+                const lineTarget = e.target.closest('path.connection-line');
+                const curveHandleTarget = e.target.closest('.curve-handle');
+                const nodeTarget = e.target.closest('.connection-node');
+                const resizerTarget = e.target.closest('.resizer');
+                const rotatorTarget = e.target.closest('.rotator');
+
+                activeState.selectedObject = null;
+                activeState.selectedLine = null;
+                deselectAll(activeState, canvasPage);
+
+                if (nodeTarget) {
+                    activeState.isConnecting = true;
+                    activeState.startNode = nodeTarget;
+                    canvasContainer.querySelectorAll('.dropped-object').forEach(o => o.classList.add('show-nodes'));
+                    activeState.currentLine = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    activeState.currentLine.setAttribute('class', 'connection-line');
+                    activeState.currentLine.setAttribute('fill', 'none');
+                    activeState.currentLine.setAttribute('stroke', '#333');
+                    activeState.currentLine.setAttribute('marker-end', 'url(#arrowhead)');
+                    activeState.currentLine.setAttribute('pointer-events', 'none');
+                    svg.appendChild(activeState.currentLine);
+                    return;
+                }
+
+                if (curveHandleTarget) {
+                    activeState.isDraggingCurve = true;
+                    const connId = curveHandleTarget.dataset.connId;
+                    activeState.selectedLine = activeState.connections.find(c => c.id === connId);
+                    if (activeState.selectedLine) {
+                        selectLine(activeState.selectedLine.lineElement, activeState, canvasPage);
+                    }
+                    return;
+                }
+
+                if (resizerTarget) {
+                    activeState.isResizing = true;
+                    const parentObj = resizerTarget.parentElement;
+                    activeState.selectedObject = activeState.objects.find(obj => obj.id === parentObj.id);
+                    activeState.selectedObjectDom = parentObj;
+                    activeState.startX = e.clientX;
+                    activeState.startY = e.clientY;
+                    activeState.startWidth = parentObj.offsetWidth;
+                    activeState.startHeight = parentObj.offsetHeight;
+                    return;
+                }
+
+                if (rotatorTarget) {
+                    activeState.isRotating = true;
+                    const parentObj = rotatorTarget.parentElement;
+                    activeState.selectedObject = activeState.objects.find(obj => obj.id === parentObj.id);
+                    activeState.selectedObjectDom = parentObj;
+                    const rect = parentObj.getBoundingClientRect();
+                    activeState.startX = rect.left + rect.width / 2;
+                    activeState.startY = rect.top + rect.height / 2;
+                    const dx = e.clientX - activeState.startX, dy = e.clientY - activeState.startY;
+                    activeState.startAngle = Math.atan2(dy, dx) * 180 / Math.PI;
+                    activeState.startAngle -= activeState.selectedObject.rotation;
+                    return;
+                }
+
+                if (objectTarget) {
+                    const objectModel = activeState.objects.find(obj => obj.id === objectTarget.id);
+                    if (objectModel) {
+                        selectObject(objectTarget, activeState, canvasPage);
+                        const rect = getCanvasRect(canvasPage);
+                        const mouseX_unscaled = (e.clientX - rect.left) / activeState.zoomLevel;
+                        const mouseY_unscaled = (e.clientY - rect.top) / activeState.zoomLevel;
+                        activeState.dragOffsetX = mouseX_unscaled - objectModel.x;
+                        activeState.dragOffsetY = mouseY_unscaled - objectModel.y;
+                        activeState.isDragging = true;
+                    }
+                } else if (lineTarget) {
+                    const conn = activeState.connections.find(c => c.lineElement === lineTarget);
+                    if (conn) selectLine(conn.lineElement, activeState, canvasPage);
+                }
+            });
+
+            document.addEventListener('mousemove', e => {
+                const activeState = getActiveState();
+                if (!activeState) return;
+
+                const canvasPage = getActiveCanvasPage();
+                if (!canvasPage) return;
+
+                const rect = getCanvasRect(canvasPage);
+                const mouseX = (e.clientX - rect.left) / activeState.zoomLevel;
+                const mouseY = (e.clientY - rect.top) / activeState.zoomLevel;
+
+                if (activeState.isConnecting && activeState.currentLine) {
+                    const startParent = activeState.startNode.parentElement;
+                    const startCenter = getNodeCenter(activeState.startNode, canvasPage);
+                    let d = '';
+                    if (currentArrowType === 'linear') {
+                        d = `M ${startCenter.x} ${startCenter.y} L ${mouseX} ${mouseY}`;
+                    } else if (currentArrowType === 'curved') {
+                        d = `M ${startCenter.x} ${startCenter.y} Q ${mouseX} ${mouseY} ${mouseX} ${mouseY}`;
+                    } else if (currentArrowType === 'zigzag') {
+                        d = getZigZagPath(startCenter, { x: mouseX, y: mouseY });
+                    }
+                    activeState.currentLine.setAttribute('d', d);
+                    return;
+                }
+
+                if (activeState.isDraggingCurve && activeState.selectedLine) {
+                    const conn = activeState.selectedLine;
+                    const startParent = document.getElementById(conn.startId);
+                    const endParent = document.getElementById(conn.endId);
+                    if (!startParent || !endParent) return;
+                    const sNode = startParent.querySelector(`.connection-node[data-pos="${conn.startPos}"]`);
+                    const eNode = endParent.querySelector(`.connection-node[data-pos="${conn.endPos}"]`);
+                    const s = getNodeCenter(sNode, canvasPage);
+                    const e = getNodeCenter(eNode, canvasPage);
+                    const midpoint = { x: (s.x + e.x) / 2, y: (s.y + e.y) / 2 };
+                    conn.curveOffset = { x: mouseX - midpoint.x, y: mouseY - midpoint.y };
+                    updateConnections(activeState, canvasPage);
+                    return;
+                }
+
+                if (activeState.isDragging && activeState.selectedObject) {
+                    const newLeft = mouseX - activeState.dragOffsetX;
+                    const newTop = mouseY - activeState.dragOffsetY;
+                    activeState.selectedObject.x = newLeft;
+                    activeState.selectedObject.y = newTop;
+                    activeState.selectedObjectDom.style.left = newLeft + 'px';
+                    activeState.selectedObjectDom.style.top = newTop + 'px';
+                    updateConnections(activeState, canvasPage);
+                    return;
+                }
+
+                if (activeState.isResizing && activeState.selectedObject) {
+                    const newWidth = activeState.startWidth + (e.clientX - activeState.startX) / activeState.zoomLevel;
+                    const newHeight = activeState.startHeight + (e.clientY - activeState.startY) / activeState.zoomLevel;
+                    activeState.selectedObject.width = newWidth > 10 ? newWidth : 10;
+                    activeState.selectedObject.height = newHeight > 10 ? newHeight : 10;
+                    activeState.selectedObjectDom.style.width = `${activeState.selectedObject.width}px`;
+                    activeState.selectedObjectDom.style.height = `${activeState.selectedObject.height}px`;
+                    updateConnections(activeState, canvasPage);
+                    return;
+                }
+
+                if (activeState.isRotating && activeState.selectedObject) {
+                    const dx = e.clientX - activeState.startX; const dy = e.clientY - activeState.startY;
+                    const newAngle = Math.atan2(dy, dx) * 180 / Math.PI;
+                    const rotation = newAngle - activeState.startAngle;
+                    activeState.selectedObject.rotation = rotation;
+                    activeState.selectedObjectDom.style.transform = `rotate(${rotation}deg)`;
+                    updateConnections(activeState, canvasPage);
+                    return;
+                }
+            });
+
+            document.addEventListener('mouseup', e => {
+                const activeState = getActiveState();
+                if (!activeState) return;
+
+                const canvasPage = getActiveCanvasPage();
+                if (!canvasPage) return;
+
+                if (activeState.isConnecting) {
+                    const endNode = e.target.closest && e.target.closest('.connection-node');
+                    if (endNode && activeState.startNode && activeState.startNode.dataset.parent !== endNode.dataset.parent) {
+                        const startParent = activeState.startNode.parentElement;
+                        const endParent = endNode.parentElement;
+
+                        const newConnection = {
+                            id: uid('conn'),
+                            startId: startParent.id,
+                            startPos: activeState.startNode.dataset.pos,
+                            endId: endParent.id,
+                            endPos: endNode.dataset.pos,
+                            curveOffset: currentArrowType === 'curved' ? { x: 0, y: 0 } : null,
+                            arrowType: currentArrowType
+                        };
+
+                        const startCenter = getNodeCenter(activeState.startNode, canvasPage);
+                        const endCenter = getNodeCenter(endNode, canvasPage);
+
+                        if (currentArrowType === 'curved') {
+                            const rect = getCanvasRect(canvasPage);
+                            const mouseX_unscaled = (e.clientX - rect.left) / activeState.zoomLevel;
+                            const mouseY_unscaled = (e.clientY - rect.top) / activeState.zoomLevel;
+                            const midpoint = { x: (startCenter.x + endCenter.x) / 2, y: (startCenter.y + endCenter.y) / 2 };
+                            newConnection.curveOffset = { x: mouseX_unscaled - midpoint.x, y: mouseY_unscaled - midpoint.y };
+                        }
+
+                        activeState.connections.push(newConnection);
+                        restoreState(activeState, canvasPage);
+                        selectLine(activeState.connections.find(c => c.id === newConnection.id).lineElement, activeState, canvasPage);
+                        saveState();
+                    }
+
+                    if (activeState.currentLine && activeState.currentLine.parentNode) activeState.currentLine.remove();
+                    canvasPage.querySelector('.canvas-container').querySelectorAll('.dropped-object').forEach(o => o.classList.remove('show-nodes'));
+                    activeState.isConnecting = false;
+                    activeState.currentLine = null;
+                    activeState.startNode = null;
+                }
+
+                if (activeState.isDragging || activeState.isDraggingCurve || activeState.isResizing || activeState.isRotating) { saveState(); }
+                activeState.isDragging = activeState.isResizing = activeState.isRotating = activeState.isDraggingCurve = false;
+                activeState.selectedObjectDom = null;
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Delete') {
+                    const activeCanvasPage = getActiveCanvasPage();
+                    if (!activeCanvasPage) return;
+
+                    const selectedObject = activeCanvasPage.querySelector('.dropped-object.selected');
+                    const selectedLine = activeCanvasPage.querySelector('.connection-line.selected-line');
+
+                    if (selectedObject) {
+                        const activeState = getActiveState();
+                        if (activeState) {
+                            // Rimuove l'oggetto dall'array degli oggetti
+                            activeState.objects = activeState.objects.filter(obj => obj.id !== selectedObject.id);
+                            // Rimuove le connessioni associate all'oggetto eliminato
+                            activeState.connections = activeState.connections.filter(c => c.startId !== selectedObject.id && c.endId !== selectedObject.id);
+
+                            selectedObject.remove();
+                            saveState();
+                            updateConnections(activeState, activeCanvasPage);
+                        }
+                    } else if (selectedLine) {
+                        const activeState = getActiveState();
+                        if (activeState) {
+                            // Rimuove la linea selezionata dall'array delle connessioni
+                            activeState.connections = activeState.connections.filter(c => c.lineElement !== selectedLine);
+
+                            selectedLine.remove();
+                            saveState();
+                            updateConnections(activeState, activeCanvasPage);
+                        }
+                    }
+                }
+                if (e.ctrlKey && e.key === 'z') {
+                    doUndo();
+                }
+                if (e.ctrlKey && e.key === 'y') {
+                    doRedo();
+                }
+            });
+
+            function selectObject(domElement, activeState, canvasPage) {
+                if (!domElement) return;
+                deselectAll(activeState, canvasPage);
+                domElement.classList.add('selected');
+                activeState.selectedObject = activeState.objects.find(o => o.id === domElement.id);
+                activeState.selectedObjectDom = domElement;
+                controls.classList.add('visible');
+                const shapeType = activeState.selectedObject.shape;
+                let currentColor;
+                if (shapeType === 'triangle') {
+                    currentColor = getComputedStyle(domElement).borderBottomColor;
+                } else if (shapeType === 'text-box' || shapeType === 'net') {
+                    currentColor = getComputedStyle(domElement).color;
+                } else {
+                    currentColor = getComputedStyle(domElement).backgroundColor;
+                }
+                colorPicker.value = rgbToHex(currentColor);
+
+                const textDiv = domElement.querySelector('.object-text');
+                if (textDiv) textDiv.focus();
+
+                canvasPage.querySelectorAll('.curve-handle').forEach(el => el.style.display = 'none');
+            }
+
+            function selectLine(lineElement, activeState, canvasPage) {
+                deselectAll(activeState, canvasPage);
+                const conn = activeState.connections.find(c => c.lineElement === lineElement);
+                if (!conn) return;
+
+                activeState.selectedLine = conn;
+                lineElement.classList.add('selected-line');
+
+                if (conn.arrowType === 'curved' && conn.curveHandle) {
+                    conn.curveHandle.style.display = 'block';
+                }
+            }
+
+            function deselectAll(activeState, canvasPage) {
+                const curObj = canvasPage.querySelector('.dropped-object.selected');
+                if (curObj) {
+                    curObj.classList.remove('selected');
+                    const t = curObj.querySelector('.object-text');
+                    if (t) t.blur();
+                }
+                activeState.selectedObject = null;
+                activeState.selectedObjectDom = null;
+                controls.classList.remove('visible');
+
+                if (activeState.selectedLine) {
+                    activeState.selectedLine.lineElement.classList.remove('selected-line');
+                    if (activeState.selectedLine.curveHandle) {
+                        activeState.selectedLine.curveHandle.style.display = 'none';
+                    }
                     activeState.selectedLine = null;
                 }
+                canvasPage.querySelectorAll('.curve-handle').forEach(el => el.style.display = 'none');
             }
-        }
-        if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')){ e.preventDefault(); doUndo(); }
-        if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || e.key === 'Y')){ e.preventDefault(); doRedo(); }
-    });
-    
-    function selectObject(domElement, activeState, canvasPage){ 
-        if (!domElement) return; 
-        deselectAll(activeState, canvasPage);
-        domElement.classList.add('selected'); 
-        activeState.selectedObject = activeState.objects.find(o => o.id === domElement.id);
-        activeState.selectedObjectDom = domElement;
-        controls.classList.add('visible'); 
-        const shapeType = activeState.selectedObject.shape;
-        let currentColor; 
-        if (shapeType === 'triangle'){ 
-            currentColor = getComputedStyle(domElement).borderBottomColor; 
-        } else if (shapeType === 'text-box' || shapeType === 'net') {
-            currentColor = getComputedStyle(domElement).color;
-        } else { 
-            currentColor = getComputedStyle(domElement).backgroundColor; 
-        } 
-        colorPicker.value = rgbToHex(currentColor); 
-        
-        const textDiv = domElement.querySelector('.object-text'); 
-        if (textDiv) textDiv.focus(); 
-        
-        canvasPage.querySelectorAll('.curve-handle').forEach(el => el.style.display = 'none');
-    }
 
-    function selectLine(lineElement, activeState, canvasPage) {
-        deselectAll(activeState, canvasPage);
-        const conn = activeState.connections.find(c => c.lineElement === lineElement);
-        if(!conn) return;
+            colorPicker.addEventListener('input', (e) => {
+                const activeState = getActiveState();
+                if (!activeState || !activeState.selectedObject) return;
+                const selectedObject = activeState.objects.find(o => o.id === activeState.selectedObject.id);
+                if (!selectedObject) return;
 
-        activeState.selectedLine = conn;
-        lineElement.classList.add('selected-line');
-        
-        if (conn.arrowType === 'curved' && conn.curveHandle) {
-            conn.curveHandle.style.display = 'block';
-        }
-    }
+                const s = selectedObject.shape;
+                selectedObject.color = e.target.value;
+                const domEl = document.getElementById(selectedObject.id);
 
-    function deselectAll(activeState, canvasPage){ 
-        const curObj = canvasPage.querySelector('.dropped-object.selected'); 
-        if (curObj) { 
-            curObj.classList.remove('selected'); 
-            const t = curObj.querySelector('.object-text'); 
-            if (t) t.blur(); 
-        } 
-        activeState.selectedObject = null; 
-        activeState.selectedObjectDom = null;
-        controls.classList.remove('visible'); 
-        
-        if (activeState.selectedLine){
-            activeState.selectedLine.lineElement.classList.remove('selected-line');
-            if (activeState.selectedLine.curveHandle) {
-                activeState.selectedLine.curveHandle.style.display = 'none';
+                if (s === 'triangle') {
+                    domEl.style.borderBottomColor = e.target.value;
+                } else if (s === 'text-box' || s === 'net') {
+                    domEl.style.color = e.target.value;
+                } else if (s === 'arrow') {
+                    domEl.style.backgroundColor = e.target.value;
+                    domEl.style.setProperty('--arrow-color', e.target.value);
+                    const sheet = document.styleSheets[0];
+                    const rule = Array.from(sheet.cssRules).find(r => r.selectorText === '.arrow-object::before');
+                    if (rule) rule.style.borderLeftColor = e.target.value;
+                }
+                else {
+                    domEl.style.backgroundColor = e.target.value;
+                }
+                saveState();
+            });
+
+            canvasWrapper.addEventListener('click', e => {
+                const activeState = getActiveState();
+                if (!activeState) return;
+                const canvasPage = getActiveCanvasPage();
+                const obj = e.target.closest('.dropped-object');
+                const line = e.target.closest('path.connection-line');
+                const node = e.target.closest('.connection-node');
+
+                if (obj) {
+                    if (obj !== activeState.selectedObjectDom) {
+                        selectObject(obj, activeState, canvasPage);
+                    }
+                } else if (line) {
+                    if (e.target !== (activeState.selectedLine?.lineElement || null)) {
+                        selectLine(e.target, activeState, canvasPage);
+                    }
+                } else if (!node) {
+                    deselectAll(activeState, canvasPage);
+                }
+            });
+
+            function rgbToHex(rgb) {
+                if (!rgb) return '#000000';
+                if (rgb.includes('rgb')) {
+                    const m = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+                    if (!m) return '#000000';
+                    const toHex = c => ('0' + parseInt(c).toString(16)).slice(-2);
+                    return '#' + toHex(m[1]) + toHex(m[2]) + toHex(m[3]);
+                }
+                return rgb;
             }
-            activeState.selectedLine = null;
-        }
-        canvasPage.querySelectorAll('.curve-handle').forEach(el => el.style.display = 'none');
-    }
 
-    colorPicker.addEventListener('input', (e)=>{ 
-        const activeState = getActiveState();
-        if (!activeState || !activeState.selectedObject) return; 
-        const selectedObject = activeState.objects.find(o => o.id === activeState.selectedObject.id);
-        if(!selectedObject) return;
-
-        const s = selectedObject.shape;
-        selectedObject.color = e.target.value;
-        const domEl = document.getElementById(selectedObject.id);
-
-        if (s === 'triangle'){ 
-            domEl.style.borderBottomColor = e.target.value; 
-        } else if (s === 'text-box' || s === 'net') {
-             domEl.style.color = e.target.value;
-        } else if (s === 'arrow'){
-            domEl.style.backgroundColor = e.target.value;
-            domEl.style.setProperty('--arrow-color', e.target.value);
-            const sheet = document.styleSheets[0];
-            const rule = Array.from(sheet.cssRules).find(r => r.selectorText === '.arrow-object::before');
-            if(rule) rule.style.borderLeftColor = e.target.value;
-        }
-        else { 
-            domEl.style.backgroundColor = e.target.value; 
-        } 
-        saveState(); 
-    });
-
-    canvasWrapper.addEventListener('click', e => { 
-        const activeState = getActiveState();
-        if (!activeState) return;
-        const canvasPage = getActiveCanvasPage();
-        const obj = e.target.closest('.dropped-object'); 
-        const line = e.target.closest('path.connection-line');
-        const node = e.target.closest('.connection-node');
-        
-        if (obj){ 
-            if (obj !== activeState.selectedObjectDom) {
-                selectObject(obj, activeState, canvasPage); 
+            function updateZoom(canvasPage) {
+                const activeState = getActiveState();
+                if (!activeState) return;
+                const canvasContainer = canvasPage.querySelector('.canvas-container');
+                const svg = canvasPage.querySelector('#connection-layer');
+                const backgroundSvg = canvasPage.querySelector('#background-layer');
+                canvasContainer.style.transform = `scale(${activeState.zoomLevel})`;
+                svg.style.transform = `scale(${activeState.zoomLevel})`;
+                if (backgroundSvg) backgroundSvg.style.transform = `scale(${activeState.zoomLevel})`;
+                const zoomLevelSpan = document.getElementById('zoom-level');
+                zoomLevelSpan.textContent = `${Math.round(activeState.zoomLevel * 100)}%`;
+                updateConnections(activeState, canvasPage);
             }
-        } else if (line){
-            if (e.target !== (activeState.selectedLine?.lineElement || null)) {
-                selectLine(e.target, activeState, canvasPage);
+
+            function updateBackground(canvasPage) {
+                const activeState = getActiveState();
+                if (!activeState) return;
+                const backgroundSvg = canvasPage.querySelector('#background-layer');
+                const canvas = canvasPage.querySelector('.canvas');
+                backgroundSvg.innerHTML = '';
+                const canvasPadding = 100;
+                const selected = document.getElementById('background-selector').value;
+                const width = canvas.offsetWidth;
+                const height = canvas.offsetHeight;
+                const strokeColor = '#666';
+
+                backgroundSvg.style.backgroundColor = 'transparent';
+
+                function createPath(lines) {
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path.setAttribute('d', lines.join(' '));
+                    path.setAttribute('stroke', strokeColor);
+                    path.setAttribute('stroke-width', '2');
+                    path.setAttribute('fill', 'none');
+                    backgroundSvg.appendChild(path);
+                }
+
+                if (selected === 'half-court') {
+                    const side = Math.min(width, height) - 2 * canvasPadding;
+                    const startX = (width - side) / 2;
+                    const startY = (height - side) / 2;
+                    const threeMeterY = startY + side / 3;
+
+                    const lines = [
+                        `M ${startX} ${startY} H ${startX + side} V ${startY + side} H ${startX} V ${startY}`,
+                        `M ${startX} ${threeMeterY} H ${startX + side}`
+                    ];
+
+                    createPath(lines);
+
+                } else if (selected === 'full-court') {
+                    const sideWidth = width - 2 * canvasPadding;
+                    const sideHeight = height - 2 * canvasPadding;
+                    const startX = (width - sideWidth) / 2;
+                    const startY = (height - sideHeight) / 2;
+
+                    const verticalPositions = [
+                        sideWidth / 3,
+                        sideWidth / 2 + sideWidth / 6,
+                        sideWidth / 2
+                    ];
+
+                    const lines = [
+                        `M ${startX} ${startY} H ${startX + sideWidth} V ${startY + sideHeight} H ${startX} V ${startY}`,
+                        ...verticalPositions.map(x => `M ${startX + x} ${startY} V ${startY + sideHeight}`)
+                    ];
+
+                    createPath(lines);
+                } else if (selected === '3d-court') {
+                    const lines = [
+                        `M 50 50 L 50 450 L 950 450 L 950 50 Z`,
+                        `M 50 250 L 950 250`,
+                        `M 500 50 L 500 450`,
+                        `M 275 50 L 275 450 M 725 50 L 725 450`
+                    ];
+                    const courtPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    courtPath.setAttribute('d', lines.join(' '));
+                    courtPath.setAttribute('stroke', strokeColor);
+                    courtPath.setAttribute('stroke-width', '2');
+                    courtPath.setAttribute('fill', 'none');
+                    backgroundSvg.appendChild(courtPath);
+
+                    const perspectiveLines = [
+                        `M 50 50 L ${width / 2} 0 L 950 50`,
+                        `M 50 450 L ${width / 2} ${height} L 950 450`,
+                        `M 50 250 L ${width / 2} ${height / 2} L 950 250`,
+                        `M 500 50 L ${width / 2} 0 L 500 450 L ${width / 2} ${height}`
+                    ];
+                    const perspectivePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    perspectivePath.setAttribute('d', perspectiveLines.join(' '));
+                    perspectivePath.setAttribute('stroke', strokeColor);
+                    perspectivePath.setAttribute('stroke-width', '2');
+                    perspectivePath.setAttribute('fill', 'none');
+                    backgroundSvg.appendChild(perspectivePath);
+
+                    const text1 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text1.setAttribute('x', width / 2); text1.setAttribute('y', height / 2 + 10);
+                    text1.setAttribute('text-anchor', 'middle'); text1.setAttribute('fill', strokeColor);
+                    text1.textContent = 'RETE';
+                    backgroundSvg.appendChild(text1);
+
+                }
             }
-        } else if (!node) {
-            deselectAll(activeState, canvasPage);
-        }
-    });
 
-    function rgbToHex(rgb){ 
-        if (!rgb) return '#000000'; 
-        if (rgb.includes('rgb')){ 
-            const m = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/); 
-            if (!m) return '#000000'; 
-            const toHex = c => ('0' + parseInt(c).toString(16)).slice(-2); 
-            return '#' + toHex(m[1]) + toHex(m[2]) + toHex(m[3]); 
-        } 
-        return rgb; 
-    }
+            addTabBtn.addEventListener('click', () => {
+                createTab();
+                switchToTab(allDrawings.length - 1);
+            });
 
-    function updateZoom(canvasPage) {
-        const activeState = getActiveState();
-        if (!activeState) return;
-        const canvasContainer = canvasPage.querySelector('.canvas-container');
-        const svg = canvasPage.querySelector('#connection-layer');
-        const backgroundSvg = canvasPage.querySelector('#background-layer');
-        canvasContainer.style.transform = `scale(${activeState.zoomLevel})`;
-        svg.style.transform = `scale(${activeState.zoomLevel})`;
-        if(backgroundSvg) backgroundSvg.style.transform = `scale(${activeState.zoomLevel})`;
-        const zoomLevelSpan = document.getElementById('zoom-level');
-        zoomLevelSpan.textContent = `${Math.round(activeState.zoomLevel * 100)}%`;
-        updateConnections(activeState, canvasPage);
-    }
+            function createTab(initialState = {}) {
+                const newDrawing = {
+                    id: uid('drawing'),
+                    title: initialState.title || `Nuovo Disegno ${allDrawings.length + 1}`,
+                    objects: initialState.objects || [],
+                    connections: initialState.connections || [],
+                    zoomLevel: initialState.zoom || 1.0,
+                    background: initialState.background || 'none',
+                    isGridEnabled: initialState.grid || false,
+                    isGrayscaleEnabled: initialState.grayscale || false,
+                    category: initialState.category || '',
+                    typology: initialState.typology || '',
+                    description: initialState.description || '',
+                    undoStack: [],
+                    redoStack: [],
+                    selectedObject: null,
+                    selectedObjectDom: null,
+                    selectedLine: null,
+                    isConnecting: false,
+                    isDragging: false,
+                    isResizing: false,
+                    isRotating: false,
+                    isDraggingCurve: false,
+                    startX: null, startY: null, startWidth: null, startHeight: null, startAngle: null, dragOffsetX: null, dragOffsetY: null,
+                    startNode: null,
+                    currentLine: null
+                };
+                allDrawings.push(newDrawing);
 
-    function updateBackground(canvasPage) {
-        const activeState = getActiveState();
-        if (!activeState) return;
-        const backgroundSvg = canvasPage.querySelector('#background-layer');
-        const canvas = canvasPage.querySelector('.canvas');
-        backgroundSvg.innerHTML = '';
-        const canvasPadding = 100;
-        const selected = document.getElementById('background-selector').value;
-        const width = canvas.offsetWidth;
-        const height = canvas.offsetHeight;
-        const strokeColor = '#666';
-        
-        backgroundSvg.style.backgroundColor = 'transparent';
+                const tabBtn = document.createElement('button');
+                tabBtn.className = 'tab-btn';
+                tabBtn.dataset.index = allDrawings.length - 1;
+                tabBtn.innerHTML = `<span>${newDrawing.title}</span><button class="close-tab-btn">x</button>`;
+                tabsContainer.insertBefore(tabBtn, addTabBtn);
 
-        function createPath(lines) {
-            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            path.setAttribute('d', lines.join(' '));
-            path.setAttribute('stroke', strokeColor);
-            path.setAttribute('stroke-width', '2');
-            path.setAttribute('fill', 'none');
-            backgroundSvg.appendChild(path);
-        }
+                tabBtn.addEventListener('click', e => {
+                    if (e.target.classList.contains('close-tab-btn')) {
+                        e.stopPropagation();
+                        closeTab(parseInt(tabBtn.dataset.index));
+                    } else {
+                        switchToTab(parseInt(tabBtn.dataset.index));
+                    }
+                });
 
-        if (selected === 'half-court') {
-            const side = Math.min(width, height) - 2 * canvasPadding;
-            const startX = (width - side) / 2;
-            const startY = (height - side) / 2;
-            const threeMeterY = startY + side / 3;
-
-            const lines = [
-                `M ${startX} ${startY} H ${startX + side} V ${startY + side} H ${startX} V ${startY}`,
-                `M ${startX} ${threeMeterY} H ${startX + side}`
-            ];
-
-            createPath(lines);
-
-        } else if (selected === 'full-court') {
-            const sideWidth = width - 2 * canvasPadding;
-            const sideHeight = height - 2 * canvasPadding;
-            const startX = (width - sideWidth) / 2;
-            const startY = (height - sideHeight) / 2;
-
-            const verticalPositions = [
-                sideWidth / 3,
-                sideWidth / 2 + sideWidth / 6,
-                sideWidth / 2
-            ];
-
-            const lines = [
-                `M ${startX} ${startY} H ${startX + sideWidth} V ${startY + sideHeight} H ${startX} V ${startY}`,
-                ...verticalPositions.map(x => `M ${startX + x} ${startY} V ${startY + sideHeight}`)
-            ];
-
-            createPath(lines);
-        }else if (selected === '3d-court') {
-            const lines = [
-                `M 50 50 L 50 450 L 950 450 L 950 50 Z`,
-                `M 50 250 L 950 250`,
-                `M 500 50 L 500 450`,
-                `M 275 50 L 275 450 M 725 50 L 725 450`
-            ];
-            const courtPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            courtPath.setAttribute('d', lines.join(' '));
-            courtPath.setAttribute('stroke', strokeColor);
-            courtPath.setAttribute('stroke-width', '2');
-            courtPath.setAttribute('fill', 'none');
-            backgroundSvg.appendChild(courtPath);
-            
-            const perspectiveLines = [
-                `M 50 50 L ${width/2} 0 L 950 50`,
-                `M 50 450 L ${width/2} ${height} L 950 450`,
-                `M 50 250 L ${width/2} ${height/2} L 950 250`,
-                `M 500 50 L ${width/2} 0 L 500 450 L ${width/2} ${height}`
-            ];
-            const perspectivePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            perspectivePath.setAttribute('d', perspectiveLines.join(' '));
-            perspectivePath.setAttribute('stroke', strokeColor);
-            perspectivePath.setAttribute('stroke-width', '2');
-            perspectivePath.setAttribute('fill', 'none');
-            backgroundSvg.appendChild(perspectivePath);
-
-            const text1 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            text1.setAttribute('x', width/2); text1.setAttribute('y', height/2 + 10);
-            text1.setAttribute('text-anchor', 'middle'); text1.setAttribute('fill', strokeColor);
-            text1.textContent = 'RETE';
-            backgroundSvg.appendChild(text1);
-
-        }
-    }
-
-    addTabBtn.addEventListener('click', () => {
-        createTab();
-        switchToTab(allDrawings.length - 1);
-    });
-    
-    function createTab(initialState = {}) {
-        const newDrawing = {
-            id: uid('drawing'),
-            title: initialState.title || `Nuovo Disegno ${allDrawings.length + 1}`,
-            objects: initialState.objects || [],
-            connections: initialState.connections || [],
-            zoomLevel: initialState.zoom || 1.0,
-            background: initialState.background || 'none',
-            isGridEnabled: initialState.grid || false,
-            isGrayscaleEnabled: initialState.grayscale || false,
-            category: initialState.category || '',
-            typology: initialState.typology || '',
-            description: initialState.description || '',
-            undoStack: [],
-            redoStack: [],
-            selectedObject: null,
-            selectedObjectDom: null,
-            selectedLine: null,
-            isConnecting: false,
-            isDragging: false,
-            isResizing: false,
-            isRotating: false,
-            isDraggingCurve: false,
-            startX: null, startY: null, startWidth: null, startHeight: null, startAngle: null, dragOffsetX: null, dragOffsetY: null,
-            startNode: null,
-            currentLine: null
-        };
-        allDrawings.push(newDrawing);
-        
-        const tabBtn = document.createElement('button');
-        tabBtn.className = 'tab-btn';
-        tabBtn.dataset.index = allDrawings.length - 1;
-        tabBtn.innerHTML = `<span>${newDrawing.title}</span><button class="close-tab-btn">x</button>`;
-        tabsContainer.insertBefore(tabBtn, addTabBtn);
-        
-        tabBtn.addEventListener('click', e => {
-            if (e.target.classList.contains('close-tab-btn')) {
-                e.stopPropagation();
-                closeTab(parseInt(tabBtn.dataset.index));
-            } else {
-                switchToTab(parseInt(tabBtn.dataset.index));
-            }
-        });
-
-        const canvasPage = document.createElement('div');
-        canvasPage.className = 'canvas-page';
-        canvasPage.id = `canvas-page-${newDrawing.id}`;
-        canvasPage.innerHTML = `
+                const canvasPage = document.createElement('div');
+                canvasPage.className = 'canvas-page';
+                canvasPage.id = `canvas-page-${newDrawing.id}`;
+                canvasPage.innerHTML = `
             <div class="canvas" id="canvas-${newDrawing.id}">
                 <div class="canvas-container" id="canvas-container-${newDrawing.id}">
                     <svg id="background-layer" class="background-container"></svg>
@@ -1480,326 +1866,327 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
         `;
-        canvasWrapper.appendChild(canvasPage);
-    }
-    
-    function switchToTab(index) {
-        if (index === activeDrawingIndex) return;
-        
-        if (activeDrawingIndex !== -1) {
-            saveState(false);
-        }
-        
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.canvas-page').forEach(page => page.classList.remove('active'));
+                canvasWrapper.appendChild(canvasPage);
+            }
 
-        const newTab = tabsContainer.querySelector(`.tab-btn[data-index="${index}"]`);
-        const newPage = canvasWrapper.querySelector(`#canvas-page-${allDrawings[index].id}`);
-        if (newTab && newPage) {
-            newTab.classList.add('active');
-            newPage.classList.add('active');
-            activeDrawingIndex = index;
-            restoreState(allDrawings[index], newPage);
-            attachTabControls();
-        }
-    }
-    
-    function attachTabControls() {
-        const activePage = getActiveCanvasPage();
-        if(!activePage) return;
+            function switchToTab(index) {
+                if (index === activeDrawingIndex) return;
 
-        const backgroundSelector = document.getElementById('background-selector');
-        const zoomInBtn = document.getElementById('zoom-in-btn');
-        const zoomOutBtn = document.getElementById('zoom-out-btn');
-        const toggleGridBtn = document.getElementById('toggle-grid-btn');
-        const bwToggle = document.getElementById('bw-toggle');
-        const exportBtn = document.querySelector('.export-btn');
-        const exportPngBtn = document.getElementById('export-png-btn');
-        const exportJpgBtn = document.getElementById('export-jpg-btn');
-        const exportPdfBtn = document.getElementById('export-pdf-btn');
-        const drawingTitleInput = document.getElementById('drawing-title');
-        const drawingCategorySelect = document.getElementById('drawing-category');
-        const drawingTypologySelect = document.getElementById('drawing-typology');
-        const exerciseDescriptionTextarea = document.getElementById('exercise-description');
-        
-        backgroundSelector.removeEventListener('change', onBackgroundChange);
-        zoomInBtn.removeEventListener('click', onZoomIn);
-        zoomOutBtn.removeEventListener('click', onZoomOut);
-        toggleGridBtn.removeEventListener('click', onToggleGrid);
-        bwToggle.removeEventListener('change', onToggleBW);
-        exportBtn.removeEventListener('click', onExportClick);
-        exportPngBtn.removeEventListener('click', onExportPng);
-        exportJpgBtn.removeEventListener('click', onExportJpg);
-        exportPdfBtn.removeEventListener('click', onExportPdf);
-        drawingTitleInput.removeEventListener('input', onDrawingInfoUpdate);
-        drawingCategorySelect.removeEventListener('change', onDrawingInfoUpdate);
-        drawingTypologySelect.removeEventListener('change', onDrawingInfoUpdate);
-        exerciseDescriptionTextarea.removeEventListener('input', onDrawingInfoUpdate);
+                if (activeDrawingIndex !== -1) {
+                    saveState(false);
+                }
 
-        backgroundSelector.addEventListener('change', onBackgroundChange);
-        zoomInBtn.addEventListener('click', onZoomIn);
-        zoomOutBtn.addEventListener('click', onZoomOut);
-        toggleGridBtn.addEventListener('click', onToggleGrid);
-        bwToggle.addEventListener('change', onToggleBW);
-        exportBtn.addEventListener('click', onExportClick);
-        exportPngBtn.addEventListener('click', onExportPng);
-        exportJpgBtn.addEventListener('click', onExportJpg);
-        exportPdfBtn.addEventListener('click', onExportPdf);
-        drawingTitleInput.addEventListener('input', onDrawingInfoUpdate);
-        drawingCategorySelect.addEventListener('change', onDrawingInfoUpdate);
-        drawingTypologySelect.addEventListener('change', onDrawingInfoUpdate);
-        exerciseDescriptionTextarea.addEventListener('input', onDrawingInfoUpdate);
-    }
-    
-    function onBackgroundChange() {
-        const activeState = getActiveState();
-        const backgroundSelector = document.getElementById('background-selector');
-        if (!activeState) return;
-        activeState.background = backgroundSelector.value;
-        updateBackground(getActiveCanvasPage());
-        saveState();
-    }
-    function onZoomIn() {
-        const activeState = getActiveState();
-        if (!activeState) return;
-        activeState.zoomLevel = Math.min(2.0, activeState.zoomLevel + 0.1);
-        updateZoom(getActiveCanvasPage());
-        saveState();
-    }
-    function onZoomOut() {
-        const activeState = getActiveState();
-        if (!activeState) return;
-        activeState.zoomLevel = Math.max(0.5, activeState.zoomLevel - 0.1);
-        updateZoom(getActiveCanvasPage());
-        saveState();
-    }
-    function onToggleGrid() {
-        const activeState = getActiveState();
-        const toggleGridBtn = document.getElementById('toggle-grid-btn');
-        if (!activeState) return;
-        activeState.isGridEnabled = !activeState.isGridEnabled;
-        const canvas = getActiveCanvasPage().querySelector('.canvas');
-        if (activeState.isGridEnabled) {
-            canvas.classList.add('canvas-grid');
-            toggleGridBtn.textContent = 'Griglia ON';
-        } else {
-            canvas.classList.remove('canvas-grid');
-            toggleGridBtn.textContent = 'Griglia OFF';
-        }
-        saveState();
-    }
-    function onToggleBW() {
-        const activeState = getActiveState();
-        const bwToggle = document.getElementById('bw-toggle');
-        if (!activeState) return;
-        activeState.isGrayscaleEnabled = bwToggle.checked;
-        const canvas = getActiveCanvasPage().querySelector('.canvas');
-        if (activeState.isGrayscaleEnabled) {
-            canvas.classList.add('grayscale');
-        } else {
-            canvas.classList.remove('grayscale');
-        }
-        saveState();
-    }
-    function onDrawingInfoUpdate() {
-        const activeState = getActiveState();
-        const drawingTitleInput = document.getElementById('drawing-title');
-        const drawingCategorySelect = document.getElementById('drawing-category');
-        const drawingTypologySelect = document.getElementById('drawing-typology');
-        const exerciseDescriptionTextarea = document.getElementById('exercise-description');
+                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.canvas-page').forEach(page => page.classList.remove('active'));
 
-        if (!activeState) return;
-        activeState.title = drawingTitleInput.value;
-        activeState.category = drawingCategorySelect.value;
-        activeState.typology = drawingTypologySelect.value;
-        activeState.description = exerciseDescriptionTextarea.value;
-        const activeTabBtn = tabsContainer.querySelector('.tab-btn.active');
-        if (activeTabBtn) {
-            activeTabBtn.querySelector('span').textContent = drawingTitleInput.value;
-        }
-        saveState();
-    }
-    function onExportClick() { exportDropdown.classList.toggle('active'); }
-    function onExportPng() { exportCanvas('png'); }
-    function onExportJpg() { exportCanvas('jpg'); }
-    function onExportPdf() { exportCanvas('pdf'); }
+                const newTab = tabsContainer.querySelector(`.tab-btn[data-index="${index}"]`);
+                const newPage = canvasWrapper.querySelector(`#canvas-page-${allDrawings[index].id}`);
+                if (newTab && newPage) {
+                    newTab.classList.add('active');
+                    newPage.classList.add('active');
+                    activeDrawingIndex = index;
+                    restoreState(allDrawings[index], newPage);
+                    attachTabControls();
+                }
+            }
 
-    toolButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            toolButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            currentArrowType = btn.dataset.tool;
-        });
-    });
+            function attachTabControls() {
+                const activePage = getActiveCanvasPage();
+                if (!activePage) return;
 
-    window.addEventListener('resize', () => {
-        const activePage = getActiveCanvasPage();
-        if (activePage) updateBackground(activePage);
-    });
+                const backgroundSelector = document.getElementById('background-selector');
+                const zoomInBtn = document.getElementById('zoom-in-btn');
+                const zoomOutBtn = document.getElementById('zoom-out-btn');
+                const toggleGridBtn = document.getElementById('toggle-grid-btn');
+                const bwToggle = document.getElementById('bw-toggle');
+                const exportBtn = document.querySelector('.export-btn');
+                const exportPngBtn = document.getElementById('export-png-btn');
+                const exportJpgBtn = document.getElementById('export-jpg-btn');
+                const exportPdfBtn = document.getElementById('export-pdf-btn');
+                const drawingTitleInput = document.getElementById('drawing-title');
+                const drawingCategorySelect = document.getElementById('drawing-category');
+                const drawingTypologySelect = document.getElementById('drawing-typology');
+                const exerciseDescriptionTextarea = document.getElementById('exercise-description');
 
-    function closeTab(index) {
-        if (allDrawings.length <= 1) {
-            alert("Non puoi chiudere l'ultimo disegno.");
-            return;
-        }
+                backgroundSelector.removeEventListener('change', onBackgroundChange);
+                zoomInBtn.removeEventListener('click', onZoomIn);
+                zoomOutBtn.removeEventListener('click', onZoomOut);
+                toggleGridBtn.removeEventListener('click', onToggleGrid);
+                bwToggle.removeEventListener('change', onToggleBW);
+                exportBtn.removeEventListener('click', onExportClick);
+                exportPngBtn.removeEventListener('click', onExportPng);
+                exportJpgBtn.removeEventListener('click', onExportJpg);
+                exportPdfBtn.removeEventListener('click', onExportPdf);
+                drawingTitleInput.removeEventListener('input', onDrawingInfoUpdate);
+                drawingCategorySelect.removeEventListener('change', onDrawingInfoUpdate);
+                drawingTypologySelect.removeEventListener('change', onDrawingInfoUpdate);
+                exerciseDescriptionTextarea.removeEventListener('input', onDrawingInfoUpdate);
 
-        const tabBtn = tabsContainer.querySelector(`.tab-btn[data-index="${index}"]`);
-        const canvasPage = canvasWrapper.querySelector(`#canvas-page-${allDrawings[index].id}`);
-        
-        tabBtn.remove();
-        canvasPage.remove();
-        allDrawings.splice(index, 1);
-        
-        tabsContainer.querySelectorAll('.tab-btn').forEach((btn, i) => {
-            btn.dataset.index = i;
-        });
+                backgroundSelector.addEventListener('change', onBackgroundChange);
+                zoomInBtn.addEventListener('click', onZoomIn);
+                zoomOutBtn.addEventListener('click', onZoomOut);
+                toggleGridBtn.addEventListener('click', onToggleGrid);
+                bwToggle.addEventListener('change', onToggleBW);
+                exportBtn.addEventListener('click', onExportClick);
+                exportPngBtn.addEventListener('click', onExportPng);
+                exportJpgBtn.addEventListener('click', onExportJpg);
+                exportPdfBtn.addEventListener('click', onExportPdf);
+                drawingTitleInput.addEventListener('input', onDrawingInfoUpdate);
+                drawingCategorySelect.addEventListener('change', onDrawingInfoUpdate);
+                drawingTypologySelect.addEventListener('change', onDrawingInfoUpdate);
+                exerciseDescriptionTextarea.addEventListener('input', onDrawingInfoUpdate);
+            }
 
-        if (activeDrawingIndex === index) {
-            switchToTab(Math.max(0, index - 1));
-        } else if (activeDrawingIndex > index) {
-            activeDrawingIndex--;
-        }
-    }
-    
-    async function exportCanvas(format) {
-        const activePage = getActiveCanvasPage();
-        if (!activePage) return;
+            function onBackgroundChange() {
+                const activeState = getActiveState();
+                const backgroundSelector = document.getElementById('background-selector');
+                if (!activeState) return;
+                activeState.background = backgroundSelector.value;
+                updateBackground(getActiveCanvasPage());
+                saveState();
+            }
+            function onZoomIn() {
+                const activeState = getActiveState();
+                if (!activeState) return;
+                activeState.zoomLevel = Math.min(2.0, activeState.zoomLevel + 0.1);
+                updateZoom(getActiveCanvasPage());
+                saveState();
+            }
+            function onZoomOut() {
+                const activeState = getActiveState();
+                if (!activeState) return;
+                activeState.zoomLevel = Math.max(0.5, activeState.zoomLevel - 0.1);
+                updateZoom(getActiveCanvasPage());
+                saveState();
+            }
+            function onToggleGrid() {
+                const activeState = getActiveState();
+                const toggleGridBtn = document.getElementById('toggle-grid-btn');
+                if (!activeState) return;
+                activeState.isGridEnabled = !activeState.isGridEnabled;
+                const canvas = getActiveCanvasPage().querySelector('.canvas');
+                if (activeState.isGridEnabled) {
+                    canvas.classList.add('canvas-grid');
+                    toggleGridBtn.textContent = 'Griglia ON';
+                } else {
+                    canvas.classList.remove('canvas-grid');
+                    toggleGridBtn.textContent = 'Griglia OFF';
+                }
+                saveState();
+            }
+            function onToggleBW() {
+                const activeState = getActiveState();
+                const bwToggle = document.getElementById('bw-toggle');
+                if (!activeState) return;
+                activeState.isGrayscaleEnabled = bwToggle.checked;
+                const canvas = getActiveCanvasPage().querySelector('.canvas');
+                if (activeState.isGrayscaleEnabled) {
+                    canvas.classList.add('grayscale');
+                } else {
+                    canvas.classList.remove('grayscale');
+                }
+                saveState();
+            }
+            function onDrawingInfoUpdate() {
+                const activeState = getActiveState();
+                const drawingTitleInput = document.getElementById('drawing-title');
+                const drawingCategorySelect = document.getElementById('drawing-category');
+                const drawingTypologySelect = document.getElementById('drawing-typology');
+                const exerciseDescriptionTextarea = document.getElementById('exercise-description');
 
-        const canvasContainer = activePage.querySelector('.canvas-container');
-        
-        const elementsToHide = [
-            document.querySelector('.top-controls'),
-            document.querySelector('.file-controls'),
-            document.querySelector('.controls'),
-            document.querySelector('.sidebar'),
-            document.querySelector('.tabs')
-        ];
-        
-        elementsToHide.forEach(el => { if (el) el.style.display = 'none'; });
+                if (!activeState) return;
+                activeState.title = drawingTitleInput.value;
+                activeState.category = drawingCategorySelect.value;
+                activeState.typology = drawingTypologySelect.value;
+                activeState.description = exerciseDescriptionTextarea.value;
+                const activeTabBtn = tabsContainer.querySelector('.tab-btn.active');
+                if (activeTabBtn) {
+                    activeTabBtn.querySelector('span').textContent = drawingTitleInput.value;
+                }
+                saveState();
+            }
+            function onExportClick() { exportDropdown.classList.toggle('active'); }
+            function onExportPng() { exportCanvas('png'); }
+            function onExportJpg() { exportCanvas('jpg'); }
+            function onExportPdf() { exportCanvas('pdf'); }
 
-        const originalBodyBg = document.body.style.backgroundColor;
-        document.body.style.backgroundColor = 'white';
-
-        const originalCanvasBg = activePage.querySelector('.canvas').style.backgroundColor;
-        activePage.querySelector('.canvas').style.backgroundColor = 'white';
-        
-        const wasGridEnabled = getActiveState().isGridEnabled;
-        if (wasGridEnabled) {
-            activePage.querySelector('.canvas').classList.remove('canvas-grid');
-        }
-
-        activePage.querySelectorAll('.curve-handle').forEach(el => el.style.display = 'none');
-        
-        deselectAll(getActiveState(), activePage);
-
-        try {
-            const canvasElement = await html2canvas(canvasContainer, {
-                scale: 2, 
-                backgroundColor: null, 
-                allowTaint: true,
-                useCORS: true
+            toolButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    toolButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentArrowType = btn.dataset.tool;
+                });
             });
 
-            const drawingTitle = document.getElementById('drawing-title').value || 'disegno';
+            window.addEventListener('resize', () => {
+                const activePage = getActiveCanvasPage();
+                if (activePage) updateBackground(activePage);
+            });
 
-            if (format === 'png' || format === 'jpg') {
-                const dataUrl = format === 'png' ? canvasElement.toDataURL('image/png') : canvasElement.toDataURL('image/jpeg', 0.9);
+            function closeTab(index) {
+                if (allDrawings.length <= 1) {
+                    alert("Non puoi chiudere l'ultimo disegno.");
+                    return;
+                }
+
+                const tabBtn = tabsContainer.querySelector(`.tab-btn[data-index="${index}"]`);
+                const canvasPage = canvasWrapper.querySelector(`#canvas-page-${allDrawings[index].id}`);
+
+                tabBtn.remove();
+                canvasPage.remove();
+                allDrawings.splice(index, 1);
+
+                tabsContainer.querySelectorAll('.tab-btn').forEach((btn, i) => {
+                    btn.dataset.index = i;
+                });
+
+                if (activeDrawingIndex === index) {
+                    switchToTab(Math.max(0, index - 1));
+                } else if (activeDrawingIndex > index) {
+                    activeDrawingIndex--;
+                }
+            }
+
+            async function exportCanvas(format) {
+                const activePage = getActiveCanvasPage();
+                if (!activePage) return;
+
+                const canvasContainer = activePage.querySelector('.canvas-container');
+
+                const elementsToHide = [
+                    document.querySelector('.top-controls'),
+                    document.querySelector('.file-controls'),
+                    document.querySelector('.controls'),
+                    document.querySelector('.sidebar'),
+                    document.querySelector('.tabs')
+                ];
+
+                elementsToHide.forEach(el => { if (el) el.style.display = 'none'; });
+
+                const originalBodyBg = document.body.style.backgroundColor;
+                document.body.style.backgroundColor = 'white';
+
+                const originalCanvasBg = activePage.querySelector('.canvas').style.backgroundColor;
+                activePage.querySelector('.canvas').style.backgroundColor = 'white';
+
+                const wasGridEnabled = getActiveState().isGridEnabled;
+                if (wasGridEnabled) {
+                    activePage.querySelector('.canvas').classList.remove('canvas-grid');
+                }
+
+                activePage.querySelectorAll('.curve-handle').forEach(el => el.style.display = 'none');
+
+                deselectAll(getActiveState(), activePage);
+
+                try {
+                    const canvasElement = await html2canvas(canvasContainer, {
+                        scale: 2,
+                        backgroundColor: null,
+                        allowTaint: true,
+                        useCORS: true
+                    });
+
+                    const drawingTitle = document.getElementById('drawing-title').value || 'disegno';
+
+                    if (format === 'png' || format === 'jpg') {
+                        const dataUrl = format === 'png' ? canvasElement.toDataURL('image/png') : canvasElement.toDataURL('image/jpeg', 0.9);
+                        const a = document.createElement('a');
+                        a.href = dataUrl;
+                        a.download = `${drawingTitle}.${format}`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                    } else if (format === 'pdf') {
+                        const imgData = canvasElement.toDataURL('image/jpeg', 1.0);
+                        const { jsPDF } = window.jspdf;
+                        const pdf = new jsPDF('p', 'mm', 'a4');
+                        const imgWidth = 210;
+                        const pageHeight = 295;
+                        const imgHeight = canvasElement.height * imgWidth / canvasElement.width;
+                        let heightLeft = imgHeight;
+                        let position = 0;
+
+                        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+                        heightLeft -= pageHeight;
+
+                        while (heightLeft >= 0) {
+                            position = heightLeft - imgHeight;
+                            pdf.addPage();
+                            pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+                            heightLeft -= pageHeight;
+                        }
+                        pdf.save(`${drawingTitle}.pdf`);
+                    }
+                } finally {
+                    elementsToHide.forEach(el => { if (el) el.style.display = ''; });
+                    document.body.style.backgroundColor = originalBodyBg;
+                    activePage.querySelector('.canvas').style.backgroundColor = originalCanvasBg;
+                    if (wasGridEnabled) {
+                        activePage.querySelector('.canvas').classList.add('canvas-grid');
+                    }
+                    const activeState = getActiveState();
+                    if (activeState && activeState.selectedLine && activeState.selectedLine.arrowType === 'curved' && activeState.selectedLine.curveHandle) {
+                        activeState.selectedLine.curveHandle.style.display = 'block';
+                    }
+                }
+            }
+
+            // Global Listeners for file I/O
+            saveBtn.addEventListener('click', () => {
+                saveState(false);
+                const jsonString = JSON.stringify(allDrawings.map(d => ({ ...d, selectedObject: null, selectedObjectDom: null, selectedLine: null, startNode: null, currentLine: null, undoStack: [], redoStack: [] })), null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.href = dataUrl;
-                a.download = `${drawingTitle}.${format}`;
+                a.href = url;
+                const title = "tutti_i_disegni"
+                a.download = `${title}.json`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
-            } else if (format === 'pdf') {
-                const imgData = canvasElement.toDataURL('image/jpeg', 1.0);
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF('p', 'mm', 'a4');
-                const imgWidth = 210; 
-                const pageHeight = 295; 
-                const imgHeight = canvasElement.height * imgWidth / canvasElement.width;
-                let heightLeft = imgHeight;
-                let position = 0;
+                URL.revokeObjectURL(url);
+            });
 
-                pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-                heightLeft -= pageHeight;
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
 
-                while (heightLeft >= 0) {
-                    position = heightLeft - imgHeight;
-                    pdf.addPage();
-                    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-                    heightLeft -= pageHeight;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const loadedDrawings = JSON.parse(event.target.result);
+                        allDrawings = [];
+                        tabsContainer.querySelectorAll('.tab-btn').forEach(btn => btn.remove());
+                        canvasWrapper.innerHTML = '';
+
+                        loadedDrawings.forEach(d => createTab(d));
+                        switchToTab(0);
+                        alert('Disegni caricati con successo!');
+                    } catch (error) {
+                        console.error('Errore nel caricamento del file:', error);
+                        alert('Errore nel caricamento del file. Assicurati che sia un file JSON valido.');
+                    }
+                };
+                reader.readAsText(file);
+            });
+
+            // Final deselect listener
+            document.addEventListener('click', (e) => {
+                if (exportDropdown && !exportDropdown.contains(e.target)) {
+                    exportDropdown.classList.remove('active');
                 }
-                pdf.save(`${drawingTitle}.pdf`);
-            }
-        } finally {
-            elementsToHide.forEach(el => { if (el) el.style.display = ''; });
-            document.body.style.backgroundColor = originalBodyBg;
-            activePage.querySelector('.canvas').style.backgroundColor = originalCanvasBg;
-            if (wasGridEnabled) {
-                activePage.querySelector('.canvas').classList.add('canvas-grid');
-            }
-            const activeState = getActiveState();
-            if (activeState && activeState.selectedLine && activeState.selectedLine.arrowType === 'curved' && activeState.selectedLine.curveHandle) {
-                activeState.selectedLine.curveHandle.style.display = 'block';
-            }
-        }
-    }
-    
-    // Global Listeners for file I/O
-    saveBtn.addEventListener('click', () => {
-        saveState(false);
-        const jsonString = JSON.stringify(allDrawings.map(d => ({ ...d, selectedObject: null, selectedObjectDom: null, selectedLine: null, startNode: null, currentLine: null, undoStack: [], redoStack: [] })), null, 2);
-        const blob = new Blob([jsonString], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        const title = "tutti_i_disegni"
-        a.download = `${title}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    });
+            });
 
-    fileInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            try {
-                const loadedDrawings = JSON.parse(event.target.result);
-                allDrawings = [];
-                tabsContainer.querySelectorAll('.tab-btn').forEach(btn => btn.remove());
-                canvasWrapper.innerHTML = '';
-                
-                loadedDrawings.forEach(d => createTab(d));
+            // Initial setup
+            function initialSetup() {
+                createTab({ title: 'Nuovo Disegno 1' });
                 switchToTab(0);
-                alert('Disegni caricati con successo!');
-            } catch (error) {
-                console.error('Errore nel caricamento del file:', error);
-                alert('Errore nel caricamento del file. Assicurati che sia un file JSON valido.');
+                document.querySelector('.object-category .category-header').click();
             }
-        };
-        reader.readAsText(file);
-    });
 
-    // Final deselect listener
-    document.addEventListener('click', (e) => {
-        if (exportDropdown && !exportDropdown.contains(e.target)) {
-            exportDropdown.classList.remove('active');
-        }
-    });
-
-    // Initial setup
-    function initialSetup(){ 
-        createTab({ title: 'Nuovo Disegno 1' });
-        switchToTab(0);
-        document.querySelector('.object-category .category-header').click();
-    }
-    
-    initialSetup();
-});
-</script>
+            initialSetup();
+        });
+    </script>
 </body>
+
 </html>
