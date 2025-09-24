@@ -7,7 +7,7 @@
     <title>Editor di Schemi Sportivi</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    
+
     <style>
         * {
             margin: 0;
@@ -385,6 +385,15 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            z-index: 1;
+        }
+
+        .canvas-object.front {
+            z-index: 1000;
+        }
+
+        .canvas-object.back {
+            z-index: 0;
         }
 
         .canvas-object.selected {
@@ -1049,7 +1058,10 @@
                         <option value="3d-field">Campo 3D</option>
                     </select>
                 </div>
-
+                <div class="toolbar-group">
+                    <button id="bringToFront">⬆️ In primo piano</button>
+                    <button id="sendToBack">⬇️ In background</button>
+                </div>
                 <div class="toolbar-group">
                     <button id="gridToggle">📐 Griglia</button>
                     <button id="bwToggle">⚫ B/N</button>
@@ -1216,6 +1228,7 @@
                 this.libraryWorkouts = []; // Array per i metadati degli allenamenti
                 this.selectedLibraryFile = null; // Nome file selezionato
                 this.librarySource = 'unknown';
+                this.maxZIndex = 1;
                 this.initLibraryLoading(); // Inizializza la logica della libreria
 
                 this.initializeTab(1, 'Schema 1');
@@ -1561,7 +1574,8 @@
                 document.getElementById('schemaDescrizione').addEventListener('input', (e) => {
                     this.getCurrentTab().descrizione = e.target.value;
                 });
-
+                document.getElementById('bringToFront').addEventListener('click', () => this.bringToFront());
+                document.getElementById('sendToBack').addEventListener('click', () => this.sendToBack());
 
                 // Added accordion functionality
                 document.querySelectorAll('.accordion-header').forEach(header => {
@@ -1634,7 +1648,8 @@
                     color: color,
                     rotation: rotation,
                     text: text,
-                    dashed: dashed
+                    dashed: dashed,
+                    zIndex: this.maxZIndex++ // AGGIUNTA
                 };
 
                 tab.objects.set(id, object);
@@ -1672,7 +1687,7 @@
                 element.style.width = object.width + 'px';
                 element.style.height = object.height + 'px';
                 element.style.transform = `rotate(${object.rotation}deg)`;
-
+                element.style.zIndex = object.zIndex || 1;
                 element.classList.toggle('dashed', object.dashed);
 
                 element.innerHTML = '';
@@ -1688,6 +1703,35 @@
                     this.startInlineEdit(object.id);
                 });
             }
+
+            bringToFront() {
+                if (this.selectedObjects.size === 0) return;
+
+                const tab = this.getCurrentTab();
+                this.selectedObjects.forEach((pos, id) => {
+                    const objectData = tab.objects.get(id);
+                    if (objectData) {
+                        objectData.zIndex = ++this.maxZIndex;
+                        document.getElementById(id).style.zIndex = objectData.zIndex;
+                    }
+                });
+                this.saveState();
+            }
+
+            sendToBack() {
+                if (this.selectedObjects.size === 0) return;
+
+                const tab = this.getCurrentTab();
+                this.selectedObjects.forEach((pos, id) => {
+                    const objectData = tab.objects.get(id);
+                    if (objectData) {
+                        objectData.zIndex = 0;
+                        document.getElementById(id).style.zIndex = objectData.zIndex;
+                    }
+                });
+                this.saveState();
+            }
+
 
             createObjectContent(object) {
                 const content = document.createElement('div');
@@ -2288,6 +2332,25 @@
                     svg.innerHTML = '';
                 }
 
+                // AGGIUNGI QUESTO: Crea defs per il marker della freccia con colore specifico
+                const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+                const markerId = `arrowhead-${arrow.id}`;
+                const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+                marker.id = markerId;
+                marker.setAttribute('markerWidth', '10');
+                marker.setAttribute('markerHeight', '7');
+                marker.setAttribute('refX', '9');
+                marker.setAttribute('refY', '3.5');
+                marker.setAttribute('orient', 'auto');
+
+                const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                polygon.setAttribute('points', '0 0, 10 3.5, 0 7');
+                polygon.setAttribute('fill', arrow.color); // USA IL COLORE DELLA FRECCIA
+
+                marker.appendChild(polygon);
+                defs.appendChild(marker);
+                svg.appendChild(defs);
+
                 const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                 path.classList.add('arrow-path');
                 if (arrow.dashed) path.classList.add('dashed');
@@ -2308,8 +2371,9 @@
 
                 path.setAttribute('d', pathData);
                 path.setAttribute('stroke', arrow.color);
-                path.setAttribute('stroke-width', arrow.thickness);
-                path.setAttribute('marker-end', `url(#arrowhead)`);
+                //path.setAttribute('stroke-width', arrow.thickness);
+                // CAMBIA QUESTA RIGA: usa il marker specifico invece di #arrowhead
+                path.setAttribute('marker-end', `url(#${markerId})`);
 
                 path.addEventListener('mousedown', (e) => {
                     e.stopPropagation();
@@ -2320,7 +2384,6 @@
                 if (controlPointElement) {
                     svg.appendChild(controlPointElement);
                 }
-
 
                 const allPoints = [fromPos, toPos];
                 if (arrow.type === 'curved' && arrow.controlPoint) {
@@ -2962,6 +3025,14 @@
                         case 'y':
                             e.preventDefault();
                             this.redo();
+                            break;
+                        case ']':
+                            e.preventDefault();
+                            this.bringToFront();
+                            break;
+                        case '[':
+                            e.preventDefault();
+                            this.sendToBack();
                             break;
                     }
                 } else if (e.key === 'Delete' || e.key === 'Backspace') {
