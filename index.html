@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="it">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editor di Schemi Sportivi</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
     <style>
         * {
             margin: 0;
@@ -129,7 +131,7 @@
 
         .component-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 8px;
             padding: 10px;
         }
@@ -138,12 +140,12 @@
             background: #3498db;
             border: 2px solid #2980b9;
             border-radius: 6px;
-            padding: 10px;
+            padding: 2px;
             text-align: center;
             cursor: grab;
             transition: all 0.2s;
             font-size: 11px;
-            height: 70px;
+            height: 50px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -174,6 +176,40 @@
             overflow: hidden;
         }
 
+        /* New section for schema details */
+        .schema-details {
+            background: #e7e9ea;
+            border-bottom: 2px solid #bdc3c7;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            font-size: 12px;
+            color: #2c3e50;
+        }
+
+        .schema-details .detail-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .schema-details select,
+        .schema-details textarea {
+            padding: 4px 6px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        .schema-details textarea {
+            min-width: 150px;
+            max-width: 300px;
+            height: 40px;
+            resize: vertical;
+        }
+
         /* Toolbar */
         .toolbar {
             background: #ecf0f1;
@@ -198,7 +234,8 @@
             color: #2c3e50;
         }
 
-        .toolbar button, .toolbar select {
+        .toolbar button,
+        .toolbar select {
             padding: 6px 12px;
             border: 1px solid #bdc3c7;
             border-radius: 4px;
@@ -285,12 +322,39 @@
                 linear-gradient(to bottom, #ddd 1px, transparent 1px);
         }
 
-        .canvas.bw-mode {
-            background: transparent !important;
-        }
+        /* Stile per forzare i bordi a nero in modalità B/N */
 
+        /* 1. Forza il colore del bordo per TUTTI gli elementi interni */
         .canvas.bw-mode * {
             filter: grayscale(100%) contrast(1000%);
+            /* Sovrascrivi il colore del bordo per tutti gli elementi */
+            border-color: black !important;
+        }
+
+        /* 2. Regola specifica per il campo (court-object) */
+        /* L'aggiunta di una regola specifica è spesso più affidabile */
+        .canvas.bw-mode .court-object {
+            /* Mantiene il filtro BW */
+            filter: grayscale(100%) contrast(1000%);
+            /* Colore di sfondo base (il campo) in modalità BW (opzionale) */
+            background-color: white !important;
+
+            /* 🛑 Forza il bordo perimetrale del campo a nero */
+            border-color: black !important;
+        }
+
+        /* 3. Regola per le Linee Interne del Campo (se sono create con background-image) */
+        /* Se le linee interne del campo sono disegnate con linear-gradient (background-image), */
+        /* il filtro dovrebbe gestirle. Se non appaiono in nero, devi invertire il colore di sfondo */
+        /* del .court-object e lasciare il background-image intatto, o modificarlo con l'aiuto di JS. */
+        /* Se il background del campo è bianco, le linee nere risalteranno. */
+
+        /* Se hai elementi player-object o altri con bordo, assicurati che siano coperti: */
+        .canvas.bw-mode .player-object,
+        .canvas.bw-mode .court-object,
+        .canvas.bw-mode .ball-object,
+        .canvas.bw-mode .cone-object {
+            border-color: black !important;
         }
 
         /* Background images */
@@ -447,7 +511,6 @@
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            background: #3498db;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -491,20 +554,16 @@
         .net-object {
             width: 100%;
             height: 100%;
-            background: repeating-linear-gradient(
-                0deg,
-                transparent,
-                transparent 5px,
-                #666 5px,
-                #666 6px
-            ),
-            repeating-linear-gradient(
-                90deg,
-                transparent,
-                transparent 5px,
-                #666 5px,
-                #666 6px
-            );
+            background: repeating-linear-gradient(0deg,
+                    transparent,
+                    transparent 5px,
+                    #666 5px,
+                    #666 6px),
+                repeating-linear-gradient(90deg,
+                    transparent,
+                    transparent 5px,
+                    #666 5px,
+                    #666 6px);
             border-top: 2px solid #666;
         }
 
@@ -590,7 +649,7 @@
         }
 
         .arrow-svg:hover .control-point,
-        .arrow-path.selected + .control-point {
+        .arrow-path.selected+.control-point {
             opacity: 1;
         }
 
@@ -618,8 +677,238 @@
                 justify-content: center;
             }
         }
+
+        /* Stili per il Modal/Dialog */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 700px;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .filters {
+            padding: 10px 0;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .filters select {
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        .workout-list-container {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            margin-top: 10px;
+        }
+
+        #workoutList {
+            list-style: none;
+            padding: 0;
+        }
+
+        #workoutList li {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+
+        #workoutList li:hover {
+            background-color: #f0f0f0;
+        }
+
+        #workoutList li.selected {
+            background-color: #3498db;
+            color: white;
+        }
+
+        #loadSelectedWorkout {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #loadSelectedWorkout:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        /*
+ * Contenitore principale del campo di pallavolo
+ * ORIENTAMENTO: Orizzontale (18m di larghezza x 9m di altezza)
+ */
+        /*
+ * Contenitore principale del campo di pallavolo
+ * L'orientamento è orizzontale (18m di larghezza, 9m di altezza).
+ * Posizioni calcolate sulla LARGHEZZA (18m): 50% per la rete, 33.33% e 66.67% per i 3 metri.
+ */
+        .court-object {
+            width: 100%;
+            /* Larghezza dinamica */
+            height: 100%;
+            /* Altezza dinamica */
+
+            position: absolute;
+            box-sizing: border-box;
+            cursor: grab;
+            overflow: hidden;
+
+            /* Colore di sfondo base */
+            background-color: #f7d30a;
+
+            /* Bordo Perimetrale */
+            border: 2px solid black;
+
+            /* ----------------------------------------------------------- */
+            /* UNIFICAZIONE: Disegno delle Linee Interne con background-image */
+            /* Le POSIZIONI sono definite in percentuale, lo SPESSORE è 2px fisso. */
+            /* ----------------------------------------------------------- */
+            background-image:
+                /* 1. Linea Centrale (Rete) - 50% della larghezza */
+                linear-gradient(to right,
+                    transparent 0%,
+                    /* Inizia la linea 1px prima del 50% */
+                    transparent calc(50% - 1px),
+                    white calc(50% - 1px),
+                    /* Finisce la linea 1px dopo il 50% */
+                    white calc(50% + 1px),
+                    transparent calc(50% + 1px),
+                    transparent 100%),
+
+                /* 2. Linea dei 3 Metri (Zona Sinistra) - 3m / 18m = 33.33% della larghezza */
+                linear-gradient(to right,
+                    transparent 0%,
+                    /* Inizia la linea 1px prima del 33.33% */
+                    transparent calc(33.3333% - 1px),
+                    white calc(33.3333% - 1px),
+                    /* Finisce la linea 1px dopo il 33.33% */
+                    white calc(33.3333% + 1px),
+                    transparent calc(33.3333% + 1px),
+                    transparent 100%),
+
+                /* 3. Linea dei 3 Metri (Zona Destra) - 15m / 18m = 66.67% della larghezza */
+                linear-gradient(to right,
+                    transparent 0%,
+                    /* Inizia la linea 1px prima del 66.67% */
+                    transparent calc(66.6667% - 1px),
+                    white calc(66.6667% - 1px),
+                    /* Finisce la linea 1px dopo il 66.67% */
+                    white calc(66.6667% + 1px),
+                    transparent calc(66.6667% + 1px),
+                    transparent 100%);
+
+            /* Configurazione Generale dello Sfondo */
+            background-size: 100% 100%;
+            background-position: center center;
+            background-repeat: no-repeat;
+        }
+
+        /*
+ * Contenitore principale del campo di pallavolo
+ * L'orientamento è orizzontale (18m di larghezza, 9m di altezza).
+ * Posizioni calcolate sulla LARGHEZZA (18m): 50% per la rete, 33.33% e 66.67% per i 3 metri.
+ */
+        .half-court-object {
+            width: 100%;
+            /* Larghezza dinamica */
+            height: 100%;
+            /* Altezza dinamica */
+
+            position: absolute;
+            box-sizing: border-box;
+            cursor: grab;
+            overflow: hidden;
+
+            /* Colore di sfondo base */
+            background-color: #f7d30a;
+
+            /* Bordo Perimetrale */
+            border: 2px solid black;
+
+            /* ----------------------------------------------------------- */
+            /* UNIFICAZIONE: Disegno delle Linee Interne con background-image */
+            /* Le POSIZIONI sono definite in percentuale, lo SPESSORE è 2px fisso. */
+            /* ----------------------------------------------------------- */
+            background-image:
+                /* 2. Linea dei 3 Metri (Zona Sinistra) - 3m / 18m = 33.33% della larghezza */
+                linear-gradient(to right,
+                    transparent 0%,
+                    /* Inizia la linea 1px prima del 33.33% */
+                    transparent calc(33.3333% - 1px),
+                    white calc(33.3333% - 1px),
+                    /* Finisce la linea 1px dopo il 33.33% */
+                    white calc(33.3333% + 1px),
+                    transparent calc(33.3333% + 1px),
+                    transparent 100%);
+            /* Configurazione Generale dello Sfondo */
+            background-size: 100% 100%;
+            background-position: center center;
+            background-repeat: no-repeat;
+        }
+
+
+
+        /* Carrello dei Palloni */
+        .basket-object {
+            width: 100%;
+            height: 100%;
+            border-radius: 5px;
+            /* Angoli arrotondati */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 10px;
+            text-align: center;
+            word-break: break-all;
+            border: 2px solid #000;
+        }
+
+        .basket-object.dashed {
+            border-style: dashed;
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="sidebar" id="sidebar">
@@ -628,59 +917,59 @@
                 <h3 class="accordion-header active">👥 Giocatori</h3>
                 <div class="accordion-content active">
                     <div class="component-grid">
-                        <div class="component-item" data-type="player" data-text='P1' data-color="#3498db">
+                        <div class="component-item" data-type="player" data-text='P1' data-color="">
                             <div class="component-icon">🏃</div>
-                            <div>Palleggiatore 1</div>
+                            <div>Alzatore 1</div>
                         </div>
-                        <div class="component-item" data-type="player" data-text='P2' data-color="#3498db">
+                        <div class="component-item" data-type="player" data-text='P2' data-color="">
                             <div class="component-icon">🏃</div>
-                            <div>Palleggiatore 2</div>
+                            <div>Alzatore 2</div>
                         </div>
-                        <div class="component-item" data-type="player" data-text='L1' data-color="#3498db">
+                        <div class="component-item" data-type="player" data-text='L1' data-color="">
                             <div class="component-icon">🏃</div>
                             <div>Libero 1</div>
                         </div>
-                        <div class="component-item" data-type="player" data-text='L2' data-color="#3498db">
+                        <div class="component-item" data-type="player" data-text='L2' data-color="">
                             <div class="component-icon">🏃</div>
                             <div>Libero 2</div>
                         </div>
-                        <div class="component-item" data-type="player" data-text='S1' data-color="#3498db">
+                        <div class="component-item" data-type="player" data-text='S1' data-color="">
                             <div class="component-icon">🏃</div>
-                            <div>Schiacciatore 1</div>
+                            <div>Banda 1</div>
                         </div>
-                        <div class="component-item" data-type="player" data-text='S2' data-color="#3498db">
+                        <div class="component-item" data-type="player" data-text='S2' data-color="">
                             <div class="component-icon">🏃</div>
-                            <div>Schiacciatore 2</div>
+                            <div>Banda 2</div>
                         </div>
-                        <div class="component-item" data-type="player" data-text='O' data-color="#3498db">
+                        <div class="component-item" data-type="player" data-text='O' data-color="">
                             <div class="component-icon">🏃</div>
                             <div>Opposto</div>
                         </div>
-                        <div class="component-item" data-type="player" data-text='C1' data-color="#3498db">
+                        <div class="component-item" data-type="player" data-text='C1' data-color="">
                             <div class="component-icon">🏃</div>
-                            <div>Centrale 1</div>
+                            <div>Centro 1</div>
                         </div>
-                        <div class="component-item" data-type="player" data-text='C2' data-color="#3498db">
+                        <div class="component-item" data-type="player" data-text='C2' data-color="">
                             <div class="component-icon">🏃</div>
-                            <div>Centrale 2</div>
+                            <div>Centro 2</div>
                         </div>
-                        <div class="component-item" data-type="player" data-text='All' data-color="#3498db">
+                        <div class="component-item" data-type="player" data-text='All' data-color="">
                             <div class="component-icon">🏃</div>
                             <div>Allenatore</div>
                         </div>
-                        <div class="component-item" data-type="player" data-text='A' data-color="#3498db">
+                        <div class="component-item" data-type="player" data-text='A' data-color="">
                             <div class="component-icon">🏃</div>
                             <div>A</div>
                         </div>
-                        <div class="component-item" data-type="player" data-text='B' data-color="#3498db">
+                        <div class="component-item" data-type="player" data-text='B' data-color="">
                             <div class="component-icon">🏃</div>
                             <div>B</div>
                         </div>
-                        <div class="component-item" data-type="player" data-text='C' data-color="#3498db">
+                        <div class="component-item" data-type="player" data-text='C' data-color="">
                             <div class="component-icon">🏃</div>
                             <div>C</div>
                         </div>
-                        <div class="component-item" data-type="player" data-text='D' data-color="#3498db">
+                        <div class="component-item" data-type="player" data-text='D' data-color="">
                             <div class="component-icon">🏃</div>
                             <div>D</div>
                         </div>
@@ -688,18 +977,36 @@
                     </div>
                 </div>
             </div>
-
             <div class="component-category">
-                <h3 class="accordion-header">⚽ Materiale</h3>
+                <h3 class="accordion-header">⚽ Campi</h3>
+                <div class="accordion-content">
+                    <div class="component-grid">
+                        <div class="component-item" data-type="court" data-text="">
+                            <div class="component-icon">⚽</div>
+                            <div>Campo completo</div>
+                        </div>
+                        <div class="component-item" data-type="half-court" data-text="">
+                            <div class="component-icon">⚽</div>
+                            <div>Campo metà</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="component-category">
+                <h3 class="accordion-header">🏐 Materiale</h3>
                 <div class="accordion-content">
                     <div class="component-grid">
                         <div class="component-item" data-type="ball" data-text="">
-                            <div class="component-icon">⚽</div>
+                            <div class="component-icon">🏐</div>
                             <div>Pallone</div>
                         </div>
                         <div class="component-item" data-type="cone" data-text="" data-color="#f39c12">
                             <div class="component-icon">🚩</div>
                             <div>Cono</div>
+                        </div>
+                        <div class="component-item" data-type="basket" data-text="" data-color="#f39c12">
+                            <div class="component-icon">🛒</div>
+                            <div>Carrello</div>
                         </div>
                         <div class="component-item" data-type="goal" data-text="">
                             <div class="component-icon">🥅</div>
@@ -768,6 +1075,53 @@
                     <button id="loadBtn">📁 Carica</button>
                     <input type="file" id="fileInput" accept=".json" style="display: none;">
                     <button id="exportBtn">📤 Esporta</button>
+                    <button id="loadFromLibrary">📁 Libreria</button>
+                    <!-- <div class="action-button" id="loadFromLibrary">
+                        <i class="fas fa-book"></i> Carica da Libreria
+                    </div> -->
+                    <div class="schema-details">
+                        <div class="detail-group">
+                            <label for="schemaPeriodo">Periodo:</label>
+                            <select id="schemaPeriodo">
+                                <option value="GEN">Generico</option>
+                                <option value="FIS">Preparazione fisica</option>
+                                <option value="CAM">Campionato</option>
+                                <option value="PRE">Pre-Campionato</option>
+                                <option value="POS">Post-Campionato</option>
+                            </select>
+                        </div>
+                        <div class="detail-group">
+                            <label for="schemaRuolo">Ruolo:</label>
+                            <select id="schemaRuolo">
+                                <option value="GEN">Generico</option>
+                                <option value="L">Libero</option>
+                                <option value="L1">Libero 1</option>
+                                <option value="L2">Libero 2</option>
+                                <option value="A">Alzatore</option>
+                                <option value="S">Schiacciatore</option>
+                                <option value="S1">Schiacciatore 1</option>
+                                <option value="S2">Schiacciatore 2</option>
+                                <option value="C">Centrale</option>
+                                <option value="C1">Centrale 1</option>
+                                <option value="C2">Centrale 2</option>
+                                <option value="O">Opposto</option>
+                            </select>
+                        </div>
+                        <div class="detail-group">
+                            <label for="schemaTipologia">Tipologia:</label>
+                            <select id="schemaTipologia">
+                                <option value="GEN">Generico</option>
+                                <option value="ANA">Analitico</option>
+                                <option value="SIN">Sintetico</option>
+                                <option value="GLO">Globale</option>
+                            </select>
+                        </div>
+                        <div class="detail-group">
+                            <label for="schemaDescrizione">Descrizione:</label>
+                            <textarea id="schemaDescrizione"
+                                placeholder="Inserisci una breve descrizione..."></textarea>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -800,7 +1154,8 @@
                         <label>Testo:</label>
                         <input type="text" id="objectText" placeholder="Modifica testo">
                     </div>
-                    <button id="dashedObjectToggle" class="toolbar-button" style="display: none;">Bordo Tratteggiato</button>
+                    <button id="dashedObjectToggle" class="toolbar-button" style="display: none;">Bordo
+                        Tratteggiato</button>
                 </div>
 
                 <div id="arrowControls" style="display: none; align-items: center; gap: 10px; flex-wrap: wrap;">
@@ -832,1546 +1187,1848 @@
     </div>
 
     <script>
-    class SchemaEditor {
-        constructor() {
-            this.tabs = new Map();
-            this.activeTabId = 1;
-            this.nextTabId = 2;
-            this.nextObjectId = 1;
-            this.isDragging = false;
-            this.isResizing = false;
-            this.isRotating = false;
-            this.isConnecting = false;
-            this.arrowMode = false;
-            this.dashedMode = false; // New property for dashed mode for new objects/arrows
-            this.selectedObject = null;
-            this.selectedObjects = new Map();
-            this.selectedArrow = null;
-            this.dragOffset = { x: 0, y: 0 };
-            this.connectionStart = null;
-            this.connectionPreview = null;
-            this.arrowType = 'curved'; // Default to curved as requested
-            this.zoom = 1;
-            this.isDraggingControlPoint = false;
-            this.clipboard = null;
-
-            this.isSelecting = false;
-            this.selectionStart = { x: 0, y: 0 };
-            this.canvasRect = null;
-
-            this.initializeTab(1, 'Schema 1');
-            this.initializeEventListeners();
-            this.updateUI();
-        }
-
-        initializeTab(id, name) {
-            this.tabs.set(id, {
-                name: name,
-                objects: new Map(),
-                arrows: new Map(),
-                nextObjectId: 1,
-                nextArrowId: 1,
-                history: [],
-                historyIndex: -1,
-                background: 'none',
-                gridVisible: false,
-                bwMode: false,
-                zoom: 1
-            });
-        }
-
-        getCurrentTab() {
-            return this.tabs.get(this.activeTabId);
-        }
-
-        initializeEventListeners() {
-            const componentItems = document.querySelectorAll('.component-item');
-            componentItems.forEach(item => {
-                item.addEventListener('dragstart', (e) => {
-                    const type = item.dataset.type;
-                    if (type === 'arrow') {
-                        e.preventDefault();
-                    } else {
-                        e.dataTransfer.setData('text/plain', JSON.stringify({
-                            type: item.dataset.type,
-                            color: item.dataset.color || '#3498db',
-                            text: item.dataset.text || ''
-                        }));
-                    }
-                });
-                item.draggable = true;
-            });
-            
-            document.getElementById('arrowModeBtn').addEventListener('click', (e) => {
-                this.arrowMode = !this.arrowMode;
-                e.currentTarget.classList.toggle('active', this.arrowMode);
-                document.getElementById('canvas').style.cursor = this.arrowMode ? 'crosshair' : 'default';
-                this.deselectAll();
-            });
-
-            const canvas = document.getElementById('canvas');
-            canvas.addEventListener('dragover', (e) => e.preventDefault());
-            canvas.addEventListener('drop', (e) => this.handleCanvasDrop(e));
-            canvas.addEventListener('mousedown', (e) => this.handleCanvasMouseDown(e));
-            canvas.addEventListener('mousemove', (e) => this.handleCanvasMouseMove(e));
-            canvas.addEventListener('mouseup', (e) => this.handleCanvasMouseUp(e));
-
-            document.querySelector('.tabs-container').addEventListener('click', (e) => {
-                const tabElement = e.target.closest('.tab');
-                if (tabElement) {
-                    const tabId = parseInt(tabElement.dataset.tabId);
-                    if (e.target.closest('.tab-close')) {
-                        this.closeTab(tabId);
-                    } else {
-                        this.switchToTab(tabId);
-                    }
-                }
-            });
-
-            document.querySelector('.add-tab').addEventListener('click', () => this.addNewTab());
-            document.getElementById('backgroundSelect').addEventListener('change', (e) => {
-                this.getCurrentTab().background = e.target.value;
-                this.updateBackground();
-            });
-            document.getElementById('gridToggle').addEventListener('click', () => {
-                this.getCurrentTab().gridVisible = !this.getCurrentTab().gridVisible;
-                this.updateGrid();
-            });
-            document.getElementById('bwToggle').addEventListener('click', () => {
-                this.getCurrentTab().bwMode = !this.getCurrentTab().bwMode;
-                this.updateBWMode();
-            });
-            
-            document.getElementById('dashedToggle').addEventListener('click', () => {
-                this.dashedMode = !this.dashedMode;
-                document.getElementById('dashedToggle').classList.toggle('active', this.dashedMode);
-            });
-            
-            document.getElementById('zoomIn').addEventListener('click', () => this.changeZoom(0.1));
-            document.getElementById('zoomOut').addEventListener('click', () => this.changeZoom(-0.1));
-            document.getElementById('rotateLeft').addEventListener('click', () => this.rotateSelected(-15));
-            document.getElementById('rotateRight').addEventListener('click', () => this.rotateSelected(15));
-            document.getElementById('undoBtn').addEventListener('click', () => this.undo());
-            document.getElementById('redoBtn').addEventListener('click', () => this.redo());
-            document.getElementById('saveBtn').addEventListener('click', () => this.saveSchema());
-            document.getElementById('loadBtn').addEventListener('click', () => {
-                document.getElementById('fileInput').click();
-            });
-            document.getElementById('fileInput').addEventListener('change', (e) => this.loadSchema(e));
-            document.getElementById('exportBtn').addEventListener('click', () => this.exportSchema());
-            document.getElementById('objectColor').addEventListener('change', (e) => {
-                this.changeSelectedObjectsColor(e.target.value);
-            });
-            document.getElementById('objectText').addEventListener('input', (e) => {
-                this.changeSelectedObjectsText(e.target.value);
-            });
-            document.getElementById('arrowColor').addEventListener('change', (e) => {
-                if (this.selectedArrow) {
-                    this.changeArrowColor(e.target.value);
-                }
-            });
-            const thicknessInput = document.getElementById('arrowThickness');
-            thicknessInput.addEventListener('input', (e) => {
-                document.getElementById('thicknessValue').textContent = e.target.value;
-                if (this.selectedArrow) {
-                    this.changeArrowThickness(e.target.value);
-                }
-            });
-            document.getElementById('deleteBtn').addEventListener('click', () => this.deleteSelected());
-            document.addEventListener('keydown', (e) => this.handleKeyboard(e));
-            document.querySelectorAll('.arrow-type-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => this.changeArrowType(e.target.id.replace('arrowType', '').toLowerCase()));
-            });
-
-            document.getElementById('dashedObjectToggle').addEventListener('click', () => this.toggleDashedObject());
-
-
-            // Added accordion functionality
-            document.querySelectorAll('.accordion-header').forEach(header => {
-                header.addEventListener('click', () => {
-                    const content = header.nextElementSibling;
-                    header.classList.toggle('active');
-                    content.classList.toggle('active');
-                });
-            });
-
-            // Added sidebar functionality
-            const sidebar = document.getElementById('sidebar');
-            const sidebarHandle = document.getElementById('sidebarHandle');
-            const sidebarSwitch = document.getElementById('sidebarSwitch');
-            let isResizingSidebar = false;
-            let startX;
-            let startWidth;
-
-            sidebarHandle.addEventListener('mousedown', (e) => {
-                e.preventDefault();
-                isResizingSidebar = true;
-                startX = e.clientX;
-                startWidth = sidebar.offsetWidth;
-                document.documentElement.addEventListener('mousemove', handleMouseMove);
-                document.documentElement.addEventListener('mouseup', handleMouseUp);
-            });
-
-            const handleMouseMove = (e) => {
-                if (!isResizingSidebar) return;
-                const newWidth = startWidth + (e.clientX - startX);
-                const minWidth = 150;
-                const maxWidth = window.innerWidth / 2;
-                if (newWidth > minWidth && newWidth < maxWidth) {
-                    sidebar.style.width = newWidth + 'px';
-                }
-            };
-
-            const handleMouseUp = () => {
-                isResizingSidebar = false;
-                document.documentElement.removeEventListener('mousemove', handleMouseMove);
-                document.documentElement.removeEventListener('mouseup', handleMouseUp);
-            };
-
-            sidebarSwitch.addEventListener('click', () => {
-                sidebar.classList.toggle('hidden');
-                sidebarSwitch.textContent = sidebar.classList.contains('hidden') ? '▶' : '◀';
-            });
-        }
-
-        handleCanvasDrop(e) {
-            e.preventDefault();
-            const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-            const rect = e.currentTarget.getBoundingClientRect();
-            const x = (e.clientX - rect.left) / this.getCurrentTab().zoom;
-            const y = (e.clientY - rect.top) / this.getCurrentTab().zoom;
-            this.addObject(data.type, x, y, data.color, data.text);
-        }
-
-        addObject(type, x, y, color = '#3498db', text = '', rotation = 0, dashed = this.dashedMode) {
-            const tab = this.getCurrentTab();
-            const id = 'obj-' + tab.nextObjectId++;
-
-            const object = {
-                id: id,
-                type: type,
-                x: x,
-                y: y,
-                width: this.getDefaultSize(type).width,
-                height: this.getDefaultSize(type).height,
-                color: color,
-                rotation: rotation,
-                text: text,
-                dashed: dashed
-            };
-
-            tab.objects.set(id, object);
-            this.renderObject(object);
-            this.saveState();
-
-            return object;
-        }
-
-        getDefaultSize(type) {
-            const sizes = {
-                'player': { width: 40, height: 40 },
-                'ball': { width: 20, height: 20 },
-                'cone': { width: 20, height: 20 },
-                'goal': { width: 60, height: 40 },
-                'net': { width: 300, height: 40 },
-                'text': { width: 100, height: 30 }
-            };
-            return sizes[type] || { width: 40, height: 40 };
-        }
-
-        renderObject(object) {
-            let element = document.getElementById(object.id);
-            if (!element) {
-                element = document.createElement('div');
-                element.className = 'canvas-object';
-                element.id = object.id;
-                document.getElementById('canvas').appendChild(element);
-            }
-
-            element.style.left = object.x + 'px';
-            element.style.top = object.y + 'px';
-            element.style.width = object.width + 'px';
-            element.style.height = object.height + 'px';
-            element.style.transform = `rotate(${object.rotation}deg)`;
-            
-            element.classList.toggle('dashed', object.dashed);
-
-            element.innerHTML = '';
-            const content = this.createObjectContent(object);
-            element.appendChild(content);
-
-            this.resizeContent(element, object.width, object.height, object.type);
-
-            this.addControlHandles(element);
-            this.addConnectionPoints(element);
-
-            element.addEventListener('dblclick', (e) => {
-                this.startInlineEdit(object.id);
-            });
-        }
-
-        createObjectContent(object) {
-            const content = document.createElement('div');
-            content.className = object.type + '-object';
-
-            if (object.type !== 'ball' && object.type !== 'net' && object.type !== 'goal') {
-                const editableDiv = document.createElement('div');
-                editableDiv.classList.add('editable-text');
-                editableDiv.textContent = object.text;
-                editableDiv.contentEditable = 'false';
-                editableDiv.style.color = 'black';
-                content.appendChild(editableDiv);
-
-                editableDiv.addEventListener('input', () => {
-                    object.text = editableDiv.textContent;
-                });
-            }
-
-            switch (object.type) {
-                case 'player':
-                    content.style.backgroundColor = object.color;
-                    content.classList.toggle('dashed', object.dashed);
-                    break;
-                case 'cone':
-                    content.style.backgroundColor = object.color;
-                    content.classList.toggle('dashed', object.dashed);
-                    break;
-                case 'goal':
-                    content.style.borderColor = object.color;
-                    content.classList.toggle('dashed', object.dashed);
-                    break;
-                case 'net':
-                    content.classList.toggle('dashed', object.dashed);
-                    break;
-            }
-
-            return content;
-        }
-
-        startInlineEdit(objectId) {
-            const objectElement = document.getElementById(objectId);
-            if (!objectElement) return;
-
-            const editableText = objectElement.querySelector('.editable-text');
-            if (editableText) {
-                editableText.contentEditable = 'true';
-                editableText.focus();
-                this.deselectAll();
-
-                editableText.addEventListener('blur', () => {
-                    editableText.contentEditable = 'false';
-                    this.saveState();
-                    this.selectObject(objectElement);
-                }, { once: true });
-            }
-        }
-
-        resizeContent(element, width, height, type) {
-            const content = element.querySelector(`.${type}-object`);
-            if (!content) return;
-
-            const editableText = content.querySelector('.editable-text');
-            if (editableText) {
-                const initialWidth = this.getDefaultSize(type).width;
-                const initialHeight = this.getDefaultSize(type).height;
-                const scaleFactor = Math.min(width / initialWidth, height / initialHeight);
-                const newFontSize = 14 * scaleFactor;
-                editableText.style.fontSize = `${newFontSize}px`;
-            }
-        }
-
-        addControlHandles(element) {
-            let resizeHandle = element.querySelector('.resize-handle');
-            if (!resizeHandle) {
-                resizeHandle = document.createElement('div');
-                resizeHandle.className = 'resize-handle';
-                element.appendChild(resizeHandle);
-            }
-            resizeHandle.addEventListener('mousedown', (e) => {
-                e.stopPropagation();
-                this.startResize(element, e);
-            });
-
-            let rotateHandle = element.querySelector('.rotate-handle');
-            if (!rotateHandle) {
-                rotateHandle = document.createElement('div');
-                rotateHandle.className = 'rotate-handle';
-                element.appendChild(rotateHandle);
-            }
-            rotateHandle.addEventListener('mousedown', (e) => {
-                e.stopPropagation();
-                this.startRotation(element, e);
-            });
-        }
-
-        addConnectionPoints(element) {
-            const positions = ['top', 'bottom', 'left', 'right'];
-            positions.forEach(pos => {
-                let point = element.querySelector(`.connection-point.${pos}`);
-                if (!point) {
-                    point = document.createElement('div');
-                    point.className = `connection-point ${pos}`;
-                    element.appendChild(point);
-                }
-                point.addEventListener('mousedown', (e) => {
-                    e.stopPropagation();
-                    this.startConnection({ objectId: element.id, position: pos }, e);
-                });
-            });
-        }
-
-        handleCanvasMouseDown(e) {
-            if (e.target.closest('.resize-handle') || e.target.closest('.rotate-handle') || e.target.closest('.connection-point')) {
-                return;
-            }
-        
-            if (this.arrowMode) {
-                this.startConnection({ objectId: null, position: { x: (e.clientX - e.currentTarget.getBoundingClientRect().left) / this.getCurrentTab().zoom, y: (e.clientY - e.currentTarget.getBoundingClientRect().top) / this.getCurrentTab().zoom } }, e);
-                return;
-            }
-            const target = e.target.closest('.canvas-object');
-            const arrowPath = e.target.closest('.arrow-path');
-            const arrowControlPoint = e.target.closest('.control-point');
-
-            if (arrowControlPoint) {
-                e.stopPropagation();
-                this.isDraggingControlPoint = true;
-                this.selectedArrow = arrowControlPoint.closest('.arrow-svg').id;
-            } else if (target) {
-                if (e.ctrlKey || e.metaKey) {
-                    this.toggleMultiSelection(target);
-                } else {
-                    this.selectObject(target);
-                }
-                this.startDrag(e);
-            } else if (arrowPath) {
-                this.selectArrow(arrowPath.closest('.arrow-svg').id);
-            } else {
-                this.deselectAll();
-                this.isSelecting = true;
-                this.selectionStart.x = e.clientX;
-                this.selectionStart.y = e.clientY;
-                this.canvasRect = document.getElementById('canvas').getBoundingClientRect();
-                this.createSelectionBox();
-                document.getElementById('selectionBox').style.display = 'block';
-            }
-        }
-
-        handleCanvasMouseMove(e) {
-            if (this.isDragging) {
-                const deltaX = (e.clientX - this.dragStart.x) / this.getCurrentTab().zoom;
-                const deltaY = (e.clientY - this.dragStart.y) / this.getCurrentTab().zoom;
-
-                this.selectedObjects.forEach((initialPos, id) => {
-                    const objectData = this.getCurrentTab().objects.get(id);
-                    if (objectData) {
-                        objectData.x = initialPos.x + deltaX;
-                        objectData.y = initialPos.y + deltaY;
-                        document.getElementById(id).style.left = objectData.x + 'px';
-                        document.getElementById(id).style.top = objectData.y + 'px';
-                        this.updateArrowsForObject(id);
-                    }
-                });
-            } else if (this.isResizing && this.selectedObject) {
-                this.handleResize(e);
-            } else if (this.isRotating && this.selectedObject) {
-                this.handleRotation(e);
-            } else if (this.isConnecting) {
-                this.updateConnectionPreview(e);
-            } else if (this.isSelecting) {
-                this.updateSelectionBox(e);
-            } else if (this.isDraggingControlPoint) {
-                const arrow = this.getCurrentTab().arrows.get(this.selectedArrow);
-                const rect = document.getElementById('canvas').getBoundingClientRect();
-                const newX = (e.clientX - rect.left) / this.getCurrentTab().zoom;
-                const newY = (e.clientY - rect.top) / this.getCurrentTab().zoom;
-                arrow.controlPoint.x = newX;
-                arrow.controlPoint.y = newY;
-                this.renderArrow(arrow);
-            }
-        }
-
-        handleCanvasMouseUp(e) {
-            if (this.isConnecting) {
-                this.finishConnection(e);
-            } else if (this.isDragging || this.isResizing || this.isRotating || this.isDraggingControlPoint) {
-                this.saveState();
-            } else if (this.isSelecting) {
-                this.finalizeSelectionBox(e);
-            }
-
-            this.isDragging = false;
-            this.isResizing = false;
-            this.isRotating = false;
-            this.isDraggingControlPoint = false;
-            this.isSelecting = false;
-            const selectionBox = document.getElementById('selectionBox');
-            if (selectionBox) selectionBox.remove();
-        }
-
-        createSelectionBox() {
-            let box = document.getElementById('selectionBox');
-            if (!box) {
-                box = document.createElement('div');
-                box.id = 'selectionBox';
-                box.style.position = 'absolute';
-                box.style.border = '1px solid #3498db';
-                box.style.backgroundColor = 'rgba(52, 152, 219, 0.2)';
-                box.style.display = 'none';
-                document.getElementById('canvas').appendChild(box);
-            }
-        }
-
-        startDrag(e) {
-            this.isDragging = true;
-            this.dragStart = { x: e.clientX, y: e.clientY };
-
-            if (!e.ctrlKey && !e.metaKey && this.selectedObject) {
-                 this.selectedObjects.clear();
-                 this.selectedObjects.set(this.selectedObject.id, { x: this.getCurrentTab().objects.get(this.selectedObject.id).x, y: this.getCurrentTab().objects.get(this.selectedObject.id).y });
-            }
-
-            this.updateObjectControls();
-        }
-
-        updateSelectionBox(e) {
-            const box = document.getElementById('selectionBox');
-            const x = e.clientX;
-            const y = e.clientY;
-
-            const left = Math.min(this.selectionStart.x, x);
-            const top = Math.min(this.selectionStart.y, y);
-            const width = Math.abs(this.selectionStart.x - x);
-            const height = Math.abs(this.selectionStart.y - y);
-
-            box.style.left = `${left - this.canvasRect.left}px`;
-            box.style.top = `${top - this.canvasRect.top}px`;
-            box.style.width = `${width}px`;
-            box.style.height = `${height}px`;
-        }
-
-        finalizeSelectionBox(e) {
-            const box = document.getElementById('selectionBox');
-            box.style.display = 'none';
-
-            const rect = box.getBoundingClientRect();
-            const canvas = document.getElementById('canvas');
-            const canvasRect = canvas.getBoundingClientRect();
-
-            const objects = document.querySelectorAll('.canvas-object');
-            const tab = this.getCurrentTab();
-
-            this.deselectAll();
-
-            objects.forEach(obj => {
-                const objRect = obj.getBoundingClientRect();
-                const objData = tab.objects.get(obj.id);
-
-                if (
-                    objRect.left < rect.right &&
-                    objRect.right > rect.left &&
-                    objRect.top < rect.bottom &&
-                    objRect.bottom > rect.top
-                ) {
-                    this.selectedObjects.set(obj.id, { x: objData.x, y: objData.y });
-                    obj.classList.add('selected');
-                }
-            });
-
-            this.updateObjectControls();
-            this.saveState();
-        }
-
-        startResize(element, e) {
-            this.isResizing = true;
-            this.selectedObject = element;
-            this.resizeStart = {
-                x: e.clientX,
-                y: e.clientY,
-                width: element.offsetWidth,
-                height: element.offsetHeight
-            };
-        }
-
-        handleResize(e) {
-            if (!this.isResizing) return;
-
-            const deltaX = (e.clientX - this.resizeStart.x) / this.getCurrentTab().zoom;
-            const deltaY = (e.clientY - this.resizeStart.y) / this.getCurrentTab().zoom;
-
-            const newWidth = Math.max(20, this.resizeStart.width + deltaX);
-            const newHeight = Math.max(20, this.resizeStart.height + deltaY);
-
-            this.selectedObject.style.width = newWidth + 'px';
-            this.selectedObject.style.height = newHeight + 'px';
-
-            const objectData = this.getCurrentTab().objects.get(this.selectedObject.id);
-            if (objectData) {
-                objectData.width = newWidth;
-                objectData.height = newHeight;
-            }
-
-            this.resizeContent(this.selectedObject, newWidth, newHeight, objectData.type);
-
-            this.updateArrowsForObject(this.selectedObject.id);
-        }
-
-        startRotation(element, e) {
-            this.isRotating = true;
-            this.selectedObject = element;
-            const rect = element.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-            this.rotationStart = {
-                centerX: centerX,
-                centerY: centerY,
-                startAngle: Math.atan2(e.clientY - centerY, e.clientX - centerX)
-            };
-        }
-
-        handleRotation(e) {
-            if (!this.rotationStart) return;
-
-            const currentAngle = Math.atan2(
-                e.clientY - this.rotationStart.centerY,
-                e.clientX - this.rotationStart.centerX
-            );
-
-            const deltaAngle = currentAngle - this.rotationStart.startAngle;
-            const degrees = deltaAngle * (180 / Math.PI);
-
-            const objectData = this.getCurrentTab().objects.get(this.selectedObject.id);
-            if (objectData) {
-                objectData.rotation = (objectData.rotation + degrees) % 360;
-                this.selectedObject.style.transform = `rotate(${objectData.rotation}deg)`;
-            }
-
-            this.rotationStart.startAngle = currentAngle;
-            this.updateArrowsForObject(this.selectedObject.id);
-        }
-
-        selectObject(element) {
-            this.deselectAll();
-            this.selectedObject = element;
-            this.selectedObjects.set(element.id, { x: this.getCurrentTab().objects.get(element.id).x, y: this.getCurrentTab().objects.get(element.id).y });
-            element.classList.add('selected');
-            this.updateObjectControls();
-        }
-
-        toggleMultiSelection(element) {
-            const objectId = element.id;
-            const tab = this.getCurrentTab();
-            if (this.selectedObjects.has(objectId)) {
-                this.selectedObjects.delete(objectId);
-                element.classList.remove('selected');
-            } else {
-                this.selectedObjects.set(objectId, { x: tab.objects.get(objectId).x, y: tab.objects.get(objectId).y });
-                element.classList.add('selected');
-            }
-
-            this.selectedObject = this.selectedObjects.size > 0 ? element : null;
-            this.updateObjectControls();
-        }
-
-        updateObjectControls() {
-            if (this.selectedObjects.size > 0) {
-                const firstSelectedId = this.selectedObjects.keys().next().value;
-                const objectData = this.getCurrentTab().objects.get(firstSelectedId);
-                document.getElementById('objectColor').value = objectData.color;
-                document.getElementById('objectText').value = objectData.text;
-                document.getElementById('objectInfo').textContent =
-                    `Selezionati: ${this.selectedObjects.size} oggetti`;
-                
-                const dashedObjectToggleBtn = document.getElementById('dashedObjectToggle');
-                dashedObjectToggleBtn.style.display = 'inline-block';
-                dashedObjectToggleBtn.classList.toggle('active', objectData.dashed);
-
-                document.getElementById('objectControls').style.display = 'flex';
-                document.getElementById('arrowControls').style.display = 'none';
-
-            } else {
-                document.getElementById('objectInfo').textContent = 'Nessun oggetto selezionato';
-                document.getElementById('objectText').value = '';
-                document.getElementById('dashedObjectToggle').style.display = 'none';
-
-                document.getElementById('objectControls').style.display = 'flex';
-                document.getElementById('arrowControls').style.display = 'none';
-            }
-        }
-        
-        updateArrowControls() {
-            if (this.selectedArrow) {
-                const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
-                document.getElementById('arrowColor').value = arrowData.color;
-                document.getElementById('arrowThickness').value = arrowData.thickness;
-                document.getElementById('thicknessValue').textContent = arrowData.thickness;
-
-                document.getElementById('objectInfo').textContent = 'Freccia selezionata';
-                document.getElementById('objectControls').style.display = 'none';
-                document.getElementById('arrowControls').style.display = 'flex';
-                
-                document.querySelectorAll('.arrow-type-btn').forEach(btn => btn.classList.remove('active'));
-                document.getElementById(`arrowType${arrowData.type.charAt(0).toUpperCase() + arrowData.type.slice(1)}`).classList.add('active');
-            } else {
-                this.deselectAll();
-            }
-        }
-
-
-        deselectAll() {
-            document.querySelectorAll('.canvas-object.selected').forEach(obj => {
-                obj.classList.remove('selected');
-            });
-            document.querySelectorAll('.arrow-path.selected').forEach(arrow => {
-                arrow.classList.remove('selected');
-            });
-            document.getElementById('arrowModeBtn').classList.remove('active');
-            this.arrowMode = false;
-
-            this.selectedObject = null;
-            this.selectedObjects.clear();
-            this.selectedArrow = null;
-            document.getElementById('objectInfo').textContent = 'Nessun oggetto selezionato';
-            document.getElementById('objectText').value = '';
-
-            document.getElementById('dashedObjectToggle').style.display = 'none';
-            document.getElementById('objectControls').style.display = 'flex';
-            document.getElementById('arrowControls').style.display = 'none';
-        }
-
-        startConnection(from, e) {
-            e.preventDefault();
-            this.isConnecting = true;
-            this.connectionStart = from;
-            document.getElementById('canvas').style.cursor = 'crosshair';
-            this.createConnectionPreview(e);
-        }
-
-        createConnectionPreview(e) {
-            const startPos = this.getConnectionPointAbsolutePosition(
-                this.connectionStart.objectId,
-                this.connectionStart.position
-            );
-
-            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-            svg.id = 'connection-preview';
-            svg.style.position = 'absolute';
-            svg.style.left = '0px';
-            svg.style.top = '0px';
-            svg.style.width = '100%';
-            svg.style.height = '100%';
-            svg.style.pointerEvents = 'none';
-            svg.style.zIndex = '9999';
-
-            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            path.setAttribute('stroke', '#3498db');
-            path.setAttribute('stroke-width', '2');
-            path.setAttribute('stroke-dasharray', '5,5');
-            path.setAttribute('fill', 'none');
-            path.setAttribute('marker-end', 'url(#arrowhead)');
-
-            svg.appendChild(path);
-            document.getElementById('canvas').appendChild(svg);
-
-            this.connectionPreview = { svg, path, startPos };
-        }
-
-        updateConnectionPreview(e) {
-            if (!this.connectionPreview) return;
-
-            const rect = document.getElementById('canvas').getBoundingClientRect();
-            const currentX = (e.clientX - rect.left) / this.getCurrentTab().zoom;
-            const currentY = (e.clientY - rect.top) / this.getCurrentTab().zoom;
-
-            const pathData = this.generateArrowPath(this.connectionPreview.startPos, { x: currentX, y: currentY }, this.arrowType);
-            this.connectionPreview.path.setAttribute('d', pathData);
-        }
-
-        finishConnection(e) {
-            if (!this.isConnecting || !this.connectionStart) return;
-
-            const target = e.target.closest('.connection-point');
-            const targetObject = target?.closest('.canvas-object');
-
-            const rect = document.getElementById('canvas').getBoundingClientRect();
-            const endPos = { x: (e.clientX - rect.left) / this.getCurrentTab().zoom, y: (e.clientY - rect.top) / this.getCurrentTab().zoom };
-
-            let to;
-            if (target && targetObject && targetObject.id !== this.connectionStart.objectId) {
-                const targetPosition = target.classList.contains('top') ? 'top' :
-                    target.classList.contains('bottom') ? 'bottom' :
-                        target.classList.contains('left') ? 'left' : 'right';
-                to = { objectId: targetObject.id, position: targetPosition };
-            } else {
-                to = endPos;
-            }
-
-            this.createArrow(this.connectionStart, to, this.arrowType);
-
-            this.isConnecting = false;
-            this.connectionStart = null;
-            if (this.connectionPreview) {
-                this.connectionPreview.svg.remove();
+        class SchemaEditor {
+            constructor() {
+                this.tabs = new Map();
+                this.activeTabId = 1;
+                this.nextTabId = 2;
+                this.nextObjectId = 1;
+                this.isDragging = false;
+                this.isResizing = false;
+                this.isRotating = false;
+                this.isConnecting = false;
+                this.arrowMode = false;
+                this.dashedMode = false; // New property for dashed mode for new objects/arrows
+                this.selectedObject = null;
+                this.selectedObjects = new Map();
+                this.selectedArrow = null;
+                this.dragOffset = { x: 0, y: 0 };
+                this.connectionStart = null;
                 this.connectionPreview = null;
-            }
-            document.getElementById('canvas').style.cursor = 'default';
-        }
+                this.arrowType = 'curved'; // Default to curved as requested
+                this.zoom = 1;
+                this.isDraggingControlPoint = false;
+                this.clipboard = null;
 
-        getConnectionPointAbsolutePosition(objectId, position) {
-            if (!objectId) {
-                return position;
-            }
-            const element = document.getElementById(objectId);
-            if (!element) return { x: 0, y: 0 };
+                this.isSelecting = false;
+                this.selectionStart = { x: 0, y: 0 };
+                this.canvasRect = null;
+                this.libraryWorkouts = []; // Array per i metadati degli allenamenti
+                this.selectedLibraryFile = null; // Nome file selezionato
+                this.librarySource = 'unknown';
+                this.initLibraryLoading(); // Inizializza la logica della libreria
 
-            const rect = element.getBoundingClientRect();
-            const canvasRect = document.getElementById('canvas').getBoundingClientRect();
-
-            const centerX = (rect.left - canvasRect.left) + (rect.width / 2);
-            const centerY = (rect.top - canvasRect.top) + (rect.height / 2);
-            const halfWidth = rect.width / 2;
-            const halfHeight = rect.height / 2;
-
-            const rotation = this.getCurrentTab().objects.get(objectId)?.rotation || 0;
-            const angle = rotation * (Math.PI / 180);
-
-            let offset = { x: 0, y: 0 };
-            switch (position) {
-                case 'top':
-                    offset = { x: 0, y: -halfHeight };
-                    break;
-                case 'bottom':
-                    offset = { x: 0, y: halfHeight };
-                    break;
-                case 'left':
-                    offset = { x: -halfWidth, y: 0 };
-                    break;
-                case 'right':
-                    offset = { x: halfWidth, y: 0 };
-                    break;
+                this.initializeTab(1, 'Schema 1');
+                this.initializeEventListeners();
+                this.updateUI();
             }
 
-            const rotatedX = offset.x * Math.cos(angle) - offset.y * Math.sin(angle);
-            const rotatedY = offset.x * Math.sin(angle) + offset.y * Math.cos(angle);
-
-            return {
-                x: (centerX + rotatedX) / this.getCurrentTab().zoom,
-                y: (centerY + rotatedY) / this.getCurrentTab().zoom
-            };
-        }
-
-        createArrow(from, to, type, dashed = this.dashedMode, color = document.getElementById('arrowColor').value, thickness = parseInt(document.getElementById('arrowThickness').value)) {
-            const tab = this.getCurrentTab();
-            const arrowId = 'arrow-' + tab.nextArrowId++;
-
-            const arrow = {
-                id: arrowId,
-                from: from,
-                to: to,
-                type: type,
-                dashed: dashed,
-                color: color,
-                thickness: thickness,
-                controlPoint: null
-            };
-
-            if (type === 'curved') {
-                const fromPos = this.getArrowPoint(arrow.from);
-                const toPos = this.getArrowPoint(arrow.to);
-                arrow.controlPoint = this.generateDefaultControlPoint(fromPos, toPos);
+            initializeTab(id, name) {
+                this.tabs.set(id, {
+                    name: name,
+                    objects: new Map(),
+                    arrows: new Map(),
+                    nextObjectId: 1,
+                    nextArrowId: 1,
+                    history: [],
+                    historyIndex: -1,
+                    background: 'none',
+                    gridVisible: false,
+                    bwMode: false,
+                    zoom: 1
+                });
             }
 
-            tab.arrows.set(arrowId, arrow);
-            this.renderArrow(arrow);
-            this.saveState();
-
-            return arrow;
-        }
-
-        getArrowPoint(point) {
-            if (point.objectId) {
-                return this.getConnectionPointAbsolutePosition(point.objectId, point.position);
-            }
-            return point;
-        }
-
-        renderArrow(arrow) {
-            let fromPos = this.getArrowPoint(arrow.from);
-            let toPos = this.getArrowPoint(arrow.to);
-
-            let svg = document.getElementById(arrow.id);
-            if (!svg) {
-                svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                svg.classList.add('arrow-svg');
-                svg.id = arrow.id;
-                document.getElementById('canvas').appendChild(svg);
-            } else {
-                svg.innerHTML = '';
+            getCurrentTab() {
+                return this.tabs.get(this.activeTabId);
             }
 
-            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            path.classList.add('arrow-path');
-            if (arrow.dashed) path.classList.add('dashed');
+            // Metodo di utilità per la scomposizione del nome file
+            parseFilename(filename) {
+                // Esempio: PRE.ANA.A.alzate_miste.json
+                const parts = filename.replace('.json', '').split('.');
+                if (parts.length < 4) return null;
 
-            let pathData;
-            let controlPointElement;
+                const [periodo, tipologia, ruolo, ...rest] = parts;
+                const titolo = rest.join('.'); // Ricompone il titolo se contiene altri punti
 
-            if (arrow.type === 'curved') {
-                if (!arrow.controlPoint) {
-                    arrow.controlPoint = this.generateDefaultControlPoint(fromPos, toPos);
+                return {
+                    filename: filename,
+                    periodo: periodo,
+                    tipologia: tipologia,
+                    ruolo: ruolo,
+                    titolo: titolo.replace(/_/g, ' ') // Sostituisce gli underscore con spazi per la visualizzazione
+                };
+            }
+
+            initLibraryLoading() {
+                const loadButton = document.getElementById('loadFromLibrary');
+                const dialog = document.getElementById('libraryDialog');
+                const closeButton = document.getElementById('closeLibraryDialog');
+                const loadSelectedBtn = document.getElementById('loadSelectedWorkout');
+                const filterPeriodo = document.getElementById('filterPeriodo');
+                const filterTipologia = document.getElementById('filterTipologia');
+                const filterRuolo = document.getElementById('filterRuolo');
+
+                loadButton.addEventListener('click', () => {
+                    dialog.style.display = 'block';
+                    this.fetchLibraryWorkouts(); // Chiama il backend per la lista
+                });
+
+                closeButton.addEventListener('click', () => {
+                    dialog.style.display = 'none';
+                });
+
+                window.addEventListener('click', (event) => {
+                    if (event.target === dialog) {
+                        dialog.style.display = 'none';
+                    }
+                });
+
+                filterPeriodo.addEventListener('change', () => this.filterWorkouts());
+                filterTipologia.addEventListener('change', () => this.filterWorkouts());
+                filterRuolo.addEventListener('change', () => this.filterWorkouts());
+
+                loadSelectedBtn.addEventListener('click', () => {
+                    if (this.selectedLibraryFile) {
+                        const fileWorkOut = this.loadWorkoutFromBackend(this.selectedLibraryFile);
+                        this.loadSchema(fileWorkOut)
+                    }
+                });
+            }
+
+            // Carica la lista dei file dal backend PHP con FALLBACK
+            async fetchLibraryWorkouts() {
+                let filenames = [];
+                const endpoint = 'api/api_libreria.php';
+
+                try {
+                    // 1. Tenta la connessione al server
+                    const response = await fetch(endpoint);
+
+                    if (!response.ok) {
+                        // Lancia un errore se la risposta HTTP non è 200 (es. 404, 500)
+                        throw new Error(`Errore nel server PHP (Status: ${response.status}).`);
+                    }
+
+                    filenames = await response.json();
+
+                    if (!Array.isArray(filenames)) {
+                        throw new Error('La risposta del server non è un array valido di nomi file.');
+                    }
+
+                    // *** STATO DI SUCCESSO ***
+                    this.librarySource = 'server';
+
+                    const listElement = document.getElementById('workoutList');
+                    if (listElement) listElement.innerHTML = '';
+
+                } catch (error) {
+                    // 2. LOGICA DI FALLBACK: Se la fetch fallisce o lancia un errore
+                    console.warn(`Tentativo fallito di caricare la libreria da ${endpoint}. Carico esempi di default.`);
+                    console.error(error);
+
+                    // *** STATO DI FALLBACK ***
+                    this.librarySource = 'fallback';
+
+                    // Array di nomi file di default
+                    filenames = [
+                        'PRE.ANA.A.esempio1.json'
+                    ];
+
+                    // 3. Avvisa l'utente sulla UI
+                    const listElement = document.getElementById('workoutList');
+                    if (listElement) {
+                        listElement.innerHTML = '<li style="color: orange; padding: 10px; cursor: default;">⚠️ **FALLBACK:** Server non raggiunto. Caricati esempi locali.</li>';
+                    }
                 }
-                pathData = this.generateArrowPath(fromPos, toPos, arrow.type, arrow.controlPoint);
-                controlPointElement = this.addCurveControlPoint(svg, arrow);
-            } else {
-                pathData = this.generateArrowPath(fromPos, toPos, arrow.type);
-                arrow.controlPoint = null;
+
+                // 4. Continua l'elaborazione
+                this.libraryWorkouts = filenames
+                    .map(f => this.parseFilename(f))
+                    .filter(w => w !== null);
+
+                this.populateFilters(this.libraryWorkouts);
+                this.filterWorkouts();
             }
 
-            path.setAttribute('d', pathData);
-            path.setAttribute('stroke', arrow.color);
-            path.setAttribute('stroke-width', arrow.thickness);
-            path.setAttribute('marker-end', `url(#arrowhead)`);
+            // Popola i menu a tendina (select) dei filtri
+            populateFilters(workouts) {
+                const filters = {
+                    periodo: new Set(),
+                    tipologia: new Set(),
+                    ruolo: new Set()
+                };
 
-            path.addEventListener('mousedown', (e) => {
-                e.stopPropagation();
-                this.selectArrow(arrow.id);
-            });
-            
-            svg.appendChild(path);
-            if (controlPointElement) {
-                svg.appendChild(controlPointElement);
+                workouts.forEach(w => {
+                    filters.periodo.add(w.periodo);
+                    filters.tipologia.add(w.tipologia);
+                    filters.ruolo.add(w.ruolo);
+                });
+
+                ['periodo', 'tipologia', 'ruolo'].forEach(key => {
+                    const select = document.getElementById(`filter${key.charAt(0).toUpperCase() + key.slice(1)}`);
+                    select.innerHTML = `<option value="">Tutti</option>`;
+                    Array.from(filters[key]).sort().forEach(value => {
+                        const option = document.createElement('option');
+                        option.value = value;
+                        option.textContent = value;
+                        select.appendChild(option);
+                    });
+                });
             }
 
+            // Filtra la lista in base ai valori selezionati
+            filterWorkouts() {
+                this.selectedLibraryFile = null; // Deseleziona l'elemento corrente
+                document.getElementById('loadSelectedWorkout').disabled = true;
 
-            const allPoints = [fromPos, toPos];
-            if (arrow.type === 'curved' && arrow.controlPoint) {
-                allPoints.push(arrow.controlPoint);
+                const periodo = document.getElementById('filterPeriodo').value;
+                const tipologia = document.getElementById('filterTipologia').value;
+                const ruolo = document.getElementById('filterRuolo').value;
+                const workoutList = document.getElementById('workoutList');
+                workoutList.innerHTML = '';
+
+                const filtered = this.libraryWorkouts.filter(w =>
+                    (periodo === "" || w.periodo === periodo) &&
+                    (tipologia === "" || w.tipologia === tipologia) &&
+                    (ruolo === "" || w.ruolo === ruolo)
+                );
+
+                filtered.forEach(w => {
+                    const li = document.createElement('li');
+                    li.textContent = `${w.titolo} (${w.periodo} | ${w.tipologia} | ${w.ruolo})`;
+                    li.dataset.filename = w.filename; // Memorizza il nome del file completo
+
+                    li.addEventListener('click', () => {
+                        // Gestisce la selezione
+                        document.querySelectorAll('#workoutList li').forEach(item => item.classList.remove('selected'));
+                        li.classList.add('selected');
+                        this.selectedLibraryFile = w.filename;
+                        document.getElementById('loadSelectedWorkout').disabled = false;
+                    });
+                    workoutList.appendChild(li);
+                });
             }
 
-            const minX = Math.min(...allPoints.map(p => p.x)) - arrow.thickness - 10;
-            const minY = Math.min(...allPoints.map(p => p.y)) - arrow.thickness - 10;
-            const maxX = Math.max(...allPoints.map(p => p.x)) + arrow.thickness + 10;
-            const maxY = Math.max(...allPoints.map(p => p.y)) + arrow.thickness + 10;
+            // Carica il contenuto dell'allenamento selezionato chiamando il backend PHP
+            async loadWorkoutFromBackend(filename) {
+                let workoutData = null;
 
-            svg.style.left = minX + 'px';
-            svg.style.top = minY + 'px';
-            svg.style.width = (maxX - minX) + 'px';
-            svg.style.height = (maxY - minY) + 'px';
-            svg.setAttribute('viewBox', `${minX} ${minY} ${maxX - minX} ${maxY - minY}`);
-        }
+                // 1. GESTIONE DEL FALLBACK (Caricamento locale)
+                if (this.librarySource === 'fallback') {
+                    const response = await fetch(`volleyball_exercise_library/${filename}`);
 
-        addCurveControlPoint(svg, arrow) {
-            const controlPoint = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            controlPoint.setAttribute('cx', arrow.controlPoint.x);
-            controlPoint.setAttribute('cy', arrow.controlPoint.y);
-            controlPoint.setAttribute('r', '6');
-            controlPoint.setAttribute('fill', '#f39c12');
-            controlPoint.setAttribute('stroke', '#fff');
-            controlPoint.setAttribute('stroke-width', '2');
-            controlPoint.style.cursor = 'move';
-            controlPoint.classList.add('control-point');
+                    if (!response.ok) {
+                        throw new Error(`Errore nel server (${response.status}). Il file non può essere letto.`);
+                    }
 
-            controlPoint.addEventListener('mousedown', (e) => {
-                e.stopPropagation();
-                this.isDraggingControlPoint = true;
-                this.selectedArrow = arrow.id;
-            });
-            
-            return controlPoint;
-        }
-
-        generateDefaultControlPoint(from, to) {
-            const midX = (from.x + to.x) / 2;
-            const midY = (from.y + to.y) / 2;
-            const offset = 50;
-            const dx = to.x - from.x;
-            const dy = to.y - from.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            
-            if (dist === 0) return { x: midX + offset, y: midY };
-            
-            const controlX = midX + (from.y - to.y) * offset / dist;
-            const controlY = midY + (to.x - from.x) * offset / dist;
-            return { x: controlX, y: controlY };
-        }
-
-        generateArrowPath(from, to, type, controlPoint = null) {
-            switch (type) {
-                case 'linear':
-                    return `M ${from.x} ${from.y} L ${to.x} ${to.y}`;
-
-                case 'curved':
-                    const cp = controlPoint || this.generateDefaultControlPoint(from, to);
-                    return `M ${from.x} ${from.y} Q ${cp.x} ${cp.y} ${to.x} ${to.y}`;
-
-                case 'zigzag':
-                    const midXZ = (from.x + to.x) / 2;
-                    return `M ${from.x} ${from.y} L ${midXZ} ${from.y} L ${midXZ} ${to.y} L ${to.x} ${to.y}`;
-
-                default:
-                    return `M ${from.x} ${from.y} L ${to.x} ${to.y}`;
-            }
-        }
-
-        updateArrowsForObject(objectId) {
-            const tab = this.getCurrentTab();
-            tab.arrows.forEach((arrow, arrowId) => {
-                if (arrow.from.objectId === objectId || arrow.to.objectId === objectId) {
-                    this.renderArrow(arrow);
+                    // Se la risposta è OK, restituisci i dati dal server
+                    workoutData = await response.json();
+                    return workoutData;
                 }
-            });
-        }
 
-        selectArrow(arrowId) {
-            this.deselectAll();
-            this.selectedArrow = arrowId;
+                // 2. GESTIONE DEL SERVER (Caricamento reale)
+                try {
+                    const response = await fetch(`api/api_allenamento.php?filename=${encodeURIComponent(filename)}`);
 
-            const arrowElement = document.getElementById(arrowId);
-            if (arrowElement) {
-                const path = arrowElement.querySelector('.arrow-path');
-                if (path) {
-                    path.classList.add('selected');
+                    if (!response.ok) {
+                        throw new Error(`Errore nel server (${response.status}). Il file non può essere letto.`);
+                    }
+
+                    // Se la risposta è OK, restituisci i dati dal server
+                    workoutData = await response.json();
+                    return workoutData;
+
+                } catch (error) {
+                    console.error("Errore nel caricamento del contenuto dell'allenamento dal server:", error);
+                    alert(`Impossibile caricare il contenuto per ${filename}. Errore di connessione o file non trovato.`);
+                    return null; // Ritorna null in caso di fallimento grave del server
                 }
             }
-            this.updateArrowControls();
-        }
 
-        changeArrowType(newType) {
-            if (!this.selectedArrow) return;
-            const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
-            if (arrowData) {
-                arrowData.type = newType;
-                if (newType === 'curved' && !arrowData.controlPoint) {
-                    const fromPos = this.getArrowPoint(arrowData.from);
-                    const toPos = this.getArrowPoint(arrowData.to);
-                    arrowData.controlPoint = this.generateDefaultControlPoint(fromPos, toPos);
-                }
-                this.renderArrow(arrowData);
-                this.updateArrowControls();
-                this.saveState();
-            }
-        }
-
-        changeSelectedObjectsColor(color) {
-            if (this.selectedObjects.size === 0) return;
-
-            const tab = this.getCurrentTab();
-            this.selectedObjects.forEach((pos, id) => {
-                const objectData = tab.objects.get(id);
-                if (!objectData) return;
-                objectData.color = color;
-                this.renderObject(objectData);
-            });
-
-            this.saveState();
-        }
-
-        changeSelectedObjectsText(text) {
-            if (this.selectedObjects.size === 0) return;
-
-            const tab = this.getCurrentTab();
-            this.selectedObjects.forEach((pos, id) => {
-                const objectData = tab.objects.get(id);
-                if (!objectData) return;
-                objectData.text = text;
-                this.renderObject(objectData);
-            });
-
-            this.saveState();
-        }
-
-        changeArrowColor(color) {
-            if (!this.selectedArrow) return;
-            const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
-            if (arrowData) {
-                arrowData.color = color;
-                this.renderArrow(arrowData);
-                this.saveState();
-            }
-        }
-
-        changeArrowThickness(thickness) {
-            if (!this.selectedArrow) return;
-            const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
-            if (arrowData) {
-                arrowData.thickness = parseInt(thickness);
-                this.renderArrow(arrowData);
-                this.saveState();
-            }
-        }
-
-        toggleDashedObject() {
-            if (this.selectedObjects.size === 0) return;
-            const tab = this.getCurrentTab();
-            
-            const firstSelectedId = this.selectedObjects.keys().next().value;
-            const isDashed = tab.objects.get(firstSelectedId).dashed;
-            const newState = !isDashed;
-            
-            this.selectedObjects.forEach((pos, id) => {
-                const objectData = tab.objects.get(id);
-                if (objectData) {
-                    objectData.dashed = newState;
-                    this.renderObject(objectData);
-                }
-            });
-            document.getElementById('dashedObjectToggle').classList.toggle('active', newState);
-            this.saveState();
-        }
-
-        rotateSelected(degrees) {
-            if (this.selectedObjects.size === 0) return;
-
-            const tab = this.getCurrentTab();
-            this.selectedObjects.forEach((pos, id) => {
-                const objectData = tab.objects.get(id);
-                if (objectData) {
-                    objectData.rotation = (objectData.rotation + degrees) % 360;
-                    document.getElementById(id).style.transform = `rotate(${objectData.rotation}deg)`;
-                    this.updateArrowsForObject(id);
-                }
-            });
-            this.saveState();
-        }
-
-        deleteSelected() {
-            const tab = this.getCurrentTab();
-            if (this.selectedObjects.size > 0) {
-                this.selectedObjects.forEach((pos, objectId) => {
-                    tab.arrows.forEach((arrow, arrowId) => {
-                        if (arrow.from.objectId === objectId || arrow.to.objectId === objectId) {
-                            document.getElementById(arrowId)?.remove();
-                            tab.arrows.delete(arrowId);
+            initializeEventListeners() {
+                const componentItems = document.querySelectorAll('.component-item');
+                componentItems.forEach(item => {
+                    item.addEventListener('dragstart', (e) => {
+                        const type = item.dataset.type;
+                        if (type === 'arrow') {
+                            e.preventDefault();
+                        } else {
+                            e.dataTransfer.setData('text/plain', JSON.stringify({
+                                type: item.dataset.type,
+                                color: item.dataset.color || '',
+                                text: item.dataset.text || ''
+                            }));
                         }
                     });
-                    tab.objects.delete(objectId);
-                    document.getElementById(objectId)?.remove();
-                });
-            } else if (this.selectedArrow) {
-                document.getElementById(this.selectedArrow)?.remove();
-                tab.arrows.delete(this.selectedArrow);
-            }
-
-            this.deselectAll();
-            this.saveState();
-        }
-
-        copySelected() {
-            const tab = this.getCurrentTab();
-            const copiedObjects = [];
-            const copiedArrows = [];
-
-            try {
-                this.selectedObjects.forEach((pos, id) => {
-                    const obj = tab.objects.get(id);
-                    if (obj) {
-                        const newObj = { ...obj };
-                        copiedObjects.push(newObj);
-                    }
+                    item.draggable = true;
                 });
 
-                tab.arrows.forEach(arrow => {
-                    if (this.selectedObjects.has(arrow.from.objectId) && this.selectedObjects.has(arrow.to.objectId)) {
-                        const newArrow = { ...arrow };
-                        if (newArrow.from) newArrow.from = { ...newArrow.from };
-                        if (newArrow.to) newArrow.to = { ...newArrow.to };
-                        if (newArrow.controlPoint) newArrow.controlPoint = { ...newArrow.controlPoint };
-                        copiedArrows.push(newArrow);
-                    }
+                document.getElementById('arrowModeBtn').addEventListener('click', (e) => {
+                    this.arrowMode = !this.arrowMode;
+                    e.currentTarget.classList.toggle('active', this.arrowMode);
+                    document.getElementById('canvas').style.cursor = this.arrowMode ? 'crosshair' : 'default';
+                    this.deselectAll();
                 });
 
-                this.clipboard = { objects: copiedObjects, arrows: copiedArrows };
-            } catch (error) {
-                console.error('Errore durante la copia degli oggetti:', error);
-                alert('Errore durante la copia. Potrebbe esserci un problema con gli oggetti selezionati. Controlla la console per i dettagli.');
-            }
-        }
+                const canvas = document.getElementById('canvas');
+                canvas.addEventListener('dragover', (e) => e.preventDefault());
+                canvas.addEventListener('drop', (e) => this.handleCanvasDrop(e));
+                canvas.addEventListener('mousedown', (e) => this.handleCanvasMouseDown(e));
+                canvas.addEventListener('mousemove', (e) => this.handleCanvasMouseMove(e));
+                canvas.addEventListener('mouseup', (e) => this.handleCanvasMouseUp(e));
 
-        cutSelected() {
-            this.copySelected();
-            this.deleteSelected();
-        }
-
-        paste() {
-            if (!this.clipboard) return;
-
-            this.deselectAll();
-
-            const tab = this.getCurrentTab();
-            const pastedObjectMap = new Map();
-            const offset = 20;
-
-            this.clipboard.objects.forEach(obj => {
-                const oldId = obj.id;
-                const newObj = this.addObject(obj.type, obj.x + offset, obj.y + offset, obj.color, obj.text, obj.rotation, obj.dashed);
-                pastedObjectMap.set(oldId, newObj.id);
-                this.selectedObjects.set(newObj.id, { x: newObj.x, y: newObj.y });
-                document.getElementById(newObj.id).classList.add('selected');
-            });
-
-            this.clipboard.arrows.forEach(arrow => {
-                const newFrom = { ...arrow.from };
-                const newTo = { ...arrow.to };
-
-                if (newFrom.objectId) newFrom.objectId = pastedObjectMap.get(newFrom.objectId);
-                if (newTo.objectId) newTo.objectId = pastedObjectMap.get(newTo.objectId);
-
-                this.createArrow(newFrom, newTo, arrow.type, arrow.dashed, arrow.color, arrow.thickness);
-            });
-
-            this.saveState();
-            this.updateObjectControls();
-        }
-
-        changeZoom(delta) {
-            const tab = this.getCurrentTab();
-            tab.zoom = Math.max(0.2, Math.min(3, tab.zoom + delta));
-            this.zoom = tab.zoom;
-            this.updateZoom();
-        }
-
-        updateZoom() {
-            const tab = this.getCurrentTab();
-            const canvas = document.getElementById('canvas');
-            canvas.style.transform = `scale(${tab.zoom})`;
-            document.getElementById('zoomDisplay').textContent = Math.round(tab.zoom * 100) + '%';
-        }
-
-        updateBackground() {
-            const tab = this.getCurrentTab();
-            const canvas = document.getElementById('canvas');
-            canvas.className = 'canvas';
-
-            if (tab.gridVisible) canvas.classList.add('grid-visible');
-            if (tab.bwMode) canvas.classList.add('bw-mode');
-
-            switch (tab.background) {
-                case 'half-field':
-                    canvas.classList.add('bg-half-field');
-                    break;
-                case 'full-field':
-                    canvas.classList.add('bg-full-field');
-                    break;
-                case '3d-field':
-                    canvas.classList.add('bg-3d-field');
-                    break;
-            }
-        }
-
-        updateGrid() {
-            const tab = this.getCurrentTab();
-            document.getElementById('gridToggle').classList.toggle('active', tab.gridVisible);
-            this.updateBackground();
-        }
-
-        updateBWMode() {
-            const tab = this.getCurrentTab();
-            document.getElementById('bwToggle').classList.toggle('active', tab.bwMode);
-            this.updateBackground();
-        }
-
-        addNewTab() {
-            const id = this.nextTabId++;
-            const name = `Schema ${id}`;
-
-            this.initializeTab(id, name);
-            this.createTabElement(id, name);
-            this.switchToTab(id);
-        }
-
-        createTabElement(id, name) {
-            const tabsContainer = document.querySelector('.tabs-container');
-            const addButton = tabsContainer.querySelector('.add-tab');
-
-            const tab = document.createElement('div');
-            tab.className = 'tab';
-            tab.dataset.tabId = id;
-            tab.innerHTML = `<span>${name}</span><span class="tab-close">×</span>`;
-
-            tabsContainer.insertBefore(tab, addButton);
-        }
-
-        switchToTab(id) {
-            this.saveTabState();
-
-            const oldActiveTab = document.querySelector('.tab.active');
-            if (oldActiveTab) {
-                oldActiveTab.classList.remove('active');
-            }
-
-            this.activeTabId = id;
-
-            const newActiveTab = document.querySelector(`.tab[data-tab-id="${id}"]`);
-            if (newActiveTab) {
-                newActiveTab.classList.add('active');
-            }
-
-            this.loadTabState();
-        }
-
-        closeTab(id) {
-            if (this.tabs.size <= 1) return;
-            this.tabs.delete(id);
-            document.querySelector(`[data-tab-id="${id}"]`).remove();
-            if (this.activeTabId === id) {
-                const firstTabId = this.tabs.keys().next().value;
-                this.switchToTab(firstTabId);
-            }
-        }
-
-        saveTabState() {
-            const tab = this.getCurrentTab();
-            if (!tab) return;
-            tab.background = document.getElementById('backgroundSelect').value;
-            tab.gridVisible = document.getElementById('gridToggle').classList.contains('active');
-            tab.bwMode = document.getElementById('bwToggle').classList.contains('active');
-            tab.zoom = this.zoom;
-        }
-
-        loadTabState() {
-            const tab = this.getCurrentTab();
-            const canvas = document.getElementById('canvas');
-
-            while (canvas.firstChild) {
-                canvas.removeChild(canvas.firstChild);
-            }
-
-            tab.objects.forEach(obj => this.renderObject(obj));
-            tab.arrows.forEach(arrow => this.renderArrow(arrow));
-            document.getElementById('backgroundSelect').value = tab.background;
-            this.zoom = tab.zoom;
-            this.updateBackground();
-            this.updateZoom();
-            this.updateGrid();
-            this.updateBWMode();
-            this.deselectAll();
-        }
-
-        saveState() {
-            const tab = this.getCurrentTab();
-            const state = {
-                objects: Array.from(tab.objects.entries()),
-                arrows: Array.from(tab.arrows.entries())
-            };
-
-            if (tab.historyIndex < tab.history.length - 1) {
-                tab.history = tab.history.slice(0, tab.historyIndex + 1);
-            }
-
-            tab.history.push(state);
-            tab.historyIndex++;
-
-            if (tab.history.length > 50) {
-                tab.history.shift();
-                tab.historyIndex--;
-            }
-        }
-
-        undo() {
-            const tab = this.getCurrentTab();
-            if (tab.historyIndex > 0) {
-                tab.historyIndex--;
-                this.restoreState(tab.history[tab.historyIndex]);
-            }
-        }
-
-        redo() {
-            const tab = this.getCurrentTab();
-            if (tab.historyIndex < tab.history.length - 1) {
-                tab.historyIndex++;
-                this.restoreState(tab.history[tab.historyIndex]);
-            }
-        }
-
-        restoreState(state) {
-            const tab = this.getCurrentTab();
-            tab.objects = new Map(state.objects);
-            tab.arrows = new Map(state.arrows);
-            this.loadTabState();
-        }
-
-        saveSchema() {
-            const tab = this.getCurrentTab();
-            const title = document.getElementById('schemaTitle').value || 'schema';
-
-            const data = {
-                title: title,
-                objects: Array.from(tab.objects.entries()),
-                arrows: Array.from(tab.arrows.entries()),
-                background: tab.background,
-                gridVisible: tab.gridVisible,
-                bwMode: tab.bwMode,
-                zoom: tab.zoom
-            };
-
-            const blob = new Blob([JSON.stringify(data, null, 2)],
-                { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${title}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
-        loadSchema(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    const tab = this.getCurrentTab();
-
-                    tab.objects.clear();
-                    tab.arrows.clear();
-
-                    data.objects.forEach(([id, obj]) => tab.objects.set(id, obj));
-                    data.arrows.forEach(([id, arrow]) => tab.arrows.set(id, arrow));
-
-                    tab.background = data.background || 'none';
-                    tab.gridVisible = data.gridVisible || false;
-                    tab.bwMode = data.bwMode || false;
-                    tab.zoom = data.zoom || 1;
-
-                    document.getElementById('schemaTitle').value = data.title || 'Schema';
-                    this.loadTabState();
-                    this.saveState();
-                } catch (error) {
-                    alert('Errore nel caricamento del file: ' + error.message);
-                }
-            };
-            reader.readAsText(file);
-        }
-
-        async exportSchema() {
-            const canvas = document.getElementById('canvas');
-            const originalTransform = canvas.style.transform;
-            canvas.style.transform = 'scale(1)';
-
-            try {
-                const exportCanvas = await html2canvas(canvas, {
-                    backgroundColor: this.getCurrentTab().bwMode ? null : '#ffffff',
-                    scale: 2,
-                    useCORS: true
-                });
-
-                const format = prompt('Formato di esportazione (png/jpg/pdf):', 'png');
-                const title = document.getElementById('schemaTitle').value || 'schema';
-
-                switch (format?.toLowerCase()) {
-                    case 'png':
-                        this.downloadCanvas(exportCanvas, `${title}.png`, 'image/png');
-                        break;
-                    case 'jpg':
-                    case 'jpeg':
-                        this.downloadCanvas(exportCanvas, `${title}.jpg`, 'image/jpeg');
-                        break;
-                    case 'pdf':
-                        this.exportToPDF(exportCanvas, title);
-                        break;
-                    default:
-                        this.downloadCanvas(exportCanvas, `${title}.png`, 'image/png');
-                }
-            } finally {
-                canvas.style.transform = originalTransform;
-            }
-        }
-
-        downloadCanvas(canvas, filename, mimeType) {
-            const link = document.createElement('a');
-            link.download = filename;
-            link.href = canvas.toDataURL(mimeType);
-            link.click();
-        }
-
-        exportToPDF(canvas, title) {
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF({
-                orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
-                unit: 'px',
-                format: [canvas.width, canvas.height]
-            });
-
-            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.width, canvas.height);
-            pdf.save(`${title}.pdf`);
-        }
-
-        handleKeyboard(e) {
-            if (e.ctrlKey || e.metaKey) {
-                switch (e.key.toLowerCase()) {
-                    case 'c':
-                        e.preventDefault();
-                        this.copySelected();
-                        break;
-                    case 'x':
-                        e.preventDefault();
-                        this.cutSelected();
-                        break;
-                    case 'v':
-                        e.preventDefault();
-                        this.paste();
-                        break;
-                    case 'a':
-                        e.preventDefault();
-                        this.selectAll();
-                        break;
-                    case 'z':
-                        e.preventDefault();
-                        if (e.shiftKey) {
-                            this.redo();
+                document.querySelector('.tabs-container').addEventListener('click', (e) => {
+                    const tabElement = e.target.closest('.tab');
+                    if (tabElement) {
+                        const tabId = parseInt(tabElement.dataset.tabId);
+                        if (e.target.closest('.tab-close')) {
+                            this.closeTab(tabId);
                         } else {
-                            this.undo();
+                            this.switchToTab(tabId);
                         }
-                        break;
-                    case 'y':
-                        e.preventDefault();
-                        this.redo();
-                        break;
-                }
-            } else if (e.key === 'Delete' || e.key === 'Backspace') {
-                if (this.selectedObjects.size > 0 || this.selectedArrow) {
-                    e.preventDefault();
-                    this.deleteSelected();
-                }
-            } else if (e.key === 'Escape') {
-                if (this.isConnecting) {
-                    this.isConnecting = false;
-                    this.connectionStart = null;
-                    if (this.connectionPreview) {
-                        this.connectionPreview.svg.remove();
-                        this.connectionPreview = null;
                     }
-                    document.getElementById('canvas').style.cursor = 'default';
+                });
+
+                document.querySelector('.add-tab').addEventListener('click', () => this.addNewTab());
+                document.getElementById('backgroundSelect').addEventListener('change', (e) => {
+                    this.getCurrentTab().background = e.target.value;
+                    this.updateBackground();
+                });
+                document.getElementById('gridToggle').addEventListener('click', () => {
+                    this.getCurrentTab().gridVisible = !this.getCurrentTab().gridVisible;
+                    this.updateGrid();
+                });
+                document.getElementById('bwToggle').addEventListener('click', () => {
+                    this.getCurrentTab().bwMode = !this.getCurrentTab().bwMode;
+                    this.updateBWMode();
+                });
+
+                document.getElementById('dashedToggle').addEventListener('click', () => {
+                    this.dashedMode = !this.dashedMode;
+                    document.getElementById('dashedToggle').classList.toggle('active', this.dashedMode);
+                });
+
+                document.getElementById('zoomIn').addEventListener('click', () => this.changeZoom(0.1));
+                document.getElementById('zoomOut').addEventListener('click', () => this.changeZoom(-0.1));
+                document.getElementById('rotateLeft').addEventListener('click', () => this.rotateSelected(-15));
+                document.getElementById('rotateRight').addEventListener('click', () => this.rotateSelected(15));
+                document.getElementById('undoBtn').addEventListener('click', () => this.undo());
+                document.getElementById('redoBtn').addEventListener('click', () => this.redo());
+                document.getElementById('saveBtn').addEventListener('click', () => this.saveSchema());
+                document.getElementById('loadBtn').addEventListener('click', () => {
+                    document.getElementById('fileInput').click();
+                });
+                document.getElementById('fileInput').addEventListener('change', (e) => this.loadSchema(e));
+                document.getElementById('exportBtn').addEventListener('click', () => this.exportSchema());
+                document.getElementById('objectColor').addEventListener('change', (e) => {
+                    this.changeSelectedObjectsColor(e.target.value);
+                });
+                document.getElementById('objectText').addEventListener('input', (e) => {
+                    this.changeSelectedObjectsText(e.target.value);
+                });
+                document.getElementById('arrowColor').addEventListener('change', (e) => {
+                    if (this.selectedArrow) {
+                        this.changeArrowColor(e.target.value);
+                    }
+                });
+                const thicknessInput = document.getElementById('arrowThickness');
+                thicknessInput.addEventListener('input', (e) => {
+                    document.getElementById('thicknessValue').textContent = e.target.value;
+                    if (this.selectedArrow) {
+                        this.changeArrowThickness(e.target.value);
+                    }
+                });
+                document.getElementById('deleteBtn').addEventListener('click', () => this.deleteSelected());
+                document.addEventListener('keydown', (e) => this.handleKeyboard(e));
+                document.querySelectorAll('.arrow-type-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => this.changeArrowType(e.target.id.replace('arrowType', '').toLowerCase()));
+                });
+
+                document.getElementById('dashedObjectToggle').addEventListener('click', () => this.toggleDashedObject());
+
+                // New event listeners for schema details
+                document.getElementById('schemaPeriodo').addEventListener('change', (e) => {
+                    this.getCurrentTab().periodo = e.target.value;
+                });
+                document.getElementById('schemaRuolo').addEventListener('change', (e) => {
+                    this.getCurrentTab().ruolo = e.target.value;
+                });
+                document.getElementById('schemaTipologia').addEventListener('change', (e) => {
+                    this.getCurrentTab().tipologia = e.target.value;
+                });
+                document.getElementById('schemaDescrizione').addEventListener('input', (e) => {
+                    this.getCurrentTab().descrizione = e.target.value;
+                });
+
+
+                // Added accordion functionality
+                document.querySelectorAll('.accordion-header').forEach(header => {
+                    header.addEventListener('click', () => {
+                        const content = header.nextElementSibling;
+                        header.classList.toggle('active');
+                        content.classList.toggle('active');
+                    });
+                });
+
+                // Added sidebar functionality
+                const sidebar = document.getElementById('sidebar');
+                const sidebarHandle = document.getElementById('sidebarHandle');
+                const sidebarSwitch = document.getElementById('sidebarSwitch');
+                let isResizingSidebar = false;
+                let startX;
+                let startWidth;
+
+                sidebarHandle.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    isResizingSidebar = true;
+                    startX = e.clientX;
+                    startWidth = sidebar.offsetWidth;
+                    document.documentElement.addEventListener('mousemove', handleMouseMove);
+                    document.documentElement.addEventListener('mouseup', handleMouseUp);
+                });
+
+                const handleMouseMove = (e) => {
+                    if (!isResizingSidebar) return;
+                    const newWidth = startWidth + (e.clientX - startX);
+                    const minWidth = 150;
+                    const maxWidth = window.innerWidth / 2;
+                    if (newWidth > minWidth && newWidth < maxWidth) {
+                        sidebar.style.width = newWidth + 'px';
+                    }
+                };
+
+                const handleMouseUp = () => {
+                    isResizingSidebar = false;
+                    document.documentElement.removeEventListener('mousemove', handleMouseMove);
+                    document.documentElement.removeEventListener('mouseup', handleMouseUp);
+                };
+
+                sidebarSwitch.addEventListener('click', () => {
+                    sidebar.classList.toggle('hidden');
+                    sidebarSwitch.textContent = sidebar.classList.contains('hidden') ? '▶' : '◀';
+                });
+            }
+
+            handleCanvasDrop(e) {
+                e.preventDefault();
+                const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+                const rect = e.currentTarget.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / this.getCurrentTab().zoom;
+                const y = (e.clientY - rect.top) / this.getCurrentTab().zoom;
+                this.addObject(data.type, x, y, data.color, data.text);
+            }
+
+            addObject(type, x, y, color = '#3498db', text = '', rotation = 0, dashed = this.dashedMode) {
+                const tab = this.getCurrentTab();
+                const id = 'obj-' + tab.nextObjectId++;
+
+                const object = {
+                    id: id,
+                    type: type,
+                    x: x,
+                    y: y,
+                    width: this.getDefaultSize(type).width,
+                    height: this.getDefaultSize(type).height,
+                    color: color,
+                    rotation: rotation,
+                    text: text,
+                    dashed: dashed
+                };
+
+                tab.objects.set(id, object);
+                this.renderObject(object);
+                this.saveState();
+
+                return object;
+            }
+
+            getDefaultSize(type) {
+                const sizes = {
+                    'player': { width: 40, height: 40 },
+                    'ball': { width: 20, height: 20 },
+                    'cone': { width: 20, height: 20 },
+                    'goal': { width: 60, height: 40 },
+                    'net': { width: 300, height: 40 },
+                    'text': { width: 100, height: 30 },
+                    'court': { width: 900, height: 450 },
+                    'half-court': { width: 450, height: 450 }
+                };
+                return sizes[type] || { width: 40, height: 40 };
+            }
+
+            renderObject(object) {
+                let element = document.getElementById(object.id);
+                if (!element) {
+                    element = document.createElement('div');
+                    element.className = 'canvas-object';
+                    element.id = object.id;
+                    document.getElementById('canvas').appendChild(element);
+                }
+
+                element.style.left = object.x + 'px';
+                element.style.top = object.y + 'px';
+                element.style.width = object.width + 'px';
+                element.style.height = object.height + 'px';
+                element.style.transform = `rotate(${object.rotation}deg)`;
+
+                element.classList.toggle('dashed', object.dashed);
+
+                element.innerHTML = '';
+                const content = this.createObjectContent(object);
+                element.appendChild(content);
+
+                this.resizeContent(element, object.width, object.height, object.type);
+
+                this.addControlHandles(element);
+                this.addConnectionPoints(element);
+
+                element.addEventListener('dblclick', (e) => {
+                    this.startInlineEdit(object.id);
+                });
+            }
+
+            createObjectContent(object) {
+                const content = document.createElement('div');
+                content.className = object.type + '-object';
+
+                if (object.type !== 'ball' && object.type !== 'net' && object.type !== 'goal') {
+                    const editableDiv = document.createElement('div');
+                    editableDiv.classList.add('editable-text');
+                    editableDiv.textContent = object.text;
+                    editableDiv.contentEditable = 'false';
+                    editableDiv.style.color = 'black';
+                    content.appendChild(editableDiv);
+
+                    editableDiv.addEventListener('input', () => {
+                        object.text = editableDiv.textContent;
+                    });
+                }
+
+                switch (object.type) {
+                    case 'player':
+                        content.style.backgroundColor = object.color;
+                        content.classList.toggle('dashed', object.dashed);
+                        break;
+                    case 'cone':
+                        content.style.backgroundColor = object.color;
+                        content.classList.toggle('dashed', object.dashed);
+                        break;
+                    case 'goal':
+                        content.style.borderColor = object.color;
+                        content.classList.toggle('dashed', object.dashed);
+                        break;
+                    case 'net':
+                        content.classList.toggle('dashed', object.dashed);
+                        break;
+                }
+
+                return content;
+            }
+
+            startInlineEdit(objectId) {
+                const objectElement = document.getElementById(objectId);
+                if (!objectElement) return;
+
+                const editableText = objectElement.querySelector('.editable-text');
+                if (editableText) {
+                    editableText.contentEditable = 'true';
+                    editableText.focus();
+                    this.deselectAll();
+
+                    editableText.addEventListener('blur', () => {
+                        editableText.contentEditable = 'false';
+                        this.saveState();
+                        this.selectObject(objectElement);
+                    }, { once: true });
+                }
+            }
+
+            resizeContent(element, width, height, type) {
+                const content = element.querySelector(`.${type}-object`);
+                if (!content) return;
+
+                const editableText = content.querySelector('.editable-text');
+                if (editableText) {
+                    const initialWidth = this.getDefaultSize(type).width;
+                    const initialHeight = this.getDefaultSize(type).height;
+                    const scaleFactor = Math.min(width / initialWidth, height / initialHeight);
+                    const newFontSize = 14 * scaleFactor;
+                    editableText.style.fontSize = `${newFontSize}px`;
+                }
+            }
+
+            addControlHandles(element) {
+                let resizeHandle = element.querySelector('.resize-handle');
+                if (!resizeHandle) {
+                    resizeHandle = document.createElement('div');
+                    resizeHandle.className = 'resize-handle';
+                    element.appendChild(resizeHandle);
+                }
+                resizeHandle.addEventListener('mousedown', (e) => {
+                    e.stopPropagation();
+                    this.startResize(element, e);
+                });
+
+                let rotateHandle = element.querySelector('.rotate-handle');
+                if (!rotateHandle) {
+                    rotateHandle = document.createElement('div');
+                    rotateHandle.className = 'rotate-handle';
+                    element.appendChild(rotateHandle);
+                }
+                rotateHandle.addEventListener('mousedown', (e) => {
+                    e.stopPropagation();
+                    this.startRotation(element, e);
+                });
+            }
+
+            addConnectionPoints(element) {
+                const positions = ['top', 'bottom', 'left', 'right'];
+                positions.forEach(pos => {
+                    let point = element.querySelector(`.connection-point.${pos}`);
+                    if (!point) {
+                        point = document.createElement('div');
+                        point.className = `connection-point ${pos}`;
+                        element.appendChild(point);
+                    }
+                    point.addEventListener('mousedown', (e) => {
+                        e.stopPropagation();
+                        this.startConnection({ objectId: element.id, position: pos }, e);
+                    });
+                });
+            }
+
+            handleCanvasMouseDown(e) {
+                if (e.target.closest('.resize-handle') || e.target.closest('.rotate-handle') || e.target.closest('.connection-point')) {
+                    return;
+                }
+
+                if (this.arrowMode) {
+                    this.startConnection({ objectId: null, position: { x: (e.clientX - e.currentTarget.getBoundingClientRect().left) / this.getCurrentTab().zoom, y: (e.clientY - e.currentTarget.getBoundingClientRect().top) / this.getCurrentTab().zoom } }, e);
+                    return;
+                }
+                const target = e.target.closest('.canvas-object');
+                const arrowPath = e.target.closest('.arrow-path');
+                const arrowControlPoint = e.target.closest('.control-point');
+
+                if (arrowControlPoint) {
+                    e.stopPropagation();
+                    this.isDraggingControlPoint = true;
+                    this.selectedArrow = arrowControlPoint.closest('.arrow-svg').id;
+                } else if (target) {
+                    if (e.ctrlKey || e.metaKey) {
+                        this.toggleMultiSelection(target);
+                    } else {
+                        this.selectObject(target);
+                    }
+                    this.startDrag(e);
+                } else if (arrowPath) {
+                    this.selectArrow(arrowPath.closest('.arrow-svg').id);
+                } else {
+                    this.deselectAll();
+                    this.isSelecting = true;
+                    this.selectionStart.x = e.clientX;
+                    this.selectionStart.y = e.clientY;
+                    this.canvasRect = document.getElementById('canvas').getBoundingClientRect();
+                    this.createSelectionBox();
+                    document.getElementById('selectionBox').style.display = 'block';
+                }
+            }
+
+            handleCanvasMouseMove(e) {
+                if (this.isDragging) {
+                    const deltaX = (e.clientX - this.dragStart.x) / this.getCurrentTab().zoom;
+                    const deltaY = (e.clientY - this.dragStart.y) / this.getCurrentTab().zoom;
+
+                    this.selectedObjects.forEach((initialPos, id) => {
+                        const objectData = this.getCurrentTab().objects.get(id);
+                        if (objectData) {
+                            objectData.x = initialPos.x + deltaX;
+                            objectData.y = initialPos.y + deltaY;
+                            document.getElementById(id).style.left = objectData.x + 'px';
+                            document.getElementById(id).style.top = objectData.y + 'px';
+                            this.updateArrowsForObject(id);
+                        }
+                    });
+                } else if (this.isResizing && this.selectedObject) {
+                    this.handleResize(e);
+                } else if (this.isRotating && this.selectedObject) {
+                    this.handleRotation(e);
+                } else if (this.isConnecting) {
+                    this.updateConnectionPreview(e);
+                } else if (this.isSelecting) {
+                    this.updateSelectionBox(e);
+                } else if (this.isDraggingControlPoint) {
+                    const arrow = this.getCurrentTab().arrows.get(this.selectedArrow);
+                    const rect = document.getElementById('canvas').getBoundingClientRect();
+                    const newX = (e.clientX - rect.left) / this.getCurrentTab().zoom;
+                    const newY = (e.clientY - rect.top) / this.getCurrentTab().zoom;
+                    arrow.controlPoint.x = newX;
+                    arrow.controlPoint.y = newY;
+                    this.renderArrow(arrow);
+                }
+            }
+
+            handleCanvasMouseUp(e) {
+                if (this.isConnecting) {
+                    this.finishConnection(e);
+                } else if (this.isDragging || this.isResizing || this.isRotating || this.isDraggingControlPoint) {
+                    this.saveState();
+                } else if (this.isSelecting) {
+                    this.finalizeSelectionBox(e);
+                }
+
+                this.isDragging = false;
+                this.isResizing = false;
+                this.isRotating = false;
+                this.isDraggingControlPoint = false;
+                this.isSelecting = false;
+                const selectionBox = document.getElementById('selectionBox');
+                if (selectionBox) selectionBox.remove();
+            }
+
+            createSelectionBox() {
+                let box = document.getElementById('selectionBox');
+                if (!box) {
+                    box = document.createElement('div');
+                    box.id = 'selectionBox';
+                    box.style.position = 'absolute';
+                    box.style.border = '1px solid #3498db';
+                    box.style.backgroundColor = 'rgba(52, 152, 219, 0.2)';
+                    box.style.display = 'none';
+                    document.getElementById('canvas').appendChild(box);
+                }
+            }
+
+            startDrag(e) {
+                this.isDragging = true;
+                this.dragStart = { x: e.clientX, y: e.clientY };
+
+                if (!e.ctrlKey && !e.metaKey && this.selectedObject) {
+                    this.selectedObjects.clear();
+                    this.selectedObjects.set(this.selectedObject.id, { x: this.getCurrentTab().objects.get(this.selectedObject.id).x, y: this.getCurrentTab().objects.get(this.selectedObject.id).y });
+                }
+
+                this.updateObjectControls();
+            }
+
+            updateSelectionBox(e) {
+                const box = document.getElementById('selectionBox');
+                const x = e.clientX;
+                const y = e.clientY;
+
+                const left = Math.min(this.selectionStart.x, x);
+                const top = Math.min(this.selectionStart.y, y);
+                const width = Math.abs(this.selectionStart.x - x);
+                const height = Math.abs(this.selectionStart.y - y);
+
+                box.style.left = `${left - this.canvasRect.left}px`;
+                box.style.top = `${top - this.canvasRect.top}px`;
+                box.style.width = `${width}px`;
+                box.style.height = `${height}px`;
+            }
+
+            finalizeSelectionBox(e) {
+                const box = document.getElementById('selectionBox');
+                box.style.display = 'none';
+
+                const rect = box.getBoundingClientRect();
+                const canvas = document.getElementById('canvas');
+                const canvasRect = canvas.getBoundingClientRect();
+
+                const objects = document.querySelectorAll('.canvas-object');
+                const tab = this.getCurrentTab();
+
+                this.deselectAll();
+
+                objects.forEach(obj => {
+                    const objRect = obj.getBoundingClientRect();
+                    const objData = tab.objects.get(obj.id);
+
+                    if (
+                        objRect.left < rect.right &&
+                        objRect.right > rect.left &&
+                        objRect.top < rect.bottom &&
+                        objRect.bottom > rect.top
+                    ) {
+                        this.selectedObjects.set(obj.id, { x: objData.x, y: objData.y });
+                        obj.classList.add('selected');
+                    }
+                });
+
+                this.updateObjectControls();
+                this.saveState();
+            }
+
+            startResize(element, e) {
+                this.isResizing = true;
+                this.selectedObject = element;
+                this.resizeStart = {
+                    x: e.clientX,
+                    y: e.clientY,
+                    width: element.offsetWidth,
+                    height: element.offsetHeight
+                };
+            }
+
+            handleResize(e) {
+                if (!this.isResizing) return;
+
+                const deltaX = (e.clientX - this.resizeStart.x) / this.getCurrentTab().zoom;
+                const deltaY = (e.clientY - this.resizeStart.y) / this.getCurrentTab().zoom;
+
+                const newWidth = Math.max(20, this.resizeStart.width + deltaX);
+                const newHeight = Math.max(20, this.resizeStart.height + deltaY);
+
+                this.selectedObject.style.width = newWidth + 'px';
+                this.selectedObject.style.height = newHeight + 'px';
+
+                const objectData = this.getCurrentTab().objects.get(this.selectedObject.id);
+                if (objectData) {
+                    objectData.width = newWidth;
+                    objectData.height = newHeight;
+                }
+
+                this.resizeContent(this.selectedObject, newWidth, newHeight, objectData.type);
+
+                this.updateArrowsForObject(this.selectedObject.id);
+            }
+
+            startRotation(element, e) {
+                this.isRotating = true;
+                this.selectedObject = element;
+                const rect = element.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                this.rotationStart = {
+                    centerX: centerX,
+                    centerY: centerY,
+                    startAngle: Math.atan2(e.clientY - centerY, e.clientX - centerX)
+                };
+            }
+
+            handleRotation(e) {
+                if (!this.rotationStart) return;
+
+                const currentAngle = Math.atan2(
+                    e.clientY - this.rotationStart.centerY,
+                    e.clientX - this.rotationStart.centerX
+                );
+
+                const deltaAngle = currentAngle - this.rotationStart.startAngle;
+                const degrees = deltaAngle * (180 / Math.PI);
+
+                const objectData = this.getCurrentTab().objects.get(this.selectedObject.id);
+                if (objectData) {
+                    objectData.rotation = (objectData.rotation + degrees) % 360;
+                    this.selectedObject.style.transform = `rotate(${objectData.rotation}deg)`;
+                }
+
+                this.rotationStart.startAngle = currentAngle;
+                this.updateArrowsForObject(this.selectedObject.id);
+            }
+
+            selectObject(element) {
+                this.deselectAll();
+                this.selectedObject = element;
+                this.selectedObjects.set(element.id, { x: this.getCurrentTab().objects.get(element.id).x, y: this.getCurrentTab().objects.get(element.id).y });
+                element.classList.add('selected');
+                this.updateObjectControls();
+            }
+
+            toggleMultiSelection(element) {
+                const objectId = element.id;
+                const tab = this.getCurrentTab();
+                if (this.selectedObjects.has(objectId)) {
+                    this.selectedObjects.delete(objectId);
+                    element.classList.remove('selected');
+                } else {
+                    this.selectedObjects.set(objectId, { x: tab.objects.get(objectId).x, y: tab.objects.get(objectId).y });
+                    element.classList.add('selected');
+                }
+
+                this.selectedObject = this.selectedObjects.size > 0 ? element : null;
+                this.updateObjectControls();
+            }
+
+            updateObjectControls() {
+                if (this.selectedObjects.size > 0) {
+                    const firstSelectedId = this.selectedObjects.keys().next().value;
+                    const objectData = this.getCurrentTab().objects.get(firstSelectedId);
+                    document.getElementById('objectColor').value = objectData.color;
+                    document.getElementById('objectText').value = objectData.text;
+                    document.getElementById('objectInfo').textContent =
+                        `Selezionati: ${this.selectedObjects.size} oggetti`;
+
+                    const dashedObjectToggleBtn = document.getElementById('dashedObjectToggle');
+                    dashedObjectToggleBtn.style.display = 'inline-block';
+                    dashedObjectToggleBtn.classList.toggle('active', objectData.dashed);
+
+                    document.getElementById('objectControls').style.display = 'flex';
+                    document.getElementById('arrowControls').style.display = 'none';
+
+                } else {
+                    document.getElementById('objectInfo').textContent = 'Nessun oggetto selezionato';
+                    document.getElementById('objectText').value = '';
+                    document.getElementById('dashedObjectToggle').style.display = 'none';
+
+                    document.getElementById('objectControls').style.display = 'flex';
+                    document.getElementById('arrowControls').style.display = 'none';
+                }
+            }
+
+            updateArrowControls() {
+                if (this.selectedArrow) {
+                    const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
+                    document.getElementById('arrowColor').value = arrowData.color;
+                    document.getElementById('arrowThickness').value = arrowData.thickness;
+                    document.getElementById('thicknessValue').textContent = arrowData.thickness;
+
+                    document.getElementById('objectInfo').textContent = 'Freccia selezionata';
+                    document.getElementById('objectControls').style.display = 'none';
+                    document.getElementById('arrowControls').style.display = 'flex';
+
+                    document.querySelectorAll('.arrow-type-btn').forEach(btn => btn.classList.remove('active'));
+                    document.getElementById(`arrowType${arrowData.type.charAt(0).toUpperCase() + arrowData.type.slice(1)}`).classList.add('active');
                 } else {
                     this.deselectAll();
                 }
             }
+
+
+            deselectAll() {
+                document.querySelectorAll('.canvas-object.selected').forEach(obj => {
+                    obj.classList.remove('selected');
+                });
+                document.querySelectorAll('.arrow-path.selected').forEach(arrow => {
+                    arrow.classList.remove('selected');
+                });
+                document.getElementById('arrowModeBtn').classList.remove('active');
+                this.arrowMode = false;
+
+                this.selectedObject = null;
+                this.selectedObjects.clear();
+                this.selectedArrow = null;
+                document.getElementById('objectInfo').textContent = 'Nessun oggetto selezionato';
+                document.getElementById('objectText').value = '';
+
+                document.getElementById('dashedObjectToggle').style.display = 'none';
+                document.getElementById('objectControls').style.display = 'flex';
+                document.getElementById('arrowControls').style.display = 'none';
+            }
+
+            startConnection(from, e) {
+                e.preventDefault();
+                this.isConnecting = true;
+                this.connectionStart = from;
+                document.getElementById('canvas').style.cursor = 'crosshair';
+                this.createConnectionPreview(e);
+            }
+
+            createConnectionPreview(e) {
+                const startPos = this.getConnectionPointAbsolutePosition(
+                    this.connectionStart.objectId,
+                    this.connectionStart.position
+                );
+
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.id = 'connection-preview';
+                svg.style.position = 'absolute';
+                svg.style.left = '0px';
+                svg.style.top = '0px';
+                svg.style.width = '100%';
+                svg.style.height = '100%';
+                svg.style.pointerEvents = 'none';
+                svg.style.zIndex = '9999';
+
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('stroke', '#3498db');
+                path.setAttribute('stroke-width', '2');
+                path.setAttribute('stroke-dasharray', '5,5');
+                path.setAttribute('fill', 'none');
+                path.setAttribute('marker-end', 'url(#arrowhead)');
+
+                svg.appendChild(path);
+                document.getElementById('canvas').appendChild(svg);
+
+                this.connectionPreview = { svg, path, startPos };
+            }
+
+            updateConnectionPreview(e) {
+                if (!this.connectionPreview) return;
+
+                const rect = document.getElementById('canvas').getBoundingClientRect();
+                const currentX = (e.clientX - rect.left) / this.getCurrentTab().zoom;
+                const currentY = (e.clientY - rect.top) / this.getCurrentTab().zoom;
+
+                const pathData = this.generateArrowPath(this.connectionPreview.startPos, { x: currentX, y: currentY }, this.arrowType);
+                this.connectionPreview.path.setAttribute('d', pathData);
+            }
+
+            finishConnection(e) {
+                if (!this.isConnecting || !this.connectionStart) return;
+
+                const target = e.target.closest('.connection-point');
+                const targetObject = target?.closest('.canvas-object');
+
+                const rect = document.getElementById('canvas').getBoundingClientRect();
+                const endPos = { x: (e.clientX - rect.left) / this.getCurrentTab().zoom, y: (e.clientY - rect.top) / this.getCurrentTab().zoom };
+
+                let to;
+                if (target && targetObject && targetObject.id !== this.connectionStart.objectId) {
+                    const targetPosition = target.classList.contains('top') ? 'top' :
+                        target.classList.contains('bottom') ? 'bottom' :
+                            target.classList.contains('left') ? 'left' : 'right';
+                    to = { objectId: targetObject.id, position: targetPosition };
+                } else {
+                    to = endPos;
+                }
+
+                this.createArrow(this.connectionStart, to, this.arrowType);
+
+                this.isConnecting = false;
+                this.connectionStart = null;
+                if (this.connectionPreview) {
+                    this.connectionPreview.svg.remove();
+                    this.connectionPreview = null;
+                }
+                document.getElementById('canvas').style.cursor = 'default';
+            }
+
+            getConnectionPointAbsolutePosition(objectId, position) {
+                if (!objectId) {
+                    return position;
+                }
+                const element = document.getElementById(objectId);
+                if (!element) return { x: 0, y: 0 };
+
+                const rect = element.getBoundingClientRect();
+                const canvasRect = document.getElementById('canvas').getBoundingClientRect();
+
+                const centerX = (rect.left - canvasRect.left) + (rect.width / 2);
+                const centerY = (rect.top - canvasRect.top) + (rect.height / 2);
+                const halfWidth = rect.width / 2;
+                const halfHeight = rect.height / 2;
+
+                const rotation = this.getCurrentTab().objects.get(objectId)?.rotation || 0;
+                const angle = rotation * (Math.PI / 180);
+
+                let offset = { x: 0, y: 0 };
+                switch (position) {
+                    case 'top':
+                        offset = { x: 0, y: -halfHeight };
+                        break;
+                    case 'bottom':
+                        offset = { x: 0, y: halfHeight };
+                        break;
+                    case 'left':
+                        offset = { x: -halfWidth, y: 0 };
+                        break;
+                    case 'right':
+                        offset = { x: halfWidth, y: 0 };
+                        break;
+                }
+
+                const rotatedX = offset.x * Math.cos(angle) - offset.y * Math.sin(angle);
+                const rotatedY = offset.x * Math.sin(angle) + offset.y * Math.cos(angle);
+
+                return {
+                    x: (centerX + rotatedX) / this.getCurrentTab().zoom,
+                    y: (centerY + rotatedY) / this.getCurrentTab().zoom
+                };
+            }
+
+            createArrow(from, to, type, dashed = this.dashedMode, color = document.getElementById('arrowColor').value, thickness = parseInt(document.getElementById('arrowThickness').value)) {
+                const tab = this.getCurrentTab();
+                const arrowId = 'arrow-' + tab.nextArrowId++;
+
+                const arrow = {
+                    id: arrowId,
+                    from: from,
+                    to: to,
+                    type: type,
+                    dashed: dashed,
+                    color: color,
+                    thickness: thickness,
+                    controlPoint: null
+                };
+
+                if (type === 'curved') {
+                    const fromPos = this.getArrowPoint(arrow.from);
+                    const toPos = this.getArrowPoint(arrow.to);
+                    arrow.controlPoint = this.generateDefaultControlPoint(fromPos, toPos);
+                }
+
+                tab.arrows.set(arrowId, arrow);
+                this.renderArrow(arrow);
+                this.saveState();
+
+                return arrow;
+            }
+
+            getArrowPoint(point) {
+                if (point.objectId) {
+                    return this.getConnectionPointAbsolutePosition(point.objectId, point.position);
+                }
+                return point;
+            }
+
+            renderArrow(arrow) {
+                let fromPos = this.getArrowPoint(arrow.from);
+                let toPos = this.getArrowPoint(arrow.to);
+
+                let svg = document.getElementById(arrow.id);
+                if (!svg) {
+                    svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                    svg.classList.add('arrow-svg');
+                    svg.id = arrow.id;
+                    document.getElementById('canvas').appendChild(svg);
+                } else {
+                    svg.innerHTML = '';
+                }
+
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.classList.add('arrow-path');
+                if (arrow.dashed) path.classList.add('dashed');
+
+                let pathData;
+                let controlPointElement;
+
+                if (arrow.type === 'curved') {
+                    if (!arrow.controlPoint) {
+                        arrow.controlPoint = this.generateDefaultControlPoint(fromPos, toPos);
+                    }
+                    pathData = this.generateArrowPath(fromPos, toPos, arrow.type, arrow.controlPoint);
+                    controlPointElement = this.addCurveControlPoint(svg, arrow);
+                } else {
+                    pathData = this.generateArrowPath(fromPos, toPos, arrow.type);
+                    arrow.controlPoint = null;
+                }
+
+                path.setAttribute('d', pathData);
+                path.setAttribute('stroke', arrow.color);
+                path.setAttribute('stroke-width', arrow.thickness);
+                path.setAttribute('marker-end', `url(#arrowhead)`);
+
+                path.addEventListener('mousedown', (e) => {
+                    e.stopPropagation();
+                    this.selectArrow(arrow.id);
+                });
+
+                svg.appendChild(path);
+                if (controlPointElement) {
+                    svg.appendChild(controlPointElement);
+                }
+
+
+                const allPoints = [fromPos, toPos];
+                if (arrow.type === 'curved' && arrow.controlPoint) {
+                    allPoints.push(arrow.controlPoint);
+                }
+
+                const minX = Math.min(...allPoints.map(p => p.x)) - arrow.thickness - 10;
+                const minY = Math.min(...allPoints.map(p => p.y)) - arrow.thickness - 10;
+                const maxX = Math.max(...allPoints.map(p => p.x)) + arrow.thickness + 10;
+                const maxY = Math.max(...allPoints.map(p => p.y)) + arrow.thickness + 10;
+
+                svg.style.left = minX + 'px';
+                svg.style.top = minY + 'px';
+                svg.style.width = (maxX - minX) + 'px';
+                svg.style.height = (maxY - minY) + 'px';
+                svg.setAttribute('viewBox', `${minX} ${minY} ${maxX - minX} ${maxY - minY}`);
+            }
+
+            addCurveControlPoint(svg, arrow) {
+                const controlPoint = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                controlPoint.setAttribute('cx', arrow.controlPoint.x);
+                controlPoint.setAttribute('cy', arrow.controlPoint.y);
+                controlPoint.setAttribute('r', '6');
+                controlPoint.setAttribute('fill', '#f39c12');
+                controlPoint.setAttribute('stroke', '#fff');
+                controlPoint.setAttribute('stroke-width', '2');
+                controlPoint.style.cursor = 'move';
+                controlPoint.classList.add('control-point');
+
+                controlPoint.addEventListener('mousedown', (e) => {
+                    e.stopPropagation();
+                    this.isDraggingControlPoint = true;
+                    this.selectedArrow = arrow.id;
+                });
+
+                return controlPoint;
+            }
+
+            generateDefaultControlPoint(from, to) {
+                const midX = (from.x + to.x) / 2;
+                const midY = (from.y + to.y) / 2;
+                const offset = 50;
+                const dx = to.x - from.x;
+                const dy = to.y - from.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist === 0) return { x: midX + offset, y: midY };
+
+                const controlX = midX + (from.y - to.y) * offset / dist;
+                const controlY = midY + (to.x - from.x) * offset / dist;
+                return { x: controlX, y: controlY };
+            }
+
+            generateArrowPath(from, to, type, controlPoint = null) {
+                switch (type) {
+                    case 'linear':
+                        return `M ${from.x} ${from.y} L ${to.x} ${to.y}`;
+
+                    case 'curved':
+                        const cp = controlPoint || this.generateDefaultControlPoint(from, to);
+                        return `M ${from.x} ${from.y} Q ${cp.x} ${cp.y} ${to.x} ${to.y}`;
+
+                    case 'zigzag':
+                        const midXZ = (from.x + to.x) / 2;
+                        return `M ${from.x} ${from.y} L ${midXZ} ${from.y} L ${midXZ} ${to.y} L ${to.x} ${to.y}`;
+
+                    default:
+                        return `M ${from.x} ${from.y} L ${to.x} ${to.y}`;
+                }
+            }
+
+            updateArrowsForObject(objectId) {
+                const tab = this.getCurrentTab();
+                tab.arrows.forEach((arrow, arrowId) => {
+                    if (arrow.from.objectId === objectId || arrow.to.objectId === objectId) {
+                        this.renderArrow(arrow);
+                    }
+                });
+            }
+
+            selectArrow(arrowId) {
+                this.deselectAll();
+                this.selectedArrow = arrowId;
+
+                const arrowElement = document.getElementById(arrowId);
+                if (arrowElement) {
+                    const path = arrowElement.querySelector('.arrow-path');
+                    if (path) {
+                        path.classList.add('selected');
+                    }
+                }
+                this.updateArrowControls();
+            }
+
+            changeArrowType(newType) {
+                if (!this.selectedArrow) return;
+                const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
+                if (arrowData) {
+                    arrowData.type = newType;
+                    if (newType === 'curved' && !arrowData.controlPoint) {
+                        const fromPos = this.getArrowPoint(arrowData.from);
+                        const toPos = this.getArrowPoint(arrowData.to);
+                        arrowData.controlPoint = this.generateDefaultControlPoint(fromPos, toPos);
+                    }
+                    this.renderArrow(arrowData);
+                    this.updateArrowControls();
+                    this.saveState();
+                }
+            }
+
+            changeSelectedObjectsColor(color) {
+                if (this.selectedObjects.size === 0) return;
+
+                const tab = this.getCurrentTab();
+                this.selectedObjects.forEach((pos, id) => {
+                    const objectData = tab.objects.get(id);
+                    if (!objectData) return;
+                    objectData.color = color;
+                    this.renderObject(objectData);
+                });
+
+                this.saveState();
+            }
+
+            changeSelectedObjectsText(text) {
+                if (this.selectedObjects.size === 0) return;
+
+                const tab = this.getCurrentTab();
+                this.selectedObjects.forEach((pos, id) => {
+                    const objectData = tab.objects.get(id);
+                    if (!objectData) return;
+                    objectData.text = text;
+                    this.renderObject(objectData);
+                });
+
+                this.saveState();
+            }
+
+            changeArrowColor(color) {
+                if (!this.selectedArrow) return;
+                const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
+                if (arrowData) {
+                    arrowData.color = color;
+                    this.renderArrow(arrowData);
+                    this.saveState();
+                }
+            }
+
+            changeArrowThickness(thickness) {
+                if (!this.selectedArrow) return;
+                const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
+                if (arrowData) {
+                    arrowData.thickness = parseInt(thickness);
+                    this.renderArrow(arrowData);
+                    this.saveState();
+                }
+            }
+
+            toggleDashedObject() {
+                if (this.selectedObjects.size === 0) return;
+                const tab = this.getCurrentTab();
+
+                const firstSelectedId = this.selectedObjects.keys().next().value;
+                const isDashed = tab.objects.get(firstSelectedId).dashed;
+                const newState = !isDashed;
+
+                this.selectedObjects.forEach((pos, id) => {
+                    const objectData = tab.objects.get(id);
+                    if (objectData) {
+                        objectData.dashed = newState;
+                        this.renderObject(objectData);
+                    }
+                });
+                document.getElementById('dashedObjectToggle').classList.toggle('active', newState);
+                this.saveState();
+            }
+
+            rotateSelected(degrees) {
+                if (this.selectedObjects.size === 0) return;
+
+                const tab = this.getCurrentTab();
+                this.selectedObjects.forEach((pos, id) => {
+                    const objectData = tab.objects.get(id);
+                    if (objectData) {
+                        objectData.rotation = (objectData.rotation + degrees) % 360;
+                        document.getElementById(id).style.transform = `rotate(${objectData.rotation}deg)`;
+                        this.updateArrowsForObject(id);
+                    }
+                });
+                this.saveState();
+            }
+
+            deleteSelected() {
+                const tab = this.getCurrentTab();
+                if (this.selectedObjects.size > 0) {
+                    this.selectedObjects.forEach((pos, objectId) => {
+                        tab.arrows.forEach((arrow, arrowId) => {
+                            if (arrow.from.objectId === objectId || arrow.to.objectId === objectId) {
+                                document.getElementById(arrowId)?.remove();
+                                tab.arrows.delete(arrowId);
+                            }
+                        });
+                        tab.objects.delete(objectId);
+                        document.getElementById(objectId)?.remove();
+                    });
+                } else if (this.selectedArrow) {
+                    document.getElementById(this.selectedArrow)?.remove();
+                    tab.arrows.delete(this.selectedArrow);
+                }
+
+                this.deselectAll();
+                this.saveState();
+            }
+
+            copySelected() {
+                const tab = this.getCurrentTab();
+                const copiedObjects = [];
+                const copiedArrows = [];
+
+                try {
+                    this.selectedObjects.forEach((pos, id) => {
+                        const obj = tab.objects.get(id);
+                        if (obj) {
+                            const newObj = { ...obj };
+                            copiedObjects.push(newObj);
+                        }
+                    });
+
+                    tab.arrows.forEach(arrow => {
+                        if (this.selectedObjects.has(arrow.from.objectId) && this.selectedObjects.has(arrow.to.objectId)) {
+                            const newArrow = { ...arrow };
+                            if (newArrow.from) newArrow.from = { ...newArrow.from };
+                            if (newArrow.to) newArrow.to = { ...newArrow.to };
+                            if (newArrow.controlPoint) newArrow.controlPoint = { ...newArrow.controlPoint };
+                            copiedArrows.push(newArrow);
+                        }
+                    });
+
+                    this.clipboard = { objects: copiedObjects, arrows: copiedArrows };
+                } catch (error) {
+                    console.error('Errore durante la copia degli oggetti:', error);
+                    alert('Errore durante la copia. Potrebbe esserci un problema con gli oggetti selezionati. Controlla la console per i dettagli.');
+                }
+            }
+
+            cutSelected() {
+                this.copySelected();
+                this.deleteSelected();
+            }
+
+            paste() {
+                if (!this.clipboard) return;
+
+                this.deselectAll();
+
+                const tab = this.getCurrentTab();
+                const pastedObjectMap = new Map();
+                const offset = 20;
+
+                this.clipboard.objects.forEach(obj => {
+                    const oldId = obj.id;
+                    const newObj = this.addObject(obj.type, obj.x + offset, obj.y + offset, obj.color, obj.text, obj.rotation, obj.dashed);
+                    pastedObjectMap.set(oldId, newObj.id);
+                    this.selectedObjects.set(newObj.id, { x: newObj.x, y: newObj.y });
+                    document.getElementById(newObj.id).classList.add('selected');
+                });
+
+                this.clipboard.arrows.forEach(arrow => {
+                    const newFrom = { ...arrow.from };
+                    const newTo = { ...arrow.to };
+
+                    if (newFrom.objectId) newFrom.objectId = pastedObjectMap.get(newFrom.objectId);
+                    if (newTo.objectId) newTo.objectId = pastedObjectMap.get(newTo.objectId);
+
+                    this.createArrow(newFrom, newTo, arrow.type, arrow.dashed, arrow.color, arrow.thickness);
+                });
+
+                this.saveState();
+                this.updateObjectControls();
+            }
+
+            changeZoom(delta) {
+                const tab = this.getCurrentTab();
+                tab.zoom = Math.max(0.2, Math.min(3, tab.zoom + delta));
+                this.zoom = tab.zoom;
+                this.updateZoom();
+            }
+
+            updateZoom() {
+                const tab = this.getCurrentTab();
+                const canvas = document.getElementById('canvas');
+                canvas.style.transform = `scale(${tab.zoom})`;
+                document.getElementById('zoomDisplay').textContent = Math.round(tab.zoom * 100) + '%';
+            }
+
+            updateBackground() {
+                const tab = this.getCurrentTab();
+                const canvas = document.getElementById('canvas');
+                canvas.className = 'canvas';
+
+                if (tab.gridVisible) canvas.classList.add('grid-visible');
+                if (tab.bwMode) canvas.classList.add('bw-mode');
+
+                switch (tab.background) {
+                    case 'half-field':
+                        canvas.classList.add('bg-half-field');
+                        break;
+                    case 'full-field':
+                        canvas.classList.add('bg-full-field');
+                        break;
+                    case '3d-field':
+                        canvas.classList.add('bg-3d-field');
+                        break;
+                }
+            }
+
+            updateGrid() {
+                const tab = this.getCurrentTab();
+                document.getElementById('gridToggle').classList.toggle('active', tab.gridVisible);
+                this.updateBackground();
+            }
+
+            updateBWMode() {
+                const tab = this.getCurrentTab();
+                document.getElementById('bwToggle').classList.toggle('active', tab.bwMode);
+                this.updateBackground();
+            }
+
+            addNewTab() {
+                const id = this.nextTabId++;
+                const name = `Schema ${id}`;
+
+                this.initializeTab(id, name);
+                this.createTabElement(id, name);
+                this.switchToTab(id);
+            }
+
+            createTabElement(id, name) {
+                const tabsContainer = document.querySelector('.tabs-container');
+                const addButton = tabsContainer.querySelector('.add-tab');
+
+                const tab = document.createElement('div');
+                tab.className = 'tab';
+                tab.dataset.tabId = id;
+                tab.innerHTML = `<span>${name}</span><span class="tab-close">×</span>`;
+
+                tabsContainer.insertBefore(tab, addButton);
+            }
+
+            switchToTab(id) {
+                this.saveTabState();
+
+                const oldActiveTab = document.querySelector('.tab.active');
+                if (oldActiveTab) {
+                    oldActiveTab.classList.remove('active');
+                }
+
+                this.activeTabId = id;
+
+                const newActiveTab = document.querySelector(`.tab[data-tab-id="${id}"]`);
+                if (newActiveTab) {
+                    newActiveTab.classList.add('active');
+                }
+
+                this.loadTabState();
+            }
+
+            closeTab(id) {
+                if (this.tabs.size <= 1) return;
+                this.tabs.delete(id);
+                document.querySelector(`[data-tab-id="${id}"]`).remove();
+                if (this.activeTabId === id) {
+                    const firstTabId = this.tabs.keys().next().value;
+                    this.switchToTab(firstTabId);
+                }
+            }
+
+            saveTabState() {
+                const tab = this.getCurrentTab();
+                if (!tab) return;
+                tab.background = document.getElementById('backgroundSelect').value;
+                tab.gridVisible = document.getElementById('gridToggle').classList.contains('active');
+                tab.bwMode = document.getElementById('bwToggle').classList.contains('active');
+                tab.zoom = this.zoom;
+            }
+
+            loadTabState() {
+                const tab = this.getCurrentTab();
+                const canvas = document.getElementById('canvas');
+
+                while (canvas.firstChild) {
+                    canvas.removeChild(canvas.firstChild);
+                }
+
+                tab.objects.forEach(obj => this.renderObject(obj));
+                tab.arrows.forEach(arrow => this.renderArrow(arrow));
+                document.getElementById('backgroundSelect').value = tab.background;
+                this.zoom = tab.zoom;
+                this.updateBackground();
+                this.updateZoom();
+                this.updateGrid();
+                this.updateBWMode();
+                this.deselectAll();
+            }
+
+            saveState() {
+                const tab = this.getCurrentTab();
+                const state = {
+                    objects: Array.from(tab.objects.entries()),
+                    arrows: Array.from(tab.arrows.entries())
+                };
+
+                if (tab.historyIndex < tab.history.length - 1) {
+                    tab.history = tab.history.slice(0, tab.historyIndex + 1);
+                }
+
+                tab.history.push(state);
+                tab.historyIndex++;
+
+                if (tab.history.length > 50) {
+                    tab.history.shift();
+                    tab.historyIndex--;
+                }
+            }
+
+            undo() {
+                const tab = this.getCurrentTab();
+                if (tab.historyIndex > 0) {
+                    tab.historyIndex--;
+                    this.restoreState(tab.history[tab.historyIndex]);
+                }
+            }
+
+            redo() {
+                const tab = this.getCurrentTab();
+                if (tab.historyIndex < tab.history.length - 1) {
+                    tab.historyIndex++;
+                    this.restoreState(tab.history[tab.historyIndex]);
+                }
+            }
+
+            restoreState(state) {
+                const tab = this.getCurrentTab();
+                tab.objects = new Map(state.objects);
+                tab.arrows = new Map(state.arrows);
+                this.loadTabState();
+            }
+
+            saveSchema() {
+                const tab = this.getCurrentTab();
+                const title = document.getElementById('schemaTitle').value || 'schema';
+                const note = document.getElementById('schemaDescrizione').value || '';
+
+                const tipologia = document.getElementById('schemaTipologia').value || '';
+                const ruolo = document.getElementById('schemaRuolo').value || '';
+                const periodo = document.getElementById('schemaPeriodo').value || '';
+
+
+                const data = {
+                    title: title,
+                    note: note,
+                    tipologia: tipologia,
+                    ruolo: ruolo,
+                    periodo: periodo,
+                    objects: Array.from(tab.objects.entries()),
+                    arrows: Array.from(tab.arrows.entries()),
+                    background: tab.background,
+                    gridVisible: tab.gridVisible,
+                    bwMode: tab.bwMode,
+                    zoom: tab.zoom
+                };
+
+                const blob = new Blob([JSON.stringify(data, null, 2)],
+                    { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${title}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            async loadSchema(event) {
+                let data = null;
+                // 1. Controlla se 'source' è un Promise (ha il metodo .then())
+                if (typeof event === 'object' && event !== null && typeof event.then === 'function') {
+
+                    try {
+                        // Se è un Promise, attende la sua risoluzione per ottenere i dati JSON
+                        data = await event;
+                        const tab = this.getCurrentTab();
+
+                        tab.objects.clear();
+                        tab.arrows.clear();
+
+                        data.objects.forEach(([id, obj]) => tab.objects.set(id, obj));
+                        data.arrows.forEach(([id, arrow]) => tab.arrows.set(id, arrow));
+
+                        tab.background = data.background || 'none';
+                        tab.gridVisible = data.gridVisible || false;
+                        tab.bwMode = data.bwMode || false;
+                        tab.zoom = data.zoom || 1;
+
+                        document.getElementById('schemaTitle').value = data.title || 'Schema';
+                        document.getElementById('schemaDescrizione').value = data.note || '';
+                        document.getElementById('schemaTipologia').value = data.tipologia || '';
+                        document.getElementById('schemaRuolo').value = data.ruolo || '';
+                        document.getElementById('schemaPeriodo').value = data.periodo || '';
+
+                        this.loadTabState();
+                        this.saveState();
+                        console.log("Dati caricati con successo da Promise (Libreria).");
+
+                    } catch (error) {
+                        // Cattura l'errore se il Promise viene rigettato (es. fetch fallita)
+                        alert('Errore nel caricamento dei dati dalla libreria. Il Promise è stato rigettato.');
+                        console.error('Errore Promise:', error);
+                        return;
+                    }
+
+                } else if (event && event.target && event.target.files) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const data = JSON.parse(e.target.result);
+                            const tab = this.getCurrentTab();
+
+                            tab.objects.clear();
+                            tab.arrows.clear();
+
+                            data.objects.forEach(([id, obj]) => tab.objects.set(id, obj));
+                            data.arrows.forEach(([id, arrow]) => tab.arrows.set(id, arrow));
+
+                            tab.background = data.background || 'none';
+                            tab.gridVisible = data.gridVisible || false;
+                            tab.bwMode = data.bwMode || false;
+                            tab.zoom = data.zoom || 1;
+
+                            document.getElementById('schemaTitle').value = data.title || 'Schema';
+                            document.getElementById('schemaDescrizione').value = data.note || '';
+                            document.getElementById('schemaTipologia').value = data.tipologia || '';
+                            document.getElementById('schemaRuolo').value = data.ruolo || '';
+                            document.getElementById('schemaPeriodo').value = data.periodo || '';
+
+                            this.loadTabState();
+                            this.saveState();
+                        } catch (error) {
+                            alert('Errore nel caricamento del file: ' + error.message);
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            }
+
+            async exportSchema() {
+                const canvas = document.getElementById('canvas');
+                const originalTransform = canvas.style.transform;
+                canvas.style.transform = 'scale(1)';
+
+                try {
+                    const exportCanvas = await html2canvas(canvas, {
+                        backgroundColor: this.getCurrentTab().bwMode ? null : '#ffffff',
+                        scale: 2,
+                        useCORS: true
+                    });
+
+                    const format = prompt('Formato di esportazione (png/jpg/pdf):', 'png');
+                    const title = document.getElementById('schemaTitle').value || 'schema';
+
+                    switch (format?.toLowerCase()) {
+                        case 'png':
+                            this.downloadCanvas(exportCanvas, `${title}.png`, 'image/png');
+                            break;
+                        case 'jpg':
+                        case 'jpeg':
+                            this.downloadCanvas(exportCanvas, `${title}.jpg`, 'image/jpeg');
+                            break;
+                        case 'pdf':
+                            this.exportToPDF(exportCanvas, title);
+                            break;
+                        default:
+                            this.downloadCanvas(exportCanvas, `${title}.png`, 'image/png');
+                    }
+                } finally {
+                    canvas.style.transform = originalTransform;
+                }
+            }
+
+            downloadCanvas(canvas, filename, mimeType) {
+                const link = document.createElement('a');
+                link.download = filename;
+                link.href = canvas.toDataURL(mimeType);
+                link.click();
+            }
+
+            exportToPDF(canvas, title) {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({
+                    orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
+                    unit: 'px',
+                    format: [canvas.width, canvas.height]
+                });
+
+                pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.width, canvas.height);
+                pdf.save(`${title}.pdf`);
+            }
+
+            handleKeyboard(e) {
+                if (e.ctrlKey || e.metaKey) {
+                    switch (e.key.toLowerCase()) {
+                        case 'c':
+                            e.preventDefault();
+                            this.copySelected();
+                            break;
+                        case 'x':
+                            e.preventDefault();
+                            this.cutSelected();
+                            break;
+                        case 'v':
+                            e.preventDefault();
+                            this.paste();
+                            break;
+                        case 'a':
+                            e.preventDefault();
+                            this.selectAll();
+                            break;
+                        case 'z':
+                            e.preventDefault();
+                            if (e.shiftKey) {
+                                this.redo();
+                            } else {
+                                this.undo();
+                            }
+                            break;
+                        case 'y':
+                            e.preventDefault();
+                            this.redo();
+                            break;
+                    }
+                } else if (e.key === 'Delete' || e.key === 'Backspace') {
+                    if (this.selectedObjects.size > 0 || this.selectedArrow) {
+                        e.preventDefault();
+                        this.deleteSelected();
+                    }
+                } else if (e.key === 'Escape') {
+                    if (this.isConnecting) {
+                        this.isConnecting = false;
+                        this.connectionStart = null;
+                        if (this.connectionPreview) {
+                            this.connectionPreview.svg.remove();
+                            this.connectionPreview = null;
+                        }
+                        document.getElementById('canvas').style.cursor = 'default';
+                    } else {
+                        this.deselectAll();
+                    }
+                }
+            }
+
+            selectAll() {
+                this.deselectAll();
+                const tab = this.getCurrentTab();
+                tab.objects.forEach((obj, id) => {
+                    this.selectedObjects.set(id, { x: obj.x, y: obj.y });
+                    document.getElementById(id).classList.add('selected');
+                });
+                this.updateObjectControls();
+            }
+
+            updateUI() {
+                this.updateBackground();
+                this.updateGrid();
+                this.updateBWMode();
+                this.updateZoom();
+            }
         }
 
-        selectAll() {
-            this.deselectAll();
-            const tab = this.getCurrentTab();
-            tab.objects.forEach((obj, id) => {
-                this.selectedObjects.set(id, { x: obj.x, y: obj.y });
-                document.getElementById(id).classList.add('selected');
-            });
-            this.updateObjectControls();
-        }
+        document.addEventListener('DOMContentLoaded', () => {
+            new SchemaEditor();
+        });
+    </script>
+    <div id="libraryDialog" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeLibraryDialog">&times;</span>
+            <h2>Carica Allenamento da Libreria</h2>
 
-        updateUI() {
-            this.updateBackground();
-            this.updateGrid();
-            this.updateBWMode();
-            this.updateZoom();
-        }
-    }
+            <div class="filters">
+                <label for="filterPeriodo">Periodo:</label>
+                <select id="filterPeriodo"></select>
 
-    document.addEventListener('DOMContentLoaded', () => {
-        new SchemaEditor();
-    });
-</script>
+                <label for="filterTipologia">Tipologia:</label>
+                <select id="filterTipologia"></select>
+
+                <label for="filterRuolo">Ruolo:</label>
+                <select id="filterRuolo"></select>
+            </div>
+
+            <div class="workout-list-container">
+                <ul id="workoutList">
+                </ul>
+            </div>
+            <button id="loadSelectedWorkout" disabled>Carica Allenamento</button>
+        </div>
+    </div>
 </body>
+
 </html>
