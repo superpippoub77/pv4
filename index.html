@@ -204,9 +204,9 @@
         }
 
         .schema-details textarea {
-            min-width: 150px;
-            max-width: 300px;
-            height: 40px;
+            min-width: 600px;
+            max-width: 600px;
+            height: 120px;
             resize: vertical;
         }
 
@@ -327,8 +327,6 @@
         /* 1. Forza il colore del bordo per TUTTI gli elementi interni */
         .canvas.bw-mode * {
             filter: grayscale(100%) contrast(1000%);
-            /* Sovrascrivi il colore del bordo per tutti gli elementi */
-            border-color: black !important;
         }
 
         /* 2. Regola specifica per il campo (court-object) */
@@ -637,7 +635,7 @@
             border: 1px solid #bdc3c7;
             border-radius: 4px;
             font-size: 12px;
-            width: 120px;
+            width: 220px;
         }
 
         /* Zoom controls */
@@ -1082,7 +1080,7 @@
                 </div>
 
                 <div class="file-controls">
-                    <input type="text" id="schemaTitle" placeholder="Titolo schema" value="Nuovo Schema">
+                    <input type="text" id="schemaTitle" placeholder="Titolo schema">
                     <button id="saveBtn">💾 Salva</button>
                     <button id="loadBtn">📁 Carica</button>
                     <input type="file" id="fileInput" accept=".json" style="display: none;">
@@ -3076,6 +3074,19 @@
         document.addEventListener('DOMContentLoaded', () => {
             new SchemaEditor();
         });
+
+        // Ottieni la data e ora correnti
+        const now = new Date();
+
+        // Formatta la data e ora come vuoi, ad esempio: "2025-09-24 15:30"
+        const formattedDate = now.getFullYear() +
+            String(now.getMonth() + 1).padStart(2, '0') + 
+            String(now.getDate()).padStart(2, '0') + "_ " +
+            String(now.getHours()).padStart(2, '0') + 
+            String(now.getMinutes()).padStart(2, '0');
+
+        // Imposta il value dinamicamente
+        document.getElementById("schemaTitle").value = "Nuovo Allenamento " + formattedDate;
     </script>
     <div id="libraryDialog" class="modal">
         <div class="modal-content">
