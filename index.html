@@ -17,6 +17,15 @@
             box-sizing: border-box;
         }
 
+        .no-style {
+            border: none;
+            /* rimuove il bordo */
+            padding: 0;
+            /* rimuove il padding interno */
+            outline: none;
+            /* rimuove il bordo di focus (opzionale) */
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             height: 100vh;
@@ -1157,7 +1166,9 @@
                 <div class="file-controls">
                     <input type="text" id="schemaTitle" placeholder="Titolo schema">
                     <button id="saveBtn">💾 Salva</button>
+                    <button id="saveWorkOutBtn">💾 Salva Allenamento</button>
                     <button id="loadBtn">📁 Carica</button>
+                    <button id="loadWorkOutBtn">📁 Carica Allenamento</button>
                     <input type="file" id="fileInput" accept=".json" style="display: none;">
                     <button id="exportBtn">📤 Esporta</button>
                     <button id="loadFromLibrary">📁 Libreria</button>
@@ -1212,7 +1223,7 @@
 
             <div class="tabs-container">
                 <div class="tab active" data-tab-id="1">
-                    <span>Schema 1</span>
+                    <input class='no-style' value='Schema 1' />
                     <span class="tab-close">×</span>
                 </div>
                 <button class="add-tab">+ Nuovo</button>
@@ -3053,7 +3064,7 @@
                 const tab = document.createElement('div');
                 tab.className = 'tab';
                 tab.dataset.tabId = id;
-                tab.innerHTML = `<span>${name}</span><span class="tab-close">×</span>`;
+                tab.innerHTML = `<input class='no-style' value='${name}'/><span class="tab-close">×</span>`;
 
                 tabsContainer.insertBefore(tab, addButton);
             }
@@ -3159,7 +3170,8 @@
 
             saveSchema() {
                 const tab = this.getCurrentTab();
-                const title = document.getElementById('schemaTitle').value || 'schema';
+                //const title = document.getElementById('schemaTitle').value || 'schema';
+                const title = tab.name || 'schema';
                 const note = document.getElementById('schemaDescrizione').value || '';
 
                 const tipologia = document.getElementById('schemaTipologia').value || '';
@@ -3186,7 +3198,7 @@
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `${title}.json`;
+                a.download = `${periodo}.${tipologia}.${ruolo}.${title}.json`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
