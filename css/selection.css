@@ -6,8 +6,8 @@
     z-index: 9999;
 }
 
-.group-selected {
-    border: 2px solid #e74c3c !important;
+.canvas-object.group-selected {
+    border-color: #e74c3c !important;
     box-shadow: 0 0 10px rgba(231, 76, 60, 0.5) !important;
 }
 
@@ -20,4 +20,9 @@
     border-radius: 50%;
     cursor: grab;
     z-index: 10000;
+}
+
+.group-rotation-center:hover {
+    transform: scale(1.2);
+    cursor: grabbing;
 }

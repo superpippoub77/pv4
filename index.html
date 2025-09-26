@@ -9,6 +9,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="./css/icons.css">
+    <link rel="stylesheet" href="./css/selection.css">
+    <link rel="stylesheet" href="./css/tab.css">
 
     <style>
         * {
@@ -1223,7 +1225,7 @@
 
             <div class="tabs-container">
                 <div class="tab active" data-tab-id="1">
-                    <input class='no-style' value='Schema 1' />
+                    <input class='no-style tab-title' value='Schema 1' />
                     <span class="tab-close">×</span>
                 </div>
                 <button class="add-tab">+ Nuovo</button>
@@ -1317,6 +1319,7 @@
 
                 this.initializeTab(1, 'Schema 1');
                 this.initializeEventListeners();
+                this.initializeExistingTabs();
                 this.updateUI();
             }
 
@@ -1543,7 +1546,24 @@
                     return null; // Ritorna null in caso di fallimento grave del server
                 }
             }
+            initializeExistingTabs() {
+                document.querySelectorAll('.tab').forEach(tabElement => {
+                    const tabId = parseInt(tabElement.dataset.tabId);
+                    const tabInput = tabElement.querySelector('.tab-title');
 
+                    if (tabInput && !tabInput.hasEventListener) {
+                        tabInput.addEventListener('input', (e) => {
+                            this.updateTabName(tabId, e.target.value);
+                        });
+
+                        tabInput.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                        });
+
+                        tabInput.hasEventListener = true;
+                    }
+                });
+            }
             initializeEventListeners() {
                 const componentItems = document.querySelectorAll('.component-item');
                 componentItems.forEach(item => {
@@ -2041,8 +2061,11 @@
                 } else if (arrowPath) {
                     this.selectArrow(arrowPath.closest('.arrow-svg').id);
                 } else {
-                    this.deselectAll();
-                    this.startAreaSelection(e);
+                    // Solo se non stiamo cliccando su nessun oggetto, inizia la selezione ad area
+                    if (e.target === document.getElementById('canvas') || e.target.classList.contains('canvas')) {
+                        this.deselectAll();
+                        this.startAreaSelection(e);
+                    }
                 }
             }
             handleGroupRotation(e) {
@@ -2158,23 +2181,15 @@
                     box = document.createElement('div');
                     box.id = 'selectionBox';
                     box.className = 'selection-box';
+                    box.style.position = 'absolute';
+                    box.style.border = '2px dashed #3498db';
+                    box.style.backgroundColor = 'rgba(52, 152, 219, 0.1)';
+                    box.style.pointerEvents = 'none';
+                    box.style.zIndex = '9999';
                     box.style.display = 'none';
                     document.getElementById('canvas').appendChild(box);
                 }
                 box.style.display = 'block';
-            }
-
-            createSelectionBox() {
-                let box = document.getElementById('selectionBox');
-                if (!box) {
-                    box = document.createElement('div');
-                    box.id = 'selectionBox';
-                    box.style.position = 'absolute';
-                    box.style.border = '1px solid #3498db';
-                    box.style.backgroundColor = 'rgba(52, 152, 219, 0.2)';
-                    box.style.display = 'none';
-                    document.getElementById('canvas').appendChild(box);
-                }
             }
 
             startDrag(e) {
@@ -2191,6 +2206,8 @@
 
             updateSelectionBox(e) {
                 const box = document.getElementById('selectionBox');
+                if (!box) return;
+
                 const rect = document.getElementById('canvas').getBoundingClientRect();
                 const currentX = e.clientX - rect.left;
                 const currentY = e.clientY - rect.top;
@@ -2208,44 +2225,52 @@
 
             finalizeSelectionBox(e) {
                 const box = document.getElementById('selectionBox');
-                box.style.display = 'none';
+                if (!box) return;
 
-                const rect = box.getBoundingClientRect();
-                const canvas = document.getElementById('canvas');
-                const canvasRect = canvas.getBoundingClientRect();
+                const rect = document.getElementById('canvas').getBoundingClientRect();
+                const currentX = e.clientX - rect.left;
+                const currentY = e.clientY - rect.top;
+
+                // Calcola l'area di selezione in coordinate canvas
                 const zoom = this.getCurrentTab().zoom;
-
-                // Converti le coordinate del box di selezione in coordinate canvas
                 const selectionRect = {
-                    left: (rect.left - canvasRect.left) / zoom,
-                    top: (rect.top - canvasRect.top) / zoom,
-                    right: (rect.right - canvasRect.left) / zoom,
-                    bottom: (rect.bottom - canvasRect.top) / zoom
+                    left: Math.min(this.selectionStart.x, currentX) / zoom,
+                    top: Math.min(this.selectionStart.y, currentY) / zoom,
+                    right: Math.max(this.selectionStart.x, currentX) / zoom,
+                    bottom: Math.max(this.selectionStart.y, currentY) / zoom
                 };
 
-                const objects = document.querySelectorAll('.canvas-object');
                 const tab = this.getCurrentTab();
-
                 this.deselectAll();
 
-                objects.forEach(obj => {
-                    const objData = tab.objects.get(obj.id);
-                    if (objData) {
-                        // Controlla se l'oggetto è dentro l'area selezionata
-                        const objRight = objData.x + objData.width;
-                        const objBottom = objData.y + objData.height;
+                // Controlla ogni oggetto per vedere se è nell'area di selezione
+                tab.objects.forEach((objData, objId) => {
+                    // Calcola i bounds dell'oggetto
+                    const objLeft = objData.x;
+                    const objTop = objData.y;
+                    const objRight = objData.x + objData.width;
+                    const objBottom = objData.y + objData.height;
 
-                        if (objData.x < selectionRect.right && objRight > selectionRect.left &&
-                            objData.y < selectionRect.bottom && objBottom > selectionRect.top) {
-                            this.selectedObjects.set(obj.id, { x: objData.x, y: objData.y });
-                            obj.classList.add('selected', 'group-selected');
+                    // Controlla se l'oggetto interseca con l'area di selezione
+                    if (objLeft < selectionRect.right && objRight > selectionRect.left &&
+                        objTop < selectionRect.bottom && objBottom > selectionRect.top) {
+
+                        this.selectedObjects.set(objId, { x: objData.x, y: objData.y });
+                        const element = document.getElementById(objId);
+                        if (element) {
+                            element.classList.add('selected', 'group-selected');
                         }
                     }
                 });
 
+                // Nasconde il box di selezione
+                box.style.display = 'none';
+
+                // Se ci sono più oggetti selezionati, mostra il centro di rotazione
                 if (this.selectedObjects.size > 1) {
                     this.showGroupRotationCenter();
                 }
+
                 this.updateObjectControls();
             }
 
@@ -2264,16 +2289,23 @@
 
                 if (this.selectedObjects.size <= 1) return;
 
-                // Calcola il centro del gruppo
                 const bounds = this.getGroupBounds();
-                const centerX = bounds.left + bounds.width / 2;
-                const centerY = bounds.top + bounds.height / 2;
+                const centerX = bounds.centerX;
+                const centerY = bounds.centerY;
 
                 const center = document.createElement('div');
                 center.className = 'group-rotation-center';
                 center.id = 'groupRotationCenter';
+                center.style.position = 'absolute';
                 center.style.left = `${centerX - 6}px`;
                 center.style.top = `${centerY - 6}px`;
+                center.style.width = '12px';
+                center.style.height = '12px';
+                center.style.background = '#e74c3c';
+                center.style.border = '2px solid white';
+                center.style.borderRadius = '50%';
+                center.style.cursor = 'grab';
+                center.style.zIndex = '10000';
                 center.title = 'Trascina per ruotare il gruppo';
 
                 document.getElementById('canvas').appendChild(center);
@@ -3064,9 +3096,30 @@
                 const tab = document.createElement('div');
                 tab.className = 'tab';
                 tab.dataset.tabId = id;
-                tab.innerHTML = `<input class='no-style' value='${name}'/><span class="tab-close">×</span>`;
+                tab.innerHTML = `<input class='no-style tab-title' value='${name}'/><span class="tab-close">×</span>`;
+
+                // NUOVO: Aggiungi event listener per l'input del nome
+                const tabTitleInput = tab.querySelector('.tab-title');
+                tabTitleInput.addEventListener('input', (e) => {
+                    this.updateTabName(id, e.target.value);
+                });
+
+                // NUOVO: Previeni la propagazione del click sull'input per evitare conflitti con la selezione del tab
+                tabTitleInput.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                });
 
                 tabsContainer.insertBefore(tab, addButton);
+            }
+            updateTabName(tabId, newName) {
+                const tab = this.tabs.get(tabId);
+                if (tab) {
+                    tab.name = newName;
+                    // Se è il tab attivo, aggiorna anche il titolo dello schema se vuoto
+                    if (this.activeTabId === tabId && !document.getElementById('schemaTitle').value.trim()) {
+                        document.getElementById('schemaTitle').value = newName;
+                    }
+                }
             }
 
             switchToTab(id) {
@@ -3082,6 +3135,13 @@
                 const newActiveTab = document.querySelector(`.tab[data-tab-id="${id}"]`);
                 if (newActiveTab) {
                     newActiveTab.classList.add('active');
+
+                    // NUOVO: Sincronizza il nome del tab con l'input
+                    const tabInput = newActiveTab.querySelector('.tab-title');
+                    const tab = this.tabs.get(id);
+                    if (tabInput && tab) {
+                        tabInput.value = tab.name;
+                    }
                 }
 
                 this.loadTabState();
@@ -3170,14 +3230,14 @@
 
             saveSchema() {
                 const tab = this.getCurrentTab();
-                //const title = document.getElementById('schemaTitle').value || 'schema';
+
+                // MODIFICATO: Usa il nome del tab invece del campo schemaTitle
                 const title = tab.name || 'schema';
                 const note = document.getElementById('schemaDescrizione').value || '';
 
                 const tipologia = document.getElementById('schemaTipologia').value || '';
                 const ruolo = document.getElementById('schemaRuolo').value || '';
                 const periodo = document.getElementById('schemaPeriodo').value || '';
-
 
                 const data = {
                     title: title,
@@ -3198,7 +3258,7 @@
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `${periodo}.${tipologia}.${ruolo}.${title}.json`;
+                a.download = `${periodo}.${tipologia}.${ruolo}.${title.replace(/\s+/g, '_')}.json`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
@@ -3275,6 +3335,20 @@
                             alert('Errore nel caricamento del file: ' + error.message);
                         }
                     };
+                    if (data.title) {
+                        // Aggiorna il nome del tab corrente
+                        const currentTab = this.getCurrentTab();
+                        currentTab.name = data.title;
+
+                        // Aggiorna l'input del tab attivo
+                        const activeTabElement = document.querySelector('.tab.active');
+                        if (activeTabElement) {
+                            const tabInput = activeTabElement.querySelector('.tab-title');
+                            if (tabInput) {
+                                tabInput.value = data.title;
+                            }
+                        }
+                    }
                     reader.readAsText(file);
                 }
             }
