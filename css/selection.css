@@ -1,0 +1,23 @@
+.selection-box {
+    position: absolute;
+    border: 2px dashed #3498db;
+    background-color: rgba(52, 152, 219, 0.1);
+    pointer-events: none;
+    z-index: 9999;
+}
+
+.group-selected {
+    border: 2px solid #e74c3c !important;
+    box-shadow: 0 0 10px rgba(231, 76, 60, 0.5) !important;
+}
+
+.group-rotation-center {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: #e74c3c;
+    border: 2px solid white;
+    border-radius: 50%;
+    cursor: grab;
+    z-index: 10000;
+}

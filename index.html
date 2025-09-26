@@ -7,6 +7,8 @@
     <title>Editor di Schemi Sportivi</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="./css/icons.css">
 
     <style>
         * {
@@ -1042,6 +1044,64 @@
                     </div>
                 </div>
             </div>
+            <div class="component-category">
+                <h3 class="accordion-header">🎨 Icone</h3>
+                <div class="accordion-content">
+                    <div class="component-grid">
+                        <!-- Icone Sport -->
+                        <div class="component-item" data-type="icon" data-icon="fas fa-trophy" data-text="">
+                            <div class="component-icon"><i class="fas fa-trophy"></i></div>
+                            <div>Trofeo</div>
+                        </div>
+                        <div class="component-item" data-type="icon" data-icon="fas fa-medal" data-text="">
+                            <div class="component-icon"><i class="fas fa-medal"></i></div>
+                            <div>Medaglia</div>
+                        </div>
+                        <div class="component-item" data-type="icon" data-icon="fas fa-stopwatch" data-text="">
+                            <div class="component-icon"><i class="fas fa-stopwatch"></i></div>
+                            <div>Timer</div>
+                        </div>
+                        <div class="component-item" data-type="icon" data-icon="fas fa-whistle" data-text="">
+                            <div class="component-icon"><i class="fas fa-bullhorn"></i></div>
+                            <div>Fischietto</div>
+                        </div>
+                        <!-- Frecce e Direzioni -->
+                        <div class="component-item" data-type="icon" data-icon="fas fa-arrow-up" data-text="">
+                            <div class="component-icon"><i class="fas fa-arrow-up"></i></div>
+                            <div>Su</div>
+                        </div>
+                        <div class="component-item" data-type="icon" data-icon="fas fa-arrow-down" data-text="">
+                            <div class="component-icon"><i class="fas fa-arrow-down"></i></div>
+                            <div>Giù</div>
+                        </div>
+                        <div class="component-item" data-type="icon" data-icon="fas fa-arrow-left" data-text="">
+                            <div class="component-icon"><i class="fas fa-arrow-left"></i></div>
+                            <div>Sinistra</div>
+                        </div>
+                        <div class="component-item" data-type="icon" data-icon="fas fa-arrow-right" data-text="">
+                            <div class="component-icon"><i class="fas fa-arrow-right"></i></div>
+                            <div>Destra</div>
+                        </div>
+                        <!-- Simboli -->
+                        <div class="component-item" data-type="icon" data-icon="fas fa-star" data-text="">
+                            <div class="component-icon"><i class="fas fa-star"></i></div>
+                            <div>Stella</div>
+                        </div>
+                        <div class="component-item" data-type="icon" data-icon="fas fa-heart" data-text="">
+                            <div class="component-icon"><i class="fas fa-heart"></i></div>
+                            <div>Cuore</div>
+                        </div>
+                        <div class="component-item" data-type="icon" data-icon="fas fa-check" data-text="">
+                            <div class="component-icon"><i class="fas fa-check"></i></div>
+                            <div>Check</div>
+                        </div>
+                        <div class="component-item" data-type="icon" data-icon="fas fa-times" data-text="">
+                            <div class="component-icon"><i class="fas fa-times"></i></div>
+                            <div>X</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="sidebar-handle" id="sidebarHandle"></div>
 
@@ -1077,6 +1137,21 @@
                     <button id="rotateRight">↻</button>
                     <button id="undoBtn">⏪ Undo</button>
                     <button id="redoBtn">⏩ Redo</button>
+                </div>
+                <div class="toolbar-group">
+                    <button id="groupRotateLeft">⟲ Ruota Gruppo -15°</button>
+                    <button id="groupRotateRight">⟳ Ruota Gruppo +15°</button>
+                </div>
+                <div class="toolbar-group">
+                    <div id="iconControls" style="display: none; align-items: center; gap: 10px;">
+                        <label>Icona:</label>
+                        <select id="iconSelect">
+                            <option value="fas fa-trophy">Trofeo</option>
+                            <option value="fas fa-medal">Medaglia</option>
+                            <option value="fas fa-star">Stella</option>
+                            <!-- Aggiungi altre opzioni -->
+                        </select>
+                    </div>
                 </div>
 
                 <div class="file-controls">
@@ -1466,11 +1541,13 @@
                         if (type === 'arrow') {
                             e.preventDefault();
                         } else {
-                            e.dataTransfer.setData('text/plain', JSON.stringify({
+                            const dragData = {
                                 type: item.dataset.type,
                                 color: item.dataset.color || '',
-                                text: item.dataset.text || ''
-                            }));
+                                text: item.dataset.text || '',
+                                icon: item.dataset.icon || null  // NUOVO
+                            };
+                            e.dataTransfer.setData('text/plain', JSON.stringify(dragData));
                         }
                     });
                     item.draggable = true;
@@ -1584,6 +1661,11 @@
                     });
                 });
 
+                document.getElementById('groupRotateLeft').addEventListener('click', () => this.rotateGroup(-15));
+                document.getElementById('groupRotateRight').addEventListener('click', () => this.rotateGroup(15));
+
+
+
                 // Added sidebar functionality
                 const sidebar = document.getElementById('sidebar');
                 const sidebarHandle = document.getElementById('sidebarHandle');
@@ -1629,10 +1711,51 @@
                 const rect = e.currentTarget.getBoundingClientRect();
                 const x = (e.clientX - rect.left) / this.getCurrentTab().zoom;
                 const y = (e.clientY - rect.top) / this.getCurrentTab().zoom;
-                this.addObject(data.type, x, y, data.color, data.text);
+
+                // Per le icone, passa anche l'attributo icon
+                if (data.type === 'icon') {
+                    this.addObject(data.type, x, y, data.color, data.text, 0, this.dashedMode, data.icon);
+                } else {
+                    this.addObject(data.type, x, y, data.color, data.text);
+                }
+            }
+            rotateGroup(degrees) {
+                if (this.selectedObjects.size <= 1) return;
+
+                const bounds = this.getGroupBounds();
+                const centerX = bounds.centerX;
+                const centerY = bounds.centerY;
+                const radians = degrees * (Math.PI / 180);
+
+                const tab = this.getCurrentTab();
+
+                this.selectedObjects.forEach((pos, id) => {
+                    const obj = tab.objects.get(id);
+                    if (obj) {
+                        const dx = obj.x - centerX;
+                        const dy = obj.y - centerY;
+
+                        const rotatedX = dx * Math.cos(radians) - dy * Math.sin(radians);
+                        const rotatedY = dx * Math.sin(radians) + dy * Math.cos(radians);
+
+                        obj.x = centerX + rotatedX;
+                        obj.y = centerY + rotatedY;
+                        obj.rotation = (obj.rotation + degrees) % 360;
+
+                        const element = document.getElementById(id);
+                        element.style.left = obj.x + 'px';
+                        element.style.top = obj.y + 'px';
+                        element.style.transform = `rotate(${obj.rotation}deg)`;
+
+                        this.updateArrowsForObject(id);
+                    }
+                });
+
+                this.showGroupRotationCenter(); // Riposiziona il centro di rotazione
+                this.saveState();
             }
 
-            addObject(type, x, y, color = '#3498db', text = '', rotation = 0, dashed = this.dashedMode) {
+            addObject(type, x, y, color = '#3498db', text = '', rotation = 0, dashed = this.dashedMode, icon = null) {
                 const tab = this.getCurrentTab();
                 const id = 'obj-' + tab.nextObjectId++;
 
@@ -1647,7 +1770,8 @@
                     rotation: rotation,
                     text: text,
                     dashed: dashed,
-                    zIndex: this.maxZIndex++ // AGGIUNTA
+                    zIndex: this.maxZIndex++,
+                    icon: icon  // NUOVO campo per memorizzare la classe dell'icona
                 };
 
                 tab.objects.set(id, object);
@@ -1666,7 +1790,8 @@
                     'net': { width: 300, height: 40 },
                     'text': { width: 100, height: 30 },
                     'court': { width: 900, height: 450 },
-                    'half-court': { width: 450, height: 450 }
+                    'half-court': { width: 450, height: 450 },
+                    'icon': { width: 40, height: 40 }
                 };
                 return sizes[type] || { width: 40, height: 40 };
             }
@@ -1692,6 +1817,7 @@
                 const content = this.createObjectContent(object);
                 element.appendChild(content);
 
+                // AGGIUNGI QUESTA LINEA: Assicura che il contenuto sia ridimensionato correttamente
                 this.resizeContent(element, object.width, object.height, object.type);
 
                 this.addControlHandles(element);
@@ -1734,6 +1860,22 @@
             createObjectContent(object) {
                 const content = document.createElement('div');
                 content.className = object.type + '-object';
+                // Gestione speciale per le icone
+                if (object.type === 'icon') {
+                    content.innerHTML = `<i class="${object.icon}"></i>`;
+                    content.style.color = object.color;
+                    content.classList.toggle('dashed', object.dashed);
+
+                    // Imposta la dimensione iniziale dell'icona
+                    const icon = content.querySelector('i');
+                    if (icon) {
+                        const minDimension = Math.min(object.width, object.height);
+                        const fontSize = Math.max(12, minDimension * 0.6);
+                        icon.style.fontSize = `${fontSize}px`;
+                    }
+
+                    return content;
+                }
 
                 if (object.type !== 'ball' && object.type !== 'net' && object.type !== 'goal') {
                     const editableDiv = document.createElement('div');
@@ -1791,13 +1933,28 @@
                 const content = element.querySelector(`.${type}-object`);
                 if (!content) return;
 
-                const editableText = content.querySelector('.editable-text');
-                if (editableText) {
-                    const initialWidth = this.getDefaultSize(type).width;
-                    const initialHeight = this.getDefaultSize(type).height;
-                    const scaleFactor = Math.min(width / initialWidth, height / initialHeight);
-                    const newFontSize = 14 * scaleFactor;
-                    editableText.style.fontSize = `${newFontSize}px`;
+                if (type === 'icon') {
+                    const icon = content.querySelector('i');
+                    if (icon) {
+                        const minDimension = Math.min(width, height);
+                        let fontSize = minDimension * 0.6;
+
+                        // Imposta limiti minimi e massimi
+                        fontSize = Math.max(8, fontSize);   // Minimo 8px
+                        fontSize = Math.min(100, fontSize); // Massimo 100px
+
+                        icon.style.fontSize = `${fontSize}px`;
+                    }
+                } else {
+
+                    const editableText = content.querySelector('.editable-text');
+                    if (editableText) {
+                        const initialWidth = this.getDefaultSize(type).width;
+                        const initialHeight = this.getDefaultSize(type).height;
+                        const scaleFactor = Math.min(width / initialWidth, height / initialHeight);
+                        const newFontSize = 14 * scaleFactor;
+                        editableText.style.fontSize = `${newFontSize}px`;
+                    }
                 }
             }
 
@@ -1850,18 +2007,23 @@
                     this.startConnection({ objectId: null, position: { x: (e.clientX - e.currentTarget.getBoundingClientRect().left) / this.getCurrentTab().zoom, y: (e.clientY - e.currentTarget.getBoundingClientRect().top) / this.getCurrentTab().zoom } }, e);
                     return;
                 }
+
                 const target = e.target.closest('.canvas-object');
                 const arrowPath = e.target.closest('.arrow-path');
                 const arrowControlPoint = e.target.closest('.control-point');
+                const groupRotationCenter = e.target.closest('.group-rotation-center');
 
-                if (arrowControlPoint) {
+                if (groupRotationCenter) {
+                    e.stopPropagation();
+                    this.startGroupRotation(e);
+                } else if (arrowControlPoint) {
                     e.stopPropagation();
                     this.isDraggingControlPoint = true;
                     this.selectedArrow = arrowControlPoint.closest('.arrow-svg').id;
                 } else if (target) {
                     if (e.ctrlKey || e.metaKey) {
                         this.toggleMultiSelection(target);
-                    } else {
+                    } else if (!this.selectedObjects.has(target.id)) {
                         this.selectObject(target);
                     }
                     this.startDrag(e);
@@ -1869,13 +2031,47 @@
                     this.selectArrow(arrowPath.closest('.arrow-svg').id);
                 } else {
                     this.deselectAll();
-                    this.isSelecting = true;
-                    this.selectionStart.x = e.clientX;
-                    this.selectionStart.y = e.clientY;
-                    this.canvasRect = document.getElementById('canvas').getBoundingClientRect();
-                    this.createSelectionBox();
-                    document.getElementById('selectionBox').style.display = 'block';
+                    this.startAreaSelection(e);
                 }
+            }
+            handleGroupRotation(e) {
+                if (!this.groupRotationData) return;
+
+                const currentAngle = Math.atan2(
+                    e.clientY - this.groupRotationData.centerY,
+                    e.clientX - this.groupRotationData.centerX
+                );
+
+                const deltaAngle = currentAngle - this.groupRotationData.startAngle;
+                const degrees = deltaAngle * (180 / Math.PI);
+
+                const tab = this.getCurrentTab();
+                const centerX = this.groupRotationData.centerX;
+                const centerY = this.groupRotationData.centerY;
+
+                this.groupRotationData.initialPositions.forEach((initialPos, id) => {
+                    const obj = tab.objects.get(id);
+                    if (obj) {
+                        // Ruota la posizione dell'oggetto attorno al centro del gruppo
+                        const dx = initialPos.x - centerX;
+                        const dy = initialPos.y - centerY;
+
+                        const rotatedX = dx * Math.cos(deltaAngle) - dy * Math.sin(deltaAngle);
+                        const rotatedY = dx * Math.sin(deltaAngle) + dy * Math.cos(deltaAngle);
+
+                        obj.x = centerX + rotatedX;
+                        obj.y = centerY + rotatedY;
+                        obj.rotation = (initialPos.rotation + degrees) % 360;
+
+                        // Aggiorna l'elemento visuale
+                        const element = document.getElementById(id);
+                        element.style.left = obj.x + 'px';
+                        element.style.top = obj.y + 'px';
+                        element.style.transform = `rotate(${obj.rotation}deg)`;
+
+                        this.updateArrowsForObject(id);
+                    }
+                });
             }
 
             handleCanvasMouseMove(e) {
@@ -1897,6 +2093,8 @@
                     this.handleResize(e);
                 } else if (this.isRotating && this.selectedObject) {
                     this.handleRotation(e);
+                } else if (this.isRotatingGroup) {
+                    this.handleGroupRotation(e);
                 } else if (this.isConnecting) {
                     this.updateConnectionPreview(e);
                 } else if (this.isSelecting) {
@@ -1915,7 +2113,7 @@
             handleCanvasMouseUp(e) {
                 if (this.isConnecting) {
                     this.finishConnection(e);
-                } else if (this.isDragging || this.isResizing || this.isRotating || this.isDraggingControlPoint) {
+                } else if (this.isDragging || this.isResizing || this.isRotating || this.isDraggingControlPoint || this.isRotatingGroup) {
                     this.saveState();
                 } else if (this.isSelecting) {
                     this.finalizeSelectionBox(e);
@@ -1924,10 +2122,35 @@
                 this.isDragging = false;
                 this.isResizing = false;
                 this.isRotating = false;
+                this.isRotatingGroup = false;
                 this.isDraggingControlPoint = false;
                 this.isSelecting = false;
+                this.groupRotationData = null;
+
                 const selectionBox = document.getElementById('selectionBox');
-                if (selectionBox) selectionBox.remove();
+                if (selectionBox) selectionBox.style.display = 'none';
+            }
+            startAreaSelection(e) {
+                this.isSelecting = true;
+                const rect = document.getElementById('canvas').getBoundingClientRect();
+                this.selectionStart = {
+                    x: e.clientX - rect.left,
+                    y: e.clientY - rect.top
+                };
+                this.canvasRect = rect;
+                this.createSelectionBox();
+            }
+
+            createSelectionBox() {
+                let box = document.getElementById('selectionBox');
+                if (!box) {
+                    box = document.createElement('div');
+                    box.id = 'selectionBox';
+                    box.className = 'selection-box';
+                    box.style.display = 'none';
+                    document.getElementById('canvas').appendChild(box);
+                }
+                box.style.display = 'block';
             }
 
             createSelectionBox() {
@@ -1957,16 +2180,17 @@
 
             updateSelectionBox(e) {
                 const box = document.getElementById('selectionBox');
-                const x = e.clientX;
-                const y = e.clientY;
+                const rect = document.getElementById('canvas').getBoundingClientRect();
+                const currentX = e.clientX - rect.left;
+                const currentY = e.clientY - rect.top;
 
-                const left = Math.min(this.selectionStart.x, x);
-                const top = Math.min(this.selectionStart.y, y);
-                const width = Math.abs(this.selectionStart.x - x);
-                const height = Math.abs(this.selectionStart.y - y);
+                const left = Math.min(this.selectionStart.x, currentX);
+                const top = Math.min(this.selectionStart.y, currentY);
+                const width = Math.abs(this.selectionStart.x - currentX);
+                const height = Math.abs(this.selectionStart.y - currentY);
 
-                box.style.left = `${left - this.canvasRect.left}px`;
-                box.style.top = `${top - this.canvasRect.top}px`;
+                box.style.left = `${left}px`;
+                box.style.top = `${top}px`;
                 box.style.width = `${width}px`;
                 box.style.height = `${height}px`;
             }
@@ -1978,6 +2202,15 @@
                 const rect = box.getBoundingClientRect();
                 const canvas = document.getElementById('canvas');
                 const canvasRect = canvas.getBoundingClientRect();
+                const zoom = this.getCurrentTab().zoom;
+
+                // Converti le coordinate del box di selezione in coordinate canvas
+                const selectionRect = {
+                    left: (rect.left - canvasRect.left) / zoom,
+                    top: (rect.top - canvasRect.top) / zoom,
+                    right: (rect.right - canvasRect.left) / zoom,
+                    bottom: (rect.bottom - canvasRect.top) / zoom
+                };
 
                 const objects = document.querySelectorAll('.canvas-object');
                 const tab = this.getCurrentTab();
@@ -1985,22 +2218,24 @@
                 this.deselectAll();
 
                 objects.forEach(obj => {
-                    const objRect = obj.getBoundingClientRect();
                     const objData = tab.objects.get(obj.id);
+                    if (objData) {
+                        // Controlla se l'oggetto è dentro l'area selezionata
+                        const objRight = objData.x + objData.width;
+                        const objBottom = objData.y + objData.height;
 
-                    if (
-                        objRect.left < rect.right &&
-                        objRect.right > rect.left &&
-                        objRect.top < rect.bottom &&
-                        objRect.bottom > rect.top
-                    ) {
-                        this.selectedObjects.set(obj.id, { x: objData.x, y: objData.y });
-                        obj.classList.add('selected');
+                        if (objData.x < selectionRect.right && objRight > selectionRect.left &&
+                            objData.y < selectionRect.bottom && objBottom > selectionRect.top) {
+                            this.selectedObjects.set(obj.id, { x: objData.x, y: objData.y });
+                            obj.classList.add('selected', 'group-selected');
+                        }
                     }
                 });
 
+                if (this.selectedObjects.size > 1) {
+                    this.showGroupRotationCenter();
+                }
                 this.updateObjectControls();
-                this.saveState();
             }
 
             startResize(element, e) {
@@ -2012,6 +2247,80 @@
                     width: element.offsetWidth,
                     height: element.offsetHeight
                 };
+            }
+            showGroupRotationCenter() {
+                this.hideGroupRotationCenter();
+
+                if (this.selectedObjects.size <= 1) return;
+
+                // Calcola il centro del gruppo
+                const bounds = this.getGroupBounds();
+                const centerX = bounds.left + bounds.width / 2;
+                const centerY = bounds.top + bounds.height / 2;
+
+                const center = document.createElement('div');
+                center.className = 'group-rotation-center';
+                center.id = 'groupRotationCenter';
+                center.style.left = `${centerX - 6}px`;
+                center.style.top = `${centerY - 6}px`;
+                center.title = 'Trascina per ruotare il gruppo';
+
+                document.getElementById('canvas').appendChild(center);
+            }
+
+            hideGroupRotationCenter() {
+                const center = document.getElementById('groupRotationCenter');
+                if (center) {
+                    center.remove();
+                }
+            }
+
+            getGroupBounds() {
+                const tab = this.getCurrentTab();
+                let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+                this.selectedObjects.forEach((pos, id) => {
+                    const obj = tab.objects.get(id);
+                    if (obj) {
+                        minX = Math.min(minX, obj.x);
+                        minY = Math.min(minY, obj.y);
+                        maxX = Math.max(maxX, obj.x + obj.width);
+                        maxY = Math.max(maxY, obj.y + obj.height);
+                    }
+                });
+
+                return {
+                    left: minX,
+                    top: minY,
+                    width: maxX - minX,
+                    height: maxY - minY,
+                    centerX: minX + (maxX - minX) / 2,
+                    centerY: minY + (maxY - minY) / 2
+                };
+            }
+
+            startGroupRotation(e) {
+                this.isRotatingGroup = true;
+                const bounds = this.getGroupBounds();
+                this.groupRotationData = {
+                    centerX: bounds.centerX,
+                    centerY: bounds.centerY,
+                    startAngle: Math.atan2(e.clientY - bounds.centerY, e.clientX - bounds.centerX),
+                    initialPositions: new Map()
+                };
+
+                // Salva le posizioni iniziali di tutti gli oggetti selezionati
+                const tab = this.getCurrentTab();
+                this.selectedObjects.forEach((pos, id) => {
+                    const obj = tab.objects.get(id);
+                    if (obj) {
+                        this.groupRotationData.initialPositions.set(id, {
+                            x: obj.x,
+                            y: obj.y,
+                            rotation: obj.rotation
+                        });
+                    }
+                });
             }
 
             handleResize(e) {
@@ -2098,6 +2407,15 @@
                 if (this.selectedObjects.size > 0) {
                     const firstSelectedId = this.selectedObjects.keys().next().value;
                     const objectData = this.getCurrentTab().objects.get(firstSelectedId);
+
+                    // Mostra/nascondi controlli specifici per icone
+                    const iconControls = document.getElementById('iconControls');
+                    if (objectData.type === 'icon') {
+                        iconControls.style.display = 'flex';
+                        document.getElementById('iconSelect').value = objectData.icon;
+                    } else {
+                        iconControls.style.display = 'none';
+                    }
                     document.getElementById('objectColor').value = objectData.color;
                     document.getElementById('objectText').value = objectData.text;
                     document.getElementById('objectInfo').textContent =
@@ -2141,20 +2459,19 @@
 
             deselectAll() {
                 document.querySelectorAll('.canvas-object.selected').forEach(obj => {
-                    obj.classList.remove('selected');
+                    obj.classList.remove('selected', 'group-selected');
                 });
                 document.querySelectorAll('.arrow-path.selected').forEach(arrow => {
                     arrow.classList.remove('selected');
                 });
-                document.getElementById('arrowModeBtn').classList.remove('active');
-                this.arrowMode = false;
 
+                this.hideGroupRotationCenter();
                 this.selectedObject = null;
                 this.selectedObjects.clear();
                 this.selectedArrow = null;
+
                 document.getElementById('objectInfo').textContent = 'Nessun oggetto selezionato';
                 document.getElementById('objectText').value = '';
-
                 document.getElementById('dashedObjectToggle').style.display = 'none';
                 document.getElementById('objectControls').style.display = 'flex';
                 document.getElementById('arrowControls').style.display = 'none';
@@ -2500,6 +2817,16 @@
                     const objectData = tab.objects.get(id);
                     if (!objectData) return;
                     objectData.color = color;
+
+                    // Aggiorna il colore per le icone
+                    if (objectData.type === 'icon') {
+                        const element = document.getElementById(id);
+                        const iconContent = element.querySelector('.icon-object');
+                        if (iconContent) {
+                            iconContent.style.color = color;
+                        }
+                    }
+
                     this.renderObject(objectData);
                 });
 
@@ -3080,9 +3407,9 @@
 
         // Formatta la data e ora come vuoi, ad esempio: "2025-09-24 15:30"
         const formattedDate = now.getFullYear() +
-            String(now.getMonth() + 1).padStart(2, '0') + 
+            String(now.getMonth() + 1).padStart(2, '0') +
             String(now.getDate()).padStart(2, '0') + "_ " +
-            String(now.getHours()).padStart(2, '0') + 
+            String(now.getHours()).padStart(2, '0') +
             String(now.getMinutes()).padStart(2, '0');
 
         // Imposta il value dinamicamente
