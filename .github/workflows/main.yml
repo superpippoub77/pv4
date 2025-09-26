@@ -1,0 +1,33 @@
+name: Deploy to Aruba via FTP
+
+on:
+  push:
+    branches:
+      - master
+  #schedule:
+    # Esegui ogni giorno alle 3:00 AM UTC (puoi modificare l'orario come preferisci)
+    #- cron: '0 3 * * *'
+  workflow_dispatch:  # Aggiunto per abilitare l'avvio manuale
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Build the project
+      run: |
+        npm install
+        npm run build # Adatta il comando al tuo progetto
+
+    - name: Deploy to FTP server
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.0
+
+      with:
+        server: ftp.filippomorano.com
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: ./build/
+        server-dir: /www.filippomorano.com/projects/pvw4/
