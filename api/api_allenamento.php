@@ -14,7 +14,7 @@ if (empty($filename) || strpos($filename, '..') !== false || pathinfo($filename,
     exit;
 }
 
-$library_dir = 'libreria/';
+$library_dir = 'volleyball_exercise_library/';
 $file_path = $library_dir . basename($filename); // basename() previene manipolazioni path
 
 // Verifica se il file esiste
