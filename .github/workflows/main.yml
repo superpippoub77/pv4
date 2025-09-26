@@ -3,7 +3,7 @@ name: Deploy to Aruba via FTP
 on:
   push:
     branches:
-      - master
+      - main
   #schedule:
     # Esegui ogni giorno alle 3:00 AM UTC (puoi modificare l'orario come preferisci)
     #- cron: '0 3 * * *'
