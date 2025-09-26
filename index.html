@@ -1516,7 +1516,7 @@
 
                 // 2. GESTIONE DEL SERVER (Caricamento reale)
                 try {
-                    const response = await fetch(`api/api_allenamento.php?filename=${encodeURIComponent(filename)}`);
+                    const response = await fetch(`./api/api_allenamento.php?filename=${encodeURIComponent(filename)}`);
 
                     if (!response.ok) {
                         throw new Error(`Errore nel server (${response.status}). Il file non può essere letto.`);
