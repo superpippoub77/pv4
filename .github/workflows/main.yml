@@ -29,5 +29,5 @@ jobs:
         server: ftp.filippomorano.com
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
-        local-dir: ./build/
+        local-dir: ./
         server-dir: /www.filippomorano.com/projects/pvw4/
