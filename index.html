@@ -8,6 +8,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="./css/sidebar.css">
+    <link rel="stylesheet" href="./css/login.css">
     <link rel="stylesheet" href="./css/icons.css">
     <link rel="stylesheet" href="./css/selection.css">
     <link rel="stylesheet" href="./css/tab.css">
@@ -38,70 +40,6 @@
         .container {
             display: flex;
             height: 100vh;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            width: 280px;
-            background: #2c3e50;
-            color: white;
-            overflow-y: auto;
-            border-right: 3px solid #34495e;
-            position: relative;
-            transition: width 0.3s ease;
-        }
-
-        .sidebar.hidden {
-            width: 0;
-            min-width: 0;
-            overflow: hidden;
-        }
-
-        .sidebar-switch {
-            position: absolute;
-            top: 50%;
-            right: -25px;
-            transform: translateY(-50%);
-            width: 25px;
-            height: 50px;
-            background: #34495e;
-            border: 2px solid #2c3e50;
-            border-left: none;
-            border-radius: 0 8px 8px 0;
-            cursor: pointer;
-            color: white;
-            font-size: 20px;
-            z-index: 10;
-        }
-
-        .sidebar-handle {
-            width: 12px;
-            cursor: ew-resize;
-            background: #4a6a8a;
-            position: relative;
-        }
-
-        .sidebar-handle::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 50%;
-            width: 2px;
-            height: 100%;
-            background: #34495e;
-            transform: translateX(-50%);
-        }
-
-        /* WebKit browsers (Chrome, Safari, Edge) */
-        .sidebar::-webkit-scrollbar {
-            width: 8px;
-            background-color: transparent;
-        }
-
-        .sidebar::-webkit-scrollbar-thumb {
-            background-color: #4a6a8a;
-            border-radius: 10px;
-            border: 2px solid #2c3e50;
         }
 
         /* Accordion headers */
@@ -426,6 +364,12 @@
             cursor: se-resize;
             right: -6px;
             bottom: -6px;
+            opacity: 0;
+            /* AGGIUNTO */
+            pointer-events: none;
+            /* AGGIUNTO */
+            transition: opacity 0.2s;
+            /* AGGIUNTO */
         }
 
         .canvas-object .rotate-handle {
@@ -438,6 +382,19 @@
             cursor: grab;
             right: -6px;
             top: -6px;
+            opacity: 0;
+            /* AGGIUNTO */
+            pointer-events: none;
+            /* AGGIUNTO */
+            transition: opacity 0.2s;
+            /* AGGIUNTO */
+        }
+
+        /* NUOVA REGOLA CSS AGGIUNTA */
+        .canvas-object.selected .resize-handle,
+        .canvas-object.selected .rotate-handle {
+            opacity: 1;
+            pointer-events: auto;
         }
 
         .canvas-object .connection-point {
@@ -1174,10 +1131,16 @@
                     <input type="file" id="fileInput" accept=".json" style="display: none;">
                     <button id="exportBtn">📤 Esporta</button>
                     <button id="loadFromLibrary">📁 Libreria</button>
+                    <div class="toolbar-group">
+                        <div class="user-info" id="userInfo" style="display: none;">
+                            <span>👤 <span id="currentUsername"></span></span>
+                            <button class="logout-button" id="logoutButton">Esci</button>
+                        </div>
+                    </div>
                     <!-- <div class="action-button" id="loadFromLibrary">
                         <i class="fas fa-book"></i> Carica da Libreria
                     </div> -->
-                    <div class="schema-details">
+                    <!-- <div class="schema-details">
                         <div class="detail-group">
                             <label for="schemaPeriodo">Periodo:</label>
                             <select id="schemaPeriodo">
@@ -1219,7 +1182,7 @@
                             <textarea id="schemaDescrizione"
                                 placeholder="Inserisci una breve descrizione..."></textarea>
                         </div>
-                    </div>
+                    </div> -->
                 </div>
             </div>
 
@@ -1282,6 +1245,61 @@
                 </div>
             </div>
         </div>
+        <div class="right-sidebar-handle" id="rightSidebarHandle"></div>
+        <div class="right-sidebar" id="rightSidebar">
+            <button class="right-sidebar-switch" id="rightSidebarSwitch">▶</button>
+            <div class="workout-details">
+                <h3>📋 Dettagli Allenamento</h3>
+
+                <div class="detail-field">
+                    <label for="workoutPeriodo">Periodo:</label>
+                    <select id="workoutPeriodo">
+                        <option value="GEN">Generico</option>
+                        <option value="FIS">Preparazione fisica</option>
+                        <option value="CAM">Campionato</option>
+                        <option value="PRE">Pre-Campionato</option>
+                        <option value="POS">Post-Campionato</option>
+                    </select>
+                </div>
+
+                <div class="detail-field">
+                    <label for="workoutRuolo">Ruolo:</label>
+                    <select id="workoutRuolo">
+                        <option value="GEN">Generico</option>
+                        <option value="L">Libero</option>
+                        <option value="L1">Libero 1</option>
+                        <option value="L2">Libero 2</option>
+                        <option value="A">Alzatore</option>
+                        <option value="S">Schiacciatore</option>
+                        <option value="S1">Schiacciatore 1</option>
+                        <option value="S2">Schiacciatore 2</option>
+                        <option value="C">Centrale</option>
+                        <option value="C1">Centrale 1</option>
+                        <option value="C2">Centrale 2</option>
+                        <option value="O">Opposto</option>
+                    </select>
+                </div>
+
+                <div class="detail-field">
+                    <label for="workoutTipologia">Tipologia:</label>
+                    <select id="workoutTipologia">
+                        <option value="GEN">Generico</option>
+                        <option value="ANA">Analitico</option>
+                        <option value="SIN">Sintetico</option>
+                        <option value="GLO">Globale</option>
+                    </select>
+                </div>
+
+                <div class="detail-field">
+                    <label for="workoutDescrizione">Note:</label>
+                    <textarea id="workoutDescrizione" placeholder="Inserisci note sull'allenamento..."></textarea>
+                </div>
+                <div class="detail-field">
+                    <label for="workoutAutore">Autore:</label>
+                    <input type="text" id="workoutAutore" readonly style="background: #95a5a6; cursor: not-allowed; border:none; width:100%">
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -1303,7 +1321,7 @@
                 this.dragOffset = { x: 0, y: 0 };
                 this.connectionStart = null;
                 this.connectionPreview = null;
-                this.arrowType = 'curved'; // Default to curved as requested
+                this.arrowType = 'linear'; // Default to linear as requested
                 this.zoom = 1;
                 this.isDraggingControlPoint = false;
                 this.clipboard = null;
@@ -1315,6 +1333,10 @@
                 this.selectedLibraryFile = null; // Nome file selezionato
                 this.librarySource = 'unknown';
                 this.maxZIndex = 1;
+                this.currentUser = null;
+                this.users = [];
+                // Inizializza il login prima di tutto
+                this.initLogin();
                 this.initLibraryLoading(); // Inizializza la logica della libreria
 
                 this.initializeTab(1, 'Schema 1');
@@ -1335,10 +1357,119 @@
                     background: 'none',
                     gridVisible: false,
                     bwMode: false,
-                    zoom: 1
+                    zoom: 1,
+                    // AGGIUNGI QUESTI CAMPI:
+                    periodo: 'GEN',
+                    ruolo: 'GEN',
+                    tipologia: 'GEN',
+                    descrizione: '',
+                    autore: this.currentUser || 'unknown' // AGGIUNTO
+                });
+            }
+            async initLogin() {
+                try {
+                    // Carica gli utenti dal JSON
+                    const response = await fetch('data/users.json');
+                    if (!response.ok) {
+                        // Fallback con utenti di default se il file non esiste
+                        console.warn('File users.json non trovato, uso utenti di default');
+                        this.users = [
+                            { username: 'admin', password: 'admin123' },
+                            { username: 'coach', password: 'coach123' }
+                        ];
+                    } else {
+                        const data = await response.json();
+                        this.users = data.users;
+                    }
+                } catch (error) {
+                    console.error('Errore nel caricamento utenti:', error);
+                    // Fallback con utenti di default
+                    this.users = [
+                        { username: 'admin', password: 'admin123' },
+                        { username: 'coach', password: 'coach123' }
+                    ];
+                }
+
+                // Controlla se c'è una sessione salvata
+                const savedUser = sessionStorage.getItem('currentUser');
+                if (savedUser) {
+                    this.currentUser = savedUser;
+                    this.showMainApp();
+                } else {
+                    this.showLoginModal();
+                }
+
+                // Event listeners per il login
+                document.getElementById('loginForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleLogin();
+                });
+
+                document.getElementById('logoutButton').addEventListener('click', () => {
+                    this.handleLogout();
                 });
             }
 
+            showLoginModal() {
+                document.getElementById('loginModal').style.display = 'flex';
+                document.querySelector('.container').style.display = 'none';
+                document.getElementById('username').focus();
+            }
+
+            hideLoginModal() {
+                document.getElementById('loginModal').style.display = 'none';
+                document.querySelector('.container').style.display = 'flex';
+            }
+
+            handleLogin() {
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                const errorDiv = document.getElementById('loginError');
+
+                // Verifica credenziali
+                const user = this.users.find(u => u.username === username && u.password === password);
+
+                if (user) {
+                    this.currentUser = username;
+                    sessionStorage.setItem('currentUser', username);
+                    errorDiv.style.display = 'none';
+                    this.showMainApp();
+
+                    // Reset form
+                    document.getElementById('loginForm').reset();
+                } else {
+                    errorDiv.style.display = 'block';
+                    document.getElementById('password').value = '';
+                    document.getElementById('password').focus();
+                }
+            }
+
+            handleLogout() {
+                if (confirm('Sei sicuro di voler uscire?')) {
+                    this.currentUser = null;
+                    sessionStorage.removeItem('currentUser');
+                    this.showLoginModal();
+
+                    // Nascondi info utente
+                    document.getElementById('userInfo').style.display = 'none';
+                }
+            }
+
+            showMainApp() {
+                this.hideLoginModal();
+
+                // Mostra info utente
+                document.getElementById('currentUsername').textContent = this.currentUser;
+                document.getElementById('userInfo').style.display = 'flex';
+
+                // Inizializza l'app solo al primo login
+                // if (!this.initialized) {
+                //     this.initializeEventListeners();
+                //     this.initializeExistingTabs();
+                //     this.updateUI();
+                //     this.initialized = true;
+                // }
+            }
             getCurrentTab() {
                 return this.tabs.get(this.activeTabId);
             }
@@ -1565,6 +1696,8 @@
                 });
             }
             initializeEventListeners() {
+                console.log("Accordion listener attaccati:", document.querySelectorAll('.accordion-header').length);
+
                 const componentItems = document.querySelectorAll('.component-item');
                 componentItems.forEach(item => {
                     item.addEventListener('dragstart', (e) => {
@@ -1667,19 +1800,6 @@
 
                 document.getElementById('dashedObjectToggle').addEventListener('click', () => this.toggleDashedObject());
 
-                // New event listeners for schema details
-                document.getElementById('schemaPeriodo').addEventListener('change', (e) => {
-                    this.getCurrentTab().periodo = e.target.value;
-                });
-                document.getElementById('schemaRuolo').addEventListener('change', (e) => {
-                    this.getCurrentTab().ruolo = e.target.value;
-                });
-                document.getElementById('schemaTipologia').addEventListener('change', (e) => {
-                    this.getCurrentTab().tipologia = e.target.value;
-                });
-                document.getElementById('schemaDescrizione').addEventListener('input', (e) => {
-                    this.getCurrentTab().descrizione = e.target.value;
-                });
                 document.getElementById('bringToFront').addEventListener('click', () => this.bringToFront());
                 document.getElementById('sendToBack').addEventListener('click', () => this.sendToBack());
 
@@ -1695,7 +1815,57 @@
                 document.getElementById('groupRotateLeft').addEventListener('click', () => this.rotateGroup(-15));
                 document.getElementById('groupRotateRight').addEventListener('click', () => this.rotateGroup(15));
 
+                // Right sidebar functionality
+                const rightSidebar = document.getElementById('rightSidebar');
+                const rightSidebarHandle = document.getElementById('rightSidebarHandle');
+                const rightSidebarSwitch = document.getElementById('rightSidebarSwitch');
+                let isResizingRightSidebar = false;
+                let startXRight;
+                let startWidthRight;
 
+                rightSidebarHandle.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    isResizingRightSidebar = true;
+                    startXRight = e.clientX;
+                    startWidthRight = rightSidebar.offsetWidth;
+                    document.documentElement.addEventListener('mousemove', handleRightMouseMove);
+                    document.documentElement.addEventListener('mouseup', handleRightMouseUp);
+                });
+
+                const handleRightMouseMove = (e) => {
+                    if (!isResizingRightSidebar) return;
+                    const newWidth = startWidthRight - (e.clientX - startXRight);
+                    const minWidth = 200;
+                    const maxWidth = window.innerWidth / 2;
+                    if (newWidth > minWidth && newWidth < maxWidth) {
+                        rightSidebar.style.width = newWidth + 'px';
+                    }
+                };
+
+                const handleRightMouseUp = () => {
+                    isResizingRightSidebar = false;
+                    document.documentElement.removeEventListener('mousemove', handleRightMouseMove);
+                    document.documentElement.removeEventListener('mouseup', handleRightMouseUp);
+                };
+
+                rightSidebarSwitch.addEventListener('click', () => {
+                    rightSidebar.classList.toggle('hidden');
+                    rightSidebarSwitch.textContent = rightSidebar.classList.contains('hidden') ? '◀' : '▶';
+                });
+
+                // Workout details event listeners
+                document.getElementById('workoutPeriodo').addEventListener('change', (e) => {
+                    this.getCurrentTab().periodo = e.target.value;
+                });
+                document.getElementById('workoutRuolo').addEventListener('change', (e) => {
+                    this.getCurrentTab().ruolo = e.target.value;
+                });
+                document.getElementById('workoutTipologia').addEventListener('change', (e) => {
+                    this.getCurrentTab().tipologia = e.target.value;
+                });
+                document.getElementById('workoutDescrizione').addEventListener('input', (e) => {
+                    this.getCurrentTab().descrizione = e.target.value;
+                });
 
                 // Added sidebar functionality
                 const sidebar = document.getElementById('sidebar');
@@ -2655,12 +2825,10 @@
                     thickness: thickness,
                     controlPoint: null
                 };
-
-                if (type === 'curved') {
-                    const fromPos = this.getArrowPoint(arrow.from);
-                    const toPos = this.getArrowPoint(arrow.to);
-                    arrow.controlPoint = this.generateDefaultControlPoint(fromPos, toPos);
-                }
+                // Aggiungi sempre il punto di controllo, indipendentemente dal tipo
+                const fromPos = this.getArrowPoint(arrow.from);
+                const toPos = this.getArrowPoint(arrow.to);
+                arrow.controlPoint = this.generateDefaultControlPoint(fromPos, toPos);
 
                 tab.arrows.set(arrowId, arrow);
                 this.renderArrow(arrow);
@@ -2716,16 +2884,14 @@
                 let pathData;
                 let controlPointElement;
 
-                if (arrow.type === 'curved') {
-                    if (!arrow.controlPoint) {
-                        arrow.controlPoint = this.generateDefaultControlPoint(fromPos, toPos);
-                    }
-                    pathData = this.generateArrowPath(fromPos, toPos, arrow.type, arrow.controlPoint);
-                    controlPointElement = this.addCurveControlPoint(svg, arrow);
-                } else {
-                    pathData = this.generateArrowPath(fromPos, toPos, arrow.type);
-                    arrow.controlPoint = null;
+                // Aggiungi sempre il punto di controllo, anche per frecce lineari
+                if (!arrow.controlPoint) {
+                    arrow.controlPoint = this.generateDefaultControlPoint(fromPos, toPos);
                 }
+                controlPointElement = this.addCurveControlPoint(svg, arrow);
+
+                // Genera il path in base al tipo
+                pathData = this.generateArrowPath(fromPos, toPos, arrow.type, arrow.controlPoint);
 
                 path.setAttribute('d', pathData);
                 path.setAttribute('stroke', arrow.color);
@@ -2841,7 +3007,8 @@
                 const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
                 if (arrowData) {
                     arrowData.type = newType;
-                    if (newType === 'curved' && !arrowData.controlPoint) {
+                    // Il punto di controllo esiste sempre, non serve rigenerarlo
+                    if (!arrowData.controlPoint) {
                         const fromPos = this.getArrowPoint(arrowData.from);
                         const toPos = this.getArrowPoint(arrowData.to);
                         arrowData.controlPoint = this.generateDefaultControlPoint(fromPos, toPos);
@@ -3144,6 +3311,13 @@
                     }
                 }
 
+                // AGGIUNGI: Carica i dettagli del workout nella sidebar destra
+                const tab = this.getCurrentTab();
+                document.getElementById('workoutPeriodo').value = tab.periodo || 'GEN';
+                document.getElementById('workoutRuolo').value = tab.ruolo || 'GEN';
+                document.getElementById('workoutTipologia').value = tab.tipologia || 'GEN';
+                document.getElementById('workoutDescrizione').value = tab.descrizione || '';
+                document.getElementById('workoutAutore').value = tab.autore || this.currentUser; // AGGIUNTO
                 this.loadTabState();
             }
 
@@ -3233,18 +3407,18 @@
 
                 // MODIFICATO: Usa il nome del tab invece del campo schemaTitle
                 const title = tab.name || 'schema';
-                const note = document.getElementById('schemaDescrizione').value || '';
-
-                const tipologia = document.getElementById('schemaTipologia').value || '';
-                const ruolo = document.getElementById('schemaRuolo').value || '';
-                const periodo = document.getElementById('schemaPeriodo').value || '';
-
+                const note = tab.descrizione || ''; // MODIFICATO
+                const tipologia = tab.tipologia || 'GEN'; // MODIFICATO
+                const ruolo = tab.ruolo || 'GEN'; // MODIFICATO
+                const periodo = tab.periodo || 'GEN'; // MODIFICATO
+                const autore = tab.autore || this.currentUser; // AGGIUNTO
                 const data = {
                     title: title,
                     note: note,
                     tipologia: tipologia,
                     ruolo: ruolo,
                     periodo: periodo,
+                    autore: autore, // AGGIUNTO
                     objects: Array.from(tab.objects.entries()),
                     arrows: Array.from(tab.arrows.entries()),
                     background: tab.background,
@@ -3287,10 +3461,18 @@
                         tab.zoom = data.zoom || 1;
 
                         document.getElementById('schemaTitle').value = data.title || 'Schema';
-                        document.getElementById('schemaDescrizione').value = data.note || '';
-                        document.getElementById('schemaTipologia').value = data.tipologia || '';
-                        document.getElementById('schemaRuolo').value = data.ruolo || '';
-                        document.getElementById('schemaPeriodo').value = data.periodo || '';
+                        // document.getElementById('schemaDescrizione').value = data.note || '';
+                        // document.getElementById('schemaTipologia').value = data.tipologia || '';
+                        // document.getElementById('schemaRuolo').value = data.ruolo || '';
+                        // document.getElementById('schemaPeriodo').value = data.periodo || '';
+
+                        // Nella sezione dove carichi i dati, aggiungi:
+                        document.getElementById('workoutPeriodo').value = data.periodo || 'GEN';
+                        document.getElementById('workoutRuolo').value = data.ruolo || 'GEN';
+                        document.getElementById('workoutTipologia').value = data.tipologia || 'GEN';
+                        document.getElementById('workoutDescrizione').value = data.note || '';
+                        document.getElementById('workoutAutore').value = data.autore || 'unknown';
+                        tab.autore = data.autore || 'unknown';
 
                         this.loadTabState();
                         this.saveState();
@@ -3484,10 +3666,9 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            new SchemaEditor();
-        });
-
+        // document.addEventListener('DOMContentLoaded', () => {
+        //     window.editor = new SchemaEditor();
+        // });
         // Ottieni la data e ora correnti
         const now = new Date();
 
@@ -3524,6 +3705,30 @@
             <button id="loadSelectedWorkout" disabled>Carica Allenamento</button>
         </div>
     </div>
+    <!-- Login Modal -->
+    <div id="loginModal" class="login-modal">
+        <div class="login-content">
+            <h2>🔐 Accesso Editor Schemi</h2>
+            <form id="loginForm">
+                <div class="login-field">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" required autocomplete="username" value="admin">
+                </div>
+                <div class="login-field">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required autocomplete="current-password"
+                        value="admin123">
+                </div>
+                <div class="login-error" id="loginError">Username o password errati</div>
+                <button type="submit" class="login-button">Accedi</button>
+            </form>
+        </div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            window.editor = new SchemaEditor();
+        });
+    </script>
 </body>
 
 </html>
