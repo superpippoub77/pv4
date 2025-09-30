@@ -1116,6 +1116,7 @@
                     <input type="file" id="fileInput" accept=".json" style="display: none;">
                     <input type="file" id="workoutFileInput" accept=".json" style="display: none;">
                     <button id="exportBtn">📤 Esporta</button>
+                    <button id="exportWorkOutBtn">📤 Genera la scheda di allenamento</button>
                     <button id="loadFromLibrary">📁 Libreria</button>
                     <div class="toolbar-group">
                         <div class="user-info" id="userInfo" style="display: none;">
@@ -1249,7 +1250,34 @@
             <button class="right-sidebar-switch" id="rightSidebarSwitch">▶</button>
             <div class="workout-details">
                 <h3>📋 Dettagli Allenamento</h3>
-
+                <div class="detail-field">
+                    <label for="workoutDate">Data:</label>
+                    <input type="text" id="workoutDate">
+                </div>
+                <div class="detail-field">
+                    <label for="workoutPlace">Dove:</label>
+                    <input type="text" id="workoutPlace">
+                </div>
+                <div class="detail-field">
+                    <label for="workoutNr">Ripetizioni:</label>
+                    <input type="text" id="workoutNr">
+                </div>
+                <div class="detail-field">
+                    <label for="workoutSeries">Serie:</label>
+                    <input type="text" id="workoutSeries">
+                </div>
+                <div class="detail-field">
+                    <label for="workoutGroups">Gruppi:</label>
+                    <select id="workoutGroups">
+                        <option value="*">All</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="5">6</option>
+                    </select>
+                </div>
                 <div class="detail-field">
                     <label for="workoutPeriodo">Periodo:</label>
                     <select id="workoutPeriodo">
@@ -1432,7 +1460,12 @@
                     genere: 'GEN',
                     categoria: 'GEN',
                     descrizione: '',
-                    autore: this.currentUser || 'unknown'
+                    autore: this.currentUser || 'unknown',
+                    place: "",
+                    groups: 1,
+                    nr: 1,
+                    date: new Date(),
+                    series: 1
                 });
             }
 
@@ -1616,7 +1649,12 @@
                         genere: tab.genere || 'GEN',        // ✅ NUOVO
                         categoria: tab.categoria || 'GEN',  // ✅ NUOVO
                         descrizione: tab.descrizione || '',
-                        autore: tab.autore || this.currentUser
+                        autore: tab.autore || this.currentUser,
+                        place: tab.place || "",
+                        groups: tab.groups || 1,
+                        nr: tab.nr || 1,
+                        date: tab.date || new Date(),
+                        series: tab.series || 1
                     };
                     allTabs.push(tabData);
                 });
@@ -1693,6 +1731,12 @@
                             tab.categoria = tabData.categoria || 'GEN';  // ✅ NUOVO
                             tab.descrizione = tabData.descrizione || '';
                             tab.autore = tabData.autore || 'unknown';
+
+                            tab.series = tabData.series || 1;
+                            tab.nr = tabData.nr || 1;
+                            tab.groups = tabData.groups || 1;
+                            tab.place = tabData.place || "";
+                            tab.date = tabData.date || new Date();
 
                             // Aggiorna nextObjectId e nextArrowId
                             tab.nextObjectId = Math.max(...Array.from(tab.objects.keys()).map(id => parseInt(id.split('-')[1]) || 0)) + 1;
@@ -3741,6 +3785,13 @@
                 document.getElementById('workoutDescrizione').value = tab.descrizione || '';
                 document.getElementById('workoutAutore').value = tab.autore || this.currentUser;
 
+
+                document.getElementById('workoutDate').value = tab.date || new Date();
+                document.getElementById('workoutPlace').value = tab.place || "-";
+                document.getElementById('workoutNr').value = tab.nr || 1;
+                document.getElementById('workoutSeries').value = tab.series || 1;
+                document.getElementById('workoutGroups').value = tab.groups || 1;
+
                 this.filterCategoriesByGenere(tab.genere || 'GEN'); // ✅ NUOVO
                 this.loadTabState();
             }
@@ -3885,12 +3936,6 @@
                         tab.zoom = data.zoom || 1;
 
                         document.getElementById('schemaTitle').value = data.title || 'Schema';
-                        // document.getElementById('schemaDescrizione').value = data.note || '';
-                        // document.getElementById('schemaTipologia').value = data.tipologia || '';
-                        // document.getElementById('schemaRuolo').value = data.ruolo || '';
-                        // document.getElementById('schemaPeriodo').value = data.periodo || '';
-
-                        // Nella sezione dove carichi i dati, aggiungi:
                         document.getElementById('workoutPeriodo').value = data.periodo || 'GEN';
                         document.getElementById('workoutRuolo').value = data.ruolo || 'GEN';
                         document.getElementById('workoutTipologia').value = data.tipologia || 'GEN';
@@ -3898,6 +3943,14 @@
                         document.getElementById('workoutCategoria').value = data.categoria || 'GEN';  // ✅ NUOVO
                         document.getElementById('workoutDescrizione').value = data.note || '';
                         document.getElementById('workoutAutore').value = data.autore || 'unknown';
+
+
+                        document.getElementById('workoutDate').value = data.date || new Date();
+                        document.getElementById('workoutPlace').value = data.place || "-";
+                        document.getElementById('workoutNr').value = data.nr || 1;
+                        document.getElementById('workoutSeries').value = data.series || 1;
+                        document.getElementById('workoutGroups').value = data.groups || 1;
+
                         tab.autore = data.autore || 'unknown';
                         tab.genere = data.genere || 'GEN';        // ✅ NUOVO
                         tab.categoria = data.categoria || 'GEN';  // ✅ NUOVO
