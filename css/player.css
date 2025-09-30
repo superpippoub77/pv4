@@ -1,0 +1,64 @@
+.volleyball-player-bagher-object {
+    width: 60px; /* Larghezza del corpo */
+    height: 100px;
+    position: relative;
+    background-color: transparent;
+    display: block; /* Importante per centrare */
+    
+    /* Corpo principale e gambe */
+    /* Testa e Tronco (usiamo l'elemento base) */
+    
+    /* Testa: un cerchio in alto */
+    background: black;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    
+    /* Aggiungiamo il tronco sotto la testa con un'ombra (o un altro elemento) */
+    box-shadow: 0 35px 0 0 black,  /* Tronco */
+                0 75px 0 0 black; /* Bacino/Base */
+}
+
+/* Gambe: create con pseudo-elemento ::after e box-shadow */
+.volleyball-player-bagher-object::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 35px; /* Lunghezza della parte superiore della gamba */
+    background: black;
+    top: 65px; /* Posizione sotto il tronco */
+    left: 50%;
+    transform: translateX(-50%);
+    
+    /* Gamba destra e sinistra con ombra */
+    box-shadow: -15px 0 0 0 black, /* Gamba Sinistra */
+                15px 0 0 0 black; /* Gamba Destra */
+    
+    /* Inclinazione leggera per le ginocchia piegate del bagher */
+    transform: translateX(-50%) rotate(5deg);
+}
+
+/* Braccia: create con pseudo-elemento ::before per la posa unita del bagher */
+.volleyball-player-bagher-object::before {
+    content: '';
+    position: absolute;
+    width: 70px; /* Larghezza delle braccia unite */
+    height: 12px;
+    background: black;
+    top: 55px; /* Posizione appena sotto la spalla/tronco */
+    left: 50%;
+    transform: translateX(-50%) rotate(-10deg); /* Leggera inclinazione del bagher */
+    border-radius: 6px; /* Bordi arrotondati per un look più morbido */
+}
+
+/* Contenitore per dare spazio e centrare la figura */
+.player-container {
+    width: 150px;
+    height: 150px;
+    border: 1px dashed #ccc; /* Solo per visualizzazione */
+    position: relative;
+}

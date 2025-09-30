@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="./css/selection.css">
     <link rel="stylesheet" href="./css/tab.css">
     <link rel="stylesheet" href="./css/watermark.css">
+    <link rel="stylesheet" href="./css/player.css">
 
     <style>
         * {
@@ -591,7 +592,7 @@
         }
 
         .arrow-path.selected {
-            stroke: #3498db;
+            stroke: #e2df16;
             stroke-width: 6;
         }
 
@@ -957,16 +958,27 @@
                 </div>
             </div>
             <div class="component-category">
-                <h3 class="accordion-header">⚽ Campi</h3>
+                <h3 class="accordion-header">🏟️ Player</h3>
+                <div class="accordion-content">
+                    <div class="component-grid">
+                        <div class="component-item" data-type="volleyball-player-bagher" data-text="">
+                            <div class="component-icon">🏟️</div>
+                            <div>Bagher</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="component-category">
+                <h3 class="accordion-header">🏟️ Campi</h3>
                 <div class="accordion-content">
                     <div class="component-grid">
                         <div class="component-item" data-type="court" data-text="">
-                            <div class="component-icon">⚽</div>
-                            <div>Campo completo</div>
+                            <div class="component-icon">🏟️</div>
+                            <div>Intero</div>
                         </div>
                         <div class="component-item" data-type="half-court" data-text="">
-                            <div class="component-icon">⚽</div>
-                            <div>Campo metà</div>
+                            <div class="component-icon">🏟️</div>
+                            <div>Metà</div>
                         </div>
                     </div>
                 </div>
@@ -1089,8 +1101,8 @@
                     <label>Background:</label>
                     <select id="backgroundSelect">
                         <option value="none">Nessuno</option>
-                        <option value="half-field">Metà campo</option>
-                        <option value="full-field">Campo intero</option>
+                        <option value="half-field">Metà</option>
+                        <option value="full-field">Intero</option>
                         <option value="3d-field">Campo 3D</option>
                     </select>
                 </div>
@@ -2091,7 +2103,18 @@
                         const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
                         if (arrowData) {
                             arrowData.markerStart = e.target.checked;
-                            this.renderArrow(arrowData); // ✅ Richiama renderArrow per applicare le modifiche
+                            const svgElement = document.getElementById(this.selectedArrow);
+                            if (svgElement) {
+                                const path = svgElement.querySelector('.arrow-path');
+                                const markerId = `arrowhead-${this.selectedArrow}`;
+                                if (path) {
+                                    if (e.target.checked) {
+                                        path.setAttribute('marker-start', `url(#${markerId}-start)`);
+                                    } else {
+                                        path.removeAttribute('marker-start');
+                                    }
+                                }
+                            }
                             this.saveState();
                         }
                     }
@@ -2102,7 +2125,18 @@
                         const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
                         if (arrowData) {
                             arrowData.markerEnd = e.target.checked;
-                            this.renderArrow(arrowData); // ✅ Richiama renderArrow per applicare le modifiche
+                            const svgElement = document.getElementById(this.selectedArrow);
+                            if (svgElement) {
+                                const path = svgElement.querySelector('.arrow-path');
+                                const markerId = `arrowhead-${this.selectedArrow}`;
+                                if (path) {
+                                    if (e.target.checked) {
+                                        path.setAttribute('marker-end', `url(#${markerId}-end)`);
+                                    } else {
+                                        path.removeAttribute('marker-end');
+                                    }
+                                }
+                            }
                             this.saveState();
                         }
                     }
@@ -3457,13 +3491,24 @@
 
                 this.saveState();
             }
-
             changeArrowColor(color) {
                 if (!this.selectedArrow) return;
                 const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
                 if (arrowData) {
                     arrowData.color = color;
-                    this.renderArrow(arrowData); // ✅ Questo ora aggiornerà anche i marker
+                    const svgElement = document.getElementById(this.selectedArrow);
+                    if (svgElement) {
+                        const path = svgElement.querySelector('.arrow-path');
+                        if (path) {
+                            path.setAttribute('stroke', color);
+                        }
+                        // Aggiorna il colore dei marker
+                        const markerId = `arrowhead-${this.selectedArrow}`;
+                        const markerStart = svgElement.querySelector(`#${markerId}-start polygon`);
+                        const markerEnd = svgElement.querySelector(`#${markerId}-end polygon`);
+                        if (markerStart) markerStart.setAttribute('fill', color);
+                        if (markerEnd) markerEnd.setAttribute('fill', color);
+                    }
                     this.saveState();
                 }
             }
@@ -3473,7 +3518,13 @@
                 const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
                 if (arrowData) {
                     arrowData.thickness = parseInt(thickness);
-                    this.renderArrow(arrowData); // ✅ Questo ora aggiornerà anche lo spessore
+                    const svgElement = document.getElementById(this.selectedArrow);
+                    if (svgElement) {
+                        const path = svgElement.querySelector('.arrow-path');
+                        if (path) {
+                            path.setAttribute('stroke-width', thickness);
+                        }
+                    }
                     this.saveState();
                 }
             }
