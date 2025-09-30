@@ -8,6 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="./css/accordion.css">
     <link rel="stylesheet" href="./css/sidebar.css">
     <link rel="stylesheet" href="./css/login.css">
     <link rel="stylesheet" href="./css/icons.css">
@@ -42,44 +43,6 @@
         .container {
             display: flex;
             height: 100vh;
-        }
-
-        /* Accordion headers */
-        .accordion-header {
-            padding: 15px;
-            background: #34495e;
-            margin: 0;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            cursor: pointer;
-            position: relative;
-        }
-
-        .accordion-header::after {
-            content: '+';
-            font-size: 20px;
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            transition: transform 0.2s ease-in-out;
-        }
-
-        .accordion-header.active::after {
-            content: '−';
-            transform: translateY(-50%) rotate(0deg);
-        }
-
-        /* Accordion content */
-        .accordion-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
-        }
-
-        .accordion-content.active {
-            max-height: 500px;
         }
 
         .component-grid {
@@ -125,7 +88,7 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            background: white;
+            background: transparent;
             overflow: hidden;
         }
 
@@ -1248,6 +1211,11 @@
                         <input type="color" class="color-picker" id="arrowColor" value="#e74c3c">
                     </div>
                     <div>
+                        <label>Opacità:</label>
+                        <input type="range" id="objectOpacity" min="0" max="1" value="1" step="0.01">
+                        <span id="opacityValue">1.00</span>
+                    </div>
+                    <div>
                         <label>Spessore:</label>
                         <input type="range" id="arrowThickness" min="1" max="10" value="3">
                         <span id="thicknessValue">3</span>
@@ -1325,6 +1293,7 @@
                 <div class="detail-field">
                     <label for="workoutGenere">Genere:</label>
                     <select id="workoutGenere">
+                        <option value="GEN">Generico</option>
                         <option value="MIS">Misto</option>
                         <option value="M">Maschile</option>
                         <option value="F">Femminile</option>
@@ -1435,8 +1404,9 @@
                 this.users = [];
                 // Inizializza il login prima di tutto
                 this.initLogin();
-                this.initLibraryLoading(); // Inizializza la logica della libreria
-
+                // Inizializza la logica della libreria
+                this.initLibraryLoading();
+                // Inizializza i tab
                 this.initializeTab(1, 'Schema 1');
                 this.initializeEventListeners();
                 this.initializeExistingTabs();
@@ -1459,8 +1429,8 @@
                     periodo: 'GEN',
                     ruolo: 'GEN',
                     tipologia: 'GEN',
-                    genere: 'MIS',      // ✅ NUOVO
-                    categoria: 'GEN',   // ✅ NUOVO
+                    genere: 'GEN',
+                    categoria: 'GEN',
                     descrizione: '',
                     autore: this.currentUser || 'unknown'
                 });
@@ -1643,7 +1613,7 @@
                         periodo: tab.periodo || 'GEN',
                         ruolo: tab.ruolo || 'GEN',
                         tipologia: tab.tipologia || 'GEN',
-                        genere: tab.genere || 'MIS',        // ✅ NUOVO
+                        genere: tab.genere || 'GEN',        // ✅ NUOVO
                         categoria: tab.categoria || 'GEN',  // ✅ NUOVO
                         descrizione: tab.descrizione || '',
                         autore: tab.autore || this.currentUser
@@ -1719,7 +1689,7 @@
                             tab.periodo = tabData.periodo || 'GEN';
                             tab.ruolo = tabData.ruolo || 'GEN';
                             tab.tipologia = tabData.tipologia || 'GEN';
-                            tab.genere = tabData.genere || 'MIS';        // ✅ NUOVO
+                            tab.genere = tabData.genere || 'GEN';        // ✅ NUOVO
                             tab.categoria = tabData.categoria || 'GEN';  // ✅ NUOVO
                             tab.descrizione = tabData.descrizione || '';
                             tab.autore = tabData.autore || 'unknown';
@@ -3766,12 +3736,12 @@
                 document.getElementById('workoutPeriodo').value = tab.periodo || 'GEN';
                 document.getElementById('workoutRuolo').value = tab.ruolo || 'GEN';
                 document.getElementById('workoutTipologia').value = tab.tipologia || 'GEN';
-                document.getElementById('workoutGenere').value = tab.genere || 'MIS';        // ✅ NUOVO
+                document.getElementById('workoutGenere').value = tab.genere || 'GEN';        // ✅ NUOVO
                 document.getElementById('workoutCategoria').value = tab.categoria || 'GEN';  // ✅ NUOVO
                 document.getElementById('workoutDescrizione').value = tab.descrizione || '';
                 document.getElementById('workoutAutore').value = tab.autore || this.currentUser;
 
-                this.filterCategoriesByGenere(tab.genere || 'MIS'); // ✅ NUOVO
+                this.filterCategoriesByGenere(tab.genere || 'GEN'); // ✅ NUOVO
                 this.loadTabState();
             }
 
@@ -3924,12 +3894,12 @@
                         document.getElementById('workoutPeriodo').value = data.periodo || 'GEN';
                         document.getElementById('workoutRuolo').value = data.ruolo || 'GEN';
                         document.getElementById('workoutTipologia').value = data.tipologia || 'GEN';
-                        document.getElementById('workoutGenere').value = data.genere || 'MIS';        // ✅ NUOVO
+                        document.getElementById('workoutGenere').value = data.genere || 'GEN';        // ✅ NUOVO
                         document.getElementById('workoutCategoria').value = data.categoria || 'GEN';  // ✅ NUOVO
                         document.getElementById('workoutDescrizione').value = data.note || '';
                         document.getElementById('workoutAutore').value = data.autore || 'unknown';
                         tab.autore = data.autore || 'unknown';
-                        tab.genere = data.genere || 'MIS';        // ✅ NUOVO
+                        tab.genere = data.genere || 'GEN';        // ✅ NUOVO
                         tab.categoria = data.categoria || 'GEN';  // ✅ NUOVO
 
                         this.loadTabState();
