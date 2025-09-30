@@ -1137,6 +1137,7 @@
                     <button id="loadBtn">📁 Carica</button>
                     <button id="loadWorkOutBtn">📁 Carica Allenamento</button>
                     <input type="file" id="fileInput" accept=".json" style="display: none;">
+                    <input type="file" id="workoutFileInput" accept=".json" style="display: none;">
                     <button id="exportBtn">📤 Esporta</button>
                     <button id="loadFromLibrary">📁 Libreria</button>
                     <div class="toolbar-group">
@@ -1244,7 +1245,15 @@
                         <button id="arrowTypeZigzag" class="arrow-type-btn">Zigzag</button>
                     </div>
                 </div>
-
+                <div class="arrow-marker-controls">
+                    <label>Terminali:</label>
+                    <label style="display: flex; align-items: center; gap: 5px;">
+                        <input type="checkbox" id="arrowMarkerStart"> Inizio
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 5px;">
+                        <input type="checkbox" id="arrowMarkerEnd" checked> Fine
+                    </label>
+                </div>
                 <div>
                     <button id="deleteBtn">🗑️ Elimina</button>
                 </div>
@@ -1298,13 +1307,80 @@
                     </select>
                 </div>
 
+                <!-- ✅ NUOVI CAMPI AGGIUNTI -->
+                <div class="detail-field">
+                    <label for="workoutGenere">Genere:</label>
+                    <select id="workoutGenere">
+                        <option value="MIS">Misto</option>
+                        <option value="M">Maschile</option>
+                        <option value="F">Femminile</option>
+                    </select>
+                </div>
+
+                <div class="detail-field">
+                    <label for="workoutCategoria">Categoria:</label>
+                    <select id="workoutCategoria">
+                        <optgroup label="🎯 Generica">
+                            <option value="GEN">Generico</option>
+                        </optgroup>
+                        <optgroup label="👶 Giovanili Maschili">
+                            <option value="U12M">Under 12 M</option>
+                            <option value="U13M">Under 13 M</option>
+                            <option value="U14M">Under 14 M</option>
+                            <option value="U15M">Under 15 M</option>
+                            <option value="U16M">Under 16 M</option>
+                            <option value="U17M">Under 17 M</option>
+                            <option value="U18M">Under 18 M</option>
+                            <option value="U19M">Under 19 M</option>
+                        </optgroup>
+                        <optgroup label="👧 Giovanili Femminili">
+                            <option value="U12F">Under 12 F</option>
+                            <option value="U13F">Under 13 F</option>
+                            <option value="U14F">Under 14 F</option>
+                            <option value="U16F">Under 16 F</option>
+                            <option value="U18F">Under 18 F</option>
+                        </optgroup>
+                        <optgroup label="🏆 Senior Maschili">
+                            <option value="A1M">Superlega (A1) M</option>
+                            <option value="A2M">Serie A2 M</option>
+                            <option value="A3M">Serie A3 M</option>
+                            <option value="BM">Serie B M</option>
+                            <option value="CM">Serie C M</option>
+                            <option value="DM">Serie D M</option>
+                            <option value="1DM">Prima Divisione M</option>
+                            <option value="2DM">Seconda Divisione M</option>
+                            <option value="3DM">Terza Divisione M</option>
+                        </optgroup>
+                        <optgroup label="🏐 Senior Femminili">
+                            <option value="A1F">Serie A1 F</option>
+                            <option value="A2F">Serie A2 F</option>
+                            <option value="A3F">Serie A3 F</option>
+                            <option value="B1F">Serie B1 F</option>
+                            <option value="B2F">Serie B2 F</option>
+                            <option value="CF">Serie C F</option>
+                            <option value="DF">Serie D F</option>
+                            <option value="1DF">Prima Divisione F</option>
+                            <option value="2DF">Seconda Divisione F</option>
+                            <option value="3DF">Terza Divisione F</option>
+                        </optgroup>
+                        <optgroup label="🌊 Altri">
+                            <option value="BEACH">Beach Volley</option>
+                            <option value="SNOW">Snow Volley</option>
+                            <option value="CSI">CSI/UISP</option>
+                            <option value="SCO">Scolastico</option>
+                        </optgroup>
+                    </select>
+                </div>
+
                 <div class="detail-field">
                     <label for="workoutDescrizione">Note:</label>
                     <textarea id="workoutDescrizione" placeholder="Inserisci note sull'allenamento..."></textarea>
                 </div>
+
                 <div class="detail-field">
                     <label for="workoutAutore">Autore:</label>
-                    <input type="text" id="workoutAutore" readonly style="background: #95a5a6; cursor: not-allowed; border:none; width:100%">
+                    <input type="text" id="workoutAutore" readonly
+                        style="background: #95a5a6; cursor: not-allowed; border:none; width:100%">
                 </div>
             </div>
         </div>
@@ -1366,13 +1442,51 @@
                     gridVisible: false,
                     bwMode: false,
                     zoom: 1,
-                    // AGGIUNGI QUESTI CAMPI:
                     periodo: 'GEN',
                     ruolo: 'GEN',
                     tipologia: 'GEN',
+                    genere: 'MIS',      // ✅ NUOVO
+                    categoria: 'GEN',   // ✅ NUOVO
                     descrizione: '',
-                    autore: this.currentUser || 'unknown' // AGGIUNTO
+                    autore: this.currentUser || 'unknown'
                 });
+            }
+
+            filterCategoriesByGenere(genere) {
+                const categoriaSelect = document.getElementById('workoutCategoria');
+                const allOptions = categoriaSelect.querySelectorAll('option');
+                const allOptgroups = categoriaSelect.querySelectorAll('optgroup');
+
+                // Mostra tutto per default
+                allOptions.forEach(opt => opt.style.display = '');
+                allOptgroups.forEach(grp => grp.style.display = '');
+
+                if (genere === 'M') {
+                    // Mostra solo maschili
+                    allOptions.forEach(opt => {
+                        if (opt.value.includes('F') && !opt.value.includes('M') && opt.value !== 'GEN') {
+                            opt.style.display = 'none';
+                        }
+                    });
+                    allOptgroups.forEach(grp => {
+                        if (grp.label.includes('Femminili')) {
+                            grp.style.display = 'none';
+                        }
+                    });
+                } else if (genere === 'F') {
+                    // Mostra solo femminili
+                    allOptions.forEach(opt => {
+                        if (opt.value.includes('M') && !opt.value.includes('F') && opt.value !== 'GEN' && opt.value !== 'MIS') {
+                            opt.style.display = 'none';
+                        }
+                    });
+                    allOptgroups.forEach(grp => {
+                        if (grp.label.includes('Maschili')) {
+                            grp.style.display = 'none';
+                        }
+                    });
+                }
+                // Per 'MIS' mostra tutto
             }
             async initLogin() {
                 try {
@@ -1461,6 +1575,169 @@
                     // Nascondi info utente
                     document.getElementById('userInfo').style.display = 'none';
                 }
+            }
+
+
+            showSaveWorkoutDialog() {
+                // Genera un nome predefinito con data e ora
+                const now = new Date();
+                const defaultName = `Allenamento_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+
+                document.getElementById('workoutFileName').value = defaultName;
+                document.getElementById('saveWorkoutModal').style.display = 'block';
+
+                // Focus sull'input e seleziona il testo
+                setTimeout(() => {
+                    const input = document.getElementById('workoutFileName');
+                    input.focus();
+                    input.select();
+                }, 100);
+            }
+
+            confirmSaveWorkout() {
+                const fileName = document.getElementById('workoutFileName').value.trim();
+
+                if (!fileName) {
+                    alert('Inserisci un nome per il file');
+                    return;
+                }
+
+                // Chiudi il modal
+                document.getElementById('saveWorkoutModal').style.display = 'none';
+
+                // Salva l'allenamento
+                this.saveWorkout(fileName);
+            }
+
+            saveWorkout(fileName) {
+                // Salva lo stato corrente del tab attivo
+                this.saveTabState();
+
+                // Crea un array con tutti i tab
+                const allTabs = [];
+
+                this.tabs.forEach((tab, tabId) => {
+                    const tabData = {
+                        id: tabId,
+                        name: tab.name,
+                        objects: Array.from(tab.objects.entries()),
+                        arrows: Array.from(tab.arrows.entries()),
+                        background: tab.background,
+                        gridVisible: tab.gridVisible,
+                        bwMode: tab.bwMode,
+                        zoom: tab.zoom,
+                        periodo: tab.periodo || 'GEN',
+                        ruolo: tab.ruolo || 'GEN',
+                        tipologia: tab.tipologia || 'GEN',
+                        genere: tab.genere || 'MIS',        // ✅ NUOVO
+                        categoria: tab.categoria || 'GEN',  // ✅ NUOVO
+                        descrizione: tab.descrizione || '',
+                        autore: tab.autore || this.currentUser
+                    };
+                    allTabs.push(tabData);
+                });
+
+                // Crea il JSON completo
+                const workoutData = {
+                    version: '1.0',
+                    savedDate: new Date().toISOString(),
+                    author: this.currentUser,
+                    tabs: allTabs
+                };
+
+                // Salva il file
+                const blob = new Blob([JSON.stringify(workoutData, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${fileName}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                console.log(`Allenamento salvato: ${allTabs.length} schemi`);
+            }
+
+            loadWorkout(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const workoutData = JSON.parse(e.target.result);
+
+                        // Verifica che sia un file workout valido
+                        if (!workoutData.tabs || !Array.isArray(workoutData.tabs)) {
+                            alert('File non valido: formato allenamento non riconosciuto');
+                            return;
+                        }
+
+                        // Conferma prima di sovrascrivere
+                        if (!confirm(`Questo caricamento sostituirà tutti gli schemi attuali con ${workoutData.tabs.length} schemi dal file. Continuare?`)) {
+                            return;
+                        }
+
+                        // Pulisci tutti i tab esistenti
+                        this.tabs.clear();
+                        document.querySelectorAll('.tab').forEach(tab => tab.remove());
+
+                        // Ricrea i tab dal file
+                        let firstTabId = null;
+                        workoutData.tabs.forEach((tabData, index) => {
+                            const tabId = tabData.id || (this.nextTabId++);
+
+                            if (index === 0) firstTabId = tabId;
+
+                            // Inizializza il tab
+                            this.initializeTab(tabId, tabData.name);
+
+                            // Carica i dati del tab
+                            const tab = this.tabs.get(tabId);
+                            tabData.objects.forEach(([id, obj]) => tab.objects.set(id, obj));
+                            tabData.arrows.forEach(([id, arrow]) => tab.arrows.set(id, arrow));
+
+                            tab.background = tabData.background || 'none';
+                            tab.gridVisible = tabData.gridVisible || false;
+                            tab.bwMode = tabData.bwMode || false;
+                            tab.zoom = tabData.zoom || 1;
+                            tab.periodo = tabData.periodo || 'GEN';
+                            tab.ruolo = tabData.ruolo || 'GEN';
+                            tab.tipologia = tabData.tipologia || 'GEN';
+                            tab.genere = tabData.genere || 'MIS';        // ✅ NUOVO
+                            tab.categoria = tabData.categoria || 'GEN';  // ✅ NUOVO
+                            tab.descrizione = tabData.descrizione || '';
+                            tab.autore = tabData.autore || 'unknown';
+
+                            // Aggiorna nextObjectId e nextArrowId
+                            tab.nextObjectId = Math.max(...Array.from(tab.objects.keys()).map(id => parseInt(id.split('-')[1]) || 0)) + 1;
+                            tab.nextArrowId = Math.max(...Array.from(tab.arrows.keys()).map(id => parseInt(id.split('-')[1]) || 0)) + 1;
+
+                            // Crea l'elemento tab nella UI
+                            this.createTabElement(tabId, tabData.name);
+                        });
+
+                        // Aggiorna nextTabId
+                        this.nextTabId = Math.max(...Array.from(this.tabs.keys())) + 1;
+
+                        // Passa al primo tab
+                        if (firstTabId) {
+                            this.switchToTab(firstTabId);
+                        }
+
+                        console.log(`Allenamento caricato: ${workoutData.tabs.length} schemi`);
+
+                    } catch (error) {
+                        alert('Errore nel caricamento del file: ' + error.message);
+                        console.error('Errore caricamento workout:', error);
+                    }
+                };
+
+                reader.readAsText(file);
+
+                // Reset dell'input per permettere di caricare lo stesso file di nuovo
+                event.target.value = '';
             }
 
             showMainApp() {
@@ -1806,6 +2083,29 @@
                     btn.addEventListener('click', (e) => this.changeArrowType(e.target.id.replace('arrowType', '').toLowerCase()));
                 });
 
+                // Event listeners per i terminali delle frecce
+                document.getElementById('arrowMarkerStart').addEventListener('change', (e) => {
+                    if (this.selectedArrow) {
+                        const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
+                        if (arrowData) {
+                            arrowData.markerStart = e.target.checked;
+                            this.renderArrow(arrowData); // ✅ Richiama renderArrow per applicare le modifiche
+                            this.saveState();
+                        }
+                    }
+                });
+
+                document.getElementById('arrowMarkerEnd').addEventListener('change', (e) => {
+                    if (this.selectedArrow) {
+                        const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
+                        if (arrowData) {
+                            arrowData.markerEnd = e.target.checked;
+                            this.renderArrow(arrowData); // ✅ Richiama renderArrow per applicare le modifiche
+                            this.saveState();
+                        }
+                    }
+                });
+
                 document.getElementById('dashedObjectToggle').addEventListener('click', () => this.toggleDashedObject());
 
                 document.getElementById('bringToFront').addEventListener('click', () => this.bringToFront());
@@ -1822,6 +2122,20 @@
 
                 document.getElementById('groupRotateLeft').addEventListener('click', () => this.rotateGroup(-15));
                 document.getElementById('groupRotateRight').addEventListener('click', () => this.rotateGroup(15));
+
+
+                //Salvataggio Allenamenti
+                document.getElementById('saveBtn').addEventListener('click', () => this.saveSchema());
+                document.getElementById('saveWorkOutBtn').addEventListener('click', () => this.showSaveWorkoutDialog());
+                document.getElementById('loadBtn').addEventListener('click', () => {
+                    document.getElementById('fileInput').click();
+                });
+                document.getElementById('loadWorkOutBtn').addEventListener('click', () => {
+                    document.getElementById('workoutFileInput').click();
+                });
+
+
+
 
                 // Right sidebar functionality
                 const rightSidebar = document.getElementById('rightSidebar');
@@ -1874,7 +2188,17 @@
                 document.getElementById('workoutDescrizione').addEventListener('input', (e) => {
                     this.getCurrentTab().descrizione = e.target.value;
                 });
-
+                // ✅ NUOVI EVENT LISTENERS
+                document.getElementById('workoutGenere').addEventListener('change', (e) => {
+                    this.getCurrentTab().genere = e.target.value;
+                    this.filterCategoriesByGenere(e.target.value); // Filtra le categorie
+                });
+                document.getElementById('workoutCategoria').addEventListener('change', (e) => {
+                    this.getCurrentTab().categoria = e.target.value;
+                });
+                document.getElementById('workoutDescrizione').addEventListener('input', (e) => {
+                    this.getCurrentTab().descrizione = e.target.value;
+                });
                 // Added sidebar functionality
                 const sidebar = document.getElementById('sidebar');
                 const sidebarHandle = document.getElementById('sidebarHandle');
@@ -1912,6 +2236,39 @@
                     sidebar.classList.toggle('hidden');
                     sidebarSwitch.textContent = sidebar.classList.contains('hidden') ? '▶' : '◀';
                 });
+
+
+                // Event listeners per il popup di salvataggio workout
+                document.getElementById('closeSaveWorkout').addEventListener('click', () => {
+                    document.getElementById('saveWorkoutModal').style.display = 'none';
+                });
+
+                document.getElementById('cancelSaveWorkout').addEventListener('click', () => {
+                    document.getElementById('saveWorkoutModal').style.display = 'none';
+                });
+
+                document.getElementById('confirmSaveWorkout').addEventListener('click', () => {
+                    this.confirmSaveWorkout();
+                });
+
+                // Chiudi il modal cliccando fuori
+                window.addEventListener('click', (event) => {
+                    const modal = document.getElementById('saveWorkoutModal');
+                    if (event.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+
+                // Permetti di salvare premendo Enter
+                document.getElementById('workoutFileName').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.confirmSaveWorkout();
+                    }
+                });
+
+                // Event listener per il caricamento workout
+                document.getElementById('workoutFileInput').addEventListener('change', (e) => this.loadWorkout(e));
+
             }
 
             handleCanvasDrop(e) {
@@ -2666,6 +3023,10 @@
                     document.getElementById('arrowThickness').value = arrowData.thickness;
                     document.getElementById('thicknessValue').textContent = arrowData.thickness;
 
+                    // ✅ NUOVO: Aggiorna i checkbox dei terminali
+                    document.getElementById('arrowMarkerStart').checked = arrowData.markerStart || false;
+                    document.getElementById('arrowMarkerEnd').checked = arrowData.markerEnd !== false; // default true
+
                     document.getElementById('objectInfo').textContent = 'Freccia selezionata';
                     document.getElementById('objectControls').style.display = 'none';
                     document.getElementById('arrowControls').style.display = 'flex';
@@ -2831,7 +3192,9 @@
                     dashed: dashed,
                     color: color,
                     thickness: thickness,
-                    controlPoint: null
+                    controlPoint: null,
+                    markerStart: false,  // ✅ NUOVO
+                    markerEnd: true      // ✅ NUOVO (default solo alla fine)
                 };
                 // Aggiungi sempre il punto di controllo, indipendentemente dal tipo
                 const fromPos = this.getArrowPoint(arrow.from);
@@ -2863,26 +3226,43 @@
                     svg.id = arrow.id;
                     document.getElementById('canvas').appendChild(svg);
                 } else {
-                    svg.innerHTML = '';
+                    svg.innerHTML = ''; // ✅ IMPORTANTE: Pulisce tutto inclusi i defs vecchi
                 }
 
-                // AGGIUNGI QUESTO: Crea defs per il marker della freccia con colore specifico
+                // ✅ CORREZIONE: Ricrea sempre i defs con i colori aggiornati
                 const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
                 const markerId = `arrowhead-${arrow.id}`;
-                const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
-                marker.id = markerId;
-                marker.setAttribute('markerWidth', '10');
-                marker.setAttribute('markerHeight', '7');
-                marker.setAttribute('refX', '9');
-                marker.setAttribute('refY', '3.5');
-                marker.setAttribute('orient', 'auto');
 
-                const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-                polygon.setAttribute('points', '0 0, 10 3.5, 0 7');
-                polygon.setAttribute('fill', arrow.color); // USA IL COLORE DELLA FRECCIA
+                // Marker per la fine (freccia verso destra)
+                const markerEnd = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+                markerEnd.id = `${markerId}-end`;
+                markerEnd.setAttribute('markerWidth', '10');
+                markerEnd.setAttribute('markerHeight', '7');
+                markerEnd.setAttribute('refX', '9');
+                markerEnd.setAttribute('refY', '3.5');
+                markerEnd.setAttribute('orient', 'auto');
 
-                marker.appendChild(polygon);
-                defs.appendChild(marker);
+                const polygonEnd = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                polygonEnd.setAttribute('points', '0 0, 10 3.5, 0 7');
+                polygonEnd.setAttribute('fill', arrow.color); // ✅ Usa il colore corrente
+                markerEnd.appendChild(polygonEnd);
+                defs.appendChild(markerEnd);
+
+                // Marker per l'inizio (freccia verso sinistra)
+                const markerStart = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+                markerStart.id = `${markerId}-start`;
+                markerStart.setAttribute('markerWidth', '10');
+                markerStart.setAttribute('markerHeight', '7');
+                markerStart.setAttribute('refX', '1');
+                markerStart.setAttribute('refY', '3.5');
+                markerStart.setAttribute('orient', 'auto');
+
+                const polygonStart = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                polygonStart.setAttribute('points', '10 0, 0 3.5, 10 7');
+                polygonStart.setAttribute('fill', arrow.color); // ✅ Usa il colore corrente
+                markerStart.appendChild(polygonStart);
+                defs.appendChild(markerStart);
+
                 svg.appendChild(defs);
 
                 const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -2903,9 +3283,20 @@
 
                 path.setAttribute('d', pathData);
                 path.setAttribute('stroke', arrow.color);
-                //path.setAttribute('stroke-width', arrow.thickness);
-                // CAMBIA QUESTA RIGA: usa il marker specifico invece di #arrowhead
-                path.setAttribute('marker-end', `url(#${markerId})`);
+                path.setAttribute('stroke-width', arrow.thickness); // ✅ APPLICATO
+
+                // ✅ CORREZIONE: Applica o rimuovi i marker in base ai flag
+                if (arrow.markerStart) {
+                    path.setAttribute('marker-start', `url(#${markerId}-start)`);
+                } else {
+                    path.removeAttribute('marker-start');
+                }
+
+                if (arrow.markerEnd !== false) { // default true se non specificato
+                    path.setAttribute('marker-end', `url(#${markerId}-end)`);
+                } else {
+                    path.removeAttribute('marker-end');
+                }
 
                 path.addEventListener('mousedown', (e) => {
                     e.stopPropagation();
@@ -3070,7 +3461,7 @@
                 const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
                 if (arrowData) {
                     arrowData.color = color;
-                    this.renderArrow(arrowData);
+                    this.renderArrow(arrowData); // ✅ Questo ora aggiornerà anche i marker
                     this.saveState();
                 }
             }
@@ -3080,7 +3471,7 @@
                 const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
                 if (arrowData) {
                     arrowData.thickness = parseInt(thickness);
-                    this.renderArrow(arrowData);
+                    this.renderArrow(arrowData); // ✅ Questo ora aggiornerà anche lo spessore
                     this.saveState();
                 }
             }
@@ -3311,7 +3702,6 @@
                 if (newActiveTab) {
                     newActiveTab.classList.add('active');
 
-                    // NUOVO: Sincronizza il nome del tab con l'input
                     const tabInput = newActiveTab.querySelector('.tab-title');
                     const tab = this.tabs.get(id);
                     if (tabInput && tab) {
@@ -3319,13 +3709,16 @@
                     }
                 }
 
-                // AGGIUNGI: Carica i dettagli del workout nella sidebar destra
                 const tab = this.getCurrentTab();
                 document.getElementById('workoutPeriodo').value = tab.periodo || 'GEN';
                 document.getElementById('workoutRuolo').value = tab.ruolo || 'GEN';
                 document.getElementById('workoutTipologia').value = tab.tipologia || 'GEN';
+                document.getElementById('workoutGenere').value = tab.genere || 'MIS';        // ✅ NUOVO
+                document.getElementById('workoutCategoria').value = tab.categoria || 'GEN';  // ✅ NUOVO
                 document.getElementById('workoutDescrizione').value = tab.descrizione || '';
-                document.getElementById('workoutAutore').value = tab.autore || this.currentUser; // AGGIUNTO
+                document.getElementById('workoutAutore').value = tab.autore || this.currentUser;
+
+                this.filterCategoriesByGenere(tab.genere || 'MIS'); // ✅ NUOVO
                 this.loadTabState();
             }
 
@@ -3478,9 +3871,13 @@
                         document.getElementById('workoutPeriodo').value = data.periodo || 'GEN';
                         document.getElementById('workoutRuolo').value = data.ruolo || 'GEN';
                         document.getElementById('workoutTipologia').value = data.tipologia || 'GEN';
+                        document.getElementById('workoutGenere').value = data.genere || 'MIS';        // ✅ NUOVO
+                        document.getElementById('workoutCategoria').value = data.categoria || 'GEN';  // ✅ NUOVO
                         document.getElementById('workoutDescrizione').value = data.note || '';
                         document.getElementById('workoutAutore').value = data.autore || 'unknown';
                         tab.autore = data.autore || 'unknown';
+                        tab.genere = data.genere || 'MIS';        // ✅ NUOVO
+                        tab.categoria = data.categoria || 'GEN';  // ✅ NUOVO
 
                         this.loadTabState();
                         this.saveState();
@@ -3711,6 +4108,29 @@
                 </ul>
             </div>
             <button id="loadSelectedWorkout" disabled>Carica Allenamento</button>
+        </div>
+    </div>
+    <!-- Popup per nome allenamento -->
+    <div id="saveWorkoutModal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <span class="close-button" id="closeSaveWorkout">&times;</span>
+            <h2>Salva Allenamento Completo</h2>
+            <div style="padding: 20px 0;">
+                <label for="workoutFileName" style="display: block; margin-bottom: 10px;">Nome del file:</label>
+                <input type="text" id="workoutFileName"
+                    style="width: 100%; padding: 8px; border: 1px solid #bdc3c7; border-radius: 4px;"
+                    placeholder="es: Allenamento_Settimana1">
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button id="cancelSaveWorkout"
+                    style="padding: 8px 16px; background: #95a5a6; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    Annulla
+                </button>
+                <button id="confirmSaveWorkout"
+                    style="padding: 8px 16px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    Salva
+                </button>
+            </div>
         </div>
     </div>
     <!-- Login Modal -->
