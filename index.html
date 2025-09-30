@@ -577,9 +577,10 @@
 
         .arrow-path {
             fill: none;
-            stroke: #e74c3c;
+            stroke: currentColor;
+            /* il colore viene ereditato */
             stroke-width: 3;
-            marker-end: url(#arrowhead);
+            /* default, sarà sovrascritto */
             pointer-events: auto;
             cursor: pointer;
         }
