@@ -1,0 +1,11 @@
+#watermark {
+    position: absolute;
+    bottom: 10px;
+    right: 15px;
+    font-size: 14px;
+    font-weight: bold;
+    color: rgba(0,0,0,0.3); /* semitrasparente */
+    pointer-events: none;    /* non cliccabile */
+    z-index: 9999;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}

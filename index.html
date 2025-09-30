@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="./css/icons.css">
     <link rel="stylesheet" href="./css/selection.css">
     <link rel="stylesheet" href="./css/tab.css">
+    <link rel="stylesheet" href="./css/watermark.css">
 
     <style>
         * {
@@ -1440,7 +1441,7 @@
                     history: [],
                     historyIndex: -1,
                     background: 'none',
-                    gridVisible: false,
+                    gridVisible: true,
                     bwMode: false,
                     zoom: 1,
                     periodo: 'GEN',
@@ -3858,7 +3859,7 @@
                         data.arrows.forEach(([id, arrow]) => tab.arrows.set(id, arrow));
 
                         tab.background = data.background || 'none';
-                        tab.gridVisible = data.gridVisible || false;
+                        tab.gridVisible = data.gridVisible || true;
                         tab.bwMode = data.bwMode || false;
                         tab.zoom = data.zoom || 1;
 
@@ -3907,7 +3908,7 @@
                             data.arrows.forEach(([id, arrow]) => tab.arrows.set(id, arrow));
 
                             tab.background = data.background || 'none';
-                            tab.gridVisible = data.gridVisible || false;
+                            tab.gridVisible = data.gridVisible || true;
                             tab.bwMode = data.bwMode || false;
                             tab.zoom = data.zoom || 1;
 
@@ -3982,17 +3983,30 @@
                 link.click();
             }
 
-            exportToPDF(canvas, title) {
+            exportToPDF(exportCanvas, title) {
                 const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF({
-                    orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
-                    unit: 'px',
-                    format: [canvas.width, canvas.height]
-                });
+                const pdf = new jsPDF('l', 'pt', 'a4'); // landscape, punti, A4
+                const imgData = exportCanvas.toDataURL('image/png');
 
-                pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.width, canvas.height);
+                const pageWidth = pdf.internal.pageSize.getWidth();
+                const pageHeight = pdf.internal.pageSize.getHeight();
+
+                // Aggiungi immagine schema
+                const ratio = Math.min(pageWidth / exportCanvas.width, pageHeight / exportCanvas.height);
+                const imgWidth = exportCanvas.width * ratio;
+                const imgHeight = exportCanvas.height * ratio;
+                const x = (pageWidth - imgWidth) / 2;
+                const y = (pageHeight - imgHeight) / 2;
+                pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
+
+                // 👉 Aggiungi il watermark in basso a destra
+                pdf.setFontSize(12);
+                pdf.setTextColor(150, 150, 150); // grigio chiaro
+                pdf.text("spikecode", pageWidth - 60, pageHeight - 20);
+
                 pdf.save(`${title}.pdf`);
             }
+
 
             handleKeyboard(e) {
                 if (e.ctrlKey || e.metaKey) {
@@ -4153,6 +4167,7 @@
             </form>
         </div>
     </div>
+    <div id="watermark">spikecode</div>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             window.editor = new SchemaEditor();
