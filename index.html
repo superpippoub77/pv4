@@ -3879,21 +3879,18 @@
 
             saveSchema() {
                 const tab = this.getCurrentTab();
-
-                // MODIFICATO: Usa il nome del tab invece del campo schemaTitle
-                const title = tab.name || 'schema';
-                const note = tab.descrizione || ''; // MODIFICATO
-                const tipologia = tab.tipologia || 'GEN'; // MODIFICATO
-                const ruolo = tab.ruolo || 'GEN'; // MODIFICATO
-                const periodo = tab.periodo || 'GEN'; // MODIFICATO
-                const autore = tab.autore || this.currentUser; // AGGIUNTO
                 const data = {
-                    title: title,
-                    note: note,
-                    tipologia: tipologia,
-                    ruolo: ruolo,
-                    periodo: periodo,
-                    autore: autore, // AGGIUNTO
+                    title: tab.name || 'schema',
+                    note: tab.descrizione || '',
+                    tipologia: tab.tipologia || 'GEN',
+                    ruolo: tab.ruolo || 'GEN',
+                    periodo: tab.periodo || 'GEN',
+                    autore: tab.autore || this.currentUser, 
+                    nr: tab.nr,
+                    series: tab.series,
+                    place: tab.place,
+                    date: tab.date,
+                    groups: tab.groups,
                     objects: Array.from(tab.objects.entries()),
                     arrows: Array.from(tab.arrows.entries()),
                     background: tab.background,
