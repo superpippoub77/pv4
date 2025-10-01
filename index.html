@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="./css/tab.css">
     <link rel="stylesheet" href="./css/watermark.css">
     <link rel="stylesheet" href="./css/player.css">
+    <link rel="stylesheet" href="./css/freehand.css">
 
     <style>
         * {
@@ -1055,6 +1056,10 @@
                     </div>
                 </div>
             </div>
+            <div class="component-item" id="freehandModeBtn">
+                <div class="component-icon">✏️</div>
+                <div>Disegno</div>
+            </div>
         </div>
         <div class="sidebar-handle" id="sidebarHandle"></div>
 
@@ -1199,6 +1204,11 @@
                         <input type="color" class="color-picker" id="objectColor" value="#3498db">
                     </div>
                     <div>
+                        <label>Opacità:</label>
+                        <input type="range" id="objectOpacity" min="0" max="1" value="1" step="0.01">
+                        <span id="objectOpacityValue">1.00</span>
+                    </div>
+                    <div>
                         <label>Testo:</label>
                         <input type="text" id="objectText" placeholder="Modifica testo">
                     </div>
@@ -1226,6 +1236,22 @@
                         <button id="arrowTypeLinear" class="arrow-type-btn">Lineare</button>
                         <button id="arrowTypeCurved" class="arrow-type-btn">Curva</button>
                         <button id="arrowTypeZigzag" class="arrow-type-btn">Zigzag</button>
+                    </div>
+                </div>
+                <div id="freehandControls" style="display: none; align-items: center; gap: 10px;">
+                    <div class="color-picker-container">
+                        <label>Colore traccia:</label>
+                        <input type="color" class="color-picker" id="freehandColor" value="#000000">
+                    </div>
+                    <div>
+                        <label>Spessore:</label>
+                        <input type="range" id="freehandThickness" min="1" max="15" value="3">
+                        <span id="freehandThicknessValue">3</span>
+                    </div>
+                    <div>
+                        <label>Opacità:</label>
+                        <input type="range" id="freehandOpacity" min="0" max="1" value="1" step="0.01">
+                        <span id="freehandOpacityValue">1.00</span>
                     </div>
                 </div>
                 <div class="arrow-marker-controls">
@@ -1430,6 +1456,11 @@
                 this.maxZIndex = 1;
                 this.currentUser = null;
                 this.users = [];
+                this.freehandMode = false;
+                this.isDrawing = false;
+                this.currentFreehand = null;
+                this.freehandPoints = [];
+                this.selectedFreehand = null;
                 // Inizializza il login prima di tutto
                 this.initLogin();
                 // Inizializza la logica della libreria
@@ -1465,10 +1496,236 @@
                     groups: 1,
                     nr: 1,
                     date: new Date(),
-                    series: 1
+                    series: 1,
+                    freehands: new Map(),
+                    nextFreehandId: 1,
                 });
             }
+            startFreehand(e) {
+                this.isDrawing = true;
+                this.freehandPoints = [];
+                const rect = document.getElementById('canvas').getBoundingClientRect();
+                const x = (e.clientX - rect.left) / this.getCurrentTab().zoom;
+                const y = (e.clientY - rect.top) / this.getCurrentTab().zoom;
+                this.freehandPoints.push({ x, y });
+            }
 
+            continueFreehand(e) {
+                if (!this.isDrawing) return;
+                const rect = document.getElementById('canvas').getBoundingClientRect();
+                const x = (e.clientX - rect.left) / this.getCurrentTab().zoom;
+                const y = (e.clientY - rect.top) / this.getCurrentTab().zoom;
+
+                // Aggiungi punto solo se sufficientemente distante dall'ultimo
+                const lastPoint = this.freehandPoints[this.freehandPoints.length - 1];
+                const distance = Math.sqrt(Math.pow(x - lastPoint.x, 2) + Math.pow(y - lastPoint.y, 2));
+                if (distance > 2) {
+                    this.freehandPoints.push({ x, y });
+                    this.renderTempFreehand();
+                }
+            }
+
+            finishFreehand() {
+                if (!this.isDrawing || this.freehandPoints.length < 2) {
+                    this.isDrawing = false;
+                    this.removeTempFreehand();
+                    return;
+                }
+
+                this.isDrawing = false;
+                this.createFreehand(
+                    this.freehandPoints,
+                    document.getElementById('freehandColor').value,
+                    parseInt(document.getElementById('freehandThickness').value)
+                );
+                this.freehandPoints = [];
+                this.removeTempFreehand();
+            }
+
+            createFreehand(points, color, thickness) {
+                const tab = this.getCurrentTab();
+                const id = 'freehand-' + tab.nextFreehandId++;
+
+                const freehand = {
+                    id: id,
+                    type: 'freehand',
+                    points: [...points],
+                    color: color,
+                    thickness: thickness,
+                    opacity: 1, // AGGIUNTO
+                    zIndex: this.maxZIndex++
+                };
+
+                tab.freehands.set(id, freehand);
+                this.renderFreehand(freehand);
+                this.saveState();
+                return freehand;
+            }
+
+            renderTempFreehand() {
+                this.removeTempFreehand();
+                if (this.freehandPoints.length < 2) return;
+
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.id = 'temp-freehand';
+                svg.classList.add('freehand-svg');
+                svg.style.position = 'absolute';
+                svg.style.left = '0';
+                svg.style.top = '0';
+                svg.style.width = '100%';
+                svg.style.height = '100%';
+                svg.style.pointerEvents = 'none';
+
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', this.pointsToPath(this.freehandPoints));
+                path.setAttribute('stroke', document.getElementById('freehandColor').value);
+                path.setAttribute('stroke-width', document.getElementById('freehandThickness').value);
+                path.setAttribute('fill', 'none');
+                path.setAttribute('stroke-linecap', 'round');
+                path.setAttribute('stroke-linejoin', 'round');
+
+                svg.appendChild(path);
+                document.getElementById('canvas').appendChild(svg);
+            }
+
+            removeTempFreehand() {
+                const temp = document.getElementById('temp-freehand');
+                if (temp) temp.remove();
+            }
+
+            pointsToPath(points) {
+                if (points.length < 2) return '';
+                let path = `M ${points[0].x} ${points[0].y}`;
+                for (let i = 1; i < points.length; i++) {
+                    path += ` L ${points[i].x} ${points[i].y}`;
+                }
+                return path;
+            }
+
+            renderFreehand(freehand) {
+                let svg = document.getElementById(freehand.id);
+                if (!svg) {
+                    svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                    svg.classList.add('freehand-svg');
+                    svg.id = freehand.id;
+                    document.getElementById('canvas').appendChild(svg);
+                } else {
+                    svg.innerHTML = '';
+                }
+
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.classList.add('freehand-path');
+                path.setAttribute('d', this.pointsToPath(freehand.points));
+                path.setAttribute('stroke', freehand.color);
+                path.setAttribute('stroke-width', freehand.thickness);
+                path.style.opacity = freehand.opacity || 1; // AGGIUNTO
+                path.style.zIndex = freehand.zIndex || 1;
+
+                path.addEventListener('mousedown', (e) => {
+                    e.stopPropagation();
+                    this.selectFreehand(freehand.id);
+                });
+
+                svg.appendChild(path);
+
+                // Calcola bounding box
+                const xs = freehand.points.map(p => p.x);
+                const ys = freehand.points.map(p => p.y);
+                const minX = Math.min(...xs) - freehand.thickness;
+                const minY = Math.min(...ys) - freehand.thickness;
+                const maxX = Math.max(...xs) + freehand.thickness;
+                const maxY = Math.max(...ys) + freehand.thickness;
+
+                svg.style.left = minX + 'px';
+                svg.style.top = minY + 'px';
+                svg.style.width = (maxX - minX) + 'px';
+                svg.style.height = (maxY - minY) + 'px';
+                svg.setAttribute('viewBox', `${minX} ${minY} ${maxX - minX} ${maxY - minY}`);
+            }
+            changeFreehandOpacity(opacity) {
+                if (!this.selectedFreehand) return;
+                const freehand = this.getCurrentTab().freehands.get(this.selectedFreehand);
+                if (freehand) {
+                    freehand.opacity = parseFloat(opacity);
+                    const svg = document.getElementById(this.selectedFreehand);
+                    if (svg) {
+                        const path = svg.querySelector('.freehand-path');
+                        if (path) path.style.opacity = opacity;
+                    }
+                    this.saveState();
+                }
+            }
+
+            changeSelectedObjectsOpacity(opacity) {
+                if (this.selectedObjects.size === 0) return;
+
+                const tab = this.getCurrentTab();
+                this.selectedObjects.forEach((pos, id) => {
+                    const objectData = tab.objects.get(id);
+                    if (!objectData) return;
+                    objectData.opacity = parseFloat(opacity);
+
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.style.opacity = opacity;
+                    }
+                });
+
+                this.saveState();
+            }
+
+            selectFreehand(freehandId) {
+                this.deselectAll();
+                this.selectedFreehand = freehandId;
+
+                const svg = document.getElementById(freehandId);
+                if (svg) {
+                    const path = svg.querySelector('.freehand-path');
+                    if (path) path.classList.add('selected');
+                }
+
+                this.updateFreehandControls();
+            }
+
+            updateFreehandControls() {
+                if (this.selectedFreehand) {
+                    const freehand = this.getCurrentTab().freehands.get(this.selectedFreehand);
+                    document.getElementById('freehandColor').value = freehand.color;
+                    document.getElementById('freehandThickness').value = freehand.thickness;
+                    document.getElementById('freehandThicknessValue').textContent = freehand.thickness;
+                    document.getElementById('freehandOpacity').value = freehand.opacity || 1; // AGGIUNTO
+                    document.getElementById('freehandOpacityValue').textContent = (freehand.opacity || 1).toFixed(2); // AGGIUNTO
+
+                    document.getElementById('objectInfo').textContent = 'Disegno selezionato';
+                    document.getElementById('objectControls').style.display = 'none';
+                    document.getElementById('arrowControls').style.display = 'none';
+                    document.getElementById('freehandControls').style.display = 'flex';
+                }
+            }
+
+            changeFreehandColor(color) {
+                if (!this.selectedFreehand) return;
+                const freehand = this.getCurrentTab().freehands.get(this.selectedFreehand);
+                if (freehand) {
+                    freehand.color = color;
+                    const svg = document.getElementById(this.selectedFreehand);
+                    if (svg) {
+                        const path = svg.querySelector('.freehand-path');
+                        if (path) path.setAttribute('stroke', color);
+                    }
+                    this.saveState();
+                }
+            }
+
+            changeFreehandThickness(thickness) {
+                if (!this.selectedFreehand) return;
+                const freehand = this.getCurrentTab().freehands.get(this.selectedFreehand);
+                if (freehand) {
+                    freehand.thickness = parseInt(thickness);
+                    this.renderFreehand(freehand);
+                    this.saveState();
+                }
+            }
             filterCategoriesByGenere(genere) {
                 const categoriaSelect = document.getElementById('workoutCategoria');
                 const allOptions = categoriaSelect.querySelectorAll('option');
@@ -2319,6 +2576,40 @@
                 // Event listener per il caricamento workout
                 document.getElementById('workoutFileInput').addEventListener('change', (e) => this.loadWorkout(e));
 
+                document.getElementById('freehandModeBtn').addEventListener('click', (e) => {
+                    this.freehandMode = !this.freehandMode;
+                    e.currentTarget.classList.toggle('active', this.freehandMode);
+                    document.getElementById('canvas').style.cursor = this.freehandMode ? 'crosshair' : 'default';
+                    this.deselectAll();
+                });
+
+                document.getElementById('freehandColor').addEventListener('change', (e) => {
+                    this.changeFreehandColor(e.target.value);
+                });
+
+                const freehandThicknessInput = document.getElementById('freehandThickness');
+                freehandThicknessInput.addEventListener('input', (e) => {
+                    document.getElementById('freehandThicknessValue').textContent = e.target.value;
+                    if (this.selectedFreehand) {
+                        this.changeFreehandThickness(e.target.value);
+                    }
+                });
+
+                // Opacità per oggetti
+                const objectOpacityInput = document.getElementById('objectOpacity');
+                objectOpacityInput.addEventListener('input', (e) => {
+                    document.getElementById('objectOpacityValue').textContent = parseFloat(e.target.value).toFixed(2);
+                    this.changeSelectedObjectsOpacity(e.target.value);
+                });
+
+                // Opacità per disegni a mano libera
+                const freehandOpacityInput = document.getElementById('freehandOpacity');
+                freehandOpacityInput.addEventListener('input', (e) => {
+                    document.getElementById('freehandOpacityValue').textContent = parseFloat(e.target.value).toFixed(2);
+                    if (this.selectedFreehand) {
+                        this.changeFreehandOpacity(e.target.value);
+                    }
+                });
             }
 
             handleCanvasDrop(e) {
@@ -2386,6 +2677,7 @@
                     rotation: rotation,
                     text: text,
                     dashed: dashed,
+                    opacity: 1, // AGGIUNTO
                     zIndex: this.maxZIndex++,
                     icon: icon  // NUOVO campo per memorizzare la classe dell'icona
                 };
@@ -2427,6 +2719,7 @@
                 element.style.height = object.height + 'px';
                 element.style.transform = `rotate(${object.rotation}deg)`;
                 element.style.zIndex = object.zIndex || 1;
+                element.style.opacity = object.opacity || 1;
                 element.classList.toggle('dashed', object.dashed);
 
                 element.innerHTML = '';
@@ -2615,6 +2908,16 @@
             }
 
             handleCanvasMouseDown(e) {
+                if (this.freehandMode) {
+                    this.startFreehand(e);
+                    return;
+                }
+
+                const freehandPath = e.target.closest('.freehand-path');
+                if (freehandPath) {
+                    this.selectFreehand(freehandPath.closest('.freehand-svg').id);
+                    return;
+                }
                 if (e.target.closest('.resize-handle') || e.target.closest('.rotate-handle') || e.target.closest('.connection-point')) {
                     return;
                 }
@@ -2694,18 +2997,36 @@
             }
 
             handleCanvasMouseMove(e) {
+                if (this.isDrawing && this.freehandMode) {
+                    this.continueFreehand(e);
+                    return;
+                }
                 if (this.isDragging) {
                     const deltaX = (e.clientX - this.dragStart.x) / this.getCurrentTab().zoom;
                     const deltaY = (e.clientY - this.dragStart.y) / this.getCurrentTab().zoom;
 
+                    const tab = this.getCurrentTab();
+
                     this.selectedObjects.forEach((initialPos, id) => {
-                        const objectData = this.getCurrentTab().objects.get(id);
+                        // Gestisci oggetti normali
+                        const objectData = tab.objects.get(id);
                         if (objectData) {
                             objectData.x = initialPos.x + deltaX;
                             objectData.y = initialPos.y + deltaY;
                             document.getElementById(id).style.left = objectData.x + 'px';
                             document.getElementById(id).style.top = objectData.y + 'px';
                             this.updateArrowsForObject(id);
+                        }
+                        // AGGIUNTO: Gestisci disegni a mano libera
+                        else if (initialPos.type === 'freehand') {
+                            const freehand = tab.freehands.get(id);
+                            if (freehand) {
+                                freehand.points = initialPos.points.map(p => ({
+                                    x: p.x + deltaX,
+                                    y: p.y + deltaY
+                                }));
+                                this.renderFreehand(freehand);
+                            }
                         }
                     });
                 } else if (this.isResizing && this.selectedObject) {
@@ -2730,6 +3051,9 @@
             }
 
             handleCanvasMouseUp(e) {
+                if (this.isDrawing && this.freehandMode) {
+                    this.finishFreehand();
+                }
                 if (this.isConnecting) {
                     this.finishConnection(e);
                 } else if (this.isDragging || this.isResizing || this.isRotating || this.isDraggingControlPoint || this.isRotatingGroup) {
@@ -2783,7 +3107,10 @@
 
                 if (!e.ctrlKey && !e.metaKey && this.selectedObject) {
                     this.selectedObjects.clear();
-                    this.selectedObjects.set(this.selectedObject.id, { x: this.getCurrentTab().objects.get(this.selectedObject.id).x, y: this.getCurrentTab().objects.get(this.selectedObject.id).y });
+                    const objData = this.getCurrentTab().objects.get(this.selectedObject.id);
+                    if (objData) {
+                        this.selectedObjects.set(this.selectedObject.id, { x: objData.x, y: objData.y });
+                    }
                 }
 
                 this.updateObjectControls();
@@ -2816,7 +3143,6 @@
                 const currentX = e.clientX - rect.left;
                 const currentY = e.clientY - rect.top;
 
-                // Calcola l'area di selezione in coordinate canvas
                 const zoom = this.getCurrentTab().zoom;
                 const selectionRect = {
                     left: Math.min(this.selectionStart.x, currentX) / zoom,
@@ -2828,15 +3154,13 @@
                 const tab = this.getCurrentTab();
                 this.deselectAll();
 
-                // Controlla ogni oggetto per vedere se è nell'area di selezione
+                // Controlla oggetti
                 tab.objects.forEach((objData, objId) => {
-                    // Calcola i bounds dell'oggetto
                     const objLeft = objData.x;
                     const objTop = objData.y;
                     const objRight = objData.x + objData.width;
                     const objBottom = objData.y + objData.height;
 
-                    // Controlla se l'oggetto interseca con l'area di selezione
                     if (objLeft < selectionRect.right && objRight > selectionRect.left &&
                         objTop < selectionRect.bottom && objBottom > selectionRect.top) {
 
@@ -2848,10 +3172,34 @@
                     }
                 });
 
-                // Nasconde il box di selezione
+                // AGGIUNTO: Controlla disegni a mano libera
+                tab.freehands.forEach((freehand, freehandId) => {
+                    const xs = freehand.points.map(p => p.x);
+                    const ys = freehand.points.map(p => p.y);
+                    const fhLeft = Math.min(...xs);
+                    const fhTop = Math.min(...ys);
+                    const fhRight = Math.max(...xs);
+                    const fhBottom = Math.max(...ys);
+
+                    if (fhLeft < selectionRect.right && fhRight > selectionRect.left &&
+                        fhTop < selectionRect.bottom && fhBottom > selectionRect.top) {
+
+                        // Memorizza il freehand come selezionato
+                        this.selectedObjects.set(freehandId, {
+                            type: 'freehand',
+                            points: freehand.points
+                        });
+
+                        const svg = document.getElementById(freehandId);
+                        if (svg) {
+                            const path = svg.querySelector('.freehand-path');
+                            if (path) path.classList.add('selected');
+                        }
+                    }
+                });
+
                 box.style.display = 'none';
 
-                // Se ci sono più oggetti selezionati, mostra il centro di rotazione
                 if (this.selectedObjects.size > 1) {
                     this.showGroupRotationCenter();
                 }
@@ -3036,7 +3384,6 @@
                     const firstSelectedId = this.selectedObjects.keys().next().value;
                     const objectData = this.getCurrentTab().objects.get(firstSelectedId);
 
-                    // Mostra/nascondi controlli specifici per icone
                     const iconControls = document.getElementById('iconControls');
                     if (objectData.type === 'icon') {
                         iconControls.style.display = 'flex';
@@ -3046,6 +3393,8 @@
                     }
                     document.getElementById('objectColor').value = objectData.color;
                     document.getElementById('objectText').value = objectData.text;
+                    document.getElementById('objectOpacity').value = objectData.opacity || 1; // AGGIUNTO
+                    document.getElementById('objectOpacityValue').textContent = (objectData.opacity || 1).toFixed(2); // AGGIUNTO
                     document.getElementById('objectInfo').textContent =
                         `Selezionati: ${this.selectedObjects.size} oggetti`;
 
@@ -3055,6 +3404,7 @@
 
                     document.getElementById('objectControls').style.display = 'flex';
                     document.getElementById('arrowControls').style.display = 'none';
+                    document.getElementById('freehandControls').style.display = 'none'; // AGGIUNTO
 
                 } else {
                     document.getElementById('objectInfo').textContent = 'Nessun oggetto selezionato';
@@ -3063,6 +3413,7 @@
 
                     document.getElementById('objectControls').style.display = 'flex';
                     document.getElementById('arrowControls').style.display = 'none';
+                    document.getElementById('freehandControls').style.display = 'none'; // AGGIUNTO
                 }
             }
 
@@ -3107,6 +3458,11 @@
                 document.getElementById('dashedObjectToggle').style.display = 'none';
                 document.getElementById('objectControls').style.display = 'flex';
                 document.getElementById('arrowControls').style.display = 'none';
+                document.querySelectorAll('.freehand-path.selected').forEach(path => {
+                    path.classList.remove('selected');
+                });
+                this.selectedFreehand = null;
+                document.getElementById('freehandControls').style.display = 'none';
             }
 
             startConnection(from, e) {
@@ -3581,18 +3937,29 @@
                 const tab = this.getCurrentTab();
                 if (this.selectedObjects.size > 0) {
                     this.selectedObjects.forEach((pos, objectId) => {
+                        // Elimina frecce collegate
                         tab.arrows.forEach((arrow, arrowId) => {
                             if (arrow.from.objectId === objectId || arrow.to.objectId === objectId) {
                                 document.getElementById(arrowId)?.remove();
                                 tab.arrows.delete(arrowId);
                             }
                         });
-                        tab.objects.delete(objectId);
-                        document.getElementById(objectId)?.remove();
+
+                        // AGGIUNTO: Controlla se è un freehand
+                        if (pos.type === 'freehand') {
+                            tab.freehands.delete(objectId);
+                            document.getElementById(objectId)?.remove();
+                        } else {
+                            tab.objects.delete(objectId);
+                            document.getElementById(objectId)?.remove();
+                        }
                     });
                 } else if (this.selectedArrow) {
                     document.getElementById(this.selectedArrow)?.remove();
                     tab.arrows.delete(this.selectedArrow);
+                } else if (this.selectedFreehand) {
+                    document.getElementById(this.selectedFreehand)?.remove();
+                    tab.freehands.delete(this.selectedFreehand);
                 }
 
                 this.deselectAll();
@@ -3825,6 +4192,7 @@
 
                 tab.objects.forEach(obj => this.renderObject(obj));
                 tab.arrows.forEach(arrow => this.renderArrow(arrow));
+                tab.freehands.forEach(freehand => this.renderFreehand(freehand));
                 document.getElementById('backgroundSelect').value = tab.background;
                 this.zoom = tab.zoom;
                 this.updateBackground();
@@ -3838,7 +4206,8 @@
                 const tab = this.getCurrentTab();
                 const state = {
                     objects: Array.from(tab.objects.entries()),
-                    arrows: Array.from(tab.arrows.entries())
+                    arrows: Array.from(tab.arrows.entries()),
+                    freehands: Array.from(tab.freehands.entries())
                 };
 
                 if (tab.historyIndex < tab.history.length - 1) {
@@ -3874,6 +4243,7 @@
                 const tab = this.getCurrentTab();
                 tab.objects = new Map(state.objects);
                 tab.arrows = new Map(state.arrows);
+                tab.freehands = new Map(state.freehands);
                 this.loadTabState();
             }
 
@@ -3885,7 +4255,7 @@
                     tipologia: tab.tipologia || 'GEN',
                     ruolo: tab.ruolo || 'GEN',
                     periodo: tab.periodo || 'GEN',
-                    autore: tab.autore || this.currentUser, 
+                    autore: tab.autore || this.currentUser,
                     nr: tab.nr,
                     series: tab.series,
                     place: tab.place,
@@ -3896,7 +4266,8 @@
                     background: tab.background,
                     gridVisible: tab.gridVisible,
                     bwMode: tab.bwMode,
-                    zoom: tab.zoom
+                    zoom: tab.zoom,
+                    freehands: Array.from(tab.freehands.entries())
                 };
 
                 const blob = new Blob([JSON.stringify(data, null, 2)],
@@ -3926,7 +4297,7 @@
 
                         data.objects.forEach(([id, obj]) => tab.objects.set(id, obj));
                         data.arrows.forEach(([id, arrow]) => tab.arrows.set(id, arrow));
-
+                        data.freehands.forEach(([id, freehand]) => tab.freehands.set(id, freehand));
                         tab.background = data.background || 'none';
                         tab.gridVisible = data.gridVisible || true;
                         tab.bwMode = data.bwMode || false;

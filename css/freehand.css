@@ -1,0 +1,19 @@
+.freehand-path {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: auto;
+    cursor: pointer;
+    opacity: 1;
+    /* Aggiunto */
+}
+
+.freehand-path.selected {
+    filter: drop-shadow(0 0 5px #3498db);
+}
+
+.freehand-svg {
+    position: absolute;
+    pointer-events: none;
+    z-index: 1000;
+}
