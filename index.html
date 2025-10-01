@@ -4275,7 +4275,7 @@
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `${periodo}.${tipologia}.${ruolo}.${title.replace(/\s+/g, '_')}.json`;
+                a.download = `${tab.periodo}.${tab.tipologia}.${tab.ruolo}.${tab.name.replace(/\s+/g, '_')}.json`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
