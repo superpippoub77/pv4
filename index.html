@@ -1223,8 +1223,8 @@
                     </div>
                     <div>
                         <label>Opacità:</label>
-                        <input type="range" id="objectOpacity" min="0" max="1" value="1" step="0.01">
-                        <span id="opacityValue">1.00</span>
+                        <input type="range" id="arrowOpacity" min="0" max="1" value="1" step="0.01">
+                        <span id="arrowOpacityValue">1.00</span>
                     </div>
                     <div>
                         <label>Spessore:</label>
@@ -1237,6 +1237,7 @@
                         <button id="arrowTypeCurved" class="arrow-type-btn">Curva</button>
                         <button id="arrowTypeZigzag" class="arrow-type-btn">Zigzag</button>
                     </div>
+                    <button id="dashedArrowToggle" class="toolbar-button">Freccia Tratteggiata</button>
                 </div>
                 <div id="freehandControls" style="display: none; align-items: center; gap: 10px;">
                     <div class="color-picker-container">
@@ -2355,6 +2356,7 @@
                         this.changeArrowColor(e.target.value);
                     }
                 });
+
                 const thicknessInput = document.getElementById('arrowThickness');
                 thicknessInput.addEventListener('input', (e) => {
                     document.getElementById('thicknessValue').textContent = e.target.value;
@@ -2362,6 +2364,18 @@
                         this.changeArrowThickness(e.target.value);
                     }
                 });
+
+                document.getElementById('arrowOpacity').addEventListener('input', (e) => {
+                    document.getElementById('arrowOpacityValue').textContent = parseFloat(e.target.value).toFixed(2);
+                    if (this.selectedArrow) {
+                        this.changeArrowOpacity(e.target.value);
+                    }
+                });
+
+                document.getElementById('dashedArrowToggle').addEventListener('click', () => {
+                    this.toggleDashedArrow();
+                });
+
                 document.getElementById('deleteBtn').addEventListener('click', () => this.deleteSelected());
                 document.addEventListener('keydown', (e) => this.handleKeyboard(e));
                 document.querySelectorAll('.arrow-type-btn').forEach(btn => {
@@ -2413,6 +2427,9 @@
                     }
                 });
 
+
+
+
                 document.getElementById('dashedObjectToggle').addEventListener('click', () => this.toggleDashedObject());
 
                 document.getElementById('bringToFront').addEventListener('click', () => this.bringToFront());
@@ -2432,17 +2449,10 @@
 
 
                 //Salvataggio Allenamenti
-                document.getElementById('saveBtn').addEventListener('click', () => this.saveSchema());
                 document.getElementById('saveWorkOutBtn').addEventListener('click', () => this.showSaveWorkoutDialog());
-                document.getElementById('loadBtn').addEventListener('click', () => {
-                    document.getElementById('fileInput').click();
-                });
                 document.getElementById('loadWorkOutBtn').addEventListener('click', () => {
                     document.getElementById('workoutFileInput').click();
                 });
-
-
-
 
                 // Right sidebar functionality
                 const rightSidebar = document.getElementById('rightSidebar');
@@ -3424,9 +3434,18 @@
                     document.getElementById('arrowThickness').value = arrowData.thickness;
                     document.getElementById('thicknessValue').textContent = arrowData.thickness;
 
-                    // ✅ NUOVO: Aggiorna i checkbox dei terminali
+                    // ✅ AGGIUNGI OPACITÀ
+                    document.getElementById('arrowOpacity').value = arrowData.opacity || 1;
+                    document.getElementById('arrowOpacityValue').textContent = (arrowData.opacity || 1).toFixed(2);
+
+                    // Checkbox terminali
                     document.getElementById('arrowMarkerStart').checked = arrowData.markerStart || false;
-                    document.getElementById('arrowMarkerEnd').checked = arrowData.markerEnd !== false; // default true
+                    document.getElementById('arrowMarkerEnd').checked = arrowData.markerEnd !== false;
+
+                    // ✅ AGGIUNGI STATO TRATTEGGIO
+                    const dashedBtn = document.getElementById('dashedArrowToggle');
+                    dashedBtn.style.display = 'inline-block';
+                    dashedBtn.classList.toggle('active', arrowData.dashed);
 
                     document.getElementById('objectInfo').textContent = 'Freccia selezionata';
                     document.getElementById('objectControls').style.display = 'none';
@@ -3438,7 +3457,6 @@
                     this.deselectAll();
                 }
             }
-
 
             deselectAll() {
                 document.querySelectorAll('.canvas-object.selected').forEach(obj => {
@@ -3598,9 +3616,10 @@
                     dashed: dashed,
                     color: color,
                     thickness: thickness,
+                    opacity: 1,
                     controlPoint: null,
-                    markerStart: false,  // ✅ NUOVO
-                    markerEnd: true      // ✅ NUOVO (default solo alla fine)
+                    markerStart: false,
+                    markerEnd: true
                 };
                 // Aggiungi sempre il punto di controllo, indipendentemente dal tipo
                 const fromPos = this.getArrowPoint(arrow.from);
@@ -3689,7 +3708,8 @@
 
                 path.setAttribute('d', pathData);
                 path.setAttribute('stroke', arrow.color);
-                path.setAttribute('stroke-width', arrow.thickness); // ✅ APPLICATO
+                path.setAttribute('stroke-width', arrow.thickness);
+                path.style.opacity = arrow.opacity || 1;
 
                 // ✅ CORREZIONE: Applica o rimuovi i marker in base ai flag
                 if (arrow.markerStart) {
@@ -3898,7 +3918,42 @@
                     this.saveState();
                 }
             }
+            changeArrowOpacity(opacity) {
+                if (!this.selectedArrow) return;
+                const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
+                if (arrowData) {
+                    arrowData.opacity = parseFloat(opacity);
+                    const svgElement = document.getElementById(this.selectedArrow);
+                    if (svgElement) {
+                        const path = svgElement.querySelector('.arrow-path');
+                        if (path) {
+                            path.style.opacity = opacity;
+                        }
+                    }
+                    this.saveState();
+                }
+            }
 
+            toggleDashedArrow() {
+                if (!this.selectedArrow) return;
+                const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
+                if (arrowData) {
+                    arrowData.dashed = !arrowData.dashed;
+                    const svgElement = document.getElementById(this.selectedArrow);
+                    if (svgElement) {
+                        const path = svgElement.querySelector('.arrow-path');
+                        if (path) {
+                            if (arrowData.dashed) {
+                                path.classList.add('dashed');
+                            } else {
+                                path.classList.remove('dashed');
+                            }
+                        }
+                    }
+                    document.getElementById('dashedArrowToggle').classList.toggle('active', arrowData.dashed);
+                    this.saveState();
+                }
+            }
             toggleDashedObject() {
                 if (this.selectedObjects.size === 0) return;
                 const tab = this.getCurrentTab();
@@ -4282,106 +4337,117 @@
                 URL.revokeObjectURL(url);
             }
 
-            async loadSchema(event) {
+            async loadSchema(source) {
                 let data = null;
-                // 1. Controlla se 'source' è un Promise (ha il metodo .then())
-                if (typeof event === 'object' && event !== null && typeof event.then === 'function') {
 
+                // Caso 1: Caricamento da libreria (Promise)
+                if (typeof source === 'object' && source !== null && typeof source.then === 'function') {
                     try {
-                        // Se è un Promise, attende la sua risoluzione per ottenere i dati JSON
-                        data = await event;
-                        const tab = this.getCurrentTab();
-
-                        tab.objects.clear();
-                        tab.arrows.clear();
-
-                        data.objects.forEach(([id, obj]) => tab.objects.set(id, obj));
-                        data.arrows.forEach(([id, arrow]) => tab.arrows.set(id, arrow));
-                        data.freehands.forEach(([id, freehand]) => tab.freehands.set(id, freehand));
-                        tab.background = data.background || 'none';
-                        tab.gridVisible = data.gridVisible || true;
-                        tab.bwMode = data.bwMode || false;
-                        tab.zoom = data.zoom || 1;
-
-                        document.getElementById('schemaTitle').value = data.title || 'Schema';
-                        document.getElementById('workoutPeriodo').value = data.periodo || 'GEN';
-                        document.getElementById('workoutRuolo').value = data.ruolo || 'GEN';
-                        document.getElementById('workoutTipologia').value = data.tipologia || 'GEN';
-                        document.getElementById('workoutGenere').value = data.genere || 'GEN';        // ✅ NUOVO
-                        document.getElementById('workoutCategoria').value = data.categoria || 'GEN';  // ✅ NUOVO
-                        document.getElementById('workoutDescrizione').value = data.note || '';
-                        document.getElementById('workoutAutore').value = data.autore || 'unknown';
-
-
-                        document.getElementById('workoutDate').value = data.date || new Date();
-                        document.getElementById('workoutPlace').value = data.place || "-";
-                        document.getElementById('workoutNr').value = data.nr || 1;
-                        document.getElementById('workoutSeries').value = data.series || 1;
-                        document.getElementById('workoutGroups').value = data.groups || 1;
-
-                        tab.autore = data.autore || 'unknown';
-                        tab.genere = data.genere || 'GEN';        // ✅ NUOVO
-                        tab.categoria = data.categoria || 'GEN';  // ✅ NUOVO
-
-                        this.loadTabState();
-                        this.saveState();
-                        console.log("Dati caricati con successo da Promise (Libreria).");
-
+                        data = await source;
                     } catch (error) {
-                        // Cattura l'errore se il Promise viene rigettato (es. fetch fallita)
-                        alert('Errore nel caricamento dei dati dalla libreria. Il Promise è stato rigettato.');
+                        alert('Errore nel caricamento dei dati dalla libreria.');
                         console.error('Errore Promise:', error);
                         return;
                     }
-
-                } else if (event && event.target && event.target.files) {
-                    const file = event.target.files[0];
+                }
+                // Caso 2: Caricamento da file locale (Event)
+                else if (source && source.target && source.target.files) {
+                    const file = source.target.files[0];
                     if (!file) return;
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        try {
-                            const data = JSON.parse(e.target.result);
-                            const tab = this.getCurrentTab();
 
-                            tab.objects.clear();
-                            tab.arrows.clear();
+                    try {
+                        const fileContent = await file.text();
+                        data = JSON.parse(fileContent);
+                    } catch (error) {
+                        alert('Errore nel caricamento del file: ' + error.message);
+                        console.error('Errore caricamento file:', error);
+                        return;
+                    }
 
-                            data.objects.forEach(([id, obj]) => tab.objects.set(id, obj));
-                            data.arrows.forEach(([id, arrow]) => tab.arrows.set(id, arrow));
+                    // Reset dell'input per permettere di caricare lo stesso file di nuovo
+                    source.target.value = '';
+                } else {
+                    console.error('Formato di input non riconosciuto per loadSchema');
+                    return;
+                }
 
-                            tab.background = data.background || 'none';
-                            tab.gridVisible = data.gridVisible || true;
-                            tab.bwMode = data.bwMode || false;
-                            tab.zoom = data.zoom || 1;
+                // A questo punto 'data' contiene i dati caricati, procediamo con l'applicazione
+                if (!data) {
+                    alert('Nessun dato da caricare');
+                    return;
+                }
 
-                            document.getElementById('schemaTitle').value = data.title || 'Schema';
-                            document.getElementById('schemaDescrizione').value = data.note || '';
-                            document.getElementById('schemaTipologia').value = data.tipologia || '';
-                            document.getElementById('schemaRuolo').value = data.ruolo || '';
-                            document.getElementById('schemaPeriodo').value = data.periodo || '';
+                const tab = this.getCurrentTab();
 
-                            this.loadTabState();
-                            this.saveState();
-                        } catch (error) {
-                            alert('Errore nel caricamento del file: ' + error.message);
-                        }
-                    };
-                    if (data.title) {
-                        // Aggiorna il nome del tab corrente
-                        const currentTab = this.getCurrentTab();
-                        currentTab.name = data.title;
+                // Pulisci lo stato corrente
+                tab.objects.clear();
+                tab.arrows.clear();
+                tab.freehands.clear();
 
-                        // Aggiorna l'input del tab attivo
-                        const activeTabElement = document.querySelector('.tab.active');
-                        if (activeTabElement) {
-                            const tabInput = activeTabElement.querySelector('.tab-title');
-                            if (tabInput) {
-                                tabInput.value = data.title;
-                            }
+                // Carica gli oggetti
+                if (data.objects) {
+                    data.objects.forEach(([id, obj]) => tab.objects.set(id, obj));
+                }
+                if (data.arrows) {
+                    data.arrows.forEach(([id, arrow]) => tab.arrows.set(id, arrow));
+                }
+                if (data.freehands) {
+                    data.freehands.forEach(([id, freehand]) => tab.freehands.set(id, freehand));
+                }
+
+                // Imposta le proprietà del tab
+                tab.background = data.background || 'none';
+                tab.gridVisible = data.gridVisible !== undefined ? data.gridVisible : true;
+                tab.bwMode = data.bwMode || false;
+                tab.zoom = data.zoom || 1;
+                tab.periodo = data.periodo || 'GEN';
+                tab.ruolo = data.ruolo || 'GEN';
+                tab.tipologia = data.tipologia || 'GEN';
+                tab.genere = data.genere || 'GEN';
+                tab.categoria = data.categoria || 'GEN';
+                tab.descrizione = data.note || data.descrizione || '';
+                tab.autore = data.autore || this.currentUser || 'unknown';
+                tab.date = data.date || new Date();
+                tab.place = data.place || "";
+                tab.nr = data.nr || 1;
+                tab.series = data.series || 1;
+                tab.groups = data.groups || 1;
+
+                // Aggiorna il nome del tab se presente
+                if (data.title) {
+                    tab.name = data.title;
+                    const activeTabElement = document.querySelector('.tab.active');
+                    if (activeTabElement) {
+                        const tabInput = activeTabElement.querySelector('.tab-title');
+                        if (tabInput) {
+                            tabInput.value = data.title;
                         }
                     }
-                    reader.readAsText(file);
                 }
+
+                // Aggiorna i campi della UI
+                document.getElementById('schemaTitle').value = data.title || 'Schema';
+                document.getElementById('workoutPeriodo').value = tab.periodo;
+                document.getElementById('workoutRuolo').value = tab.ruolo;
+                document.getElementById('workoutTipologia').value = tab.tipologia;
+                document.getElementById('workoutGenere').value = tab.genere;
+                document.getElementById('workoutCategoria').value = tab.categoria;
+                document.getElementById('workoutDescrizione').value = tab.descrizione;
+                document.getElementById('workoutAutore').value = tab.autore;
+                document.getElementById('workoutDate').value = tab.date;
+                document.getElementById('workoutPlace').value = tab.place;
+                document.getElementById('workoutNr').value = tab.nr;
+                document.getElementById('workoutSeries').value = tab.series;
+                document.getElementById('workoutGroups').value = tab.groups;
+
+                // Applica il filtro per le categorie in base al genere
+                this.filterCategoriesByGenere(tab.genere);
+
+                // Ricarica lo stato visivo
+                this.loadTabState();
+                this.saveState();
+
+                console.log("Dati caricati con successo");
             }
 
             async exportSchema() {
