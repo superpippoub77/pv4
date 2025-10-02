@@ -1044,6 +1044,29 @@
                 <div class="component-icon">✏️</div>
                 <div>Disegno</div>
             </div>
+            <div class="component-category">
+                <h3 class="accordion-header">🖼️ Immagini SVG Locali</h3>
+                <div class="accordion-content">
+                    <div class="component-grid">
+                        <div class="component-item" data-type="local-svg" data-src="data/images/volleyball_ball.svg">
+                            <div class="component-icon">
+                                <img src="data/images/volleyball_ball.svg" alt="Palla Sport"
+                                    style="width: 20px; height: 20px;" />
+                            </div>
+                            <div>Palla Sport</div>
+                        </div>
+
+                        <div class="component-item" data-type="local-svg" data-src="data/images/volleyball_player.svg">
+                            <div class="component-icon">
+                                <img src="data/images/volleyball_player.svg" alt="Campo Calcio"
+                                    style="width: 20px; height: 20px;" />
+                            </div>
+                            <div>Campo Calcio</div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="sidebar-handle" id="sidebarHandle"></div>
 
@@ -2263,7 +2286,8 @@
                                 type: item.dataset.type,
                                 color: item.dataset.color || '',
                                 text: item.dataset.text || '',
-                                icon: item.dataset.icon || null  // NUOVO
+                                icon: item.dataset.icon || null,
+                                src: item.dataset.src || null
                             };
                             e.dataTransfer.setData('text/plain', JSON.stringify(dragData));
                         }
@@ -2615,6 +2639,8 @@
                 // Per le icone, passa anche l'attributo icon
                 if (data.type === 'icon') {
                     this.addObject(data.type, x, y, data.color, data.text, 0, this.dashedMode, data.icon);
+                } else if (data.type === 'local-svg') {
+                    this.addObject(data.type, x, y, data.color, data.text, 0, this.dashedMode, null, data.src);
                 } else {
                     this.addObject(data.type, x, y, data.color, data.text);
                 }
@@ -2655,7 +2681,7 @@
                 this.saveState();
             }
 
-            addObject(type, x, y, color = '#3498db', text = '', rotation = 0, dashed = this.dashedMode, icon = null) {
+            addObject(type, x, y, color = '#3498db', text = '', rotation = 0, dashed = this.dashedMode, icon = null, src = null) {
                 const tab = this.getCurrentTab();
                 const id = 'obj-' + tab.nextObjectId++;
 
@@ -2672,7 +2698,8 @@
                     dashed: dashed,
                     opacity: 1, // AGGIUNTO
                     zIndex: this.maxZIndex++,
-                    icon: icon  // NUOVO campo per memorizzare la classe dell'icona
+                    icon: icon,
+                    src: src
                 };
 
                 tab.objects.set(id, object);
@@ -2779,6 +2806,23 @@
                     return content;
                 }
 
+                if (object.type === 'local-svg') {
+                    content.innerHTML = `<img src="${object.src}" alt="${object.alt || ''}" />`;
+                    content.style.color = object.color;
+                    content.classList.toggle('dashed', object.dashed);
+
+                    // Imposta la dimensione iniziale dell'SVG
+                    const img = content.querySelector('img');
+                    if (img) {
+                        const minDimension = Math.min(object.width, object.height);
+                        const size = Math.max(12, minDimension * 0.6);
+                        img.style.width = `${size}px`;
+                        img.style.height = `${size}px`;
+                    }
+
+                    return content;
+                }
+
                 if (object.type !== 'ball' && object.type !== 'net' && object.type !== 'goal') {
                     const editableDiv = document.createElement('div');
                     editableDiv.classList.add('editable-text');
@@ -2846,6 +2890,19 @@
                         fontSize = Math.min(100, fontSize); // Massimo 100px
 
                         icon.style.fontSize = `${fontSize}px`;
+                    }
+                } else if (type === 'local-svg') {
+                    const img = content.querySelector('img');
+                    if (img) {
+                        const minDimension = Math.min(width, height);
+                        let size = minDimension * 0.6;
+
+                        // Imposta limiti minimi e massimi
+                        size = Math.max(8, size);   // Minimo 8px
+                        size = Math.min(100, size); // Massimo 100px
+
+                        img.style.width = `${size}px`;
+                        img.style.height = `${size}px`;
                     }
                 } else {
 
@@ -3846,6 +3903,15 @@
                         const iconContent = element.querySelector('.icon-object');
                         if (iconContent) {
                             iconContent.style.color = color;
+                        }
+                    }
+
+                    if (objectData.type === 'local-svg') {
+                        const element = document.getElementById(id);
+                        const img = element.querySelector('img');
+                        if (img) {
+                            // Cambia colore con filtro (funziona meglio con SVG monocromatici)
+                            img.style.filter = `invert(1) sepia(1) saturate(5) hue-rotate(${getHue(color)}deg)`;
                         }
                     }
 
