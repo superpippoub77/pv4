@@ -865,25 +865,13 @@
                             <div class="component-icon">🏃</div>
                             <div>Alzatore 1</div>
                         </div>
-                        <div class="component-item" data-type="player" data-text='P2' data-color="">
-                            <div class="component-icon">🏃</div>
-                            <div>Alzatore 2</div>
-                        </div>
                         <div class="component-item" data-type="player" data-text='L1' data-color="">
                             <div class="component-icon">🏃</div>
                             <div>Libero 1</div>
                         </div>
-                        <div class="component-item" data-type="player" data-text='L2' data-color="">
-                            <div class="component-icon">🏃</div>
-                            <div>Libero 2</div>
-                        </div>
                         <div class="component-item" data-type="player" data-text='S1' data-color="">
                             <div class="component-icon">🏃</div>
                             <div>Banda 1</div>
-                        </div>
-                        <div class="component-item" data-type="player" data-text='S2' data-color="">
-                            <div class="component-icon">🏃</div>
-                            <div>Banda 2</div>
                         </div>
                         <div class="component-item" data-type="player" data-text='O' data-color="">
                             <div class="component-icon">🏃</div>
@@ -892,10 +880,6 @@
                         <div class="component-item" data-type="player" data-text='C1' data-color="">
                             <div class="component-icon">🏃</div>
                             <div>Centro 1</div>
-                        </div>
-                        <div class="component-item" data-type="player" data-text='C2' data-color="">
-                            <div class="component-icon">🏃</div>
-                            <div>Centro 2</div>
                         </div>
                         <div class="component-item" data-type="player" data-text='All' data-color="">
                             <div class="component-icon">🏃</div>
@@ -1613,14 +1597,16 @@
                 } else {
                     svg.innerHTML = '';
                 }
-
                 const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                 path.classList.add('freehand-path');
                 path.setAttribute('d', this.pointsToPath(freehand.points));
-                path.setAttribute('stroke', freehand.color);
+                path.setAttribute('stroke', freehand.color);  // ✅ IMPORTANTE
                 path.setAttribute('stroke-width', freehand.thickness);
-                path.style.opacity = freehand.opacity || 1; // AGGIUNTO
-                path.style.zIndex = freehand.zIndex || 1;
+                path.setAttribute('fill', 'none');  // ✅ IMPORTANTE
+                path.setAttribute('stroke-linecap', 'round');
+                path.setAttribute('stroke-linejoin', 'round');
+                path.style.opacity = freehand.opacity || 1;
+                path.style.zIndex = freehand.zIndex || 1
 
                 path.addEventListener('mousedown', (e) => {
                     e.stopPropagation();
@@ -1709,11 +1695,8 @@
                 const freehand = this.getCurrentTab().freehands.get(this.selectedFreehand);
                 if (freehand) {
                     freehand.color = color;
-                    const svg = document.getElementById(this.selectedFreehand);
-                    if (svg) {
-                        const path = svg.querySelector('.freehand-path');
-                        if (path) path.setAttribute('stroke', color);
-                    }
+                    // ✅ Ri-renderizza completamente il disegno
+                    this.renderFreehand(freehand);
                     this.saveState();
                 }
             }
@@ -3645,16 +3628,18 @@
                 let toPos = this.getArrowPoint(arrow.to);
 
                 let svg = document.getElementById(arrow.id);
+                const wasSelected = this.selectedArrow === arrow.id; // ✅ MEMORIZZA LO STATO
+
                 if (!svg) {
                     svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
                     svg.classList.add('arrow-svg');
                     svg.id = arrow.id;
                     document.getElementById('canvas').appendChild(svg);
                 } else {
-                    svg.innerHTML = ''; // ✅ IMPORTANTE: Pulisce tutto inclusi i defs vecchi
+                    svg.innerHTML = ''; // Pulisce tutto inclusi i defs vecchi
                 }
 
-                // ✅ CORREZIONE: Ricrea sempre i defs con i colori aggiornati
+                // Ricrea sempre i defs con i colori aggiornati
                 const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
                 const markerId = `arrowhead-${arrow.id}`;
 
@@ -3669,7 +3654,7 @@
 
                 const polygonEnd = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
                 polygonEnd.setAttribute('points', '0 0, 10 3.5, 0 7');
-                polygonEnd.setAttribute('fill', arrow.color); // ✅ Usa il colore corrente
+                polygonEnd.setAttribute('fill', arrow.color); // ✅ Colore aggiornato
                 markerEnd.appendChild(polygonEnd);
                 defs.appendChild(markerEnd);
 
@@ -3684,7 +3669,7 @@
 
                 const polygonStart = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
                 polygonStart.setAttribute('points', '10 0, 0 3.5, 10 7');
-                polygonStart.setAttribute('fill', arrow.color); // ✅ Usa il colore corrente
+                polygonStart.setAttribute('fill', arrow.color); // ✅ Colore aggiornato
                 markerStart.appendChild(polygonStart);
                 defs.appendChild(markerStart);
 
@@ -3693,11 +3678,12 @@
                 const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                 path.classList.add('arrow-path');
                 if (arrow.dashed) path.classList.add('dashed');
+                if (wasSelected) path.classList.add('selected'); // ✅ RIPRISTINA LA SELEZIONE
 
                 let pathData;
                 let controlPointElement;
 
-                // Aggiungi sempre il punto di controllo, anche per frecce lineari
+                // Aggiungi sempre il punto di controllo
                 if (!arrow.controlPoint) {
                     arrow.controlPoint = this.generateDefaultControlPoint(fromPos, toPos);
                 }
@@ -3707,18 +3693,19 @@
                 pathData = this.generateArrowPath(fromPos, toPos, arrow.type, arrow.controlPoint);
 
                 path.setAttribute('d', pathData);
-                path.setAttribute('stroke', arrow.color);
-                path.setAttribute('stroke-width', arrow.thickness);
+                path.setAttribute('stroke', arrow.color); // ✅ IMPORTANTE: Colore della linea
+                path.setAttribute('stroke-width', arrow.thickness); // ✅ IMPORTANTE: Spessore
+                path.setAttribute('fill', 'none'); // ✅ IMPORTANTE: Nessun riempimento
                 path.style.opacity = arrow.opacity || 1;
 
-                // ✅ CORREZIONE: Applica o rimuovi i marker in base ai flag
+                // Applica o rimuovi i marker in base ai flag
                 if (arrow.markerStart) {
                     path.setAttribute('marker-start', `url(#${markerId}-start)`);
                 } else {
                     path.removeAttribute('marker-start');
                 }
 
-                if (arrow.markerEnd !== false) { // default true se non specificato
+                if (arrow.markerEnd !== false) {
                     path.setAttribute('marker-end', `url(#${markerId}-end)`);
                 } else {
                     path.removeAttribute('marker-end');
@@ -3886,19 +3873,8 @@
                 const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
                 if (arrowData) {
                     arrowData.color = color;
-                    const svgElement = document.getElementById(this.selectedArrow);
-                    if (svgElement) {
-                        const path = svgElement.querySelector('.arrow-path');
-                        if (path) {
-                            path.setAttribute('stroke', color);
-                        }
-                        // Aggiorna il colore dei marker
-                        const markerId = `arrowhead-${this.selectedArrow}`;
-                        const markerStart = svgElement.querySelector(`#${markerId}-start polygon`);
-                        const markerEnd = svgElement.querySelector(`#${markerId}-end polygon`);
-                        if (markerStart) markerStart.setAttribute('fill', color);
-                        if (markerEnd) markerEnd.setAttribute('fill', color);
-                    }
+                    // ✅ IMPORTANTE: Ri-renderizza completamente la freccia per aggiornare i marker
+                    this.renderArrow(arrowData);
                     this.saveState();
                 }
             }
@@ -3908,13 +3884,8 @@
                 const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
                 if (arrowData) {
                     arrowData.thickness = parseInt(thickness);
-                    const svgElement = document.getElementById(this.selectedArrow);
-                    if (svgElement) {
-                        const path = svgElement.querySelector('.arrow-path');
-                        if (path) {
-                            path.setAttribute('stroke-width', thickness);
-                        }
-                    }
+                    // ✅ IMPORTANTE: Ri-renderizza completamente la freccia
+                    this.renderArrow(arrowData);
                     this.saveState();
                 }
             }
