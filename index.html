@@ -556,9 +556,12 @@
             stroke-dasharray: 10 5;
         }
 
+        /* NUOVA REGOLA CORRETTA */
         .arrow-path.selected {
-            stroke: #e2df16;
+            /* 🟢 Usa currentColor per ereditare il colore impostato sul genitore */
+            stroke: currentColor;
             stroke-width: 6;
+            /* Mantiene lo spessore aumentato per lo stato selezionato */
         }
 
         /* File controls */
@@ -1092,8 +1095,10 @@
                 </div>
                 <div class="toolbar-group">
                     <button id="gridToggle">📐 Griglia</button>
+                    <button id="snapToGridBtn">🧲 Allinea alla Griglia</button>
                     <button id="bwToggle">⚫ B/N</button>
                     <button id="dashedToggle">⚡ Tratteggio</button>
+
                 </div>
 
                 <div class="toolbar-group">
@@ -1559,6 +1564,58 @@
                     nextFreehandId: 1,
                 });
             }
+
+            // Aggiungere questa funzione al prototipo della classe SchemaEditor
+            // (o direttamente come metodo all'interno della definizione della classe)
+            snapObjectsToGrid(gridSize = 20) {
+                // Seleziona il contenitore del canvas
+                const canvas = document.getElementById('canvas');
+                if (!canvas) return;
+
+                // Seleziona tutti gli oggetti mobili sul canvas
+                // (Assumendo che .canvas-object sia la classe per gli elementi trascinabili)
+                const objects = canvas.querySelectorAll('.canvas-object');
+
+                let snappedCount = 0;
+
+                objects.forEach(object => {
+                    // Ignora gli oggetti che non hanno posizioni valide (es. elementi SVG/Freccia, se non hanno left/top diretti)
+                    if (!object.style.left || !object.style.top) {
+                        return;
+                    }
+
+                    // 1. Ottieni la posizione corrente (rimuovi 'px' e converti in numero)
+                    const currentLeft = parseFloat(object.style.left);
+                    const currentTop = parseFloat(object.style.top);
+
+                    // 2. Calcola la nuova posizione arrotondata al multiplo più vicino di gridSize
+                    const snappedLeft = Math.round(currentLeft / gridSize) * gridSize;
+                    const snappedTop = Math.round(currentTop / gridSize) * gridSize;
+
+                    // 3. Applica la nuova posizione
+                    object.style.left = `${snappedLeft}px`;
+                    object.style.top = `${snappedTop}px`;
+
+                    snappedCount++;
+
+                    // ⚠️ Nota: Se la tua classe SchemaEditor gestisce un modello di dati interno
+                    // (ad esempio, un array di oggetti con proprietà `x` e `y`),
+                    // dovrai anche aggiornare quel modello di dati qui.
+
+                    // Se hai un sistema di cronologia (Undo/Redo), potresti chiamare una funzione
+                    // per registrare il cambio di posizione, ad esempio:
+                    // if (this.updateObjectPosition) {
+                    //     this.updateObjectPosition(object, snappedLeft, snappedTop);
+                    // }
+                });
+
+                // console.log(`Allineati ${snappedCount} oggetti alla griglia di ${gridSize}px.`);
+
+                // Registra lo stato dopo l'allineamento per l'Undo/Redo (se SchemaEditor ha questo metodo)
+                if (this.saveState) {
+                    this.saveState('Allineamento alla Griglia');
+                }
+            };
             startFreehand(e) {
                 this.isDrawing = true;
                 this.freehandPoints = [];
@@ -2687,6 +2744,17 @@
                         this.changeFreehandOpacity(e.target.value);
                     }
                 });
+
+                // AGGIUNGI QUESTO LISTENER PER IL NUOVO PULSANTE
+                const snapButton = document.getElementById('snapToGridBtn');
+                if (snapButton) {
+                    snapButton.addEventListener('click', () => {
+                        // Chiama la funzione di allineamento sulla griglia
+                        if (window.editor && window.editor.snapObjectsToGrid) {
+                            window.editor.snapObjectsToGrid();
+                        }
+                    });
+                }
             }
 
             handleCanvasDrop(e) {
@@ -3830,8 +3898,9 @@
                 pathData = this.generateArrowPath(fromPos, toPos, arrow.type, arrow.controlPoint);
 
                 path.setAttribute('d', pathData);
-                path.setAttribute('stroke', arrow.color); // ✅ IMPORTANTE: Colore della linea
-                path.setAttribute('stroke-width', arrow.thickness); // ✅ IMPORTANTE: Spessore
+                // SOSTITUISCI CON QUESTO:
+                path.style.stroke = arrow.color;
+                path.style.strokeWidth = arrow.thickness + 'px'; // Importante: style.strokeWidth richiede l'unità (es. 'px')
                 path.setAttribute('fill', 'none'); // ✅ IMPORTANTE: Nessun riempimento
                 path.style.opacity = arrow.opacity || 1;
 
@@ -4024,12 +4093,12 @@
                 }
             }
 
-            changeArrowColor(color) {
+            changeArrowThickness(thickness) {
                 if (!this.selectedArrow) return;
                 const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
                 if (arrowData) {
-                    arrowData.color = color;
-                    // ✅ IMPORTANTE: Ri-renderizza completamente la freccia per aggiornare i marker
+                    arrowData.thickness = parseInt(thickness);
+                    // ✅ IMPORTANTE: Ri-renderizza completamente la freccia
                     this.renderArrow(arrowData);
                     this.saveState();
                 }
