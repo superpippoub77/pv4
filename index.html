@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="./css/watermark.css">
     <link rel="stylesheet" href="./css/player.css">
     <link rel="stylesheet" href="./css/freehand.css">
+    <link rel="stylesheet" href="./css/objects.css">
 
     <style>
         * {
@@ -927,6 +928,10 @@
                         <div class="component-item" data-type="half-court" data-text="">
                             <div class="component-icon">🏟️</div>
                             <div>Metà</div>
+                        </div>
+                        <div class="component-item" data-type="mat" data-text="">
+                            <div class="component-icon">🟩</div>
+                            <div>Materassino</div>
                         </div>
                     </div>
                 </div>
@@ -1908,7 +1913,14 @@
                 // Genera un nome predefinito con data e ora
                 const now = new Date();
                 const defaultName = `Allenamento_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
-
+                document.getElementById('workOutListName').innerHTML = '';
+                this.tabs.forEach((tab, tabId) => {
+                    const tabName = tab.name || `Tab_${tabId + 1}`;
+                    const tabDiv = document.createElement('div');
+                    tabDiv.classList.add('tab');
+                    tabDiv.textContent = tabName;
+                    document.getElementById('workOutListName').appendChild(tabDiv);
+                });
                 document.getElementById('workoutFileName').value = defaultName;
                 document.getElementById('saveWorkoutModal').style.display = 'block';
 
@@ -2360,11 +2372,14 @@
                         const tabId = parseInt(tabElement.dataset.tabId);
                         if (e.target.closest('.tab-close')) {
                             this.closeTab(tabId);
-                        } else {
+                        } else if (!e.target.classList.contains('tab-title')) {
                             this.switchToTab(tabId);
                         }
                     }
                 });
+
+                // NUOVO: Aggiungi il drag & drop per i tab
+                this.initTabDragDrop();
 
                 document.querySelector('.add-tab').addEventListener('click', () => this.addNewTab());
                 document.getElementById('backgroundSelect').addEventListener('change', (e) => {
@@ -2779,6 +2794,7 @@
                     'court': { width: 900, height: 450 },
                     'half-court': { width: 450, height: 450 },
                     'icon': { width: 40, height: 40 },
+                    'mat': { width: 120, height: 40 },
                     'local-svg': { width: 60, height: 60 }  // ✅ AGGIUNTO dimensione default più grande
                 };
                 return sizes[type] || { width: 40, height: 40 };
@@ -3749,7 +3765,7 @@
                 let toPos = this.getArrowPoint(arrow.to);
 
                 let svg = document.getElementById(arrow.id);
-                const wasSelected = this.selectedArrow === arrow.id; // ✅ MEMORIZZA LO STATO
+                const wasSelected = this.selectedArrow === arrow.id;
 
                 if (!svg) {
                     svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -3799,7 +3815,7 @@
                 const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                 path.classList.add('arrow-path');
                 if (arrow.dashed) path.classList.add('dashed');
-                if (wasSelected) path.classList.add('selected'); // ✅ RIPRISTINA LA SELEZIONE
+                if (wasSelected) path.classList.add('selected');
 
                 let pathData;
                 let controlPointElement;
@@ -4008,12 +4024,12 @@
                 }
             }
 
-            changeArrowThickness(thickness) {
+            changeArrowColor(color) {
                 if (!this.selectedArrow) return;
                 const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
                 if (arrowData) {
-                    arrowData.thickness = parseInt(thickness);
-                    // ✅ IMPORTANTE: Ri-renderizza completamente la freccia
+                    arrowData.color = color;
+                    // ✅ IMPORTANTE: Ri-renderizza completamente la freccia per aggiornare i marker
                     this.renderArrow(arrowData);
                     this.saveState();
                 }
@@ -4251,20 +4267,108 @@
                 const tab = document.createElement('div');
                 tab.className = 'tab';
                 tab.dataset.tabId = id;
+                tab.setAttribute('draggable', 'true'); // AGGIUNTO
                 tab.innerHTML = `<input class='no-style tab-title' value='${name}'/><span class="tab-close">×</span>`;
 
-                // NUOVO: Aggiungi event listener per l'input del nome
                 const tabTitleInput = tab.querySelector('.tab-title');
                 tabTitleInput.addEventListener('input', (e) => {
                     this.updateTabName(id, e.target.value);
                 });
 
-                // NUOVO: Previeni la propagazione del click sull'input per evitare conflitti con la selezione del tab
                 tabTitleInput.addEventListener('click', (e) => {
                     e.stopPropagation();
                 });
 
+                // AGGIUNTO: previeni il drag quando si clicca sull'input
+                tabTitleInput.addEventListener('mousedown', (e) => {
+                    e.stopPropagation();
+                });
+
                 tabsContainer.insertBefore(tab, addButton);
+            }
+
+
+            initTabDragDrop() {
+                const tabsContainer = document.querySelector('.tabs-container');
+                let draggedTab = null;
+                let placeholder = null;
+
+                tabsContainer.addEventListener('dragstart', (e) => {
+                    const tab = e.target.closest('.tab');
+                    if (!tab || tab.classList.contains('add-tab')) return;
+
+                    draggedTab = tab;
+                    tab.style.opacity = '0.4';
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/html', tab.innerHTML);
+
+                    // Crea un placeholder
+                    placeholder = document.createElement('div');
+                    placeholder.className = 'tab tab-placeholder';
+                    placeholder.style.width = tab.offsetWidth + 'px';
+                    placeholder.style.height = tab.offsetHeight + 'px';
+                    placeholder.style.opacity = '0.5';
+                    placeholder.style.border = '2px dashed #3498db';
+                });
+
+                tabsContainer.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+
+                    const tab = e.target.closest('.tab');
+                    if (!tab || tab === draggedTab || tab.classList.contains('add-tab')) return;
+
+                    const rect = tab.getBoundingClientRect();
+                    const midpoint = rect.left + rect.width / 2;
+
+                    // Rimuovi il placeholder precedente
+                    if (placeholder.parentNode) {
+                        placeholder.parentNode.removeChild(placeholder);
+                    }
+
+                    // Inserisci il placeholder nella nuova posizione
+                    if (e.clientX < midpoint) {
+                        tabsContainer.insertBefore(placeholder, tab);
+                    } else {
+                        tabsContainer.insertBefore(placeholder, tab.nextSibling);
+                    }
+                });
+
+                tabsContainer.addEventListener('dragend', (e) => {
+                    if (!draggedTab) return;
+
+                    draggedTab.style.opacity = '1';
+
+                    // Sposta effettivamente il tab nella nuova posizione
+                    if (placeholder.parentNode) {
+                        tabsContainer.insertBefore(draggedTab, placeholder);
+                        placeholder.parentNode.removeChild(placeholder);
+                    }
+
+                    draggedTab = null;
+                    placeholder = null;
+                });
+
+                tabsContainer.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+
+                // Rendi i tab trascinabili
+                const observer = new MutationObserver(() => {
+                    document.querySelectorAll('.tab:not(.add-tab)').forEach(tab => {
+                        if (!tab.hasAttribute('draggable')) {
+                            tab.setAttribute('draggable', 'true');
+                        }
+                    });
+                });
+
+                observer.observe(tabsContainer, { childList: true });
+
+                // Imposta draggable sui tab esistenti
+                document.querySelectorAll('.tab:not(.add-tab)').forEach(tab => {
+                    tab.setAttribute('draggable', 'true');
+                });
             }
             updateTabName(tabId, newName) {
                 const tab = this.tabs.get(tabId);
@@ -4738,6 +4842,7 @@
         <div class="modal-content" style="max-width: 400px;">
             <span class="close-button" id="closeSaveWorkout">&times;</span>
             <h2>Salva Allenamento Completo</h2>
+            <div id="workOutListName"></div>
             <div style="padding: 20px 0;">
                 <label for="workoutFileName" style="display: block; margin-bottom: 10px;">Nome del file:</label>
                 <input type="text" id="workoutFileName"
