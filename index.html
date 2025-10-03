@@ -2631,7 +2631,21 @@
 
             handleCanvasDrop(e) {
                 e.preventDefault();
-                const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+
+                let data;
+                try {
+                    const rawData = e.dataTransfer.getData('text/plain');
+                    if (!rawData) {
+                        console.error('Nessun dato nel drag');
+                        return;
+                    }
+                    data = JSON.parse(rawData);
+                } catch (error) {
+                    console.error('Errore nel parsing dei dati drag:', error);
+                    // Se il parsing fallisce, potrebbe essere un file trascinato dal desktop
+                    return;
+                }
+
                 const rect = e.currentTarget.getBoundingClientRect();
                 const x = (e.clientX - rect.left) / this.getCurrentTab().zoom;
                 const y = (e.clientY - rect.top) / this.getCurrentTab().zoom;
@@ -2719,7 +2733,8 @@
                     'text': { width: 100, height: 30 },
                     'court': { width: 900, height: 450 },
                     'half-court': { width: 450, height: 450 },
-                    'icon': { width: 40, height: 40 }
+                    'icon': { width: 40, height: 40 },
+                    'local-svg': { width: 60, height: 60 }  // ✅ AGGIUNTO dimensione default più grande
                 };
                 return sizes[type] || { width: 40, height: 40 };
             }
@@ -2730,6 +2745,11 @@
                     element = document.createElement('div');
                     element.className = 'canvas-object';
                     element.id = object.id;
+
+                    // 🔴 PATCH: disabilito il drag nativo del browser
+                    element.setAttribute('draggable', false);
+                    element.addEventListener('dragstart', (e) => e.preventDefault());
+
                     document.getElementById('canvas').appendChild(element);
                 }
 
@@ -2746,7 +2766,7 @@
                 const content = this.createObjectContent(object);
                 element.appendChild(content);
 
-                // AGGIUNGI QUESTA LINEA: Assicura che il contenuto sia ridimensionato correttamente
+                // Assicura che il contenuto sia ridimensionato correttamente
                 this.resizeContent(element, object.width, object.height, object.type);
 
                 this.addControlHandles(element);
@@ -2756,6 +2776,7 @@
                     this.startInlineEdit(object.id);
                 });
             }
+
 
             bringToFront() {
                 if (this.selectedObjects.size === 0) return;
@@ -2884,28 +2905,22 @@
                     if (icon) {
                         const minDimension = Math.min(width, height);
                         let fontSize = minDimension * 0.6;
-
-                        // Imposta limiti minimi e massimi
-                        fontSize = Math.max(8, fontSize);   // Minimo 8px
-                        fontSize = Math.min(100, fontSize); // Massimo 100px
-
+                        fontSize = Math.max(8, fontSize);
+                        fontSize = Math.min(100, fontSize);
                         icon.style.fontSize = `${fontSize}px`;
                     }
                 } else if (type === 'local-svg') {
                     const img = content.querySelector('img');
                     if (img) {
                         const minDimension = Math.min(width, height);
-                        let size = minDimension * 0.6;
-
-                        // Imposta limiti minimi e massimi
-                        size = Math.max(8, size);   // Minimo 8px
-                        size = Math.min(100, size); // Massimo 100px
-
+                        let size = minDimension * 0.8;  // ✅ AUMENTATO da 0.6 a 0.8 per renderle più visibili
+                        size = Math.max(12, size);      // ✅ AUMENTATO da 8 a 12
+                        size = Math.min(150, size);     // ✅ AUMENTATO da 100 a 150
                         img.style.width = `${size}px`;
                         img.style.height = `${size}px`;
+                        img.style.objectFit = 'contain';  // ✅ AGGIUNTO per mantenere proporzioni
                     }
                 } else {
-
                     const editableText = content.querySelector('.editable-text');
                     if (editableText) {
                         const initialWidth = this.getDefaultSize(type).width;
@@ -3063,11 +3078,15 @@
                         if (objectData) {
                             objectData.x = initialPos.x + deltaX;
                             objectData.y = initialPos.y + deltaY;
-                            document.getElementById(id).style.left = objectData.x + 'px';
-                            document.getElementById(id).style.top = objectData.y + 'px';
+
+                            const element = document.getElementById(id);
+                            if (element) {  // ✅ AGGIUNTO CONTROLLO
+                                element.style.left = objectData.x + 'px';
+                                element.style.top = objectData.y + 'px';
+                            }
                             this.updateArrowsForObject(id);
                         }
-                        // AGGIUNTO: Gestisci disegni a mano libera
+                        // Gestisci disegni a mano libera
                         else if (initialPos.type === 'freehand') {
                             const freehand = tab.freehands.get(id);
                             if (freehand) {
@@ -3158,7 +3177,7 @@
                 if (!e.ctrlKey && !e.metaKey && this.selectedObject) {
                     this.selectedObjects.clear();
                     const objData = this.getCurrentTab().objects.get(this.selectedObject.id);
-                    if (objData) {
+                    if (objData) {  // ✅ AGGIUNTO CONTROLLO
                         this.selectedObjects.set(this.selectedObject.id, { x: objData.x, y: objData.y });
                     }
                 }
