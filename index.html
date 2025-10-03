@@ -1432,6 +1432,51 @@
     </div>
 
     <script>
+        /**
+         * Calcola il valore di Tonalità (Hue) da un colore Hex.
+         * @param {string} hex - Il codice colore esadecimale (es. "#3498db" o "3498db").
+         * @returns {number} Il valore di hue in gradi (0-360).
+         */
+        function getHue(hex) {
+            // Rimuove l'hash e converte in RGB
+            const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+            hex = hex.replace(shorthandRegex, function (m, r, g, b) {
+                return r + r + g + g + b + b;
+            });
+
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            if (!result) return 0; // Ritorna 0 se non è un colore valido
+
+            let r = parseInt(result[1], 16) / 255;
+            let g = parseInt(result[2], 16) / 255;
+            let b = parseInt(result[3], 16) / 255;
+
+            let max = Math.max(r, g, b),
+                min = Math.min(r, g, b);
+            let h, s, l = (max + min) / 2;
+
+            if (max === min) {
+                h = s = 0; // Colore grigio (monocromatico)
+            } else {
+                let d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch (max) {
+                    case r:
+                        h = (g - b) / d + (g < b ? 6 : 0);
+                        break;
+                    case g:
+                        h = (b - r) / d + 2;
+                        break;
+                    case b:
+                        h = (r - g) / d + 4;
+                        break;
+                }
+                h /= 6;
+            }
+
+            // Converte in gradi (0-360)
+            return h * 360;
+        }
         class SchemaEditor {
             constructor() {
                 this.tabs = new Map();
@@ -3906,7 +3951,6 @@
                     this.saveState();
                 }
             }
-
             changeSelectedObjectsColor(color) {
                 if (this.selectedObjects.size === 0) return;
 
