@@ -157,7 +157,9 @@
 }
 
 .detail-field select,
-.detail-field textarea {
+.detail-field textarea,
+/* AGGIUNGI QUESTO NUOVO SELETTORE */
+.detail-field input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]) {
     width: 100%;
     padding: 8px;
     border: 1px solid #34495e;
@@ -165,6 +167,8 @@
     font-size: 13px;
     background: #ecf0f1;
     color: #2c3e50;
+    /* Aggiunto per uniformità: */
+    box-sizing: border-box;
 }
 
 .detail-field textarea {

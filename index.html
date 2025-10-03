@@ -1296,7 +1296,8 @@
                 <h3>📋 Dettagli Allenamento</h3>
                 <div class="detail-field">
                     <label for="workoutDate">Data:</label>
-                    <input type="text" id="workoutDate">
+                    <input type="text" id="workoutDate" placeholder="AAAA-MM-GG" pattern="\d{4}-\d{2}-\d{2}"
+                        title="Inserisci la data nel formato AAAA-MM-GG (es: 2025-01-30)" required>
                 </div>
                 <div class="detail-field">
                     <label for="workoutPlace">Dove:</label>
@@ -1442,6 +1443,27 @@
     </div>
 
     <script>
+        function setDefaultDate(fieldName) {
+            const dateField = document.getElementById(fieldName);
+            if (dateField) {
+                const today = new Date();
+
+                // 1. Ottiene l'anno (YYYY)
+                const yyyy = today.getFullYear();
+
+                // 2. Ottiene il mese (MM): Aggiunge 1 (i mesi vanno da 0 a 11) e usa padStart per avere sempre due cifre.
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+
+                // 3. Ottiene il giorno (DD): Usa padStart per avere sempre due cifre.
+                const dd = String(today.getDate()).padStart(2, '0');
+
+                // COSTRUZIONE DEL FORMATO YYYY-MM-DD
+                const formattedDate = `${yyyy}-${mm}-${dd}`;
+
+                // Imposta il valore (es: "2025-10-03")
+                dateField.value = formattedDate;
+            }
+        }
         /**
          * Calcola il valore di Tonalità (Hue) da un colore Hex.
          * @param {string} hex - Il codice colore esadecimale (es. "#3498db" o "3498db").
@@ -4952,6 +4974,7 @@
     <div id="watermark">spikecode</div>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
+            setDefaultDate('workoutDate');
             window.editor = new SchemaEditor();
         });
     </script>
