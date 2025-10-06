@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="./css/player.css">
     <link rel="stylesheet" href="./css/freehand.css">
     <link rel="stylesheet" href="./css/objects.css">
+    <link rel="stylesheet" href="./css/contextmenu.css">
 
     <style>
         * {
@@ -860,7 +861,6 @@
 <body>
     <div class="container">
         <div class="sidebar" id="sidebar">
-            <button class="sidebar-switch" id="sidebarSwitch">◀</button>
             <div class="component-category">
                 <h3 class="accordion-header active">👥 Giocatori</h3>
                 <div class="accordion-content active">
@@ -1066,17 +1066,19 @@
 
                         <div class="component-item" data-type="local-svg" data-src="data/images/volleyball_player.svg">
                             <div class="component-icon">
-                                <img src="data/images/volleyball_player.svg" alt="Campo Calcio"
+                                <img src="data/images/volleyball_player.svg" alt="Campo volleyball"
                                     style="width: 20px; height: 20px;" />
                             </div>
-                            <div>Campo Calcio</div>
+                            <div>Campo volleyball</div>
                         </div>
 
                     </div>
                 </div>
             </div>
         </div>
-        <div class="sidebar-handle" id="sidebarHandle"></div>
+        <div class="sidebar-handle" id="sidebarHandle">
+            <button class="sidebar-switch" id="sidebarSwitch">◀</button>
+        </div>
 
         <div class="main-content">
             <div class="toolbar">
@@ -1289,9 +1291,10 @@
                 </div>
             </div>
         </div>
-        <div class="right-sidebar-handle" id="rightSidebarHandle"></div>
+        <div class="right-sidebar-handle" id="rightSidebarHandle"><button class="right-sidebar-switch"
+                id="rightSidebarSwitch">▶</button>
+        </div>
         <div class="right-sidebar" id="rightSidebar">
-            <button class="right-sidebar-switch" id="rightSidebarSwitch">▶</button>
             <div class="workout-details">
                 <h3>📋 Dettagli Allenamento</h3>
                 <div class="detail-field">
@@ -1638,6 +1641,102 @@
                     this.saveState('Allineamento alla Griglia');
                 }
             };
+
+
+            showContextMenu(e, objectId, type) {
+                // Rimuovi menu esistente
+                this.hideContextMenu();
+
+                const menu = document.createElement('div');
+                menu.className = 'context-menu';
+                menu.id = 'contextMenu';
+
+                let menuItems = [];
+
+                if (type === 'object') {
+                    const obj = this.getCurrentTab().objects.get(objectId);
+                    menuItems = [
+                        { label: '✂️ Taglia', action: () => this.cutSelected(), shortcut: 'Ctrl+X' },
+                        { label: '📋 Copia', action: () => this.copySelected(), shortcut: 'Ctrl+C' },
+                        { separator: true },
+                        { label: '⬆️ In primo piano', action: () => this.bringToFront(), shortcut: 'Ctrl+]' },
+                        { label: '⬇️ In background', action: () => this.sendToBack(), shortcut: 'Ctrl+[' },
+                        { separator: true },
+                        { label: '↺ Ruota -15°', action: () => this.rotateSelected(-15) },
+                        { label: '↻ Ruota +15°', action: () => this.rotateSelected(15) },
+                        { separator: true },
+                        { label: obj?.dashed ? '━ Linea continua' : '╌ Linea tratteggiata', action: () => this.toggleDashedObject() },
+                        { separator: true },
+                        { label: '🗑️ Elimina', action: () => this.deleteSelected(), shortcut: 'Canc' }
+                    ];
+                } else if (type === 'arrow') {
+                    const arrow = this.getCurrentTab().arrows.get(objectId);
+                    menuItems = [
+                        { label: '━ Lineare', action: () => this.changeArrowType('linear') },
+                        { label: '⌢ Curva', action: () => this.changeArrowType('curved') },
+                        { label: '⚡ Zigzag', action: () => this.changeArrowType('zigzag') },
+                        { separator: true },
+                        { label: arrow?.dashed ? '━ Linea continua' : '╌ Linea tratteggiata', action: () => this.toggleDashedArrow() },
+                        { separator: true },
+                        { label: '🗑️ Elimina', action: () => this.deleteSelected(), shortcut: 'Canc' }
+                    ];
+                } else if (type === 'freehand') {
+                    menuItems = [
+                        { label: '🗑️ Elimina', action: () => this.deleteSelected(), shortcut: 'Canc' }
+                    ];
+                }
+
+                menuItems.forEach(item => {
+                    if (item.separator) {
+                        const separator = document.createElement('div');
+                        separator.className = 'context-menu-separator';
+                        menu.appendChild(separator);
+                    } else {
+                        const menuItem = document.createElement('div');
+                        menuItem.className = 'context-menu-item';
+                        menuItem.innerHTML = `
+                <span>${item.label}</span>
+                ${item.shortcut ? `<span style="margin-left: auto; opacity: 0.6; font-size: 11px;">${item.shortcut}</span>` : ''}
+            `;
+                        menuItem.addEventListener('click', () => {
+                            item.action();
+                            this.hideContextMenu();
+                        });
+                        menu.appendChild(menuItem);
+                    }
+                });
+
+                document.body.appendChild(menu);
+
+                // Posiziona il menu
+                const menuRect = menu.getBoundingClientRect();
+                let left = e.clientX;
+                let top = e.clientY;
+
+                // Assicurati che il menu non esca dallo schermo
+                if (left + menuRect.width > window.innerWidth) {
+                    left = window.innerWidth - menuRect.width - 5;
+                }
+                if (top + menuRect.height > window.innerHeight) {
+                    top = window.innerHeight - menuRect.height - 5;
+                }
+
+                menu.style.left = left + 'px';
+                menu.style.top = top + 'px';
+
+                // Chiudi il menu al click fuori
+                setTimeout(() => {
+                    document.addEventListener('click', this.hideContextMenu.bind(this), { once: true });
+                    document.addEventListener('contextmenu', this.hideContextMenu.bind(this), { once: true });
+                }, 0);
+            }
+
+            hideContextMenu() {
+                const menu = document.getElementById('contextMenu');
+                if (menu) {
+                    menu.remove();
+                }
+            }
             startFreehand(e) {
                 this.isDrawing = true;
                 this.freehandPoints = [];
@@ -1749,20 +1848,31 @@
                 } else {
                     svg.innerHTML = '';
                 }
+
                 const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                 path.classList.add('freehand-path');
                 path.setAttribute('d', this.pointsToPath(freehand.points));
-                path.setAttribute('stroke', freehand.color);  // ✅ IMPORTANTE
+                path.setAttribute('stroke', freehand.color);
                 path.setAttribute('stroke-width', freehand.thickness);
-                path.setAttribute('fill', 'none');  // ✅ IMPORTANTE
+                path.setAttribute('fill', 'none');
                 path.setAttribute('stroke-linecap', 'round');
                 path.setAttribute('stroke-linejoin', 'round');
                 path.style.opacity = freehand.opacity || 1;
-                path.style.zIndex = freehand.zIndex || 1
+                path.style.zIndex = freehand.zIndex || 1;
 
+                // ✅ Event listeners
                 path.addEventListener('mousedown', (e) => {
                     e.stopPropagation();
                     this.selectFreehand(freehand.id);
+                });
+
+                path.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (this.selectedFreehand !== freehand.id) {
+                        this.selectFreehand(freehand.id);
+                    }
+                    this.showContextMenu(e, freehand.id, 'freehand');
                 });
 
                 svg.appendChild(path);
@@ -2438,7 +2548,9 @@
                     this.deselectAll();
                 });
 
+                // Chiudi context menu quando si clicca sul canvas
                 const canvas = document.getElementById('canvas');
+                canvas.addEventListener('click', () => this.hideContextMenu());
                 canvas.addEventListener('dragover', (e) => e.preventDefault());
                 canvas.addEventListener('drop', (e) => this.handleCanvasDrop(e));
                 canvas.addEventListener('mousedown', (e) => this.handleCanvasMouseDown(e));
@@ -2777,6 +2889,75 @@
                         }
                     });
                 }
+                // Nel canvas, aggiungi context menu per azioni globali
+                canvas.addEventListener('contextmenu', (e) => {
+                    // Se click su canvas vuoto (non su oggetti)
+                    if (e.target === canvas || e.target.classList.contains('canvas')) {
+                        e.preventDefault();
+                        this.showCanvasContextMenu(e);
+                    }
+                });
+            }
+
+            showCanvasContextMenu(e) {
+                this.hideContextMenu();
+
+                const menu = document.createElement('div');
+                menu.className = 'context-menu';
+                menu.id = 'contextMenu';
+
+                const menuItems = [
+                    { label: '📋 Incolla', action: () => this.paste(), shortcut: 'Ctrl+V', disabled: !this.clipboard },
+                    { separator: true },
+                    { label: '🔄 Seleziona tutto', action: () => this.selectAll(), shortcut: 'Ctrl+A' },
+                    { separator: true },
+                    { label: '↶ Annulla', action: () => this.undo(), shortcut: 'Ctrl+Z' },
+                    { label: '↷ Ripeti', action: () => this.redo(), shortcut: 'Ctrl+Y' }
+                ];
+
+                menuItems.forEach(item => {
+                    if (item.separator) {
+                        const separator = document.createElement('div');
+                        separator.className = 'context-menu-separator';
+                        menu.appendChild(separator);
+                    } else {
+                        const menuItem = document.createElement('div');
+                        menuItem.className = 'context-menu-item' + (item.disabled ? ' disabled' : '');
+                        menuItem.innerHTML = `
+                <span>${item.label}</span>
+                ${item.shortcut ? `<span style="margin-left: auto; opacity: 0.6; font-size: 11px;">${item.shortcut}</span>` : ''}
+            `;
+                        if (!item.disabled) {
+                            menuItem.addEventListener('click', () => {
+                                item.action();
+                                this.hideContextMenu();
+                            });
+                        }
+                        menu.appendChild(menuItem);
+                    }
+                });
+
+                document.body.appendChild(menu);
+
+                // Posizionamento
+                const menuRect = menu.getBoundingClientRect();
+                let left = e.clientX;
+                let top = e.clientY;
+
+                if (left + menuRect.width > window.innerWidth) {
+                    left = window.innerWidth - menuRect.width - 5;
+                }
+                if (top + menuRect.height > window.innerHeight) {
+                    top = window.innerHeight - menuRect.height - 5;
+                }
+
+                menu.style.left = left + 'px';
+                menu.style.top = top + 'px';
+
+                setTimeout(() => {
+                    document.addEventListener('click', this.hideContextMenu.bind(this), { once: true });
+                    document.addEventListener('contextmenu', this.hideContextMenu.bind(this), { once: true });
+                }, 0);
             }
 
             handleCanvasDrop(e) {
@@ -2897,12 +3078,17 @@
                     element.className = 'canvas-object';
                     element.id = object.id;
 
-                    // 🔴 PATCH: disabilito il drag nativo del browser
                     element.setAttribute('draggable', false);
                     element.addEventListener('dragstart', (e) => e.preventDefault());
 
                     document.getElementById('canvas').appendChild(element);
                 }
+
+                // ✅ IMPORTANTE: Rimuovi vecchi listener prima di aggiungerne di nuovi
+                // Clona l'elemento per rimuovere tutti gli event listener
+                const newElement = element.cloneNode(false);
+                element.parentNode.replaceChild(newElement, element);
+                element = newElement;
 
                 element.style.left = object.x + 'px';
                 element.style.top = object.y + 'px';
@@ -2917,15 +3103,29 @@
                 const content = this.createObjectContent(object);
                 element.appendChild(content);
 
-                // Assicura che il contenuto sia ridimensionato correttamente
                 this.resizeContent(element, object.width, object.height, object.type);
-
                 this.addControlHandles(element);
                 this.addConnectionPoints(element);
 
+                // ✅ Aggiungi context menu
+                element.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!this.selectedObjects.has(object.id)) {
+                        this.selectObject(element);
+                    }
+                    this.showContextMenu(e, object.id, 'object');
+                });
+
+                // ✅ Aggiungi double click
                 element.addEventListener('dblclick', (e) => {
+                    e.stopPropagation();
                     this.startInlineEdit(object.id);
                 });
+
+                // ✅ Previeni drag
+                element.setAttribute('draggable', false);
+                element.addEventListener('dragstart', (e) => e.preventDefault());
             }
 
 
@@ -3863,7 +4063,7 @@
                     svg.id = arrow.id;
                     document.getElementById('canvas').appendChild(svg);
                 } else {
-                    svg.innerHTML = ''; // Pulisce tutto inclusi i defs vecchi
+                    svg.innerHTML = '';
                 }
 
                 // Ricrea sempre i defs con i colori aggiornati
@@ -3939,12 +4139,23 @@
                     path.removeAttribute('marker-end');
                 }
 
+                // ✅ Event listeners per il path
                 path.addEventListener('mousedown', (e) => {
                     e.stopPropagation();
                     this.selectArrow(arrow.id);
                 });
 
+                path.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (this.selectedArrow !== arrow.id) {
+                        this.selectArrow(arrow.id);
+                    }
+                    this.showContextMenu(e, arrow.id, 'arrow');
+                });
+
                 svg.appendChild(path);
+
                 if (controlPointElement) {
                     svg.appendChild(controlPointElement);
                 }
