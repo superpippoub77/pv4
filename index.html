@@ -3560,7 +3560,13 @@
                 // Keyframe Properties Update
                 document.getElementById('keyframeUpdateProperties').addEventListener('click', () => this.updateKeyframeProperties());
                 document.getElementById('showAnimationControls').addEventListener('click', () => {
-                    this.showAnimationControls();
+                    const animControls = document.getElementById('animationControls');
+                    const isVisible = animControls.style.display === 'flex';
+                    if (isVisible) {
+                        animControls.style.display = 'none';
+                    } else {
+                        this.showAnimationControls();
+                    }
                 });
 
             }
