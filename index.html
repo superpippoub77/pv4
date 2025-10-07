@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="./css/freehand.css">
     <link rel="stylesheet" href="./css/objects.css">
     <link rel="stylesheet" href="./css/contextmenu.css">
-
+    <link rel="stylesheet" href="./css/sprite-volleyball.css">
     <style>
         * {
             margin: 0;
@@ -741,7 +741,7 @@
             overflow: hidden;
 
             /* Colore di sfondo base */
-            background-color: #f7d30a;
+            /* background-color: #f7d30a; */
 
             /* Bordo Perimetrale */
             border: 2px solid black;
@@ -756,9 +756,9 @@
                     transparent 0%,
                     /* Inizia la linea 1px prima del 50% */
                     transparent calc(50% - 1px),
-                    white calc(50% - 1px),
+                    black calc(50% - 1px),
                     /* Finisce la linea 1px dopo il 50% */
-                    white calc(50% + 1px),
+                    black calc(50% + 1px),
                     transparent calc(50% + 1px),
                     transparent 100%),
 
@@ -767,9 +767,9 @@
                     transparent 0%,
                     /* Inizia la linea 1px prima del 33.33% */
                     transparent calc(33.3333% - 1px),
-                    white calc(33.3333% - 1px),
+                    black calc(33.3333% - 1px),
                     /* Finisce la linea 1px dopo il 33.33% */
-                    white calc(33.3333% + 1px),
+                    black calc(33.3333% + 1px),
                     transparent calc(33.3333% + 1px),
                     transparent 100%),
 
@@ -778,9 +778,9 @@
                     transparent 0%,
                     /* Inizia la linea 1px prima del 66.67% */
                     transparent calc(66.6667% - 1px),
-                    white calc(66.6667% - 1px),
+                    black calc(66.6667% - 1px),
                     /* Finisce la linea 1px dopo il 66.67% */
-                    white calc(66.6667% + 1px),
+                    black calc(66.6667% + 1px),
                     transparent calc(66.6667% + 1px),
                     transparent 100%);
 
@@ -807,7 +807,7 @@
             overflow: hidden;
 
             /* Colore di sfondo base */
-            background-color: #f7d30a;
+            /* background-color: #f7d30a; */
 
             /* Bordo Perimetrale */
             border: 2px solid black;
@@ -822,9 +822,9 @@
                     transparent 0%,
                     /* Inizia la linea 1px prima del 33.33% */
                     transparent calc(33.3333% - 1px),
-                    white calc(33.3333% - 1px),
+                    black calc(33.3333% - 1px),
                     /* Finisce la linea 1px dopo il 33.33% */
-                    white calc(33.3333% + 1px),
+                    black calc(33.3333% + 1px),
                     transparent calc(33.3333% + 1px),
                     transparent 100%);
             /* Configurazione Generale dello Sfondo */
@@ -932,10 +932,6 @@
                             <div class="component-icon">🏟️</div>
                             <div>Metà</div>
                         </div>
-                        <div class="component-item" data-type="mat" data-text="">
-                            <div class="component-icon">🟩</div>
-                            <div>Materassino</div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -958,6 +954,10 @@
                         <div class="component-item" data-type="goal" data-text="">
                             <div class="component-icon">🥅</div>
                             <div>Porta</div>
+                        </div>
+                        <div class="component-item" data-type="mat" data-text="">
+                            <div class="component-icon">🟩</div>
+                            <div>Materassino</div>
                         </div>
                     </div>
                 </div>
@@ -1072,6 +1072,47 @@
                             <div>Campo volleyball</div>
                         </div>
 
+                    </div>
+                </div>
+            </div>
+            <div class="component-category">
+                <h3 class="accordion-header">🎬 Sprite Pallavolo</h3>
+                <div class="accordion-content">
+                    <div class="component-grid">
+                        <!-- Esempio: Giocatore che schiaccia -->
+                        <div class="component-item" data-type="sprite"
+                            data-sprite-sheet="data/images/sprites/volleyball-actions.png" data-sprite-cols="4"
+                            data-sprite-rows="2" data-sprite-frame="0" data-sprite-width="64" data-sprite-height="64">
+
+                            <div class="component-icon">
+                                <div class="sprite-preview" style="
+                background-image: url('data/images/sprites/volleyball-actions.png');
+                background-position: 0px 0px;
+                background-size: 256px 128px;
+                width: 64px;
+                height: 64px;
+            ">
+                                </div>
+                            </div>
+
+                            <div>Schiacciata</div>
+                        </div>
+
+                        <!-- Esempio: Giocatore in bagher -->
+                        <div class="component-item" data-type="sprite"
+                            data-sprite-sheet="data/images/sprites/volleyball-actions.png" data-sprite-cols="4"
+                            data-sprite-rows="2" data-sprite-frame="1" data-sprite-width="64" data-sprite-height="64">
+                            <div class="component-icon">
+                                <div class="sprite-preview" style="background: url('data/images/sprites/volleyball-actions.png'); 
+                                background-position: -64px 0; 
+                                background-size: 256px 128px; 
+                                width: 32px; 
+                                height: 32px;"></div>
+                            </div>
+                            <div>Bagher</div>
+                        </div>
+
+                        <!-- Aggiungi altri frame qui -->
                     </div>
                 </div>
             </div>
@@ -1257,6 +1298,33 @@
                         <button id="arrowTypeZigzag" class="arrow-type-btn">Zigzag</button>
                     </div>
                     <button id="dashedArrowToggle" class="toolbar-button">Freccia Tratteggiata</button>
+                </div>
+
+
+                <div id="spriteControls" style="display: none; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <div>
+                        <label>Frame corrente:</label>
+                        <input type="number" id="spriteCurrentFrame" min="0" max="7" value="0" style="width: 60px;">
+                        <span id="spriteFrameInfo">(0-7)</span>
+                    </div>
+
+                    <div class="sprite-animation-controls">
+                        <label>Animazione:</label>
+                        <input type="text" id="spriteAnimationFrames" placeholder="es: 0,1,2,3" style="width: 120px;"
+                            title="Sequenza frame separati da virgola">
+                        <label>FPS:</label>
+                        <input type="number" id="spriteAnimationFPS" min="1" max="60" value="10" style="width: 60px;">
+                        <button id="spritePlayAnimation" class="toolbar-button">▶ Play</button>
+                        <button id="spriteStopAnimation" class="toolbar-button" style="display: none;">⏸ Stop</button>
+                    </div>
+
+                    <div>
+                        <label>Dimensioni frame:</label>
+                        <input type="number" id="spriteFrameWidth" min="8" max="512" value="64" style="width: 60px;">
+                        <span>×</span>
+                        <input type="number" id="spriteFrameHeight" min="8" max="512" value="64" style="width: 60px;">
+                        <button id="spriteApplySize" class="toolbar-button">Applica</button>
+                    </div>
                 </div>
                 <div id="freehandControls" style="display: none; align-items: center; gap: 10px;">
                     <div class="color-picker-container">
@@ -1590,6 +1658,103 @@
                 });
             }
 
+
+            changeSpriteFrame(frameNumber) {
+                if (!this.selectedObject) return;
+
+                const objectData = this.getCurrentTab().objects.get(this.selectedObject.id);
+                if (!objectData || objectData.type !== 'sprite') return;
+
+                const maxFrame = (objectData.spriteData.cols * objectData.spriteData.rows) - 1;
+                frameNumber = Math.max(0, Math.min(maxFrame, frameNumber));
+
+                objectData.spriteData.frame = frameNumber;
+                this.renderObject(objectData);
+                this.saveState();
+
+                // Aggiorna l'info
+                document.getElementById('objectInfo').textContent = `Sprite selezionato (Frame ${frameNumber}/${maxFrame})`;
+            }
+
+            playSpriteAnimation() {
+                if (!this.selectedObject) return;
+
+                const objectData = this.getCurrentTab().objects.get(this.selectedObject.id);
+                if (!objectData || objectData.type !== 'sprite') return;
+
+                // Ferma animazione esistente
+                if (objectData.animationInterval) {
+                    clearInterval(objectData.animationInterval);
+                }
+
+                // Leggi parametri
+                const framesInput = document.getElementById('spriteAnimationFrames').value;
+                const fps = parseInt(document.getElementById('spriteAnimationFPS').value) || 10;
+
+                // Parse della sequenza frame
+                let frames;
+                try {
+                    frames = framesInput.split(',').map(f => parseInt(f.trim())).filter(f => !isNaN(f));
+                    if (frames.length === 0) throw new Error('Nessun frame valido');
+                } catch (e) {
+                    alert('Sequenza frame non valida. Usa numeri separati da virgola (es: 0,1,2,3)');
+                    return;
+                }
+
+                // Avvia animazione
+                const delay = 1000 / fps;
+                let currentIndex = 0;
+
+                objectData.animationInterval = setInterval(() => {
+                    objectData.spriteData.frame = frames[currentIndex];
+                    this.renderObject(objectData);
+                    document.getElementById('spriteCurrentFrame').value = frames[currentIndex];
+                    currentIndex = (currentIndex + 1) % frames.length;
+                }, delay);
+
+                // Aggiorna UI
+                document.getElementById('spritePlayAnimation').style.display = 'none';
+                document.getElementById('spriteStopAnimation').style.display = 'inline-block';
+                document.getElementById('objectInfo').textContent = `Sprite animato (${frames.length} frame @ ${fps}fps)`;
+            }
+
+            stopSpriteAnimation() {
+                if (!this.selectedObject) return;
+
+                const objectData = this.getCurrentTab().objects.get(this.selectedObject.id);
+                if (!objectData || objectData.type !== 'sprite') return;
+
+                if (objectData.animationInterval) {
+                    clearInterval(objectData.animationInterval);
+                    delete objectData.animationInterval;
+                }
+
+                // Aggiorna UI
+                document.getElementById('spritePlayAnimation').style.display = 'inline-block';
+                document.getElementById('spriteStopAnimation').style.display = 'none';
+
+                const maxFrame = (objectData.spriteData.cols * objectData.spriteData.rows) - 1;
+                document.getElementById('objectInfo').textContent = `Sprite selezionato (Frame ${objectData.spriteData.frame}/${maxFrame})`;
+            }
+
+            applySpriteFrameSize() {
+                if (!this.selectedObject) return;
+
+                const objectData = this.getCurrentTab().objects.get(this.selectedObject.id);
+                if (!objectData || objectData.type !== 'sprite') return;
+
+                const newWidth = parseInt(document.getElementById('spriteFrameWidth').value);
+                const newHeight = parseInt(document.getElementById('spriteFrameHeight').value);
+
+                if (newWidth > 0 && newHeight > 0) {
+                    objectData.spriteData.frameWidth = newWidth;
+                    objectData.spriteData.frameHeight = newHeight;
+                    this.renderObject(objectData);
+                    this.saveState();
+
+                    alert('Dimensioni frame aggiornate. Nota: verifica che corrispondano alla tua sprite sheet!');
+                }
+            }
             // Aggiungere questa funzione al prototipo della classe SchemaEditor
             // (o direttamente come metodo all'interno della definizione della classe)
             snapObjectsToGrid(gridSize = 20) {
@@ -2533,7 +2698,14 @@
                                 color: item.dataset.color || '',
                                 text: item.dataset.text || '',
                                 icon: item.dataset.icon || null,
-                                src: item.dataset.src || null
+                                src: item.dataset.src || null,
+                                // ✅ AGGIUNTO: Dati sprite
+                                spriteSheet: item.dataset.spriteSheet || null,
+                                spriteCols: parseInt(item.dataset.spriteCols) || 1,
+                                spriteRows: parseInt(item.dataset.spriteRows) || 1,
+                                spriteFrame: parseInt(item.dataset.spriteFrame) || 0,
+                                spriteWidth: parseInt(item.dataset.spriteWidth) || 64,
+                                spriteHeight: parseInt(item.dataset.spriteHeight) || 64
                             };
                             e.dataTransfer.setData('text/plain', JSON.stringify(dragData));
                         }
@@ -2897,6 +3069,31 @@
                         this.showCanvasContextMenu(e);
                     }
                 });
+
+                // ✅ AGGIUNTI: Event listeners per controlli sprite
+                document.getElementById('spriteCurrentFrame').addEventListener('change', (e) => {
+                    this.changeSpriteFrame(parseInt(e.target.value));
+                });
+
+                document.getElementById('spritePlayAnimation').addEventListener('click', () => {
+                    this.playSpriteAnimation();
+                });
+
+                document.getElementById('spriteStopAnimation').addEventListener('click', () => {
+                    this.stopSpriteAnimation();
+                });
+
+                document.getElementById('spriteApplySize').addEventListener('click', () => {
+                    this.applySpriteFrameSize();
+                });
+
+                document.getElementById('spriteAnimationFPS').addEventListener('input', (e) => {
+                    // Se l'animazione è già in corso, riavviala con il nuovo FPS
+                    if (this.selectedObject && this.getCurrentTab().objects.get(this.selectedObject.id)?.animationInterval) {
+                        this.playSpriteAnimation();
+                    }
+                });
+
             }
 
             showCanvasContextMenu(e) {
@@ -2982,7 +3179,18 @@
                 const y = (e.clientY - rect.top) / this.getCurrentTab().zoom;
 
                 // Per le icone, passa anche l'attributo icon
-                if (data.type === 'icon') {
+                // ✅ AGGIUNTO: Gestione sprite
+                if (data.type === 'sprite') {
+                    const spriteData = {
+                        sheet: data.spriteSheet,
+                        cols: data.spriteCols,
+                        rows: data.spriteRows,
+                        frame: data.spriteFrame,
+                        frameWidth: data.spriteWidth,
+                        frameHeight: data.spriteHeight
+                    };
+                    this.addObject(data.type, x, y, data.color, data.text, 0, this.dashedMode, null, null, spriteData);
+                } else if (data.type === 'icon') {
                     this.addObject(data.type, x, y, data.color, data.text, 0, this.dashedMode, data.icon);
                 } else if (data.type === 'local-svg') {
                     this.addObject(data.type, x, y, data.color, data.text, 0, this.dashedMode, null, data.src);
@@ -3026,7 +3234,7 @@
                 this.saveState();
             }
 
-            addObject(type, x, y, color = '#3498db', text = '', rotation = 0, dashed = this.dashedMode, icon = null, src = null) {
+            addObject(type, x, y, color = '#3498db', text = '', rotation = 0, dashed = this.dashedMode, icon = null, src = null, spriteData = null) {
                 const tab = this.getCurrentTab();
                 const id = 'obj-' + tab.nextObjectId++;
 
@@ -3041,10 +3249,11 @@
                     rotation: rotation,
                     text: text,
                     dashed: dashed,
-                    opacity: 1, // AGGIUNTO
+                    opacity: 1,
                     zIndex: this.maxZIndex++,
                     icon: icon,
-                    src: src
+                    src: src,
+                    spriteData: spriteData  // ✅ AGGIUNTO
                 };
 
                 tab.objects.set(id, object);
@@ -3066,7 +3275,8 @@
                     'half-court': { width: 450, height: 450 },
                     'icon': { width: 40, height: 40 },
                     'mat': { width: 120, height: 40 },
-                    'local-svg': { width: 60, height: 60 }  // ✅ AGGIUNTO dimensione default più grande
+                    'local-svg': { width: 60, height: 60 },  // ✅ AGGIUNTO dimensione default più grande
+                    'sprite': { width: 64, height: 64 }  // ✅ AGGIUNTO
                 };
                 return sizes[type] || { width: 40, height: 40 };
             }
@@ -3161,6 +3371,21 @@
             createObjectContent(object) {
                 const content = document.createElement('div');
                 content.className = object.type + '-object';
+                // ✅ AGGIUNTO: Gestione sprite
+                if (object.type === 'sprite' && object.spriteData) {
+                    const sprite = object.spriteData;
+                    const frameX = (sprite.frame % sprite.cols) * sprite.frameWidth;
+                    const frameY = Math.floor(sprite.frame / sprite.cols) * sprite.frameHeight;
+
+                    content.style.background = `url('${sprite.sheet}')`;
+                    content.style.backgroundPosition = `-${frameX}px -${frameY}px`;
+                    content.style.backgroundSize = `${sprite.cols * sprite.frameWidth}px ${sprite.rows * sprite.frameHeight}px`;
+                    content.style.width = '100%';
+                    content.style.height = '100%';
+                    content.style.backgroundRepeat = 'no-repeat';
+
+                    return content;
+                }
                 // Gestione speciale per le icone
                 if (object.type === 'icon') {
                     content.innerHTML = `<i class="${object.icon}"></i>`;
@@ -3250,7 +3475,12 @@
             resizeContent(element, width, height, type) {
                 const content = element.querySelector(`.${type}-object`);
                 if (!content) return;
-
+                // ✅ AGGIUNTO: Gestione sprite
+                if (type === 'sprite') {
+                    // Gli sprite mantengono le proporzioni tramite background-size
+                    // Non serve ridimensionare manualmente, il CSS lo gestisce
+                    return;
+                }
                 if (type === 'icon') {
                     const icon = content.querySelector('i');
                     if (icon) {
@@ -3804,36 +4034,79 @@
                     const firstSelectedId = this.selectedObjects.keys().next().value;
                     const objectData = this.getCurrentTab().objects.get(firstSelectedId);
 
-                    const iconControls = document.getElementById('iconControls');
-                    if (objectData.type === 'icon') {
-                        iconControls.style.display = 'flex';
-                        document.getElementById('iconSelect').value = objectData.icon;
+                    // ✅ AGGIUNTO: Gestione controlli sprite
+                    const spriteControls = document.getElementById('spriteControls');
+                    if (objectData.type === 'sprite' && objectData.spriteData) {
+                        // Nascondi altri controlli
+                        document.getElementById('objectControls').style.display = 'none';
+                        document.getElementById('arrowControls').style.display = 'none';
+                        document.getElementById('freehandControls').style.display = 'none';
+
+                        // Mostra controlli sprite
+                        spriteControls.style.display = 'flex';
+
+                        // Popola i campi
+                        const sprite = objectData.spriteData;
+                        const maxFrame = (sprite.cols * sprite.rows) - 1;
+
+                        document.getElementById('spriteCurrentFrame').value = sprite.frame;
+                        document.getElementById('spriteCurrentFrame').max = maxFrame;
+                        document.getElementById('spriteFrameInfo').textContent = `(0-${maxFrame})`;
+
+                        document.getElementById('spriteFrameWidth').value = sprite.frameWidth;
+                        document.getElementById('spriteFrameHeight').value = sprite.frameHeight;
+
+                        // Imposta sequenza default se vuota
+                        const animInput = document.getElementById('spriteAnimationFrames');
+                        if (!animInput.value) {
+                            const defaultSequence = Array.from({ length: maxFrame + 1 }, (_, i) => i).join(',');
+                            animInput.value = defaultSequence;
+                        }
+
+                        // Mostra stato animazione
+                        const isAnimating = objectData.animationInterval !== undefined;
+                        document.getElementById('spritePlayAnimation').style.display = isAnimating ? 'none' : 'inline-block';
+                        document.getElementById('spriteStopAnimation').style.display = isAnimating ? 'inline-block' : 'none';
+
+                        document.getElementById('objectInfo').textContent = `Sprite selezionato (Frame ${sprite.frame}/${maxFrame})`;
+
                     } else {
-                        iconControls.style.display = 'none';
+                        // Nascondi controlli sprite per altri tipi
+                        spriteControls.style.display = 'none';
+
+                        // Resto della logica esistente per altri oggetti
+                        const iconControls = document.getElementById('iconControls');
+                        if (objectData.type === 'icon') {
+                            iconControls.style.display = 'flex';
+                            document.getElementById('iconSelect').value = objectData.icon;
+                        } else {
+                            iconControls.style.display = 'none';
+                        }
+
+                        document.getElementById('objectColor').value = objectData.color;
+                        document.getElementById('objectText').value = objectData.text;
+                        document.getElementById('objectOpacity').value = objectData.opacity || 1;
+                        document.getElementById('objectOpacityValue').textContent = (objectData.opacity || 1).toFixed(2);
+                        document.getElementById('objectInfo').textContent = `Selezionati: ${this.selectedObjects.size} oggetti`;
+
+                        const dashedObjectToggleBtn = document.getElementById('dashedObjectToggle');
+                        dashedObjectToggleBtn.style.display = 'inline-block';
+                        dashedObjectToggleBtn.classList.toggle('active', objectData.dashed);
+
+                        document.getElementById('objectControls').style.display = 'flex';
+                        document.getElementById('arrowControls').style.display = 'none';
+                        document.getElementById('freehandControls').style.display = 'none';
                     }
-                    document.getElementById('objectColor').value = objectData.color;
-                    document.getElementById('objectText').value = objectData.text;
-                    document.getElementById('objectOpacity').value = objectData.opacity || 1; // AGGIUNTO
-                    document.getElementById('objectOpacityValue').textContent = (objectData.opacity || 1).toFixed(2); // AGGIUNTO
-                    document.getElementById('objectInfo').textContent =
-                        `Selezionati: ${this.selectedObjects.size} oggetti`;
-
-                    const dashedObjectToggleBtn = document.getElementById('dashedObjectToggle');
-                    dashedObjectToggleBtn.style.display = 'inline-block';
-                    dashedObjectToggleBtn.classList.toggle('active', objectData.dashed);
-
-                    document.getElementById('objectControls').style.display = 'flex';
-                    document.getElementById('arrowControls').style.display = 'none';
-                    document.getElementById('freehandControls').style.display = 'none'; // AGGIUNTO
 
                 } else {
                     document.getElementById('objectInfo').textContent = 'Nessun oggetto selezionato';
                     document.getElementById('objectText').value = '';
                     document.getElementById('dashedObjectToggle').style.display = 'none';
+                    document.getElementById('spriteControls').style.display = 'none'; // ✅ AGGIUNTO
 
                     document.getElementById('objectControls').style.display = 'flex';
                     document.getElementById('arrowControls').style.display = 'none';
-                    document.getElementById('freehandControls').style.display = 'none'; // AGGIUNTO
+                    document.getElementById('freehandControls').style.display = 'none';
                 }
             }
 
@@ -3869,6 +4142,17 @@
             }
 
             deselectAll() {
+                // ✅ AGGIUNTO: Ferma animazioni sprite attive
+                if (this.selectedObject) {
+                    const objectData = this.getCurrentTab().objects.get(this.selectedObject.id);
+                    if (objectData && objectData.type === 'sprite' && objectData.animationInterval) {
+                        // Non fermiamo l'animazione, ma aggiorniamo solo l'UI
+                        // Se vuoi fermarla alla deselezione, decommentare:
+                        // clearInterval(objectData.animationInterval);
+                        // delete objectData.animationInterval;
+                    }
+                }
+
                 document.querySelectorAll('.canvas-object.selected').forEach(obj => {
                     obj.classList.remove('selected', 'group-selected');
                 });
@@ -3891,6 +4175,7 @@
                 });
                 this.selectedFreehand = null;
                 document.getElementById('freehandControls').style.display = 'none';
+                document.getElementById('spriteControls').style.display = 'none'; // ✅ AGGIUNTO
             }
 
             startConnection(from, e) {
@@ -4012,6 +4297,32 @@
                     x: (centerX + rotatedX) / this.getCurrentTab().zoom,
                     y: (centerY + rotatedY) / this.getCurrentTab().zoom
                 };
+            }
+
+            animateSprite(objectId, frames, fps = 10) {
+                const tab = this.getCurrentTab();
+                const obj = tab.objects.get(objectId);
+                if (!obj || obj.type !== 'sprite') return;
+
+                const delay = 1000 / fps;
+                let currentFrame = 0;
+
+                const interval = setInterval(() => {
+                    obj.spriteData.frame = frames[currentFrame];
+                    this.renderObject(obj);
+                    currentFrame = (currentFrame + 1) % frames.length;
+                }, delay);
+
+                // Salva l'intervallo nell'oggetto per poterlo fermare
+                obj.animationInterval = interval;
+            }
+
+            stopSpriteAnimation(objectId) {
+                const obj = this.getCurrentTab().objects.get(objectId);
+                if (obj && obj.animationInterval) {
+                    clearInterval(obj.animationInterval);
+                    delete obj.animationInterval;
+                }
             }
 
             createArrow(from, to, type, dashed = this.dashedMode, color = document.getElementById('arrowColor').value, thickness = parseInt(document.getElementById('arrowThickness').value)) {
@@ -4810,6 +5121,13 @@
 
             saveSchema() {
                 const tab = this.getCurrentTab();
+                // Ferma tutte le animazioni prima di salvare
+                tab.objects.forEach(obj => {
+                    if (obj.type === 'sprite' && obj.animationInterval) {
+                        clearInterval(obj.animationInterval);
+                        delete obj.animationInterval;
+                    }
+                });
                 const data = {
                     title: tab.name || 'schema',
                     note: tab.descrizione || '',
