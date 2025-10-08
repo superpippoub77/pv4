@@ -20,6 +20,7 @@
     <link rel="stylesheet" href="./css/objects.css">
     <link rel="stylesheet" href="./css/contextmenu.css">
     <link rel="stylesheet" href="./css/sprite-volleyball.css">
+    <link rel="stylesheet" href="./css/frame.css">
     <style>
         * {
             margin: 0;
@@ -1261,7 +1262,7 @@
             </div>
 
             <div class="object-controls">
-                <div id="objectControls" style="display: flex; align-items: center; gap: 10px;">
+                <div id="objectControls" style="display: none; background: #f8f9fa; padding: 15px; border-radius: 8px;">
                     <div class="color-picker-container">
                         <label>Colore oggetto:</label>
                         <input type="color" class="color-picker" id="objectColor" value="#3498db">
@@ -1279,10 +1280,10 @@
                         Tratteggiato</button>
                 </div>
 
-                <div id="arrowControls" style="display: none; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <div id="arrowControls" style="display: none; background: #f8f9fa; padding: 15px; border-radius: 8px;">
                     <div class="color-picker-container">
                         <label>Colore freccia:</label>
-                        <input type="color" class="color-picker" id="arrowColor" value="#e74c3c">
+                        <input type="color" class="color-picker" id="arrowColor" value="#000">
                     </div>
                     <div>
                         <label>Opacità:</label>
@@ -1304,7 +1305,7 @@
                 </div>
 
 
-                <div id="spriteControls" style="display: none; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <div id="spriteControls" style="display: none; background: #f8f9fa; padding: 15px; border-radius: 8px;">
                     <div>
                         <label>Frame corrente:</label>
                         <input type="number" id="spriteCurrentFrame" min="0" max="7" value="0" style="width: 60px;">
@@ -1330,80 +1331,65 @@
                     </div>
                 </div>
                 <div id="animationControls"
-                    style="display: none; align-items: center; gap: 10px; flex-wrap: wrap; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                    style="display: none; background: #f8f9fa; padding: 15px; border-radius: 8px;">
                     <h4 style="width: 100%; margin: 0 0 10px 0;">🎬 Controlli Animazione</h4>
 
-                    <!-- Timeline -->
-                    <div style="width: 100%; display: flex; gap: 10px; align-items: center;">
-                        <label>Frame:</label>
-                        <input type="range" id="animationTimeline" min="0" max="100" value="0" style="flex: 1;">
-                        <span id="animationFrameDisplay">0 / 100</span>
-                    </div>
-
                     <!-- Controlli Riproduzione -->
-                    <div style="display: flex; gap: 5px;">
+                    <div style="display: flex; gap: 5px; margin-bottom: 15px;">
                         <button id="animationPlay" class="toolbar-button" title="Play">▶️</button>
                         <button id="animationPause" class="toolbar-button" title="Pause"
                             style="display: none;">⏸️</button>
                         <button id="animationStop" class="toolbar-button" title="Stop">⏹️</button>
                         <button id="animationPrevFrame" class="toolbar-button" title="Frame Precedente">⏮️</button>
                         <button id="animationNextFrame" class="toolbar-button" title="Frame Successivo">⏭️</button>
+                        <span style="margin-left: 10px; font-weight: bold;" id="currentFrameDisplay">Frame: 0</span>
                     </div>
 
                     <!-- Velocità -->
-                    <div style="display: flex; gap: 10px; align-items: center;">
+                    <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
                         <label>Velocità (ms/frame):</label>
                         <input type="number" id="animationSpeed" min="100" max="5000" value="1000" step="100"
                             style="width: 80px;">
                     </div>
 
-                    <!-- Durata Totale -->
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <label>Frame Totali:</label>
-                        <input type="number" id="animationTotalFrames" min="10" max="1000" value="100" step="10"
-                            style="width: 80px;">
-                        <button id="animationSetDuration" class="toolbar-button">Applica</button>
-                    </div>
-
-                    <!-- Keyframe Management -->
-                    <div style="width: 100%; border-top: 1px solid #ddd; padding-top: 10px; margin-top: 10px;">
-                        <h5 style="margin: 0 0 10px 0;">Keyframes</h5>
-                        <div style="display: flex; gap: 5px; margin-bottom: 10px;">
-                            <button id="animationAddKeyframe" class="toolbar-button">➕ Aggiungi Keyframe</button>
-                            <button id="animationRemoveKeyframe" class="toolbar-button">➖ Rimuovi Keyframe</button>
-                            <button id="animationClearKeyframes" class="toolbar-button">🗑️ Pulisci Tutto</button>
+                    <!-- Gestione Frame -->
+                    <div style="border-top: 1px solid #ddd; padding-top: 10px; margin-top: 10px;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <h5 style="margin: 0;">📋 Frame Timeline</h5>
+                            <button id="addFrameBtn" class="toolbar-button" style="background: #27ae60; color: white;">➕
+                                Nuovo Frame</button>
                         </div>
 
-                        <!-- Lista Keyframes -->
-                        <div id="keyframeList"
-                            style="max-height: 150px; overflow-y: auto; border: 1px solid #ddd; padding: 5px; border-radius: 4px;">
+                        <!-- Lista Frame -->
+                        <div id="framesList"
+                            style="display: flex; gap: 10px; overflow-x: auto; padding: 10px; background: white; border: 1px solid #ddd; border-radius: 4px; min-height: 80px;">
                             <!-- Popolato dinamicamente -->
                         </div>
                     </div>
 
-                    <!-- Proprietà Keyframe Selezionato -->
-                    <div id="keyframeProperties"
-                        style="width: 100%; border-top: 1px solid #ddd; padding-top: 10px; margin-top: 10px; display: none;">
-                        <h5 style="margin: 0 0 10px 0;">Proprietà Keyframe</h5>
+                    <!-- Proprietà Frame Selezionato -->
+                    <div id="frameProperties"
+                        style="border-top: 1px solid #ddd; padding-top: 10px; margin-top: 10px; display: none;">
+                        <h5 style="margin: 0 0 10px 0;">🎨 Proprietà Frame <span id="frameNumber"></span></h5>
                         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
-                            <label>X: <input type="number" id="keyframeX" step="1"></label>
-                            <label>Y: <input type="number" id="keyframeY" step="1"></label>
-                            <label>Rotazione: <input type="number" id="keyframeRotation" step="15"></label>
-                            <label>Opacità: <input type="number" id="keyframeOpacity" min="0" max="1"
-                                    step="0.1"></label>
-                            <label>Colore: <input type="color" id="keyframeColor"></label>
-                            <label>Easing:
-                                <select id="keyframeEasing">
-                                    <option value="linear">Linear</option>
-                                    <option value="ease-in">Ease In</option>
-                                    <option value="ease-out">Ease Out</option>
-                                    <option value="ease-in-out">Ease In-Out</option>
-                                </select>
+                            <label>X: <input type="number" id="frameX" step="1"></label>
+                            <label>Y: <input type="number" id="frameY" step="1"></label>
+                            <label>Larghezza: <input type="number" id="frameWidth" step="1"></label>
+                            <label>Altezza: <input type="number" id="frameHeight" step="1"></label>
+                            <label>Rotazione: <input type="number" id="frameRotation" step="15"></label>
+                            <label>Opacità: <input type="number" id="frameOpacity" min="0" max="1" step="0.1"></label>
+                            <label>Colore: <input type="color" id="frameColor"></label>
+                            <label style="display: flex; align-items: center; gap: 5px;">
+                                <input type="checkbox" id="frameDashed"> Tratteggiato
                             </label>
-                            <label><input type="checkbox" id="keyframeDashed"> Tratteggiato</label>
                         </div>
-                        <button id="keyframeUpdateProperties" class="toolbar-button"
-                            style="margin-top: 10px; width: 100%;">Aggiorna Proprietà</button>
+                        <div style="display: flex; gap: 10px; margin-top: 10px;">
+                            <button id="updateFrameBtn" class="toolbar-button"
+                                style="flex: 1; background: #3498db; color: white;">💾 Aggiorna</button>
+                            <button id="deleteFrameBtn" class="toolbar-button"
+                                style="background: #e74c3c; color: white;">🗑️ Elimina</button>
+                        </div>
                     </div>
                 </div>
 
@@ -1698,6 +1684,7 @@
                 this.currentFreehand = null;
                 this.freehandPoints = [];
                 this.selectedFreehand = null;
+                this.draggedFrameIndex = null;
                 // Inizializza il login prima di tutto
                 this.initLogin();
                 // Inizializza la logica della libreria
@@ -1728,285 +1715,342 @@
             }
             // ==================== SISTEMA ANIMAZIONE ====================
 
-            addKeyframe() {
+            initAnimationSystem() {
+                const tab = this.getCurrentTab();
+                if (!tab.frames) {
+                    tab.frames = [];
+                    tab.currentFrameIndex = 0;
+                }
+            }
+
+            addFrame() {
                 if (this.selectedObjects.size === 0) {
-                    alert('Seleziona almeno un oggetto');
+                    alert('Seleziona almeno un oggetto per creare un frame');
                     return;
                 }
 
                 const tab = this.getCurrentTab();
-                const currentFrame = tab.currentFrame;
+                const frameNumber = tab.frames.length;
+                const frameData = {
+                    id: `frame-${Date.now()}`,
+                    number: frameNumber,
+                    objects: new Map()
+                };
 
+                // Salva lo stato corrente di tutti gli oggetti selezionati
                 this.selectedObjects.forEach((pos, objId) => {
                     const obj = tab.objects.get(objId);
                     if (!obj) return;
 
-                    const keyframe = this.createKeyframe(objId, currentFrame, obj);
-
-                    if (!obj.animations) obj.animations = [];
-
-                    // Rimuovi keyframe esistente a questo frame
-                    obj.animations = obj.animations.filter(kf => kf.frame !== currentFrame);
-
-                    // Aggiungi nuovo keyframe
-                    obj.animations.push(keyframe);
-                    obj.animations.sort((a, b) => a.frame - b.frame);
+                    frameData.objects.set(objId, {
+                        x: obj.x,
+                        y: obj.y,
+                        width: obj.width,
+                        height: obj.height,
+                        rotation: obj.rotation,
+                        color: obj.color,
+                        opacity: obj.opacity,
+                        dashed: obj.dashed,
+                        text: obj.text
+                    });
                 });
 
-                this.updateKeyframeList();
+                tab.frames.push(frameData);
+                tab.currentFrameIndex = frameNumber;
+
+                this.renderFramesList();
+                this.selectFrame(frameNumber);
                 this.saveState();
-                console.log(`Keyframe aggiunto al frame ${currentFrame}`);
+
+                console.log(`Frame ${frameNumber} creato con ${frameData.objects.size} oggetti`);
             }
 
-            removeKeyframe() {
-                if (this.selectedObjects.size === 0) return;
-
+            selectFrame(frameIndex) {
                 const tab = this.getCurrentTab();
-                const currentFrame = tab.currentFrame;
+                if (frameIndex < 0 || frameIndex >= tab.frames.length) return;
 
-                this.selectedObjects.forEach((pos, objId) => {
-                    const obj = tab.objects.get(objId);
-                    if (!obj || !obj.animations) return;
+                tab.currentFrameIndex = frameIndex;
+                const frame = tab.frames[frameIndex];
 
-                    obj.animations = obj.animations.filter(kf => kf.frame !== currentFrame);
+                // Aggiorna la UI
+                document.querySelectorAll('.frame-item').forEach((item, idx) => {
+                    item.classList.toggle('active', idx === frameIndex);
                 });
 
-                this.updateKeyframeList();
-                this.saveState();
+                document.getElementById('currentFrameDisplay').textContent = `Frame: ${frameIndex}`;
+
+                // Mostra proprietà del frame
+                this.showFrameProperties(frame);
             }
 
-            clearAllKeyframes() {
-                if (!confirm('Rimuovere tutti i keyframe dagli oggetti selezionati?')) return;
+            showFrameProperties(frame) {
+                const propertiesDiv = document.getElementById('frameProperties');
+                propertiesDiv.style.display = 'block';
 
+                document.getElementById('frameNumber').textContent = `#${frame.number}`;
+
+                // Prendi il primo oggetto per mostrare le proprietà (se ce ne sono più di uno, mostreremo quelle del primo)
+                if (frame.objects.size > 0) {
+                    const firstObjData = frame.objects.values().next().value;
+
+                    document.getElementById('frameX').value = Math.round(firstObjData.x);
+                    document.getElementById('frameY').value = Math.round(firstObjData.y);
+                    document.getElementById('frameWidth').value = Math.round(firstObjData.width);
+                    document.getElementById('frameHeight').value = Math.round(firstObjData.height);
+                    document.getElementById('frameRotation').value = firstObjData.rotation;
+                    document.getElementById('frameOpacity').value = firstObjData.opacity;
+                    document.getElementById('frameColor').value = firstObjData.color;
+                    document.getElementById('frameDashed').checked = firstObjData.dashed;
+                }
+            }
+
+            updateFrame() {
                 const tab = this.getCurrentTab();
+                if (tab.currentFrameIndex < 0) return;
 
-                this.selectedObjects.forEach((pos, objId) => {
+                const frame = tab.frames[tab.currentFrameIndex];
+                if (!frame) return;
+
+                // Aggiorna le proprietà dal form
+                const updates = {
+                    x: parseFloat(document.getElementById('frameX').value),
+                    y: parseFloat(document.getElementById('frameY').value),
+                    width: parseFloat(document.getElementById('frameWidth').value),
+                    height: parseFloat(document.getElementById('frameHeight').value),
+                    rotation: parseFloat(document.getElementById('frameRotation').value),
+                    opacity: parseFloat(document.getElementById('frameOpacity').value),
+                    color: document.getElementById('frameColor').value,
+                    dashed: document.getElementById('frameDashed').checked
+                };
+
+                // Applica le modifiche a tutti gli oggetti del frame
+                frame.objects.forEach((objData, objId) => {
+                    Object.assign(objData, updates);
+
+                    // Aggiorna anche l'oggetto reale
                     const obj = tab.objects.get(objId);
-                    if (obj) obj.animations = [];
+                    if (obj) {
+                        Object.assign(obj, updates);
+                        this.renderObject(obj);
+                        this.updateArrowsForObject(objId);
+                    }
                 });
 
-                this.updateKeyframeList();
+                this.saveState();
+                alert(`Frame ${frame.number} aggiornato`);
+            }
+
+            deleteFrame() {
+                const tab = this.getCurrentTab();
+                if (tab.currentFrameIndex < 0) return;
+
+                if (!confirm(`Eliminare il frame ${tab.currentFrameIndex}?`)) return;
+
+                tab.frames.splice(tab.currentFrameIndex, 1);
+
+                // Rinumera i frame
+                tab.frames.forEach((frame, idx) => {
+                    frame.number = idx;
+                });
+
+                tab.currentFrameIndex = Math.max(0, tab.currentFrameIndex - 1);
+
+                this.renderFramesList();
+
+                if (tab.frames.length > 0) {
+                    this.selectFrame(tab.currentFrameIndex);
+                } else {
+                    document.getElementById('frameProperties').style.display = 'none';
+                }
+
                 this.saveState();
             }
 
-            updateKeyframeList() {
-                const listContainer = document.getElementById('keyframeList');
-                listContainer.innerHTML = '';
+            renderFramesList() {
+                const tab = this.getCurrentTab();
+                const container = document.getElementById('framesList');
+                container.innerHTML = '';
 
-                if (this.selectedObjects.size === 0) {
-                    listContainer.innerHTML = '<p style="color: #999; text-align: center;">Seleziona un oggetto</p>';
+                if (tab.frames.length === 0) {
+                    container.innerHTML = '<p style="color: #999; margin: auto;">Nessun frame. Clicca "+ Nuovo Frame" per iniziare.</p>';
                     return;
                 }
 
-                const tab = this.getCurrentTab();
-                const allKeyframes = new Map();
+                tab.frames.forEach((frame, index) => {
+                    const frameItem = document.createElement('div');
+                    frameItem.className = 'frame-item';
+                    frameItem.draggable = true;
+                    frameItem.dataset.frameIndex = index;
 
-                // Raccogli tutti i keyframe
-                this.selectedObjects.forEach((pos, objId) => {
+                    if (index === tab.currentFrameIndex) {
+                        frameItem.classList.add('active');
+                    }
+
+                    // Crea thumbnail
+                    const thumbnail = document.createElement('div');
+                    thumbnail.className = 'frame-thumbnail';
+                    thumbnail.textContent = '📸';
+
+                    const label = document.createElement('div');
+                    label.style.fontSize = '11px';
+                    label.style.fontWeight = 'bold';
+                    label.textContent = `Frame ${index}`;
+
+                    const objectCount = document.createElement('div');
+                    objectCount.style.fontSize = '10px';
+                    objectCount.style.opacity = '0.7';
+                    objectCount.textContent = `${frame.objects.size} obj`;
+
+                    frameItem.appendChild(thumbnail);
+                    frameItem.appendChild(label);
+                    frameItem.appendChild(objectCount);
+
+                    // Click per selezionare
+                    frameItem.addEventListener('click', () => {
+                        this.selectFrame(index);
+                        this.applyFrame(index);
+                    });
+
+                    // ✅ DRAG & DROP CORRETTO
+                    frameItem.addEventListener('dragstart', (e) => {
+                        e.dataTransfer.effectAllowed = 'move';
+                        e.dataTransfer.setData('text/plain', index.toString());
+                        frameItem.classList.add('dragging');
+                        this.draggedFrameIndex = index;
+                    });
+
+                    frameItem.addEventListener('dragend', (e) => {
+                        frameItem.classList.remove('dragging');
+                        this.draggedFrameIndex = null;
+                    });
+
+                    frameItem.addEventListener('dragover', (e) => {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = 'move';
+
+                        // Indicatore visivo
+                        if (this.draggedFrameIndex !== null && this.draggedFrameIndex !== index) {
+                            frameItem.style.borderLeft = '3px solid #3498db';
+                        }
+                    });
+
+                    frameItem.addEventListener('dragleave', (e) => {
+                        frameItem.style.borderLeft = '';
+                    });
+
+                    frameItem.addEventListener('drop', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        frameItem.style.borderLeft = '';
+
+                        const fromIndex = this.draggedFrameIndex;
+                        const toIndex = index;
+
+                        if (fromIndex !== null && fromIndex !== toIndex) {
+                            this.reorderFrames(fromIndex, toIndex);
+                        }
+                    });
+
+                    container.appendChild(frameItem);
+                });
+            }
+            // ✅ NUOVO METODO: Aggiorna il frame corrente quando modifichi un oggetto
+            updateCurrentFrame() {
+                const tab = this.getCurrentTab();
+                if (!tab.frames || tab.frames.length === 0) return;
+                if (tab.currentFrameIndex < 0 || tab.currentFrameIndex >= tab.frames.length) return;
+
+                const frame = tab.frames[tab.currentFrameIndex];
+
+                // Aggiorna solo gli oggetti che sono già nel frame
+                frame.objects.forEach((objData, objId) => {
                     const obj = tab.objects.get(objId);
-                    if (!obj || !obj.animations) return;
-
-                    obj.animations.forEach(kf => {
-                        if (!allKeyframes.has(kf.frame)) {
-                            allKeyframes.set(kf.frame, []);
-                        }
-                        allKeyframes.get(kf.frame).push({ objId, keyframe: kf });
-                    });
-                });
-
-                // Ordina e visualizza
-                const sortedFrames = Array.from(allKeyframes.keys()).sort((a, b) => a - b);
-
-                if (sortedFrames.length === 0) {
-                    listContainer.innerHTML = '<p style="color: #999; text-align: center;">Nessun keyframe</p>';
-                    return;
-                }
-
-                sortedFrames.forEach(frame => {
-                    const keyframes = allKeyframes.get(frame);
-                    const div = document.createElement('div');
-                    div.className = 'keyframe-item';
-                    div.style.cssText = 'padding: 5px; margin: 2px 0; background: #e8f4f8; border-left: 3px solid #3498db; cursor: pointer;';
-
-                    if (frame === tab.currentFrame) {
-                        div.style.background = '#d4edda';
-                        div.style.borderLeftColor = '#28a745';
+                    if (obj) {
+                        objData.x = obj.x;
+                        objData.y = obj.y;
+                        objData.width = obj.width;
+                        objData.height = obj.height;
+                        objData.rotation = obj.rotation;
+                        objData.color = obj.color;
+                        objData.opacity = obj.opacity;
+                        objData.dashed = obj.dashed;
+                        objData.text = obj.text;
                     }
-
-                    div.innerHTML = `
-            <strong>Frame ${frame}</strong> 
-            <span style="color: #666; font-size: 11px;">(${keyframes.length} oggetto/i)</span>
-        `;
-
-                    div.addEventListener('click', () => {
-                        this.seekToFrame(frame);
-                    });
-
-                    listContainer.appendChild(div);
                 });
+
+                // Aggiorna anche la UI delle proprietà se il pannello è visibile
+                if (document.getElementById('frameProperties').style.display !== 'none') {
+                    this.showFrameProperties(frame);
+                }
             }
 
-            seekToFrame(frameNumber) {
+            reorderFrames(fromIndex, toIndex) {
                 const tab = this.getCurrentTab();
-                tab.currentFrame = frameNumber;
+                const [movedFrame] = tab.frames.splice(fromIndex, 1);
+                tab.frames.splice(toIndex, 0, movedFrame);
 
-                document.getElementById('animationTimeline').value = frameNumber;
-                document.getElementById('animationFrameDisplay').textContent =
-                    `${frameNumber} / ${document.getElementById('animationTotalFrames').value}`;
-
-                this.renderFrame(frameNumber);
-                this.updateKeyframeList();
-            }
-
-            renderFrame(frameNumber) {
-                const tab = this.getCurrentTab();
-
-                tab.objects.forEach((obj, objId) => {
-                    if (!obj.animations || obj.animations.length === 0) return;
-
-                    const interpolated = this.interpolateProperties(obj, frameNumber);
-
-                    // Applica proprietà interpolate
-                    Object.assign(obj, interpolated);
-                    this.renderObject(obj);
-                    this.updateArrowsForObject(objId);
+                // Rinumera
+                tab.frames.forEach((frame, idx) => {
+                    frame.number = idx;
                 });
+
+                // Aggiorna currentFrameIndex se necessario
+                if (tab.currentFrameIndex === fromIndex) {
+                    tab.currentFrameIndex = toIndex;
+                } else if (fromIndex < tab.currentFrameIndex && toIndex >= tab.currentFrameIndex) {
+                    tab.currentFrameIndex--;
+                } else if (fromIndex > tab.currentFrameIndex && toIndex <= tab.currentFrameIndex) {
+                    tab.currentFrameIndex++;
+                }
+
+                this.renderFramesList();
+                this.saveState();
             }
 
-            interpolateProperties(obj, targetFrame) {
-                if (!obj.animations || obj.animations.length === 0) {
-                    return { ...obj };
-                }
+            applyFrame(frameIndex) {
+                const tab = this.getCurrentTab();
+                const frame = tab.frames[frameIndex];
+                if (!frame) return;
 
-                const keyframes = obj.animations;
-
-                // Trova keyframes prima e dopo
-                let beforeKf = null;
-                let afterKf = null;
-
-                for (let i = 0; i < keyframes.length; i++) {
-                    if (keyframes[i].frame <= targetFrame) {
-                        beforeKf = keyframes[i];
+                // Applica le proprietà del frame agli oggetti
+                frame.objects.forEach((objData, objId) => {
+                    const obj = tab.objects.get(objId);
+                    if (obj) {
+                        Object.assign(obj, objData);
+                        this.renderObject(obj);
+                        this.updateArrowsForObject(objId);
                     }
-                    if (keyframes[i].frame >= targetFrame && !afterKf) {
-                        afterKf = keyframes[i];
-                        break;
-                    }
-                }
-
-                // Se siamo esattamente su un keyframe
-                if (beforeKf && beforeKf.frame === targetFrame) {
-                    return { ...obj, ...beforeKf.properties };
-                }
-
-                // Se non ci sono keyframe dopo, usa l'ultimo
-                if (!afterKf && beforeKf) {
-                    return { ...obj, ...beforeKf.properties };
-                }
-
-                // Se non ci sono keyframe prima, usa il primo
-                if (!beforeKf && afterKf) {
-                    return { ...obj, ...afterKf.properties };
-                }
-
-                // Interpola tra due keyframes
-                if (beforeKf && afterKf) {
-                    const totalFrames = afterKf.frame - beforeKf.frame;
-                    const currentOffset = targetFrame - beforeKf.frame;
-                    let t = currentOffset / totalFrames;
-
-                    // Applica easing
-                    t = this.applyEasing(t, beforeKf.easing || 'linear');
-
-                    const result = { ...obj };
-
-                    // Interpola proprietà numeriche
-                    ['x', 'y', 'rotation', 'opacity', 'width', 'height'].forEach(prop => {
-                        if (beforeKf.properties[prop] !== undefined && afterKf.properties[prop] !== undefined) {
-                            result[prop] = this.lerp(beforeKf.properties[prop], afterKf.properties[prop], t);
-                        }
-                    });
-
-                    // Proprietà booleane (usa il valore del keyframe più vicino)
-                    ['dashed'].forEach(prop => {
-                        result[prop] = t < 0.5 ? beforeKf.properties[prop] : afterKf.properties[prop];
-                    });
-
-                    // Colore (interpola RGB)
-                    if (beforeKf.properties.color && afterKf.properties.color) {
-                        result.color = this.interpolateColor(beforeKf.properties.color, afterKf.properties.color, t);
-                    }
-
-                    // Testo (cambia a metà)
-                    if (beforeKf.properties.text !== undefined) {
-                        result.text = t < 0.5 ? beforeKf.properties.text : afterKf.properties.text;
-                    }
-
-                    return result;
-                }
-
-                return { ...obj };
-            }
-
-            lerp(start, end, t) {
-                return start + (end - start) * t;
-            }
-
-            applyEasing(t, easing) {
-                switch (easing) {
-                    case 'ease-in':
-                        return t * t;
-                    case 'ease-out':
-                        return t * (2 - t);
-                    case 'ease-in-out':
-                        return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-                    case 'linear':
-                    default:
-                        return t;
-                }
-            }
-
-            interpolateColor(color1, color2, t) {
-                const hex1 = color1.replace('#', '');
-                const hex2 = color2.replace('#', '');
-
-                const r1 = parseInt(hex1.substring(0, 2), 16);
-                const g1 = parseInt(hex1.substring(2, 4), 16);
-                const b1 = parseInt(hex1.substring(4, 6), 16);
-
-                const r2 = parseInt(hex2.substring(0, 2), 16);
-                const g2 = parseInt(hex2.substring(2, 4), 16);
-                const b2 = parseInt(hex2.substring(4, 6), 16);
-
-                const r = Math.round(this.lerp(r1, r2, t));
-                const g = Math.round(this.lerp(g1, g2, t));
-                const b = Math.round(this.lerp(b1, b2, t));
-
-                return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+                });
             }
 
             playAnimation() {
                 const tab = this.getCurrentTab();
+                if (tab.frames.length === 0) {
+                    alert('Nessun frame da animare');
+                    return;
+                }
+
                 if (tab.isPlaying) return;
 
                 tab.isPlaying = true;
+                tab.currentFrameIndex = 0;
+
                 document.getElementById('animationPlay').style.display = 'none';
                 document.getElementById('animationPause').style.display = 'inline-block';
-
-                const totalFrames = parseInt(document.getElementById('animationTotalFrames').value);
 
                 const animate = () => {
                     if (!tab.isPlaying) return;
 
-                    tab.currentFrame++;
+                    this.applyFrame(tab.currentFrameIndex);
+                    this.selectFrame(tab.currentFrameIndex);
 
-                    if (tab.currentFrame > totalFrames) {
-                        tab.currentFrame = 0; // Loop
+                    tab.currentFrameIndex++;
+
+                    if (tab.currentFrameIndex >= tab.frames.length) {
+                        tab.currentFrameIndex = 0; // Loop
                     }
 
-                    this.seekToFrame(tab.currentFrame);
-
-                    setTimeout(animate, tab.animationSpeed);
+                    setTimeout(animate, parseInt(document.getElementById('animationSpeed').value));
                 };
 
                 animate();
@@ -2021,40 +2065,41 @@
 
             stopAnimation() {
                 this.pauseAnimation();
-                this.seekToFrame(0);
+                const tab = this.getCurrentTab();
+                tab.currentFrameIndex = 0;
+                if (tab.frames.length > 0) {
+                    this.applyFrame(0);
+                    this.selectFrame(0);
+                }
             }
 
             previousFrame() {
                 const tab = this.getCurrentTab();
-                this.seekToFrame(Math.max(0, tab.currentFrame - 1));
+                if (tab.frames.length === 0) return;
+
+                tab.currentFrameIndex = Math.max(0, tab.currentFrameIndex - 1);
+                this.applyFrame(tab.currentFrameIndex);
+                this.selectFrame(tab.currentFrameIndex);
             }
 
             nextFrame() {
                 const tab = this.getCurrentTab();
-                const totalFrames = parseInt(document.getElementById('animationTotalFrames').value);
-                this.seekToFrame(Math.min(totalFrames, tab.currentFrame + 1));
+                if (tab.frames.length === 0) return;
+
+                tab.currentFrameIndex = Math.min(tab.frames.length - 1, tab.currentFrameIndex + 1);
+                this.applyFrame(tab.currentFrameIndex);
+                this.selectFrame(tab.currentFrameIndex);
             }
 
-            setAnimationDuration(totalFrames) {
-                document.getElementById('animationTimeline').max = totalFrames;
-                document.getElementById('animationFrameDisplay').textContent =
-                    `${this.getCurrentTab().currentFrame} / ${totalFrames}`;
-            }
-
-            updateKeyframeProperties() {
-                // Da implementare per modificare proprietà di un keyframe selezionato
-                console.log('Update keyframe properties');
-            }
-
-            // Mostra controlli animazione quando oggetto è selezionato
             showAnimationControls() {
-                document.getElementById('animationControls').style.display = 'flex';
+                document.getElementById('animationControls').style.display = 'block';
                 document.getElementById('objectControls').style.display = 'none';
                 document.getElementById('arrowControls').style.display = 'none';
                 document.getElementById('spriteControls').style.display = 'none';
                 document.getElementById('freehandControls').style.display = 'none';
 
-                this.updateKeyframeList();
+                this.initAnimationSystem();
+                this.renderFramesList();
             }
 
             initializeTab(id, name) {
@@ -2089,6 +2134,8 @@
                     isPlaying: false,      // NUOVO
                     currentFrame: 0,       // NUOVO
                     animationSpeed: 1000,  // NUOVO (ms per frame)
+                    frames: [],
+                    currentFrameIndex: 0
                 });
             }
 
@@ -3528,40 +3575,19 @@
                     }
                 });
 
-                // Controlli Timeline
-                document.getElementById('animationTimeline').addEventListener('input', (e) => {
-                    this.seekToFrame(parseInt(e.target.value));
-                });
+                document.getElementById('addFrameBtn').addEventListener('click', () => this.addFrame());
+                document.getElementById('updateFrameBtn').addEventListener('click', () => this.updateFrame());
+                document.getElementById('deleteFrameBtn').addEventListener('click', () => this.deleteFrame());
 
-                // Play/Pause/Stop
                 document.getElementById('animationPlay').addEventListener('click', () => this.playAnimation());
                 document.getElementById('animationPause').addEventListener('click', () => this.pauseAnimation());
                 document.getElementById('animationStop').addEventListener('click', () => this.stopAnimation());
-
-                // Frame Navigation
                 document.getElementById('animationPrevFrame').addEventListener('click', () => this.previousFrame());
                 document.getElementById('animationNextFrame').addEventListener('click', () => this.nextFrame());
 
-                // Velocità e Durata
-                document.getElementById('animationSpeed').addEventListener('change', (e) => {
-                    this.getCurrentTab().animationSpeed = parseInt(e.target.value);
-                });
-
-                document.getElementById('animationSetDuration').addEventListener('click', () => {
-                    const totalFrames = parseInt(document.getElementById('animationTotalFrames').value);
-                    this.setAnimationDuration(totalFrames);
-                });
-
-                // Keyframe Management
-                document.getElementById('animationAddKeyframe').addEventListener('click', () => this.addKeyframe());
-                document.getElementById('animationRemoveKeyframe').addEventListener('click', () => this.removeKeyframe());
-                document.getElementById('animationClearKeyframes').addEventListener('click', () => this.clearAllKeyframes());
-
-                // Keyframe Properties Update
-                document.getElementById('keyframeUpdateProperties').addEventListener('click', () => this.updateKeyframeProperties());
                 document.getElementById('showAnimationControls').addEventListener('click', () => {
                     const animControls = document.getElementById('animationControls');
-                    const isVisible = animControls.style.display === 'flex';
+                    const isVisible = animControls.style.display === 'block';
                     if (isVisible) {
                         animControls.style.display = 'none';
                     } else {
@@ -4185,6 +4211,8 @@
                     this.finishConnection(e);
                 } else if (this.isDragging || this.isResizing || this.isRotating || this.isDraggingControlPoint || this.isRotatingGroup) {
                     this.saveState();
+                    // ✅ AGGIUNTO: Aggiorna il frame corrente dopo le modifiche
+                    this.updateCurrentFrame();
                 } else if (this.isSelecting) {
                     this.finalizeSelectionBox(e);
                 }
@@ -5062,6 +5090,7 @@
                     this.saveState();
                 }
             }
+            // Nel metodo changeSelectedObjectsColor(), aggiungi alla fine:
             changeSelectedObjectsColor(color) {
                 if (this.selectedObjects.size === 0) return;
 
@@ -5071,7 +5100,6 @@
                     if (!objectData) return;
                     objectData.color = color;
 
-                    // Aggiorna il colore per le icone
                     if (objectData.type === 'icon') {
                         const element = document.getElementById(id);
                         const iconContent = element.querySelector('.icon-object');
@@ -5084,7 +5112,6 @@
                         const element = document.getElementById(id);
                         const img = element.querySelector('img');
                         if (img) {
-                            // Cambia colore con filtro (funziona meglio con SVG monocromatici)
                             img.style.filter = `invert(1) sepia(1) saturate(5) hue-rotate(${getHue(color)}deg)`;
                         }
                     }
@@ -5093,8 +5120,10 @@
                 });
 
                 this.saveState();
+                this.updateCurrentFrame(); // ✅ AGGIUNTO
             }
 
+            // Nel metodo changeSelectedObjectsText(), aggiungi alla fine:
             changeSelectedObjectsText(text) {
                 if (this.selectedObjects.size === 0) return;
 
@@ -5107,6 +5136,65 @@
                 });
 
                 this.saveState();
+                this.updateCurrentFrame(); // ✅ AGGIUNTO
+            }
+
+            // Nel metodo changeSelectedObjectsOpacity(), aggiungi alla fine:
+            changeSelectedObjectsOpacity(opacity) {
+                if (this.selectedObjects.size === 0) return;
+
+                const tab = this.getCurrentTab();
+                this.selectedObjects.forEach((pos, id) => {
+                    const objectData = tab.objects.get(id);
+                    if (!objectData) return;
+                    objectData.opacity = parseFloat(opacity);
+
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.style.opacity = opacity;
+                    }
+                });
+
+                this.saveState();
+                this.updateCurrentFrame(); // ✅ AGGIUNTO
+            }
+
+            // Nel metodo rotateSelected(), aggiungi alla fine:
+            rotateSelected(degrees) {
+                if (this.selectedObjects.size === 0) return;
+
+                const tab = this.getCurrentTab();
+                this.selectedObjects.forEach((pos, id) => {
+                    const objectData = tab.objects.get(id);
+                    if (objectData) {
+                        objectData.rotation = (objectData.rotation + degrees) % 360;
+                        document.getElementById(id).style.transform = `rotate(${objectData.rotation}deg)`;
+                        this.updateArrowsForObject(id);
+                    }
+                });
+                this.saveState();
+                this.updateCurrentFrame(); // ✅ AGGIUNTO
+            }
+
+            // Nel metodo toggleDashedObject(), aggiungi alla fine:
+            toggleDashedObject() {
+                if (this.selectedObjects.size === 0) return;
+                const tab = this.getCurrentTab();
+
+                const firstSelectedId = this.selectedObjects.keys().next().value;
+                const isDashed = tab.objects.get(firstSelectedId).dashed;
+                const newState = !isDashed;
+
+                this.selectedObjects.forEach((pos, id) => {
+                    const objectData = tab.objects.get(id);
+                    if (objectData) {
+                        objectData.dashed = newState;
+                        this.renderObject(objectData);
+                    }
+                });
+                document.getElementById('dashedObjectToggle').classList.toggle('active', newState);
+                this.saveState();
+                this.updateCurrentFrame(); // ✅ AGGIUNTO
             }
             changeArrowColor(color) {
                 if (!this.selectedArrow) return;
@@ -5629,11 +5717,12 @@
                     bwMode: tab.bwMode,
                     zoom: tab.zoom,
                     freehands: Array.from(tab.freehands.entries()),
-                    animationData: {
-                        totalFrames: parseInt(document.getElementById('animationTotalFrames').value),
-                        speed: tab.animationSpeed,
-                        currentFrame: tab.currentFrame
-                    }
+                    frames: tab.frames.map(frame => ({ // ✅ AGGIUNTO
+                        id: frame.id,
+                        number: frame.number,
+                        objects: Array.from(frame.objects.entries())
+                    })),
+                    animationSpeed: tab.animationSpeed || 1000 // ✅ AGGIUNTO
                 };
 
                 const blob = new Blob([JSON.stringify(data, null, 2)],
@@ -5723,6 +5812,23 @@
                 tab.nr = data.nr || 1;
                 tab.series = data.series || 1;
                 tab.groups = data.groups || 1;
+                // ✅ AGGIUNTO: Carica i frames
+                if (data.frames) {
+                    tab.frames = data.frames.map(frameData => ({
+                        id: frameData.id,
+                        number: frameData.number,
+                        objects: new Map(frameData.objects)
+                    }));
+                    tab.currentFrameIndex = 0;
+                } else {
+                    tab.frames = [];
+                    tab.currentFrameIndex = 0;
+                }
+
+                if (data.animationSpeed) {
+                    tab.animationSpeed = data.animationSpeed;
+                    document.getElementById('animationSpeed').value = data.animationSpeed;
+                }
 
                 // Aggiorna il nome del tab se presente
                 if (data.title) {
