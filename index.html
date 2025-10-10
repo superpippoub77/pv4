@@ -1172,9 +1172,6 @@
                         </select>
                     </div>
                 </div>
-                <div class="toolbar-group">
-                    <button id="showAnimationControls">🎬 Animazione</button>
-                </div>
 
                 <div class="file-controls">
                     <input type="text" id="schemaTitle" placeholder="Titolo schema">
@@ -1283,7 +1280,7 @@
                 <div id="arrowControls" style="display: none; background: #f8f9fa; padding: 15px; border-radius: 8px;">
                     <div class="color-picker-container">
                         <label>Colore freccia:</label>
-                        <input type="color" class="color-picker" id="arrowColor" value="#000">
+                        <input type="color" class="color-picker" id="arrowColor" value="#000000">
                     </div>
                     <div>
                         <label>Opacità:</label>
@@ -1330,69 +1327,9 @@
                         <button id="spriteApplySize" class="toolbar-button">Applica</button>
                     </div>
                 </div>
-                <div id="animationControls"
-                    style="display: none; background: #f8f9fa; padding: 15px; border-radius: 8px;">
-                    <h4 style="width: 100%; margin: 0 0 10px 0;">🎬 Controlli Animazione</h4>
-
-                    <!-- Controlli Riproduzione -->
-                    <div style="display: flex; gap: 5px; margin-bottom: 15px;">
-                        <button id="animationPlay" class="toolbar-button" title="Play">▶️</button>
-                        <button id="animationPause" class="toolbar-button" title="Pause"
-                            style="display: none;">⏸️</button>
-                        <button id="animationStop" class="toolbar-button" title="Stop">⏹️</button>
-                        <button id="animationPrevFrame" class="toolbar-button" title="Frame Precedente">⏮️</button>
-                        <button id="animationNextFrame" class="toolbar-button" title="Frame Successivo">⏭️</button>
-                        <span style="margin-left: 10px; font-weight: bold;" id="currentFrameDisplay">Frame: 0</span>
-                    </div>
-
-                    <!-- Velocità -->
-                    <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
-                        <label>Velocità (ms/frame):</label>
-                        <input type="number" id="animationSpeed" min="100" max="5000" value="1000" step="100"
-                            style="width: 80px;">
-                    </div>
-
-                    <!-- Gestione Frame -->
-                    <div style="border-top: 1px solid #ddd; padding-top: 10px; margin-top: 10px;">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                            <h5 style="margin: 0;">📋 Frame Timeline</h5>
-                            <button id="addFrameBtn" class="toolbar-button" style="background: #27ae60; color: white;">➕
-                                Nuovo Frame</button>
-                        </div>
-
-                        <!-- Lista Frame -->
-                        <div id="framesList"
-                            style="display: flex; gap: 10px; overflow-x: auto; padding: 10px; background: white; border: 1px solid #ddd; border-radius: 4px; min-height: 80px;">
-                            <!-- Popolato dinamicamente -->
-                        </div>
-                    </div>
-
-                    <!-- Proprietà Frame Selezionato -->
-                    <div id="frameProperties"
-                        style="border-top: 1px solid #ddd; padding-top: 10px; margin-top: 10px; display: none;">
-                        <h5 style="margin: 0 0 10px 0;">🎨 Proprietà Frame <span id="frameNumber"></span></h5>
-                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
-                            <label>X: <input type="number" id="frameX" step="1"></label>
-                            <label>Y: <input type="number" id="frameY" step="1"></label>
-                            <label>Larghezza: <input type="number" id="frameWidth" step="1"></label>
-                            <label>Altezza: <input type="number" id="frameHeight" step="1"></label>
-                            <label>Rotazione: <input type="number" id="frameRotation" step="15"></label>
-                            <label>Opacità: <input type="number" id="frameOpacity" min="0" max="1" step="0.1"></label>
-                            <label>Colore: <input type="color" id="frameColor"></label>
-                            <label style="display: flex; align-items: center; gap: 5px;">
-                                <input type="checkbox" id="frameDashed"> Tratteggiato
-                            </label>
-                        </div>
-                        <div style="display: flex; gap: 10px; margin-top: 10px;">
-                            <button id="updateFrameBtn" class="toolbar-button"
-                                style="flex: 1; background: #3498db; color: white;">💾 Aggiorna</button>
-                            <button id="deleteFrameBtn" class="toolbar-button"
-                                style="background: #e74c3c; color: white;">🗑️ Elimina</button>
-                        </div>
-                    </div>
+                <div class="toolbar-group">
+                    <button id="showAnimationControls">🎬 Animazione</button>
                 </div>
-
                 <div id="freehandControls" style="display: none; align-items: center; gap: 10px;">
                     <div class="color-picker-container">
                         <label>Colore traccia:</label>
@@ -1695,6 +1632,84 @@
                 this.initializeExistingTabs();
                 this.updateUI();
             }
+
+            // Aggiungi questo metodo nella classe SchemaEditor
+            initAnimationDialog() {
+                const dialog = document.getElementById('animationDialog');
+                const header = document.getElementById('animationDialogHeader');
+                const closeBtn = document.getElementById('closeAnimationDialog');
+
+                let isDragging = false;
+                let currentX = 0;
+                let currentY = 0;
+                let initialX = 0;
+                let initialY = 0;
+
+                header.addEventListener('mousedown', (e) => {
+                    // Calcola offset iniziale
+                    const rect = dialog.getBoundingClientRect();
+                    initialX = e.clientX - rect.left;
+                    initialY = e.clientY - rect.top;
+
+                    isDragging = true;
+                    header.style.cursor = 'grabbing';
+
+                    // Rimuovi il transform per usare coordinate assolute
+                    dialog.style.transform = 'none';
+                    dialog.style.left = rect.left + 'px';
+                    dialog.style.top = rect.top + 'px';
+                });
+
+                document.addEventListener('mousemove', (e) => {
+                    if (!isDragging) return;
+
+                    e.preventDefault();
+
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+
+                    dialog.style.left = currentX + 'px';
+                    dialog.style.top = currentY + 'px';
+                });
+
+                document.addEventListener('mouseup', () => {
+                    if (isDragging) {
+                        isDragging = false;
+                        header.style.cursor = 'move';
+                    }
+                });
+
+                closeBtn.addEventListener('click', () => {
+                    dialog.classList.remove('active');
+                    dialog.style.display = '';
+                });
+            }
+
+            // Modifica il metodo showAnimationControls esistente
+            showAnimationControls() {
+                const dialog = document.getElementById('animationDialog');
+
+                if (dialog.classList.contains('active')) {
+                    dialog.classList.remove('active');
+                } else {
+                    dialog.classList.add('active');
+
+                    // Centra solo al primo caricamento
+                    if (!dialog.style.left) {
+                        this.centerAnimationDialog();
+                    }
+
+                    this.initAnimationSystem();
+                    this.renderFramesList();
+                }
+
+                // Nascondi gli altri pannelli
+                document.getElementById('objectControls').style.display = 'none';
+                document.getElementById('arrowControls').style.display = 'none';
+                document.getElementById('spriteControls').style.display = 'none';
+                document.getElementById('freehandControls').style.display = 'none';
+            }
+
             createKeyframe(objectId, frameNumber, properties) {
                 return {
                     frame: frameNumber,
@@ -2092,7 +2107,7 @@
             }
 
             showAnimationControls() {
-                document.getElementById('animationControls').style.display = 'block';
+                document.getElementById('animationDialog').style.display = 'block';
                 document.getElementById('objectControls').style.display = 'none';
                 document.getElementById('arrowControls').style.display = 'none';
                 document.getElementById('spriteControls').style.display = 'none';
@@ -3585,14 +3600,19 @@
                 document.getElementById('animationPrevFrame').addEventListener('click', () => this.previousFrame());
                 document.getElementById('animationNextFrame').addEventListener('click', () => this.nextFrame());
 
+                // document.getElementById('showAnimationControls').addEventListener('click', () => {
+                //     const animControls = document.getElementById('animationControls');
+                //     const isVisible = animControls.style.display === 'block';
+                //     if (isVisible) {
+                //         animControls.style.display = 'none';
+                //     } else {
+                //         this.showAnimationControls();
+                //     }
+                // });
+                this.initAnimationDialog();
+
                 document.getElementById('showAnimationControls').addEventListener('click', () => {
-                    const animControls = document.getElementById('animationControls');
-                    const isVisible = animControls.style.display === 'block';
-                    if (isVisible) {
-                        animControls.style.display = 'none';
-                    } else {
-                        this.showAnimationControls();
-                    }
+                    this.showAnimationControls();
                 });
 
             }
@@ -6091,6 +6111,70 @@
                 <div class="login-error" id="loginError">Username o password errati</div>
                 <button type="submit" class="login-button">Accedi</button>
             </form>
+        </div>
+    </div>
+
+    <!-- Aggiungi questa dialog FUORI da object-controls, prima della chiusura di </body> -->
+    <div id="animationDialog">
+        <div class="animation-dialog-header" id="animationDialogHeader">
+            <h3>🎬 Controlli Animazione</h3>
+            <button class="animation-dialog-close" id="closeAnimationDialog">&times;</button>
+        </div>
+        <div class="animation-dialog-body">
+            <!-- Controlli Riproduzione -->
+            <div class="animation-control-section">
+                <h4>▶️ Riproduzione</h4>
+                <div class="animation-controls-row">
+                    <button id="animationPlay" title="Play">▶️</button>
+                    <button id="animationPause" title="Pause" style="display: none;">⏸️</button>
+                    <button id="animationStop" title="Stop">⏹️</button>
+                    <button id="animationPrevFrame" title="Frame Precedente">⏮️</button>
+                    <button id="animationNextFrame" title="Frame Successivo">⏭️</button>
+                    <span class="frame-display" id="currentFrameDisplay">Frame: 0</span>
+                </div>
+            </div>
+
+            <!-- Velocità -->
+            <div class="animation-control-section">
+                <h4>⚡ Velocità</h4>
+                <div class="animation-controls-row">
+                    <label>ms/frame:</label>
+                    <input type="number" id="animationSpeed" min="100" max="5000" value="1000" step="100">
+                </div>
+            </div>
+
+            <!-- Gestione Frame -->
+            <div class="animation-control-section">
+                <h4>📋 Frame Timeline</h4>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <button id="addFrameBtn" style="background: #27ae60; color: white; border: none;">➕ Nuovo
+                        Frame</button>
+                </div>
+                <div id="framesList">
+                    <!-- Popolato dinamicamente -->
+                </div>
+            </div>
+
+            <!-- Proprietà Frame Selezionato -->
+            <div id="frameProperties" style="display: none;">
+                <h5>🎨 Proprietà Frame <span id="frameNumber"></span></h5>
+                <div class="frame-properties-grid">
+                    <label>X: <input type="number" id="frameX" step="1"></label>
+                    <label>Y: <input type="number" id="frameY" step="1"></label>
+                    <label>Larghezza: <input type="number" id="frameWidth" step="1"></label>
+                    <label>Altezza: <input type="number" id="frameHeight" step="1"></label>
+                    <label>Rotazione: <input type="number" id="frameRotation" step="15"></label>
+                    <label>Opacità: <input type="number" id="frameOpacity" min="0" max="1" step="0.1"></label>
+                    <label>Colore: <input type="color" id="frameColor"></label>
+                    <label style="flex-direction: row; align-items: center;">
+                        <input type="checkbox" id="frameDashed"> Tratteggiato
+                    </label>
+                </div>
+                <div class="frame-actions">
+                    <button id="updateFrameBtn">💾 Aggiorna</button>
+                    <button id="deleteFrameBtn">🗑️ Elimina</button>
+                </div>
+            </div>
         </div>
     </div>
     <div id="watermark">spikecode</div>
