@@ -1745,10 +1745,17 @@
                 }
 
                 const tab = this.getCurrentTab();
-                const frameNumber = tab.frames.length;
+
+                // Calcola il timestamp di default: ultimo frame + 1 secondo
+                let defaultTimestamp = 0;
+                if (tab.frames.length > 0) {
+                    const maxTime = Math.max(...tab.frames.map(f => f.timestamp));
+                    defaultTimestamp = maxTime + 1000;
+                }
+
                 const frameData = {
                     id: `frame-${Date.now()}`,
-                    number: frameNumber,
+                    timestamp: defaultTimestamp,
                     objects: new Map()
                 };
 
@@ -1771,10 +1778,15 @@
                 });
 
                 tab.frames.push(frameData);
-                tab.currentFrameIndex = frameNumber;
+
+                // Ordina i frame per timestamp
+                tab.frames.sort((a, b) => a.timestamp - b.timestamp);
+
+                // Trova l'indice del frame appena inserito
+                tab.currentFrameIndex = tab.frames.findIndex(f => f.id === frameData.id);
 
                 this.renderFramesList();
-                this.selectFrame(frameNumber);
+                this.selectFrame(tab.currentFrameIndex);
                 this.saveState();
 
                 console.log(`Frame ${frameNumber} creato con ${frameData.objects.size} oggetti`);
@@ -1802,7 +1814,9 @@
                 const propertiesDiv = document.getElementById('frameProperties');
                 propertiesDiv.style.display = 'block';
 
-                document.getElementById('frameNumber').textContent = `#${frame.number}`;
+                const tab = this.getCurrentTab();
+                document.getElementById('frameNumber').textContent = `${tab.frames.indexOf(frame)}`;
+                document.getElementById('frameTimestamp').value = frame.timestamp;
 
                 // Prendi il primo oggetto per mostrare le proprietà (se ce ne sono più di uno, mostreremo quelle del primo)
                 if (frame.objects.size > 0) {
@@ -1825,7 +1839,11 @@
 
                 const frame = tab.frames[tab.currentFrameIndex];
                 if (!frame) return;
-
+                // Aggiorna il timestamp
+                const newTimestamp = parseInt(document.getElementById('frameTimestamp').value);
+                if (!isNaN(newTimestamp) && newTimestamp >= 0) {
+                    frame.timestamp = newTimestamp;
+                }
                 // Aggiorna le proprietà dal form
                 const updates = {
                     x: parseFloat(document.getElementById('frameX').value),
@@ -1850,7 +1868,9 @@
                         this.updateArrowsForObject(objId);
                     }
                 });
-
+                // Riordina i frame dopo la modifica del timestamp
+                tab.frames.sort((a, b) => a.timestamp - b.timestamp);
+                tab.currentFrameIndex = tab.frames.findIndex(f => f.id === frame.id);
                 this.saveState();
                 alert(`Frame ${frame.number} aggiornato`);
             }
@@ -1859,14 +1879,10 @@
                 const tab = this.getCurrentTab();
                 if (tab.currentFrameIndex < 0) return;
 
-                if (!confirm(`Eliminare il frame ${tab.currentFrameIndex}?`)) return;
+                const frame = tab.frames[tab.currentFrameIndex];
+                if (!confirm(`Eliminare il frame al timestamp ${frame.timestamp}ms?`)) return;
 
                 tab.frames.splice(tab.currentFrameIndex, 1);
-
-                // Rinumera i frame
-                tab.frames.forEach((frame, idx) => {
-                    frame.number = idx;
-                });
 
                 tab.currentFrameIndex = Math.max(0, tab.currentFrameIndex - 1);
 
@@ -1911,6 +1927,11 @@
                     label.style.fontWeight = 'bold';
                     label.textContent = `Frame ${index}`;
 
+                    const timeLabel = document.createElement('div');
+                    timeLabel.style.fontSize = '9px';
+                    timeLabel.style.color = '#3498db';
+                    timeLabel.textContent = `${(frame.timestamp / 1000).toFixed(1)}s`;
+
                     const objectCount = document.createElement('div');
                     objectCount.style.fontSize = '10px';
                     objectCount.style.opacity = '0.7';
@@ -1918,6 +1939,7 @@
 
                     frameItem.appendChild(thumbnail);
                     frameItem.appendChild(label);
+                    frameItem.appendChild(timeLabel);
                     frameItem.appendChild(objectCount);
 
                     // Click per selezionare
@@ -2025,15 +2047,33 @@
             applyFrame(frameIndex) {
                 const tab = this.getCurrentTab();
                 const frame = tab.frames[frameIndex];
-                if (!frame) return;
+                if (!frame) {
+                    console.warn(`Frame ${frameIndex} non trovato`);
+                    return;
+                }
+
+                console.log(`Applicando frame ${frameIndex} con ${frame.objects.size} oggetti al timestamp ${frame.timestamp}ms`);
 
                 // Applica le proprietà del frame agli oggetti
                 frame.objects.forEach((objData, objId) => {
                     const obj = tab.objects.get(objId);
                     if (obj) {
-                        Object.assign(obj, objData);
+                        // Copia tutte le proprietà
+                        obj.x = objData.x;
+                        obj.y = objData.y;
+                        obj.width = objData.width;
+                        obj.height = objData.height;
+                        obj.rotation = objData.rotation;
+                        obj.color = objData.color;
+                        obj.opacity = objData.opacity;
+                        obj.dashed = objData.dashed;
+                        obj.text = objData.text;
+
+                        // Aggiorna la visualizzazione
                         this.renderObject(obj);
                         this.updateArrowsForObject(objId);
+                    } else {
+                        console.warn(`Oggetto ${objId} non trovato nel tab`);
                     }
                 });
             }
@@ -2049,6 +2089,7 @@
 
                 tab.isPlaying = true;
                 tab.currentFrameIndex = 0;
+                tab.animationStartTime = Date.now();
 
                 document.getElementById('animationPlay').style.display = 'none';
                 document.getElementById('animationPause').style.display = 'inline-block';
@@ -2056,16 +2097,38 @@
                 const animate = () => {
                     if (!tab.isPlaying) return;
 
-                    this.applyFrame(tab.currentFrameIndex);
-                    this.selectFrame(tab.currentFrameIndex);
+                    const elapsed = Date.now() - tab.animationStartTime;
 
-                    tab.currentFrameIndex++;
+                    // Applica TUTTI i frame che hanno timestamp <= elapsed
+                    for (let i = 0; i < tab.frames.length; i++) {
+                        const frame = tab.frames[i];
 
-                    if (tab.currentFrameIndex >= tab.frames.length) {
-                        tab.currentFrameIndex = 0; // Loop
+                        // Se il frame ha un timestamp <= tempo trascorso e non è ancora stato applicato in questo ciclo
+                        if (elapsed >= frame.timestamp) {
+                            // Verifica se questo frame è "nuovo" rispetto all'ultimo frame applicato
+                            if (i > tab.currentFrameIndex ||
+                                (tab.currentFrameIndex === tab.frames.length - 1 && i === 0)) {
+
+                                this.applyFrame(i);
+                                this.selectFrame(i);
+                                tab.currentFrameIndex = i;
+
+                                console.log(`Applicato frame ${i} al tempo ${elapsed}ms (timestamp: ${frame.timestamp}ms)`);
+                            }
+                        }
                     }
 
-                    setTimeout(animate, parseInt(document.getElementById('animationSpeed').value));
+                    // Calcola la durata totale dell'animazione
+                    const totalDuration = tab.frames[tab.frames.length - 1].timestamp + 1000;
+
+                    // Se siamo arrivati alla fine, ricomincia
+                    if (elapsed >= totalDuration) {
+                        tab.animationStartTime = Date.now();
+                        tab.currentFrameIndex = -1; // Reset per permettere di riapplicare il primo frame
+                        console.log('Loop animazione - ricomincia');
+                    }
+
+                    requestAnimationFrame(animate);
                 };
 
                 animate();
@@ -6158,6 +6221,12 @@
             <!-- Proprietà Frame Selezionato -->
             <div id="frameProperties" style="display: none;">
                 <h5>🎨 Proprietà Frame <span id="frameNumber"></span></h5>
+                <div style="margin-bottom: 10px;">
+                    <label style="font-weight: bold;">⏱️ Timestamp (ms): <input type="number" id="frameTimestamp"
+                            min="0" step="100" style="width: 100px;"></label>
+                    <span style="font-size: 10px; color: #7f8c8d; margin-left: 10px;">(tempo in millisecondi nella
+                        timeline)</span>
+                </div>
                 <div class="frame-properties-grid">
                     <label>X: <input type="number" id="frameX" step="1"></label>
                     <label>Y: <input type="number" id="frameY" step="1"></label>
