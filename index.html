@@ -21,6 +21,7 @@
     <link rel="stylesheet" href="./css/contextmenu.css">
     <link rel="stylesheet" href="./css/sprite-volleyball.css">
     <link rel="stylesheet" href="./css/frame.css">
+    <link rel="stylesheet" href="./css/arrow.css">
     <style>
         * {
             margin: 0;
@@ -375,12 +376,20 @@
             border-radius: 50%;
             cursor: crosshair;
             opacity: 0;
-            transition: opacity 0.2s;
+            transition: opacity 0.2s, transform 0.2s;
+            pointer-events: none;
+        }
+
+        /* Mostra SEMPRE i connection points quando si sta trascinando un endpoint */
+        body.dragging-endpoint .canvas-object .connection-point {
+            opacity: 1 !important;
+            pointer-events: auto !important;
         }
 
         .canvas-object:hover .connection-point,
         .canvas-object.selected .connection-point {
             opacity: 1;
+            pointer-events: auto;
         }
 
         .canvas-object .connection-point:hover {
@@ -1604,7 +1613,8 @@
                 this.connectionPreview = null;
                 this.arrowType = 'linear'; // Default to linear as requested
                 this.zoom = 1;
-                this.isDraggingControlPoint = false;
+                this.isDraggingEndpoint = false;
+                this.draggedEndpointType = null;
                 this.clipboard = null;
 
                 this.isSelecting = false;
@@ -1632,7 +1642,35 @@
                 this.initializeExistingTabs();
                 this.updateUI();
             }
+            addArrowEndpointControl(svg, arrow, type, position) {
+                const point = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                point.setAttribute('cx', position.x);
+                point.setAttribute('cy', position.y);
+                point.setAttribute('r', '8');
+                point.setAttribute('fill', type === 'start' ? '#3498db' : '#e74c3c');
+                point.setAttribute('stroke', '#fff');
+                point.setAttribute('stroke-width', '2');
+                point.style.cursor = 'move';
+                point.classList.add('endpoint-control');
+                point.dataset.endpointType = type;
 
+                // Nascondi di default, mostra solo quando la freccia è selezionata
+                point.style.opacity = '0';
+                point.style.transition = 'opacity 0.2s';
+
+                point.addEventListener('mousedown', (e) => {
+                    e.stopPropagation();
+                    this.isDraggingEndpoint = true;
+                    this.draggedEndpointType = type;
+                    this.selectedArrow = arrow.id;
+                    this.selectArrow(arrow.id);
+
+                    // Aggiungi classe al body per mostrare tutti i connection points
+                    document.body.classList.add('dragging-endpoint');
+                });
+
+                return point;
+            }
             // Aggiungi questo metodo nella classe SchemaEditor
             initAnimationDialog() {
                 const dialog = document.getElementById('animationDialog');
@@ -4132,10 +4170,15 @@
                         point.className = `connection-point ${pos}`;
                         element.appendChild(point);
                     }
+
+                    // Mantieni gli event listener esistenti
                     point.addEventListener('mousedown', (e) => {
                         e.stopPropagation();
                         this.startConnection({ objectId: element.id, position: pos }, e);
                     });
+
+                    // Mostra durante il drag di endpoint
+                    point.style.pointerEvents = 'auto';
                 });
             }
 
@@ -4275,13 +4318,43 @@
                     this.updateConnectionPreview(e);
                 } else if (this.isSelecting) {
                     this.updateSelectionBox(e);
-                } else if (this.isDraggingControlPoint) {
+                } else if (this.isDraggingEndpoint && this.selectedArrow) {
                     const arrow = this.getCurrentTab().arrows.get(this.selectedArrow);
                     const rect = document.getElementById('canvas').getBoundingClientRect();
                     const newX = (e.clientX - rect.left) / this.getCurrentTab().zoom;
                     const newY = (e.clientY - rect.top) / this.getCurrentTab().zoom;
-                    arrow.controlPoint.x = newX;
-                    arrow.controlPoint.y = newY;
+
+                    // Controlla se siamo vicino a un connection point
+                    const nearbyPoint = this.findNearbyConnectionPoint(e);
+
+                    if (nearbyPoint) {
+                        // Snap al connection point
+                        if (this.draggedEndpointType === 'start') {
+                            arrow.from = {
+                                objectId: nearbyPoint.objectId,
+                                position: nearbyPoint.position
+                            };
+                        } else {
+                            arrow.to = {
+                                objectId: nearbyPoint.objectId,
+                                position: nearbyPoint.position
+                            };
+                        }
+
+                        // Evidenzia il connection point
+                        this.highlightConnectionPoint(nearbyPoint.objectId, nearbyPoint.position);
+                    } else {
+                        // Posizione libera
+                        if (this.draggedEndpointType === 'start') {
+                            arrow.from = { x: newX, y: newY };
+                        } else {
+                            arrow.to = { x: newX, y: newY };
+                        }
+
+                        // Rimuovi evidenziazioni
+                        this.clearConnectionPointHighlights();
+                    }
+
                     this.renderArrow(arrow);
                 }
             }
@@ -4290,11 +4363,33 @@
                 if (this.isDrawing && this.freehandMode) {
                     this.finishFreehand();
                 }
-                if (this.isConnecting) {
+
+                if (this.isDraggingEndpoint) {
+                    // Verifica snap finale
+                    const nearbyPoint = this.findNearbyConnectionPoint(e);
+                    const arrow = this.getCurrentTab().arrows.get(this.selectedArrow);
+
+                    if (nearbyPoint && arrow) {
+                        if (this.draggedEndpointType === 'start') {
+                            arrow.from = {
+                                objectId: nearbyPoint.objectId,
+                                position: nearbyPoint.position
+                            };
+                        } else {
+                            arrow.to = {
+                                objectId: nearbyPoint.objectId,
+                                position: nearbyPoint.position
+                            };
+                        }
+                        this.renderArrow(arrow);
+                    }
+
+                    this.clearConnectionPointHighlights();
+                    this.saveState();
+                } else if (this.isConnecting) {
                     this.finishConnection(e);
                 } else if (this.isDragging || this.isResizing || this.isRotating || this.isDraggingControlPoint || this.isRotatingGroup) {
                     this.saveState();
-                    // ✅ AGGIUNTO: Aggiorna il frame corrente dopo le modifiche
                     this.updateCurrentFrame();
                 } else if (this.isSelecting) {
                     this.finalizeSelectionBox(e);
@@ -4305,11 +4400,62 @@
                 this.isRotating = false;
                 this.isRotatingGroup = false;
                 this.isDraggingControlPoint = false;
+                this.isDraggingEndpoint = false;
+                this.draggedEndpointType = null;
                 this.isSelecting = false;
                 this.groupRotationData = null;
 
                 const selectionBox = document.getElementById('selectionBox');
                 if (selectionBox) selectionBox.style.display = 'none';
+                document.body.classList.remove('dragging-endpoint');
+            }
+
+            findNearbyConnectionPoint(event) {
+                const snapDistance = 20; // pixel di distanza per lo snap
+                const canvasRect = document.getElementById('canvas').getBoundingClientRect();
+
+                // Trova tutti i connection points
+                const connectionPoints = document.querySelectorAll('.connection-point');
+
+                for (const point of connectionPoints) {
+                    const pointRect = point.getBoundingClientRect();
+                    const pointCenterX = pointRect.left + pointRect.width / 2;
+                    const pointCenterY = pointRect.top + pointRect.height / 2;
+
+                    const distance = Math.sqrt(
+                        Math.pow(event.clientX - pointCenterX, 2) +
+                        Math.pow(event.clientY - pointCenterY, 2)
+                    );
+
+                    if (distance < snapDistance) {
+                        const objectElement = point.closest('.canvas-object');
+                        const position = point.classList.contains('top') ? 'top' :
+                            point.classList.contains('bottom') ? 'bottom' :
+                                point.classList.contains('left') ? 'left' : 'right';
+
+                        return {
+                            objectId: objectElement.id,
+                            position: position,
+                            element: point
+                        };
+                    }
+                }
+
+                return null;
+            }
+            clearConnectionPointHighlights() {
+                document.querySelectorAll('.connection-point.highlighted').forEach(point => {
+                    point.style.backgroundColor = '';
+                    point.style.transform = '';
+                    point.classList.remove('highlighted');
+                });
+            }
+            clearConnectionPointHighlights() {
+                document.querySelectorAll('.connection-point.highlighted').forEach(point => {
+                    point.style.backgroundColor = '';
+                    point.style.transform = '';
+                    point.classList.remove('highlighted');
+                });
             }
             startAreaSelection(e) {
                 this.isSelecting = true;
@@ -5060,6 +5206,19 @@
 
                 svg.appendChild(path);
 
+                // Aggiungi punti di controllo per spostare inizio e fine
+                const startPoint = this.addArrowEndpointControl(svg, arrow, 'start', fromPos);
+                const endPoint = this.addArrowEndpointControl(svg, arrow, 'end', toPos);
+
+                // Aggiungi il punto di controllo per la curva (se esiste)
+                if (arrow.controlPoint) {
+                    controlPointElement = this.addCurveControlPoint(svg, arrow);
+                    svg.appendChild(controlPointElement);
+                }
+
+                svg.appendChild(startPoint);
+                svg.appendChild(endPoint);
+
                 if (controlPointElement) {
                     svg.appendChild(controlPointElement);
                 }
@@ -5153,6 +5312,13 @@
                     if (path) {
                         path.classList.add('selected');
                     }
+
+                    // Mostra i punti di controllo endpoint
+                    const endpoints = arrowElement.querySelectorAll('.endpoint-control');
+                    endpoints.forEach(ep => {
+                        ep.style.opacity = '1';
+                        ep.style.pointerEvents = 'auto';
+                    });
                 }
                 this.updateArrowControls();
             }

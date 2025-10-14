@@ -1,0 +1,32 @@
+.arrow-svg:hover .endpoint-control,
+.arrow-path.selected ~ .endpoint-control {
+    opacity: 1 !important;
+    pointer-events: auto;
+}
+
+.endpoint-control {
+    pointer-events: auto;
+    cursor: move;
+}
+
+.endpoint-control:hover {
+    transform: scale(1.2);
+    transform-origin: center;
+}
+
+.connection-point.highlighted {
+    background: #2ecc71 !important;
+    transform: scale(1.5) !important;
+    z-index: 10001;
+    box-shadow: 0 0 10px rgba(46, 204, 113, 0.8);
+}
+
+.endpoint-control {
+    pointer-events: auto;
+    cursor: move;
+    transition: transform 0.2s;
+}
+
+.endpoint-control:hover {
+    transform: scale(1.3);
+}
