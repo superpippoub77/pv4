@@ -601,16 +601,29 @@
             text-align: center;
         }
 
+        /* Aggiungi/modifica queste regole CSS */
         .control-point {
             opacity: 0;
             transition: opacity 0.2s;
+            pointer-events: none;
+        }
+
+        /* Mostra il punto di controllo quando la freccia è selezionata */
+        .arrow-path.selected~.control-point {
+            opacity: 1;
             pointer-events: auto;
         }
 
-        .arrow-svg:hover .control-point,
+        /* Mostra anche quando si passa sopra la freccia */
+        .arrow-svg:hover .control-point {
+            opacity: 0.6;
+            pointer-events: auto;
+        }
+
+        /* .arrow-svg:hover .control-point,
         .arrow-path.selected+.control-point {
             opacity: 1;
-        }
+        } */
 
         /* Connection preview */
         #connection-preview {
@@ -4276,6 +4289,20 @@
                     this.continueFreehand(e);
                     return;
                 }
+
+                if (this.isDraggingControlPoint && this.selectedArrow) {
+                    const arrow = this.getCurrentTab().arrows.get(this.selectedArrow);
+                    if (arrow) {
+                        const rect = document.getElementById('canvas').getBoundingClientRect();
+                        const newX = (e.clientX - rect.left) / this.getCurrentTab().zoom;
+                        const newY = (e.clientY - rect.top) / this.getCurrentTab().zoom;
+
+                        arrow.controlPoint = { x: newX, y: newY };
+                        this.renderArrow(arrow);
+                    }
+                    return;
+                }
+
                 if (this.isDragging) {
                     const deltaX = (e.clientX - this.dragStart.x) / this.getCurrentTab().zoom;
                     const deltaY = (e.clientY - this.dragStart.y) / this.getCurrentTab().zoom;
@@ -4283,20 +4310,18 @@
                     const tab = this.getCurrentTab();
 
                     this.selectedObjects.forEach((initialPos, id) => {
-                        // Gestisci oggetti normali
                         const objectData = tab.objects.get(id);
                         if (objectData) {
                             objectData.x = initialPos.x + deltaX;
                             objectData.y = initialPos.y + deltaY;
 
                             const element = document.getElementById(id);
-                            if (element) {  // ✅ AGGIUNTO CONTROLLO
+                            if (element) {
                                 element.style.left = objectData.x + 'px';
                                 element.style.top = objectData.y + 'px';
                             }
                             this.updateArrowsForObject(id);
                         }
-                        // Gestisci disegni a mano libera
                         else if (initialPos.type === 'freehand') {
                             const freehand = tab.freehands.get(id);
                             if (freehand) {
@@ -4324,11 +4349,9 @@
                     const newX = (e.clientX - rect.left) / this.getCurrentTab().zoom;
                     const newY = (e.clientY - rect.top) / this.getCurrentTab().zoom;
 
-                    // Controlla se siamo vicino a un connection point
                     const nearbyPoint = this.findNearbyConnectionPoint(e);
 
                     if (nearbyPoint) {
-                        // Snap al connection point
                         if (this.draggedEndpointType === 'start') {
                             arrow.from = {
                                 objectId: nearbyPoint.objectId,
@@ -4340,24 +4363,20 @@
                                 position: nearbyPoint.position
                             };
                         }
-
-                        // Evidenzia il connection point
                         this.highlightConnectionPoint(nearbyPoint.objectId, nearbyPoint.position);
                     } else {
-                        // Posizione libera
                         if (this.draggedEndpointType === 'start') {
                             arrow.from = { x: newX, y: newY };
                         } else {
                             arrow.to = { x: newX, y: newY };
                         }
-
-                        // Rimuovi evidenziazioni
                         this.clearConnectionPointHighlights();
                     }
 
                     this.renderArrow(arrow);
                 }
             }
+
 
             handleCanvasMouseUp(e) {
                 if (this.isDrawing && this.freehandMode) {
@@ -5081,7 +5100,8 @@
                     markerStart: false,
                     markerEnd: true
                 };
-                // Aggiungi sempre il punto di controllo, indipendentemente dal tipo
+
+                // Aggiungi sempre il punto di controllo
                 const fromPos = this.getArrowPoint(arrow.from);
                 const toPos = this.getArrowPoint(arrow.to);
                 arrow.controlPoint = this.generateDefaultControlPoint(fromPos, toPos);
@@ -5093,13 +5113,8 @@
                 return arrow;
             }
 
-            getArrowPoint(point) {
-                if (point.objectId) {
-                    return this.getConnectionPointAbsolutePosition(point.objectId, point.position);
-                }
-                return point;
-            }
-
+            // 2. MODIFICA il metodo renderArrow per gestire sempre il punto di controllo
+            // 2. SOSTITUISCI COMPLETAMENTE il metodo renderArrow
             renderArrow(arrow) {
                 let fromPos = this.getArrowPoint(arrow.from);
                 let toPos = this.getArrowPoint(arrow.to);
@@ -5131,7 +5146,7 @@
 
                 const polygonEnd = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
                 polygonEnd.setAttribute('points', '0 0, 10 3.5, 0 7');
-                polygonEnd.setAttribute('fill', arrow.color); // ✅ Colore aggiornato
+                polygonEnd.setAttribute('fill', arrow.color);
                 markerEnd.appendChild(polygonEnd);
                 defs.appendChild(markerEnd);
 
@@ -5146,7 +5161,7 @@
 
                 const polygonStart = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
                 polygonStart.setAttribute('points', '10 0, 0 3.5, 10 7');
-                polygonStart.setAttribute('fill', arrow.color); // ✅ Colore aggiornato
+                polygonStart.setAttribute('fill', arrow.color);
                 markerStart.appendChild(polygonStart);
                 defs.appendChild(markerStart);
 
@@ -5157,23 +5172,18 @@
                 if (arrow.dashed) path.classList.add('dashed');
                 if (wasSelected) path.classList.add('selected');
 
-                let pathData;
-                let controlPointElement;
-
-                // Aggiungi sempre il punto di controllo
+                // Assicurati che il control point esista
                 if (!arrow.controlPoint) {
                     arrow.controlPoint = this.generateDefaultControlPoint(fromPos, toPos);
                 }
-                controlPointElement = this.addCurveControlPoint(svg, arrow);
 
                 // Genera il path in base al tipo
-                pathData = this.generateArrowPath(fromPos, toPos, arrow.type, arrow.controlPoint);
+                let pathData = this.generateArrowPath(fromPos, toPos, arrow.type, arrow.controlPoint);
 
                 path.setAttribute('d', pathData);
-                // SOSTITUISCI CON QUESTO:
                 path.style.stroke = arrow.color;
-                path.style.strokeWidth = arrow.thickness + 'px'; // Importante: style.strokeWidth richiede l'unità (es. 'px')
-                path.setAttribute('fill', 'none'); // ✅ IMPORTANTE: Nessun riempimento
+                path.style.strokeWidth = arrow.thickness + 'px';
+                path.setAttribute('fill', 'none');
                 path.style.opacity = arrow.opacity || 1;
 
                 // Applica o rimuovi i marker in base ai flag
@@ -5189,7 +5199,7 @@
                     path.removeAttribute('marker-end');
                 }
 
-                // ✅ Event listeners per il path
+                // Event listeners per il path
                 path.addEventListener('mousedown', (e) => {
                     e.stopPropagation();
                     this.selectArrow(arrow.id);
@@ -5210,21 +5220,15 @@
                 const startPoint = this.addArrowEndpointControl(svg, arrow, 'start', fromPos);
                 const endPoint = this.addArrowEndpointControl(svg, arrow, 'end', toPos);
 
-                // Aggiungi il punto di controllo per la curva (se esiste)
-                if (arrow.controlPoint) {
-                    controlPointElement = this.addCurveControlPoint(svg, arrow);
-                    svg.appendChild(controlPointElement);
-                }
-
                 svg.appendChild(startPoint);
                 svg.appendChild(endPoint);
 
-                if (controlPointElement) {
-                    svg.appendChild(controlPointElement);
-                }
+                // Aggiungi il punto di controllo per la curva
+                const controlPointElement = this.addCurveControlPoint(svg, arrow);
+                svg.appendChild(controlPointElement);
 
                 const allPoints = [fromPos, toPos];
-                if (arrow.type === 'curved' && arrow.controlPoint) {
+                if (arrow.controlPoint) {
                     allPoints.push(arrow.controlPoint);
                 }
 
@@ -5238,6 +5242,127 @@
                 svg.style.width = (maxX - minX) + 'px';
                 svg.style.height = (maxY - minY) + 'px';
                 svg.setAttribute('viewBox', `${minX} ${minY} ${maxX - minX} ${maxY - minY}`);
+            }
+
+            getArrowPoint(point) {
+                if (point.objectId) {
+                    return this.getConnectionPointAbsolutePosition(point.objectId, point.position);
+                }
+                return point;
+            }
+
+            renderArrow(arrow) {
+                let fromPos = this.getArrowPoint(arrow.from);
+                let toPos = this.getArrowPoint(arrow.to);
+
+                let svg = document.getElementById(arrow.id);
+                const wasSelected = this.selectedArrow === arrow.id;
+
+                if (!svg) {
+                    svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                    svg.classList.add('arrow-svg');
+                    svg.id = arrow.id;
+                    document.getElementById('canvas').appendChild(svg);
+                } else {
+                    svg.innerHTML = '';
+                }
+
+                // ... codice esistente per defs e markers ...
+
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.classList.add('arrow-path');
+                if (arrow.dashed) path.classList.add('dashed');
+                if (wasSelected) path.classList.add('selected');
+
+                // ✅ AGGIUNTO: Inizializza il punto di controllo se mancante
+                if (!arrow.controlPoint) {
+                    arrow.controlPoint = this.generateDefaultControlPoint(fromPos, toPos);
+                }
+
+                // ✅ AGGIUNTO: Genera SEMPRE il path considerando il control point
+                let pathData;
+                if (arrow.type === 'curved') {
+                    // Per le curve, usa il controlPoint
+                    pathData = `M ${fromPos.x} ${fromPos.y} Q ${arrow.controlPoint.x} ${arrow.controlPoint.y} ${toPos.x} ${toPos.y}`;
+                } else if (arrow.type === 'zigzag') {
+                    // Per zigzag, usa il controlPoint come punto intermedio
+                    pathData = `M ${fromPos.x} ${fromPos.y} L ${arrow.controlPoint.x} ${fromPos.y} L ${arrow.controlPoint.x} ${toPos.y} L ${toPos.x} ${toPos.y}`;
+                } else {
+                    // Per linear, usa il controlPoint se la freccia è stata "curvata"
+                    const distanceFromLine = this.calculateDistanceFromLine(fromPos, toPos, arrow.controlPoint);
+                    if (distanceFromLine > 5) {
+                        // Se il punto di controllo è stato spostato, usa una curva
+                        pathData = `M ${fromPos.x} ${fromPos.y} Q ${arrow.controlPoint.x} ${arrow.controlPoint.y} ${toPos.x} ${toPos.y}`;
+                    } else {
+                        // Altrimenti linea retta
+                        pathData = `M ${fromPos.x} ${fromPos.y} L ${toPos.x} ${toPos.y}`;
+                    }
+                }
+
+                path.setAttribute('d', pathData);
+                path.style.stroke = arrow.color;
+                path.style.strokeWidth = arrow.thickness + 'px';
+                path.setAttribute('fill', 'none');
+                path.style.opacity = arrow.opacity || 1;
+
+                // ... resto del codice per marker e event listeners ...
+
+                svg.appendChild(path);
+
+                // ✅ AGGIUNTO: Aggiungi SEMPRE il punto di controllo
+                const controlPointElement = this.addCurveControlPoint(svg, arrow);
+                svg.appendChild(controlPointElement);
+
+                // Aggiungi punti endpoint
+                const startPoint = this.addArrowEndpointControl(svg, arrow, 'start', fromPos);
+                const endPoint = this.addArrowEndpointControl(svg, arrow, 'end', toPos);
+                svg.appendChild(startPoint);
+                svg.appendChild(endPoint);
+
+                // Calcola viewBox includendo il control point
+                const allPoints = [fromPos, toPos, arrow.controlPoint];
+                const minX = Math.min(...allPoints.map(p => p.x)) - arrow.thickness - 10;
+                const minY = Math.min(...allPoints.map(p => p.y)) - arrow.thickness - 10;
+                const maxX = Math.max(...allPoints.map(p => p.x)) + arrow.thickness + 10;
+                const maxY = Math.max(...allPoints.map(p => p.y)) + arrow.thickness + 10;
+
+                svg.style.left = minX + 'px';
+                svg.style.top = minY + 'px';
+                svg.style.width = (maxX - minX) + 'px';
+                svg.style.height = (maxY - minY) + 'px';
+                svg.setAttribute('viewBox', `${minX} ${minY} ${maxX - minX} ${maxY - minY}`);
+            }
+            calculateDistanceFromLine(p1, p2, point) {
+                const A = point.x - p1.x;
+                const B = point.y - p1.y;
+                const C = p2.x - p1.x;
+                const D = p2.y - p1.y;
+
+                const dot = A * C + B * D;
+                const lenSq = C * C + D * D;
+                let param = -1;
+
+                if (lenSq !== 0) {
+                    param = dot / lenSq;
+                }
+
+                let xx, yy;
+
+                if (param < 0) {
+                    xx = p1.x;
+                    yy = p1.y;
+                } else if (param > 1) {
+                    xx = p2.x;
+                    yy = p2.y;
+                } else {
+                    xx = p1.x + param * C;
+                    yy = p1.y + param * D;
+                }
+
+                const dx = point.x - xx;
+                const dy = point.y - yy;
+
+                return Math.sqrt(dx * dx + dy * dy);
             }
 
             addCurveControlPoint(svg, arrow) {
@@ -5276,12 +5401,13 @@
             }
 
             generateArrowPath(from, to, type, controlPoint = null) {
+                const cp = controlPoint || this.generateDefaultControlPoint(from, to);
+
                 switch (type) {
                     case 'linear':
                         return `M ${from.x} ${from.y} L ${to.x} ${to.y}`;
 
                     case 'curved':
-                        const cp = controlPoint || this.generateDefaultControlPoint(from, to);
                         return `M ${from.x} ${from.y} Q ${cp.x} ${cp.y} ${to.x} ${to.y}`;
 
                     case 'zigzag':
@@ -5292,6 +5418,7 @@
                         return `M ${from.x} ${from.y} L ${to.x} ${to.y}`;
                 }
             }
+
 
             updateArrowsForObject(objectId) {
                 const tab = this.getCurrentTab();
@@ -5328,7 +5455,7 @@
                 const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
                 if (arrowData) {
                     arrowData.type = newType;
-                    // Il punto di controllo esiste sempre, non serve rigenerarlo
+                    // Mantieni il punto di controllo esistente
                     if (!arrowData.controlPoint) {
                         const fromPos = this.getArrowPoint(arrowData.from);
                         const toPos = this.getArrowPoint(arrowData.to);
