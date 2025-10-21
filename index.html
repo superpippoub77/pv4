@@ -5113,8 +5113,6 @@
                 return arrow;
             }
 
-            // 2. MODIFICA il metodo renderArrow per gestire sempre il punto di controllo
-            // 2. SOSTITUISCI COMPLETAMENTE il metodo renderArrow
             renderArrow(arrow) {
                 let fromPos = this.getArrowPoint(arrow.from);
                 let toPos = this.getArrowPoint(arrow.to);
@@ -5251,87 +5249,6 @@
                 return point;
             }
 
-            renderArrow(arrow) {
-                let fromPos = this.getArrowPoint(arrow.from);
-                let toPos = this.getArrowPoint(arrow.to);
-
-                let svg = document.getElementById(arrow.id);
-                const wasSelected = this.selectedArrow === arrow.id;
-
-                if (!svg) {
-                    svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                    svg.classList.add('arrow-svg');
-                    svg.id = arrow.id;
-                    document.getElementById('canvas').appendChild(svg);
-                } else {
-                    svg.innerHTML = '';
-                }
-
-                // ... codice esistente per defs e markers ...
-
-                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                path.classList.add('arrow-path');
-                if (arrow.dashed) path.classList.add('dashed');
-                if (wasSelected) path.classList.add('selected');
-
-                // ✅ AGGIUNTO: Inizializza il punto di controllo se mancante
-                if (!arrow.controlPoint) {
-                    arrow.controlPoint = this.generateDefaultControlPoint(fromPos, toPos);
-                }
-
-                // ✅ AGGIUNTO: Genera SEMPRE il path considerando il control point
-                let pathData;
-                if (arrow.type === 'curved') {
-                    // Per le curve, usa il controlPoint
-                    pathData = `M ${fromPos.x} ${fromPos.y} Q ${arrow.controlPoint.x} ${arrow.controlPoint.y} ${toPos.x} ${toPos.y}`;
-                } else if (arrow.type === 'zigzag') {
-                    // Per zigzag, usa il controlPoint come punto intermedio
-                    pathData = `M ${fromPos.x} ${fromPos.y} L ${arrow.controlPoint.x} ${fromPos.y} L ${arrow.controlPoint.x} ${toPos.y} L ${toPos.x} ${toPos.y}`;
-                } else {
-                    // Per linear, usa il controlPoint se la freccia è stata "curvata"
-                    const distanceFromLine = this.calculateDistanceFromLine(fromPos, toPos, arrow.controlPoint);
-                    if (distanceFromLine > 5) {
-                        // Se il punto di controllo è stato spostato, usa una curva
-                        pathData = `M ${fromPos.x} ${fromPos.y} Q ${arrow.controlPoint.x} ${arrow.controlPoint.y} ${toPos.x} ${toPos.y}`;
-                    } else {
-                        // Altrimenti linea retta
-                        pathData = `M ${fromPos.x} ${fromPos.y} L ${toPos.x} ${toPos.y}`;
-                    }
-                }
-
-                path.setAttribute('d', pathData);
-                path.style.stroke = arrow.color;
-                path.style.strokeWidth = arrow.thickness + 'px';
-                path.setAttribute('fill', 'none');
-                path.style.opacity = arrow.opacity || 1;
-
-                // ... resto del codice per marker e event listeners ...
-
-                svg.appendChild(path);
-
-                // ✅ AGGIUNTO: Aggiungi SEMPRE il punto di controllo
-                const controlPointElement = this.addCurveControlPoint(svg, arrow);
-                svg.appendChild(controlPointElement);
-
-                // Aggiungi punti endpoint
-                const startPoint = this.addArrowEndpointControl(svg, arrow, 'start', fromPos);
-                const endPoint = this.addArrowEndpointControl(svg, arrow, 'end', toPos);
-                svg.appendChild(startPoint);
-                svg.appendChild(endPoint);
-
-                // Calcola viewBox includendo il control point
-                const allPoints = [fromPos, toPos, arrow.controlPoint];
-                const minX = Math.min(...allPoints.map(p => p.x)) - arrow.thickness - 10;
-                const minY = Math.min(...allPoints.map(p => p.y)) - arrow.thickness - 10;
-                const maxX = Math.max(...allPoints.map(p => p.x)) + arrow.thickness + 10;
-                const maxY = Math.max(...allPoints.map(p => p.y)) + arrow.thickness + 10;
-
-                svg.style.left = minX + 'px';
-                svg.style.top = minY + 'px';
-                svg.style.width = (maxX - minX) + 'px';
-                svg.style.height = (maxY - minY) + 'px';
-                svg.setAttribute('viewBox', `${minX} ${minY} ${maxX - minX} ${maxY - minY}`);
-            }
             calculateDistanceFromLine(p1, p2, point) {
                 const A = point.x - p1.x;
                 const B = point.y - p1.y;
@@ -5405,17 +5322,32 @@
 
                 switch (type) {
                     case 'linear':
-                        return `M ${from.x} ${from.y} L ${to.x} ${to.y}`;
+                        // Lineare diventa curva con control point minimale
+                        const cpLinear = controlPoint || {
+                            x: (from.x + to.x) / 2,
+                            y: (from.y + to.y) / 2
+                        };
+                        return `M ${from.x} ${from.y} Q ${cpLinear.x} ${cpLinear.y} ${to.x} ${to.y}`;
 
                     case 'curved':
                         return `M ${from.x} ${from.y} Q ${cp.x} ${cp.y} ${to.x} ${to.y}`;
 
                     case 'zigzag':
+                        // Zigzag diventa curva con 2 curve consecutive
                         const midXZ = (from.x + to.x) / 2;
-                        return `M ${from.x} ${from.y} L ${midXZ} ${from.y} L ${midXZ} ${to.y} L ${to.x} ${to.y}`;
+                        const cp1 = {
+                            x: midXZ,
+                            y: from.y + (to.y - from.y) * 0.25
+                        };
+                        const cp2 = {
+                            x: midXZ,
+                            y: from.y + (to.y - from.y) * 0.75
+                        };
+                        const midPoint = { x: midXZ, y: (from.y + to.y) / 2 };
+                        return `M ${from.x} ${from.y} Q ${cp1.x} ${cp1.y} ${midPoint.x} ${midPoint.y} Q ${cp2.x} ${cp2.y} ${to.x} ${to.y}`;
 
                     default:
-                        return `M ${from.x} ${from.y} L ${to.x} ${to.y}`;
+                        return `M ${from.x} ${from.y} Q ${cp.x} ${cp.y} ${to.x} ${to.y}`;
                 }
             }
 
