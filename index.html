@@ -5322,32 +5322,17 @@
 
                 switch (type) {
                     case 'linear':
-                        // Lineare diventa curva con control point minimale
-                        const cpLinear = controlPoint || {
-                            x: (from.x + to.x) / 2,
-                            y: (from.y + to.y) / 2
-                        };
-                        return `M ${from.x} ${from.y} Q ${cpLinear.x} ${cpLinear.y} ${to.x} ${to.y}`;
+                        return `M ${from.x} ${from.y} L ${to.x} ${to.y}`;
 
                     case 'curved':
                         return `M ${from.x} ${from.y} Q ${cp.x} ${cp.y} ${to.x} ${to.y}`;
 
                     case 'zigzag':
-                        // Zigzag diventa curva con 2 curve consecutive
                         const midXZ = (from.x + to.x) / 2;
-                        const cp1 = {
-                            x: midXZ,
-                            y: from.y + (to.y - from.y) * 0.25
-                        };
-                        const cp2 = {
-                            x: midXZ,
-                            y: from.y + (to.y - from.y) * 0.75
-                        };
-                        const midPoint = { x: midXZ, y: (from.y + to.y) / 2 };
-                        return `M ${from.x} ${from.y} Q ${cp1.x} ${cp1.y} ${midPoint.x} ${midPoint.y} Q ${cp2.x} ${cp2.y} ${to.x} ${to.y}`;
+                        return `M ${from.x} ${from.y} L ${midXZ} ${from.y} L ${midXZ} ${to.y} L ${to.x} ${to.y}`;
 
                     default:
-                        return `M ${from.x} ${from.y} Q ${cp.x} ${cp.y} ${to.x} ${to.y}`;
+                        return `M ${from.x} ${from.y} L ${to.x} ${to.y}`;
                 }
             }
 
