@@ -4671,12 +4671,20 @@
 
                 return null;
             }
-            clearConnectionPointHighlights() {
-                document.querySelectorAll('.connection-point.highlighted').forEach(point => {
-                    point.style.backgroundColor = '';
-                    point.style.transform = '';
-                    point.classList.remove('highlighted');
-                });
+            highlightConnectionPoint(objectId, position) {
+                // Rimuovi evidenziazioni precedenti
+                this.clearConnectionPointHighlights();
+
+                // Trova e evidenzia il punto
+                const object = document.getElementById(objectId);
+                if (object) {
+                    const point = object.querySelector(`.connection-point.${position}`);
+                    if (point) {
+                        point.style.backgroundColor = '#2ecc71';
+                        point.style.transform = 'scale(1.5)';
+                        point.classList.add('highlighted');
+                    }
+                }
             }
             clearConnectionPointHighlights() {
                 document.querySelectorAll('.connection-point.highlighted').forEach(point => {
