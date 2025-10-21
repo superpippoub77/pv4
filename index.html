@@ -22,6 +22,7 @@
     <link rel="stylesheet" href="./css/sprite-volleyball.css">
     <link rel="stylesheet" href="./css/frame.css">
     <link rel="stylesheet" href="./css/arrow.css">
+    <link rel="stylesheet" href="./css/exercise-steps.css">
     <style>
         * {
             margin: 0;
@@ -1389,142 +1390,163 @@
                 id="rightSidebarSwitch">▶</button>
         </div>
         <div class="right-sidebar" id="rightSidebar">
+            <div class="exercise-steps">
+                <h3>📝 Step Esercizio</h3>
+                <div class="steps-controls">
+                    <input type="text" id="newStepInput" placeholder="Inserisci nuovo step...">
+                    <button id="addStepBtn">➕ Aggiungi</button>
+                </div>
+                <div id="stepsList" class="steps-list">
+                    <!-- Gli step verranno inseriti qui dinamicamente -->
+                </div>
+            </div>
             <div class="workout-details">
                 <h3>📋 Dettagli Allenamento</h3>
-                <div class="detail-field">
-                    <label for="workoutDate">Data:</label>
-                    <input type="text" id="workoutDate" placeholder="AAAA-MM-GG" pattern="\d{4}-\d{2}-\d{2}"
-                        title="Inserisci la data nel formato AAAA-MM-GG (es: 2025-01-30)" required>
+                <div class="detail-row">
+                    <div class="detail-field">
+                        <label for="workoutDate">Data:</label>
+                        <input type="text" id="workoutDate" placeholder="AAAA-MM-GG" pattern="\d{4}-\d{2}-\d{2}"
+                            title="Inserisci la data nel formato AAAA-MM-GG (es: 2025-01-30)" required>
+                    </div>
+                    <div class="detail-field">
+                        <label for="workoutPlace">Dove:</label>
+                        <input type="text" id="workoutPlace">
+                    </div>
                 </div>
-                <div class="detail-field">
-                    <label for="workoutPlace">Dove:</label>
-                    <input type="text" id="workoutPlace">
-                </div>
-                <div class="detail-field">
-                    <label for="workoutNr">Ripetizioni:</label>
-                    <input type="text" id="workoutNr">
-                </div>
-                <div class="detail-field">
-                    <label for="workoutSeries">Serie:</label>
-                    <input type="text" id="workoutSeries">
-                </div>
-                <div class="detail-field">
-                    <label for="workoutGroups">Gruppi:</label>
-                    <select id="workoutGroups">
-                        <option value="*">All</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                        <option value="5">6</option>
-                    </select>
-                </div>
-                <div class="detail-field">
-                    <label for="workoutPeriodo">Periodo:</label>
-                    <select id="workoutPeriodo">
-                        <option value="GEN">Generico</option>
-                        <option value="FIS">Preparazione fisica</option>
-                        <option value="CAM">Campionato</option>
-                        <option value="PRE">Pre-Campionato</option>
-                        <option value="POS">Post-Campionato</option>
-                    </select>
-                </div>
-
-                <div class="detail-field">
-                    <label for="workoutRuolo">Ruolo:</label>
-                    <select id="workoutRuolo">
-                        <option value="GEN">Generico</option>
-                        <option value="L">Libero</option>
-                        <option value="L1">Libero 1</option>
-                        <option value="L2">Libero 2</option>
-                        <option value="A">Alzatore</option>
-                        <option value="S">Schiacciatore</option>
-                        <option value="S1">Schiacciatore 1</option>
-                        <option value="S2">Schiacciatore 2</option>
-                        <option value="C">Centrale</option>
-                        <option value="C1">Centrale 1</option>
-                        <option value="C2">Centrale 2</option>
-                        <option value="O">Opposto</option>
-                    </select>
-                </div>
-
-                <div class="detail-field">
-                    <label for="workoutTipologia">Tipologia:</label>
-                    <select id="workoutTipologia">
-                        <option value="GEN">Generico</option>
-                        <option value="ANA">Analitico</option>
-                        <option value="SIN">Sintetico</option>
-                        <option value="GLO">Globale</option>
-                    </select>
-                </div>
-
-                <!-- ✅ NUOVI CAMPI AGGIUNTI -->
-                <div class="detail-field">
-                    <label for="workoutGenere">Genere:</label>
-                    <select id="workoutGenere">
-                        <option value="GEN">Generico</option>
-                        <option value="MIS">Misto</option>
-                        <option value="M">Maschile</option>
-                        <option value="F">Femminile</option>
-                    </select>
-                </div>
-
-                <div class="detail-field">
-                    <label for="workoutCategoria">Categoria:</label>
-                    <select id="workoutCategoria">
-                        <optgroup label="🎯 Generica">
+                <div class="detail-row">
+                    <div class="detail-field">
+                        <label for="workoutGroups">Gruppo:</label>
+                        <select id="workoutGroups">
+                            <option value="*">All</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="5">6</option>
+                        </select>
+                    </div>
+                    <div class="detail-field">
+                        <label for="workoutRuolo">Ruolo:</label>
+                        <select id="workoutRuolo">
                             <option value="GEN">Generico</option>
-                        </optgroup>
-                        <optgroup label="👶 Giovanili Maschili">
-                            <option value="U12M">Under 12 M</option>
-                            <option value="U13M">Under 13 M</option>
-                            <option value="U14M">Under 14 M</option>
-                            <option value="U15M">Under 15 M</option>
-                            <option value="U16M">Under 16 M</option>
-                            <option value="U17M">Under 17 M</option>
-                            <option value="U18M">Under 18 M</option>
-                            <option value="U19M">Under 19 M</option>
-                        </optgroup>
-                        <optgroup label="👧 Giovanili Femminili">
-                            <option value="U12F">Under 12 F</option>
-                            <option value="U13F">Under 13 F</option>
-                            <option value="U14F">Under 14 F</option>
-                            <option value="U16F">Under 16 F</option>
-                            <option value="U18F">Under 18 F</option>
-                        </optgroup>
-                        <optgroup label="🏆 Senior Maschili">
-                            <option value="A1M">Superlega (A1) M</option>
-                            <option value="A2M">Serie A2 M</option>
-                            <option value="A3M">Serie A3 M</option>
-                            <option value="BM">Serie B M</option>
-                            <option value="CM">Serie C M</option>
-                            <option value="DM">Serie D M</option>
-                            <option value="1DM">Prima Divisione M</option>
-                            <option value="2DM">Seconda Divisione M</option>
-                            <option value="3DM">Terza Divisione M</option>
-                        </optgroup>
-                        <optgroup label="🏐 Senior Femminili">
-                            <option value="A1F">Serie A1 F</option>
-                            <option value="A2F">Serie A2 F</option>
-                            <option value="A3F">Serie A3 F</option>
-                            <option value="B1F">Serie B1 F</option>
-                            <option value="B2F">Serie B2 F</option>
-                            <option value="CF">Serie C F</option>
-                            <option value="DF">Serie D F</option>
-                            <option value="1DF">Prima Divisione F</option>
-                            <option value="2DF">Seconda Divisione F</option>
-                            <option value="3DF">Terza Divisione F</option>
-                        </optgroup>
-                        <optgroup label="🌊 Altri">
-                            <option value="BEACH">Beach Volley</option>
-                            <option value="SNOW">Snow Volley</option>
-                            <option value="CSI">CSI/UISP</option>
-                            <option value="SCO">Scolastico</option>
-                        </optgroup>
-                    </select>
+                            <option value="L">Libero</option>
+                            <option value="L1">Libero 1</option>
+                            <option value="L2">Libero 2</option>
+                            <option value="L+S">Libero + Schiacciatore</option>
+                            <option value="L+A">Libero + Alzatore</option>
+                            <option value="A">Alzatore</option>
+                            <option value="S">Schiacciatore</option>
+                            <option value="S1">Schiacciatore 1</option>
+                            <option value="S2">Schiacciatore 2</option>
+                            <option value="C">Centrale</option>
+                            <option value="C1">Centrale 1</option>
+                            <option value="C2">Centrale 2</option>
+                            <option value="O">Opposto</option>
+                        </select>
+                    </div>
                 </div>
+                <div class="detail-row">
+                    <div class="detail-field">
+                        <label for="workoutNr">Ripetizioni:</label>
+                        <input type="text" id="workoutNr">
+                    </div>
+                    <div class="detail-field">
+                        <label for="workoutSeries">Serie:</label>
+                        <input type="text" id="workoutSeries">
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-field">
+                        <label for="workoutPeriodo">Periodo:</label>
+                        <select id="workoutPeriodo">
+                            <option value="GEN">Generico</option>
+                            <option value="FIS">Preparazione fisica</option>
+                            <option value="CAM">Campionato</option>
+                            <option value="PRE">Pre-Campionato</option>
+                            <option value="POS">Post-Campionato</option>
+                        </select>
+                    </div>
 
+
+
+                    <div class="detail-field">
+                        <label for="workoutTipologia">Tipologia:</label>
+                        <select id="workoutTipologia">
+                            <option value="GEN">Generico</option>
+                            <option value="ANA">Analitico</option>
+                            <option value="SIN">Sintetico</option>
+                            <option value="GLO">Globale</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="detail-row">
+
+                    <!-- ✅ NUOVI CAMPI AGGIUNTI -->
+                    <div class="detail-field">
+                        <label for="workoutGenere">Genere:</label>
+                        <select id="workoutGenere">
+                            <option value="GEN">Generico</option>
+                            <option value="MIS">Misto</option>
+                            <option value="M">Maschile</option>
+                            <option value="F">Femminile</option>
+                        </select>
+                    </div>
+                    <div class="detail-field">
+                        <label for="workoutCategoria">Categoria:</label>
+                        <select id="workoutCategoria">
+                            <optgroup label="🎯 Generica">
+                                <option value="GEN">Generico</option>
+                            </optgroup>
+                            <optgroup label="👶 Giovanili Maschili">
+                                <option value="U12M">Under 12 M</option>
+                                <option value="U13M">Under 13 M</option>
+                                <option value="U14M">Under 14 M</option>
+                                <option value="U15M">Under 15 M</option>
+                                <option value="U16M">Under 16 M</option>
+                                <option value="U17M">Under 17 M</option>
+                                <option value="U18M">Under 18 M</option>
+                                <option value="U19M">Under 19 M</option>
+                            </optgroup>
+                            <optgroup label="👧 Giovanili Femminili">
+                                <option value="U12F">Under 12 F</option>
+                                <option value="U13F">Under 13 F</option>
+                                <option value="U14F">Under 14 F</option>
+                                <option value="U16F">Under 16 F</option>
+                                <option value="U18F">Under 18 F</option>
+                            </optgroup>
+                            <optgroup label="🏆 Senior Maschili">
+                                <option value="A1M">Superlega (A1) M</option>
+                                <option value="A2M">Serie A2 M</option>
+                                <option value="A3M">Serie A3 M</option>
+                                <option value="BM">Serie B M</option>
+                                <option value="CM">Serie C M</option>
+                                <option value="DM">Serie D M</option>
+                                <option value="1DM">Prima Divisione M</option>
+                                <option value="2DM">Seconda Divisione M</option>
+                                <option value="3DM">Terza Divisione M</option>
+                            </optgroup>
+                            <optgroup label="🏐 Senior Femminili">
+                                <option value="A1F">Serie A1 F</option>
+                                <option value="A2F">Serie A2 F</option>
+                                <option value="A3F">Serie A3 F</option>
+                                <option value="B1F">Serie B1 F</option>
+                                <option value="B2F">Serie B2 F</option>
+                                <option value="CF">Serie C F</option>
+                                <option value="DF">Serie D F</option>
+                                <option value="1DF">Prima Divisione F</option>
+                                <option value="2DF">Seconda Divisione F</option>
+                                <option value="3DF">Terza Divisione F</option>
+                            </optgroup>
+                            <optgroup label="🌊 Altri">
+                                <option value="BEACH">Beach Volley</option>
+                                <option value="SNOW">Snow Volley</option>
+                                <option value="CSI">CSI/UISP</option>
+                                <option value="SCO">Scolastico</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
                 <div class="detail-field">
                     <label for="workoutDescrizione">Note:</label>
                     <textarea id="workoutDescrizione" placeholder="Inserisci note sull'allenamento..."></textarea>
@@ -1533,7 +1555,7 @@
                 <div class="detail-field">
                     <label for="workoutAutore">Autore:</label>
                     <input type="text" id="workoutAutore" readonly
-                        style="background: #95a5a6; cursor: not-allowed; border:none; width:100%">
+                        style="background: #95a5a6; cursor: not-allowed; border:none; width:100%;">
                 </div>
             </div>
         </div>
@@ -1645,6 +1667,7 @@
                 this.freehandPoints = [];
                 this.selectedFreehand = null;
                 this.draggedFrameIndex = null;
+                this.draggedStepIndex = null;
                 // Inizializza il login prima di tutto
                 this.initLogin();
                 // Inizializza la logica della libreria
@@ -1655,6 +1678,180 @@
                 this.initializeExistingTabs();
                 this.updateUI();
             }
+
+            initExerciseSteps() {
+                const tab = this.getCurrentTab();
+                if (!tab.exerciseSteps) {
+                    tab.exerciseSteps = [];
+                }
+            }
+
+            renderStepsList() {
+                const tab = this.getCurrentTab();
+                const container = document.getElementById('stepsList');
+
+                if (!container) return;
+
+                container.innerHTML = '';
+
+                if (tab.exerciseSteps.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; padding: 20px; color: #999;">Nessuno step inserito</p>';
+                    return;
+                }
+
+                tab.exerciseSteps.forEach((step, index) => {
+                    const stepItem = document.createElement('div');
+                    stepItem.className = 'step-item';
+                    stepItem.draggable = true;
+                    stepItem.dataset.index = index;
+
+                    const stepNumber = document.createElement('div');
+                    stepNumber.className = 'step-number';
+                    stepNumber.textContent = index + 1;
+
+                    const stepText = document.createElement('div');
+                    stepText.className = 'step-text';
+                    stepText.textContent = step;
+
+                    const stepActions = document.createElement('div');
+                    stepActions.className = 'step-actions';
+
+                    // Bottone su
+                    const btnUp = document.createElement('button');
+                    btnUp.className = 'step-btn step-btn-up';
+                    btnUp.innerHTML = '↑';
+                    btnUp.title = 'Sposta su';
+                    btnUp.disabled = index === 0;
+                    btnUp.addEventListener('click', () => this.moveStep(index, -1));
+
+                    // Bottone giù
+                    const btnDown = document.createElement('button');
+                    btnDown.className = 'step-btn step-btn-down';
+                    btnDown.innerHTML = '↓';
+                    btnDown.title = 'Sposta giù';
+                    btnDown.disabled = index === tab.exerciseSteps.length - 1;
+                    btnDown.addEventListener('click', () => this.moveStep(index, 1));
+
+                    // Bottone modifica
+                    const btnEdit = document.createElement('button');
+                    btnEdit.className = 'step-btn step-btn-edit';
+                    btnEdit.innerHTML = '✏️';
+                    btnEdit.title = 'Modifica';
+                    btnEdit.addEventListener('click', () => this.editStep(index));
+
+                    // Bottone elimina
+                    const btnDelete = document.createElement('button');
+                    btnDelete.className = 'step-btn step-btn-delete';
+                    btnDelete.innerHTML = '🗑️';
+                    btnDelete.title = 'Elimina';
+                    btnDelete.addEventListener('click', () => this.deleteStep(index));
+
+                    stepActions.appendChild(btnUp);
+                    stepActions.appendChild(btnDown);
+                    stepActions.appendChild(btnEdit);
+                    stepActions.appendChild(btnDelete);
+
+                    stepItem.appendChild(stepNumber);
+                    stepItem.appendChild(stepText);
+                    stepItem.appendChild(stepActions);
+
+                    // Drag & Drop events
+                    stepItem.addEventListener('dragstart', (e) => {
+                        this.draggedStepIndex = index;
+                        stepItem.classList.add('dragging');
+                    });
+
+                    stepItem.addEventListener('dragend', (e) => {
+                        stepItem.classList.remove('dragging');
+                        this.draggedStepIndex = null;
+                    });
+
+                    stepItem.addEventListener('dragover', (e) => {
+                        e.preventDefault();
+                        if (this.draggedStepIndex !== null && this.draggedStepIndex !== index) {
+                            stepItem.style.borderTop = '2px solid #3498db';
+                        }
+                    });
+
+                    stepItem.addEventListener('dragleave', (e) => {
+                        stepItem.style.borderTop = '';
+                    });
+
+                    stepItem.addEventListener('drop', (e) => {
+                        e.preventDefault();
+                        stepItem.style.borderTop = '';
+
+                        if (this.draggedStepIndex !== null && this.draggedStepIndex !== index) {
+                            this.reorderSteps(this.draggedStepIndex, index);
+                        }
+                    });
+
+                    container.appendChild(stepItem);
+                });
+            }
+
+            addStep() {
+                const input = document.getElementById('newStepInput');
+                const stepText = input.value.trim();
+
+                if (!stepText) {
+                    alert('Inserisci il testo dello step');
+                    return;
+                }
+
+                const tab = this.getCurrentTab();
+                tab.exerciseSteps.push(stepText);
+                input.value = '';
+
+                this.renderStepsList();
+                this.saveState();
+            }
+
+            moveStep(index, direction) {
+                const tab = this.getCurrentTab();
+                const newIndex = index + direction;
+
+                if (newIndex < 0 || newIndex >= tab.exerciseSteps.length) return;
+
+                const temp = tab.exerciseSteps[index];
+                tab.exerciseSteps[index] = tab.exerciseSteps[newIndex];
+                tab.exerciseSteps[newIndex] = temp;
+
+                this.renderStepsList();
+                this.saveState();
+            }
+
+            reorderSteps(fromIndex, toIndex) {
+                const tab = this.getCurrentTab();
+                const [movedStep] = tab.exerciseSteps.splice(fromIndex, 1);
+                tab.exerciseSteps.splice(toIndex, 0, movedStep);
+
+                this.renderStepsList();
+                this.saveState();
+            }
+
+            editStep(index) {
+                const tab = this.getCurrentTab();
+                const currentText = tab.exerciseSteps[index];
+                const newText = prompt('Modifica step:', currentText);
+
+                if (newText !== null && newText.trim() !== '') {
+                    tab.exerciseSteps[index] = newText.trim();
+                    this.renderStepsList();
+                    this.saveState();
+                }
+            }
+
+            deleteStep(index) {
+                if (!confirm('Eliminare questo step?')) return;
+
+                const tab = this.getCurrentTab();
+                tab.exerciseSteps.splice(index, 1);
+
+                this.renderStepsList();
+                this.saveState();
+            }
+
             addArrowEndpointControl(svg, arrow, type, position) {
                 const point = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                 point.setAttribute('cx', position.x);
@@ -2264,7 +2461,8 @@
                     currentFrame: 0,       // NUOVO
                     animationSpeed: 1000,  // NUOVO (ms per frame)
                     frames: [],
-                    currentFrameIndex: 0
+                    currentFrameIndex: 0,
+                    exerciseSteps: []
                 });
             }
 
@@ -3728,6 +3926,17 @@
                 document.getElementById('showAnimationControls').addEventListener('click', () => {
                     this.showAnimationControls();
                 });
+
+                document.getElementById('addStepBtn').addEventListener('click', () => this.addStep());
+
+                document.getElementById('newStepInput').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.addStep();
+                    }
+                });
+
+
+
 
             }
 
@@ -5882,11 +6091,10 @@
                 document.getElementById('workoutPeriodo').value = tab.periodo || 'GEN';
                 document.getElementById('workoutRuolo').value = tab.ruolo || 'GEN';
                 document.getElementById('workoutTipologia').value = tab.tipologia || 'GEN';
-                document.getElementById('workoutGenere').value = tab.genere || 'GEN';        // ✅ NUOVO
-                document.getElementById('workoutCategoria').value = tab.categoria || 'GEN';  // ✅ NUOVO
+                document.getElementById('workoutGenere').value = tab.genere || 'GEN';
+                document.getElementById('workoutCategoria').value = tab.categoria || 'GEN';
                 document.getElementById('workoutDescrizione').value = tab.descrizione || '';
                 document.getElementById('workoutAutore').value = tab.autore || this.currentUser;
-
 
                 document.getElementById('workoutDate').value = tab.date || new Date();
                 document.getElementById('workoutPlace').value = tab.place || "-";
@@ -5894,7 +6102,12 @@
                 document.getElementById('workoutSeries').value = tab.series || 1;
                 document.getElementById('workoutGroups').value = tab.groups || 1;
 
-                this.filterCategoriesByGenere(tab.genere || 'GEN'); // ✅ NUOVO
+                this.filterCategoriesByGenere(tab.genere || 'GEN');
+
+                // ✅ AGGIUNTO: Inizializza e renderizza gli steps
+                this.initExerciseSteps();
+                this.renderStepsList();
+
                 this.loadTabState();
             }
 
@@ -5984,13 +6197,13 @@
 
             saveSchema() {
                 const tab = this.getCurrentTab();
-                // Ferma tutte le animazioni prima di salvare
                 tab.objects.forEach(obj => {
                     if (obj.type === 'sprite' && obj.animationInterval) {
                         clearInterval(obj.animationInterval);
                         delete obj.animationInterval;
                     }
                 });
+
                 const data = {
                     title: tab.name || 'schema',
                     note: tab.descrizione || '',
@@ -6010,16 +6223,16 @@
                     bwMode: tab.bwMode,
                     zoom: tab.zoom,
                     freehands: Array.from(tab.freehands.entries()),
-                    frames: tab.frames.map(frame => ({ // ✅ AGGIUNTO
+                    frames: tab.frames.map(frame => ({
                         id: frame.id,
                         number: frame.number,
                         objects: Array.from(frame.objects.entries())
                     })),
-                    animationSpeed: tab.animationSpeed || 1000 // ✅ AGGIUNTO
+                    animationSpeed: tab.animationSpeed || 1000,
+                    exerciseSteps: tab.exerciseSteps || [] // ✅ AGGIUNTO
                 };
 
-                const blob = new Blob([JSON.stringify(data, null, 2)],
-                    { type: 'application/json' });
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
@@ -6105,6 +6318,11 @@
                 tab.nr = data.nr || 1;
                 tab.series = data.series || 1;
                 tab.groups = data.groups || 1;
+                tab.exerciseSteps = data.exerciseSteps || []; // ✅ AGGIUNTO
+
+                this.initExerciseSteps(); // ✅ AGGIUNTO
+                this.renderStepsList(); // ✅ AGGIUNTO
+
                 // ✅ AGGIUNTO: Carica i frames
                 if (data.frames) {
                     tab.frames = data.frames.map(frameData => ({
@@ -6367,25 +6585,34 @@
             </div>
         </div>
     </div>
-    <!-- Login Modal -->
+    <!-- Login Modal - Spike Edition -->
     <div id="loginModal" class="login-modal">
+        <div class="volley-bg"></div>
+        <div class="volley-ball"></div>
+
         <div class="login-content">
-            <h2>🔐 Accesso Editor Schemi</h2>
+            <h2>🏐 Accesso Editor Schemi Volley</h2>
             <form id="loginForm">
                 <div class="login-field">
-                    <label for="username">Username:</label>
-                    <input type="text" id="username" name="username" required autocomplete="username" value="admin">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required placeholder="Inserisci username"
+                        value="admin">
                 </div>
                 <div class="login-field">
-                    <label for="password">Password:</label>
-                    <input type="password" id="password" name="password" required autocomplete="current-password"
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required placeholder="Inserisci password"
                         value="admin123">
                 </div>
                 <div class="login-error" id="loginError">Username o password errati</div>
                 <button type="submit" class="login-button">Accedi</button>
             </form>
         </div>
+
+        <div class="login-footer">by <span class="spikecode">SpikeCode</span></div>
     </div>
+
+
+
 
     <!-- Aggiungi questa dialog FUORI da object-controls, prima della chiusura di </body> -->
     <div id="animationDialog">

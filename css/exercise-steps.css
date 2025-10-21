@@ -1,0 +1,130 @@
+/* 2. AGGIUNGI QUESTI STILI CSS (dopo gli altri stili) */
+.exercise-steps {
+    padding: 15px;
+    border-bottom: 2px solid #bdc3c7;
+}
+
+.exercise-steps h3 {
+    margin-bottom: 10px;
+    color: white;
+}
+
+.steps-controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.steps-controls input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.steps-controls button {
+    padding: 8px 12px;
+    background: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.steps-controls button:hover {
+    background: #229954;
+}
+
+.steps-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border-radius: 4px;
+}
+
+.step-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    background: white;
+    border-bottom: 1px solid #ecf0f1;
+    cursor: move;
+    transition: background 0.2s;
+}
+
+.step-item:hover {
+    background: #f8f9fa;
+}
+
+.step-item.dragging {
+    opacity: 0.5;
+    background: #e8f5e9;
+}
+
+.step-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    background: #3498db;
+    color: white;
+    border-radius: 50%;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.step-text {
+    flex: 1;
+    font-size: 13px;
+    color: #2c3e50;
+    word-break: break-word;
+}
+
+.step-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.step-btn {
+    padding: 4px 8px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px;
+    transition: all 0.2s;
+}
+
+.step-btn-up, .step-btn-down {
+    background: #95a5a6;
+    color: white;
+}
+
+.step-btn-up:hover, .step-btn-down:hover {
+    background: #7f8c8d;
+}
+
+.step-btn-edit {
+    background: #3498db;
+    color: white;
+}
+
+.step-btn-edit:hover {
+    background: #2980b9;
+}
+
+.step-btn-delete {
+    background: #e74c3c;
+    color: white;
+}
+
+.step-btn-delete:hover {
+    background: #c0392b;
+}
+
+.step-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

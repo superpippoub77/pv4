@@ -136,9 +136,8 @@
 }
 
 .workout-details h3 {
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     font-size: 18px;
-    border-bottom: 2px solid #34495e;
     padding-bottom: 10px;
 }
 
@@ -175,4 +174,19 @@
     min-height: 100px;
     resize: vertical;
     font-family: inherit;
+}
+
+.detail-row {
+    display: flex;
+    gap: 5px; /* spazio orizzontale tra le due colonne */
+}
+
+.detail-row .detail-field {
+    flex: 1; /* entrambe le colonne con larghezza uguale */
+}
+
+@media (max-width: 600px) {
+    .detail-row {
+        flex-direction: column;
+    }
 }
