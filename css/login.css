@@ -16,18 +16,54 @@
     position: absolute;
     width: 100%;
     height: 100%;
-    background: repeating-linear-gradient(to bottom,
-            rgba(255, 255, 255, 0.08) 0,
-            rgba(255, 255, 255, 0.08) 2px,
-            transparent 2px,
-            transparent 90px),
-        repeating-linear-gradient(to right,
-            rgba(255, 255, 255, 0.05) 0,
-            rgba(255, 255, 255, 0.05) 2px,
-            transparent 2px,
-            transparent 120px);
-    animation: moveLines 12s linear infinite;
-    opacity: 0.4;
+    /* Colore di sfondo base */
+    /* background-color: #f7d30a; */
+
+    /* Bordo Perimetrale */
+    border: 2px solid black;
+
+    /* ----------------------------------------------------------- */
+    /* UNIFICAZIONE: Disegno delle Linee Interne con background-image */
+    /* Le POSIZIONI sono definite in percentuale, lo SPESSORE è 2px fisso. */
+    /* ----------------------------------------------------------- */
+    background-image:
+        /* 1. Linea Centrale (Rete) - 50% della larghezza */
+        linear-gradient(to right,
+            transparent 0%,
+            /* Inizia la linea 1px prima del 50% */
+            transparent calc(50% - 1px),
+            black calc(50% - 1px),
+            /* Finisce la linea 1px dopo il 50% */
+            black calc(50% + 1px),
+            transparent calc(50% + 1px),
+            transparent 100%),
+
+        /* 2. Linea dei 3 Metri (Zona Sinistra) - 3m / 18m = 33.33% della larghezza */
+        linear-gradient(to right,
+            transparent 0%,
+            /* Inizia la linea 1px prima del 33.33% */
+            transparent calc(33.3333% - 1px),
+            black calc(33.3333% - 1px),
+            /* Finisce la linea 1px dopo il 33.33% */
+            black calc(33.3333% + 1px),
+            transparent calc(33.3333% + 1px),
+            transparent 100%),
+
+        /* 3. Linea dei 3 Metri (Zona Destra) - 15m / 18m = 66.67% della larghezza */
+        linear-gradient(to right,
+            transparent 0%,
+            /* Inizia la linea 1px prima del 66.67% */
+            transparent calc(66.6667% - 1px),
+            black calc(66.6667% - 1px),
+            /* Finisce la linea 1px dopo il 66.67% */
+            black calc(66.6667% + 1px),
+            transparent calc(66.6667% + 1px),
+            transparent 100%);
+
+    /* Configurazione Generale dello Sfondo */
+    background-size: 100% 100%;
+    background-position: center center;
+    background-repeat: no-repeat;
 }
 
 /* --- PALLONE DA PALLAVOLO --- */
