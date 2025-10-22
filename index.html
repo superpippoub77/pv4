@@ -7,7 +7,7 @@
 
     <!-- Titolo SEO ottimizzato -->
     <title>Volleyball Coach Pro W4 - Editor e Workout per Allenatori di Pallavolo</title>
-
+    <meta name="author" content="Filippo Morano">
     <!-- Meta descrizione SEO -->
     <meta name="description"
         content="Volleyball Coach Pro W4: il software professionale per allenatori di pallavolo. Crea schemi, programmi di workout e migliora le prestazioni della tua squadra.">
@@ -3351,8 +3351,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                         // Fallback con utenti di default se il file non esiste
                         console.warn('File users.json non trovato, uso utenti di default');
                         this.users = [
-                            { username: 'admin', password: 'admin123' },
-                            { username: 'coach', password: 'coach123' }
+                            { username: 'admin', password: '1234' },
+                            { username: 'coach', password: '1234' }
                         ];
                     } else {
                         const data = await response.json();
@@ -3362,8 +3362,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     console.error('Errore nel caricamento utenti:', error);
                     // Fallback con utenti di default
                     this.users = [
-                        { username: 'admin', password: 'admin123' },
-                        { username: 'coach', password: 'coach123' }
+                        { username: 'admin', password: '1234' },
+                        { username: 'coach', password: '1234' }
                     ];
                 }
 
@@ -6919,95 +6919,95 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             }
 
             // METODO AGGIORNATO PER SODDISFARE LA RICHIESTA DELL'UTENTE (Disegno affianco a Istruzioni)
-            exportWorkoutToPDF() {
-                // Raccoglie i dati del workout dagli input
-                const title = document.getElementById('schemaTitle')?.value || 'Allenamento senza Titolo';
-                const date = document.getElementById('workoutDate')?.value || new Date().toLocaleDateString('it-IT');
+            async exportWorkoutToPDF() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({
+                    orientation: 'p',
+                    unit: 'mm',
+                    format: 'a4'
+                });
 
-                const categorySelect = document.getElementById('workoutCategoria');
-                const category = categorySelect?.options[categorySelect.selectedIndex].text || '-';
+                const margin = 15;
+                const lineSpacing = 6;
+                const fontTitleSize = 14;
+                const fontSubtitleSize = 12;
+                const fontNormalSize = 10;
+                const colWidth = 85;
+                const drawingX = margin;
+                const stepsX = margin + colWidth + 5;
+                const pageHeight = doc.internal.pageSize.getHeight();
+                const maxY = pageHeight - 20; // Margine inferiore
 
-                const genreSelect = document.getElementById('workoutGenere');
-                const genre = genreSelect?.options[genreSelect.selectedIndex].text || '-';
+                let yOffset = 15;
+                let isFirstTab = true;
 
-                const description = document.getElementById('schemaDescription')?.value || '';
-                const series = document.getElementById('seriesInput')?.value || '-';
-                const repetitions = document.getElementById('repetitionsInput')?.value || '-';
-                const rest = document.getElementById('restInput')?.value || '-';
+                // Cicla su tutti i tab
+                for (const [tabId, tab] of this.tabs) {
+                    // Salva il tab corrente e passa a quello da esportare
+                    const previousActiveTab = this.activeTabId;
+                    if (this.activeTabId !== tabId) {
+                        this.switchToTab(tabId);
+                        // Attendi che il rendering sia completato
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
 
-                const stepsList = document.getElementById('stepsList');
-                let stepsText = '';
-                if (stepsList) {
-                    // Prende il testo degli step, usando l'attributo data-step-text o il contenuto di fallback
-                    Array.from(stepsList.children).forEach((li, index) => {
-                        stepsText += `${index + 1}. ${li.dataset.stepText || li.textContent}\n`;
-                    });
-                } else {
-                    stepsText = 'Nessuno step definito.';
-                }
+                    // Calcola altezza necessaria minima per questo tab (approssimativa)
+                    let estimatedHeight = lineSpacing * 3; // Titolo + intestazioni
 
-                // Prepara la cattura del disegno
-                const canvasElement = document.getElementById('canvas');
-                const drawingWatermark = document.getElementById('watermark');
-                const sidebar = document.getElementById('sidebar');
+                    if (tab.descrizione && tab.descrizione.trim() !== "") {
+                        const descLines = doc.splitTextToSize(tab.descrizione, 180);
+                        estimatedHeight += (descLines.length * lineSpacing) + lineSpacing * 2;
+                    }
 
-                // 1. Prepara l'area di disegno per la cattura (nasconde elementi UI)
-                const originalSidebarDisplay = sidebar ? sidebar.style.display : 'none';
-                const originalWatermarkDisplay = drawingWatermark ? drawingWatermark.style.display : 'none';
-                if (sidebar) sidebar.style.display = 'none'; // Nasconde la sidebar
-                if (drawingWatermark) drawingWatermark.style.display = 'none'; // Nasconde la filigrana
+                    estimatedHeight += 80; // Spazio minimo per disegno e step
 
-                // 2. Cattura il disegno con html2canvas
-                html2canvas(canvasElement, {
-                    scale: 3, // Aumenta la risoluzione per la stampa
-                    useCORS: true,
-                    backgroundColor: canvasElement.style.backgroundColor || '#fff',
-                    logging: false
-                }).then(canvasImage => {
-                    // 3. Ripristina gli elementi UI
-                    if (sidebar) sidebar.style.display = originalSidebarDisplay;
-                    if (drawingWatermark) drawingWatermark.style.display = originalWatermarkDisplay;
+                    // Se non c'è spazio, aggiungi nuova pagina
+                    if (!isFirstTab && yOffset + estimatedHeight > maxY) {
+                        doc.addPage();
+                        yOffset = margin;
+                    }
 
-                    // 4. Inizializza jsPDF
-                    const {
-                        jsPDF
-                    } = window.jspdf;
-                    const doc = new jsPDF({
-                        orientation: 'p',
-                        unit: 'mm',
-                        format: 'a4'
-                    });
+                    // Aggiungi separatore tra tab (tranne il primo)
+                    // if (!isFirstTab) {
+                    //     doc.setLineWidth(0.5);
+                    //     doc.setDrawColor(180, 180, 180);
+                    //     doc.line(margin, yOffset, 195, yOffset);
+                    //     yOffset += lineSpacing;
+                    // }
+                    // isFirstTab = false;
 
-                    let yOffset = 15;
-                    const margin = 15;
-                    const lineSpacing = 6;
-                    const fontTitleSize = 18;
-                    const fontSubtitleSize = 12;
-                    const fontNormalSize = 10;
-                    const colWidth = 85; // 85mm per colonna
-                    const drawingX = margin; // 15mm
-                    const stepsX = margin + colWidth + 5; // 105mm (15 + 85 + 5mm di gap)
-
-                    // --- Titolo Principale ---
+                    // --- Titolo Schema ---
                     doc.setFontSize(fontTitleSize);
-                    doc.text(title.toUpperCase(), margin, yOffset);
+                    doc.text(tab.name.toUpperCase(), margin, yOffset);
                     yOffset += lineSpacing * 1.5;
 
-                    // --- Dettagli Allenamento (Data, Categoria, Genere) ---
-                    // doc.setFontSize(fontSubtitleSize);
-                    // doc.text('Dettagli Generali', margin, yOffset);
-                    // doc.setLineWidth(0.5);
-                    // doc.line(margin, yOffset + 1, 195, yOffset + 1); // Sottolinea
-                    // yOffset += lineSpacing;
-
+                    // --- Dettagli Allenamento ---
                     doc.setFontSize(fontNormalSize);
+                    const date = tab.date ? new Date(tab.date).toLocaleDateString('it-IT') : new Date().toLocaleDateString('it-IT');
+
+                    // Ottieni i testi leggibili dai select
+                    const categoryOptions = document.getElementById('workoutCategoria').options;
+                    const category = Array.from(categoryOptions).find(opt => opt.value === tab.categoria)?.text || tab.categoria || '-';
+
+                    const genreOptions = document.getElementById('workoutGenere').options;
+                    const genre = Array.from(genreOptions).find(opt => opt.value === tab.genere)?.text || tab.genere || '-';
+
                     doc.text(`Data: ${date}`, margin, yOffset);
                     doc.text(`Categoria: ${category}`, margin + 50, yOffset);
                     doc.text(`Genere: ${genre}`, margin + 110, yOffset);
                     yOffset += lineSpacing * 1.5;
 
-                    if (description !== "") {
-                        // --- Descrizione ---
+                    // --- Descrizione ---
+                    if (tab.descrizione && tab.descrizione.trim() !== "") {
+                        // Verifica se c'è spazio per la descrizione
+                        const descLines = doc.splitTextToSize(tab.descrizione, 180);
+                        const descHeight = (descLines.length * lineSpacing) + lineSpacing * 2;
+
+                        if (yOffset + descHeight > maxY) {
+                            doc.addPage();
+                            yOffset = margin;
+                        }
+
                         doc.setFontSize(fontSubtitleSize);
                         doc.text('Descrizione/Obiettivo', margin, yOffset);
                         doc.setLineWidth(0.5);
@@ -7015,84 +7015,143 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                         yOffset += lineSpacing;
 
                         doc.setFontSize(fontNormalSize);
-                        const descriptionLines = doc.splitTextToSize(description, 180);
-                        doc.text(descriptionLines, margin, yOffset);
-                        yOffset += descriptionLines.length * lineSpacing + lineSpacing;
+                        doc.text(descLines, margin, yOffset);
+                        yOffset += descLines.length * lineSpacing + lineSpacing;
                     }
 
-                    // ------------------------------------------------------------------
-                    // INIZIO SEZIONE DUE COLONNE (Disegno affianco a Istruzioni)
-                    // ------------------------------------------------------------------
+                    // --- Intestazioni Colonne ---
+                    if (yOffset + lineSpacing * 2 > maxY) {
+                        doc.addPage();
+                        yOffset = margin;
+                    }
 
                     doc.setFontSize(fontSubtitleSize);
                     doc.text('Disegno Esercizio', drawingX, yOffset);
                     doc.text('Istruzioni / Step', stepsX, yOffset);
                     doc.setLineWidth(0.5);
-                    doc.line(drawingX, yOffset + 1, drawingX + colWidth, yOffset + 1); // Linea per Disegno
-                    doc.line(stepsX, yOffset + 1, stepsX + colWidth, yOffset + 1); // Linea per Istruzioni
+                    doc.line(drawingX, yOffset + 1, drawingX + colWidth, yOffset + 1);
+                    doc.line(stepsX, yOffset + 1, stepsX + colWidth, yOffset + 1);
                     yOffset += lineSpacing;
 
                     const startYSection = yOffset;
-                    let currentStepsY = startYSection;
 
-                    // --- Intestazione Disegno (Serie/Ripetizioni/Recupero) - Richiesta Utente ---
+                    // --- Dettagli Serie/Ripetizioni/Recupero ---
                     doc.setFontSize(fontNormalSize);
+                    const series = tab.series || '-';
+                    const repetitions = tab.nr || '-';
+                    const rest = '-';
                     doc.text(`Serie: ${series} / Ripetizioni: ${repetitions} / Recupero: ${rest}`, drawingX, yOffset);
                     yOffset += lineSpacing;
 
-                    // --- Preparazione Disegno (Colonna Sinistra) ---
-                    const imgWidth = colWidth; // 85mm
-                    const imgHeight = (canvasImage.height * imgWidth) / canvasImage.width;
-                    const maxImgHeight = 150; // Massima altezza ragionevole per l'immagine
+                    // --- Cattura e Inserimento Disegno ---
+                    const canvasElement = document.getElementById('canvas');
+                    const sidebar = document.getElementById('sidebar');
+                    const rightSidebar = document.getElementById('rightSidebar');
+                    const watermark = document.getElementById('watermark');
 
-                    // Se l'immagine è troppo grande, la si adatta all'altezza massima mantenendo le proporzioni
-                    const finalImgHeight = imgHeight > maxImgHeight ? maxImgHeight : imgHeight;
+                    // Nascondi elementi UI
+                    const originalSidebarDisplay = sidebar ? sidebar.style.display : 'none';
+                    const originalRightSidebarDisplay = rightSidebar ? rightSidebar.style.display : 'none';
+                    const originalWatermarkDisplay = watermark ? watermark.style.display : 'none';
 
-                    // Aggiungi immagine
-                    doc.addImage(canvasImage.toDataURL('image/jpeg', 0.9), 'JPEG', drawingX, yOffset, imgWidth, finalImgHeight);
+                    if (sidebar) sidebar.style.display = 'none';
+                    if (rightSidebar) rightSidebar.style.display = 'none';
+                    if (watermark) watermark.style.display = 'none';
 
-                    const nextDrawingY = yOffset + finalImgHeight + lineSpacing; // Fine della colonna disegno
+                    try {
+                        // 1. Recupera le dimensioni attuali dell'elemento
+                        const originalWidth = canvasElement.offsetWidth; // o clientWidth
+                        const originalHeight = canvasElement.offsetHeight; // o clientHeight
 
-                    // --- Preparazione Steps (Colonna Destra) ---
-                    currentStepsY = startYSection + lineSpacing; // Inizia sotto il titolo Steps
+                        // 2. Usa le dimensioni nelle opzioni di html2canvas
+                        const canvasImage = await html2canvas(canvasElement, {
+                            scale: 3,
+                            useCORS: true,
+                            backgroundColor: tab.bwMode ? null : '#ffffff',
+                            logging: false,
+                            // AGGIUNGI queste due proprietà per forzare html2canvas a usare
+                            // le dimensioni originali dell'elemento prima di applicare la scala 3.
+                            width: originalWidth,
+                            height: originalHeight,
+                        });
 
-                    doc.setFontSize(fontNormalSize);
-                    const stepsLines = doc.splitTextToSize(stepsText, colWidth); // Split text to fit the 85mm width
+                        const imgWidth = colWidth;
+                        const imgHeight = (canvasImage.height * imgWidth) / canvasImage.width;
+                        const maxImgHeight = 150;
+                        const finalImgHeight = imgHeight > maxImgHeight ? maxImgHeight : imgHeight;
 
-                    // Aggiungi gli step gestendo il flusso e le pagine
-                    stepsLines.forEach(line => {
-                        if (currentStepsY > 280) { // Check per fine pagina A4
+                        // Verifica se c'è spazio per l'immagine
+                        if (yOffset + finalImgHeight > maxY) {
                             doc.addPage();
-                            currentStepsY = margin;
+                            yOffset = margin;
+                            // Ripeti intestazioni su nuova pagina
+                            doc.setFontSize(fontSubtitleSize);
+                            doc.text('Disegno Esercizio', drawingX, yOffset);
+                            doc.text('Istruzioni / Step', stepsX, yOffset);
+                            doc.setLineWidth(0.5);
+                            doc.line(drawingX, yOffset + 1, drawingX + colWidth, yOffset + 1);
+                            doc.line(stepsX, yOffset + 1, stepsX + colWidth, yOffset + 1);
+                            yOffset += lineSpacing;
                         }
 
-                        doc.text(line, stepsX, currentStepsY);
-                        currentStepsY += lineSpacing;
-                    });
+                        doc.addImage(canvasImage.toDataURL('image/jpeg', 0.9), 'JPEG', drawingX, yOffset, imgWidth, finalImgHeight);
 
-                    // ------------------------------------------------------------------
-                    // FINE SEZIONE DUE COLONNE
-                    // ------------------------------------------------------------------
+                        const nextDrawingY = yOffset + finalImgHeight + lineSpacing;
 
-                    // Setta il prossimo offset Y al punto più basso delle due colonne, più un margine.
-                    yOffset = Math.max(nextDrawingY, currentStepsY) + lineSpacing;
+                        // --- Steps ---
+                        let currentStepsY = startYSection + lineSpacing;
 
-                    // --- Footer / Watermark (Opzionale) ---
-                    // Se necessario, aggiungi qui il codice per un footer/watermark in fondo alla pagina, gestendo yOffset.
+                        const stepsArray = tab.exerciseSteps || [];
+                        let stepsText = '';
+                        stepsArray.forEach((step, index) => {
+                            stepsText += `${index + 1}. ${step}\n`;
+                        });
 
+                        if (stepsText === '') {
+                            stepsText = 'Nessuno step definito.';
+                        }
 
-                    // 5. Salva il PDF
-                    doc.save(`${title.replace(/\s+/g, '_')}_${date.replace(/\//g, '-')}.pdf`);
+                        doc.setFontSize(fontNormalSize);
+                        const stepsLines = doc.splitTextToSize(stepsText, colWidth);
 
-                    alert('Esportazione PDF completata!');
+                        stepsLines.forEach(line => {
+                            if (currentStepsY > maxY) {
+                                doc.addPage();
+                                currentStepsY = margin;
+                            }
+                            doc.text(line, stepsX, currentStepsY);
+                            currentStepsY += lineSpacing;
+                        });
 
-                }).catch(error => {
-                    // Ripristina anche in caso di errore
-                    if (sidebar) sidebar.style.display = originalSidebarDisplay;
-                    if (drawingWatermark) drawingWatermark.style.display = originalWatermarkDisplay;
-                    console.error('Errore durante la creazione del PDF:', error);
-                    alert('Errore durante l\'esportazione del PDF. Controlla la console per i dettagli.');
-                });
+                        // Aggiorna yOffset al punto più basso tra disegno e steps
+                        yOffset = Math.max(nextDrawingY, currentStepsY) + lineSpacing * 2;
+
+                    } finally {
+                        // Ripristina elementi UI
+                        if (sidebar) sidebar.style.display = originalSidebarDisplay;
+                        if (rightSidebar) rightSidebar.style.display = originalRightSidebarDisplay;
+                        if (watermark) watermark.style.display = originalWatermarkDisplay;
+                    }
+                }
+
+                // --- Footer / Watermark (ultima pagina) ---
+                const totalPages = doc.internal.getNumberOfPages();
+                doc.setPage(totalPages);
+                const pageWidth = doc.internal.pageSize.getWidth();
+                doc.setFontSize(12);
+                doc.setTextColor(150, 150, 150);
+                doc.text("spikecode", pageWidth - 60, pageHeight - 20);
+
+                // Salva il PDF
+                const now = new Date();
+                const timestamp = now.getFullYear() +
+                    String(now.getMonth() + 1).padStart(2, '0') +
+                    String(now.getDate()).padStart(2, '0') + "_" +
+                    String(now.getHours()).padStart(2, '0') +
+                    String(now.getMinutes()).padStart(2, '0');
+
+                doc.save(`Allenamento_${timestamp}.pdf`);
+                alert('Esportazione PDF completata con successo!');
             }
         }
 
@@ -7162,13 +7221,16 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             </div>
         </div>
     </div>
-    <!-- Login Modal - Spike Edition -->
+    <!-- Login Modal - VolleyProW4 Edition -->
     <div id="loginModal" class="login-modal">
         <div class="volley-bg"></div>
         <div class="volley-ball"></div>
 
         <div class="login-content">
-            <h2>🏐 Accesso Editor Schemi Volley</h2>
+            <h2 class="login-title">🏐 Benvenuto in <span class="highlight">VolleyPro<span class="w4">W4</span></span>
+            </h2>
+            <h3 class="login-subtitle">Editor Professionale per Allenatori di Pallavolo</h3>
+
             <form id="loginForm">
                 <div class="login-field">
                     <label for="username">Username</label>
@@ -7178,14 +7240,15 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 <div class="login-field">
                     <label for="password">Password</label>
                     <input type="password" id="password" name="password" required placeholder="Inserisci password"
-                        value="admin123">
+                        value="1234">
                 </div>
                 <div class="login-error" id="loginError">Username o password errati</div>
                 <button type="submit" class="login-button">Accedi</button>
             </form>
         </div>
 
-        <div class="login-footer">by <span class="spikecode">SpikeCode</span></div>
+        <!-- <div class="login-footer">by <a href="https://www.filippomorano.com" target="_blank"><span
+                    class="spikecode">SpikeCode</span></a></div> -->
     </div>
 
 
@@ -7260,7 +7323,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             </div>
         </div>
     </div>
-    <div id="watermark">spikecode</div>
+    <div id="watermark">VBProW4 by <a href="https://www.filippomorano.com" target="_blank">spikecode</>
+    </div>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             setDefaultDate('workoutDate');
