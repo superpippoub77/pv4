@@ -1,14 +1,22 @@
-/* --- SFONDO CAMPO DA VOLLEY --- */
+/* --- SFONDO CAMPO DA VOLLEY ARANCIONE --- */
 .login-modal {
     display: flex;
     align-items: center;
     justify-content: center;
     position: fixed;
     inset: 0;
-    background: radial-gradient(circle at center, rgba(5, 10, 20, 0.95), rgba(0, 0, 0, 0.9));
+    /* Sfondo gradiente radiale: più scuro ai bordi, chiaro al centro */
+    background: radial-gradient(
+        circle at center, 
+        rgba(255, 238, 0, 0.6) 0%,   /* centro chiaro */
+        rgba(255, 166, 0, 0.72) 70%, /* transizione graduale */
+        rgba(200, 100, 0, 0.8) 100% /* bordi più scuri */
+    );
+
     overflow: hidden;
     z-index: 10000;
     animation: fadeIn 1s ease-in-out;
+    border:20px solid black;
 }
 
 /* Linee tipo campo */
@@ -20,7 +28,7 @@
     /* background-color: #f7d30a; */
 
     /* Bordo Perimetrale */
-    border: 2px solid black;
+    border: 4px solid white;
 
     /* ----------------------------------------------------------- */
     /* UNIFICAZIONE: Disegno delle Linee Interne con background-image */
@@ -31,33 +39,33 @@
         linear-gradient(to right,
             transparent 0%,
             /* Inizia la linea 1px prima del 50% */
-            transparent calc(50% - 1px),
-            black calc(50% - 1px),
+            transparent calc(50% - 2px),
+            white calc(50% - 2px),
             /* Finisce la linea 1px dopo il 50% */
-            black calc(50% + 1px),
-            transparent calc(50% + 1px),
+            white calc(50% + 2px),
+            transparent calc(50% + 2px),
             transparent 100%),
 
         /* 2. Linea dei 3 Metri (Zona Sinistra) - 3m / 18m = 33.33% della larghezza */
         linear-gradient(to right,
             transparent 0%,
             /* Inizia la linea 1px prima del 33.33% */
-            transparent calc(33.3333% - 1px),
-            black calc(33.3333% - 1px),
+            transparent calc(33.3333% - 2px),
+            white calc(33.3333% - 2px),
             /* Finisce la linea 1px dopo il 33.33% */
-            black calc(33.3333% + 1px),
-            transparent calc(33.3333% + 1px),
+            white calc(33.3333% + 2px),
+            transparent calc(33.3333% + 2px),
             transparent 100%),
 
         /* 3. Linea dei 3 Metri (Zona Destra) - 15m / 18m = 66.67% della larghezza */
         linear-gradient(to right,
             transparent 0%,
             /* Inizia la linea 1px prima del 66.67% */
-            transparent calc(66.6667% - 1px),
-            black calc(66.6667% - 1px),
+            transparent calc(66.6667% - 2px),
+            white calc(66.6667% - 21px),
             /* Finisce la linea 1px dopo il 66.67% */
-            black calc(66.6667% + 1px),
-            transparent calc(66.6667% + 1px),
+            white calc(66.6667% + 2px),
+            transparent calc(66.6667% + 2px),
             transparent 100%);
 
     /* Configurazione Generale dello Sfondo */
@@ -501,15 +509,7 @@
     animation: glowTitle 3s ease-in-out infinite;
 }
 
-.login-subtitle {
-    -webkit-text-stroke: 1px #000;
-    /* bordo nero sottile */
-    font-size: 15px;
-    color: #dcdcdc;
-    text-align: center;
-    margin-bottom: 25px;
-    letter-spacing: 0.3px;
-}
+
 
 /* --- EVIDENZIAZIONE "VolleyPro" --- */
 .highlight {

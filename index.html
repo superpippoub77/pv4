@@ -770,114 +770,72 @@
  * Contenitore principale del campo di pallavolo
  * ORIENTAMENTO: Orizzontale (18m di larghezza x 9m di altezza)
  */
-        /*
- * Contenitore principale del campo di pallavolo
- * L'orientamento è orizzontale (18m di larghezza, 9m di altezza).
- * Posizioni calcolate sulla LARGHEZZA (18m): 50% per la rete, 33.33% e 66.67% per i 3 metri.
- */
         .court-object {
             width: 100%;
-            /* Larghezza dinamica */
             height: 100%;
-            /* Altezza dinamica */
-
             position: absolute;
             box-sizing: border-box;
             cursor: grab;
             overflow: hidden;
 
-            /* Colore di sfondo base */
-            /* background-color: #f7d30a; */
+            /* 🔹 Nessun colore di sfondo (campo trasparente) */
+            background-color: transparent;
 
-            /* Bordo Perimetrale */
+            /* 🔹 Bordo perimetrale visibile */
             border: 2px solid black;
 
-            /* ----------------------------------------------------------- */
-            /* UNIFICAZIONE: Disegno delle Linee Interne con background-image */
-            /* Le POSIZIONI sono definite in percentuale, lo SPESSORE è 2px fisso. */
-            /* ----------------------------------------------------------- */
+            /* 🔹 Disegno delle linee interne */
             background-image:
-                /* 1. Linea Centrale (Rete) - 50% della larghezza */
-                linear-gradient(to right,
-                    transparent 0%,
-                    /* Inizia la linea 1px prima del 50% */
-                    transparent calc(50% - 1px),
-                    black calc(50% - 1px),
-                    /* Finisce la linea 1px dopo il 50% */
-                    black calc(50% + 1px),
-                    transparent calc(50% + 1px),
-                    transparent 100%),
+                /* Linea dei 3 metri superiore (zona d'attacco) */
+                linear-gradient(to bottom, black 0%, black 100%),
+                /* Rete centrale */
+                linear-gradient(to bottom, black 0%, black 100%),
+                /* Linea dei 3 metri inferiore (zona d'attacco) */
+                linear-gradient(to bottom, black 0%, black 100%);
 
-                /* 2. Linea dei 3 Metri (Zona Sinistra) - 3m / 18m = 33.33% della larghezza */
-                linear-gradient(to right,
-                    transparent 0%,
-                    /* Inizia la linea 1px prima del 33.33% */
-                    transparent calc(33.3333% - 1px),
-                    black calc(33.3333% - 1px),
-                    /* Finisce la linea 1px dopo il 33.33% */
-                    black calc(33.3333% + 1px),
-                    transparent calc(33.3333% + 1px),
-                    transparent 100%),
+            /* 🔹 Posizionamento delle linee orizzontali */
+            background-position:
+                /* Posizione (x, y) per la linea dei 3m superiore */
+                0% 33.3333%,
+                /* Posizione (x, y) per la linea centrale */
+                0% 50%,
+                /* Posizione (x, y) per la linea dei 3m inferiore */
+                0% 66.6667%;
 
-                /* 3. Linea dei 3 Metri (Zona Destra) - 15m / 18m = 66.67% della larghezza */
-                linear-gradient(to right,
-                    transparent 0%,
-                    /* Inizia la linea 1px prima del 66.67% */
-                    transparent calc(66.6667% - 1px),
-                    black calc(66.6667% - 1px),
-                    /* Finisce la linea 1px dopo il 66.67% */
-                    black calc(66.6667% + 1px),
-                    transparent calc(66.6667% + 1px),
-                    transparent 100%);
+            /* 🔹 Dimensione delle linee (100% di larghezza, 2px di altezza) */
+            background-size: 100% 2px;
 
-            /* Configurazione Generale dello Sfondo */
-            background-size: 100% 100%;
-            background-position: center center;
             background-repeat: no-repeat;
         }
 
-        /*
- * Contenitore principale del campo di pallavolo
- * L'orientamento è orizzontale (18m di larghezza, 9m di altezza).
- * Posizioni calcolate sulla LARGHEZZA (18m): 50% per la rete, 33.33% e 66.67% per i 3 metri.
- */
+
         .half-court-object {
-            width: 100%;
-            /* Larghezza dinamica */
-            height: 100%;
-            /* Altezza dinamica */
-
             position: absolute;
+            width: 100%;
+            height: 100%;
             box-sizing: border-box;
             cursor: grab;
             overflow: hidden;
-
-            /* Colore di sfondo base */
-            /* background-color: #f7d30a; */
-
-            /* Bordo Perimetrale */
+            background-color: white;
+            /* Campo trasparente o bianco */
             border: 2px solid black;
-
-            /* ----------------------------------------------------------- */
-            /* UNIFICAZIONE: Disegno delle Linee Interne con background-image */
-            /* Le POSIZIONI sono definite in percentuale, lo SPESSORE è 2px fisso. */
-            /* ----------------------------------------------------------- */
-            background-image:
-                /* 2. Linea dei 3 Metri (Zona Sinistra) - 3m / 18m = 33.33% della larghezza */
-                linear-gradient(to right,
-                    transparent 0%,
-                    /* Inizia la linea 1px prima del 33.33% */
-                    transparent calc(33.3333% - 1px),
-                    black calc(33.3333% - 1px),
-                    /* Finisce la linea 1px dopo il 33.33% */
-                    black calc(33.3333% + 1px),
-                    transparent calc(33.3333% + 1px),
-                    transparent 100%);
-            /* Configurazione Generale dello Sfondo */
-            background-size: 100% 100%;
-            background-position: center center;
-            background-repeat: no-repeat;
+            /* Perimetro visibile */
         }
+
+        /* Linea orizzontale dei 3 metri */
+        .half-court-object::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            /* Spessore della linea */
+            background: black;
+            top: 33.33%;
+            /* Posizione a 3 metri su un campo di 9 metri */
+        }
+
+
 
 
 
@@ -1204,12 +1162,9 @@
                     <button id="dashedToggle">⚡ Tratteggio</button>
                     <button id="toggleLabels">🔢 Etichette</button>
                     <button id="renumberObjects">🔄 Rinumera</button>
-                </div>
-                <div class="toolbar-group file-controls">
                     <button id="exportPdfBtn" title="Esporta l'allenamento completo in un PDF strutturato.">📄 Esporta
                         PDF</button>
                 </div>
-
                 <div class="toolbar-group">
                     <button id="zoomOut">➖</button>
                     <div class="zoom-display" id="zoomDisplay">100%</div>
@@ -1451,7 +1406,7 @@
                 </div>
             </div>
             <div class="workout-details">
-                <h3>📋 Dettagli Allenamento</h3>
+                <h3>📋 Dettagli Esercizio</h3>
                 <div class="detail-row">
                     <div class="detail-field">
                         <label for="workoutDate">Data:</label>
@@ -4389,16 +4344,19 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     data = JSON.parse(rawData);
                 } catch (error) {
                     console.error('Errore nel parsing dei dati drag:', error);
-                    // Se il parsing fallisce, potrebbe essere un file trascinato dal desktop
                     return;
                 }
 
                 const rect = e.currentTarget.getBoundingClientRect();
-                const x = (e.clientX - rect.left) / this.getCurrentTab().zoom;
-                const y = (e.clientY - rect.top) / this.getCurrentTab().zoom;
+                let x = (e.clientX - rect.left) / this.getCurrentTab().zoom;
+                let y = (e.clientY - rect.top) / this.getCurrentTab().zoom;
 
-                // Per le icone, passa anche l'attributo icon
-                // ✅ AGGIUNTO: Gestione sprite
+                // Se il drag ha un offset salvato (es. mouse preso al centro dell'oggetto)
+                if (data.offsetX !== undefined && data.offsetY !== undefined) {
+                    x -= data.offsetX / this.getCurrentTab().zoom;
+                    y -= data.offsetY / this.getCurrentTab().zoom;
+                }
+
                 if (data.type === 'sprite') {
                     const spriteData = {
                         sheet: data.spriteSheet,
@@ -4417,6 +4375,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     this.addObject(data.type, x, y, data.color, data.text);
                 }
             }
+
             rotateGroup(degrees) {
                 if (this.selectedObjects.size <= 1) return;
 
@@ -4496,8 +4455,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     'goal': { width: 60, height: 40 },
                     'net': { width: 300, height: 40 },
                     'text': { width: 100, height: 30 },
-                    'court': { width: 900, height: 450 },
-                    'half-court': { width: 450, height: 450 },
+                    'court': { width: 250, height: 500 },
+                    'half-court': { width: 250, height: 250 },
                     'icon': { width: 40, height: 40 },
                     'mat': { width: 120, height: 40 },
                     'local-svg': { width: 60, height: 60 },  // ✅ AGGIUNTO dimensione default più grande
@@ -6777,15 +6736,93 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
             async exportSchema() {
                 const canvas = document.getElementById('canvas');
-                const originalTransform = canvas.style.transform;
-                canvas.style.transform = 'scale(1)';
+                const tab = this.getCurrentTab();
+
+                // Nascondi elementi UI
+                const sidebar = document.getElementById('sidebar');
+                const rightSidebar = document.getElementById('rightSidebar');
+                const watermark = document.getElementById('watermark');
+
+                const originalSidebarDisplay = sidebar ? sidebar.style.display : 'none';
+                const originalRightSidebarDisplay = rightSidebar ? rightSidebar.style.display : 'none';
+                const originalWatermarkDisplay = watermark ? watermark.style.display : 'none';
+
+                if (sidebar) sidebar.style.display = 'none';
+                if (rightSidebar) rightSidebar.style.display = 'none';
+                if (watermark) watermark.style.display = 'none';
+
+                // Nascondi tutti i controlli interattivi
+                const interactiveElements = canvas.querySelectorAll(
+                    '.resize-handle, .rotate-handle, .connection-point, .control-point, .endpoint-control, .group-rotation-center, .object-label'
+                );
+                const hiddenElements = [];
+                interactiveElements.forEach(el => {
+                    if (el.style.display !== 'none') {
+                        hiddenElements.push(el);
+                        el.style.display = 'none';
+                    }
+                });
 
                 try {
+                    // Prepara il canvas per l'export
+                    const originalState = this.prepareCanvasForExport();
+
+                    // Attendi che il browser applichi tutte le modifiche
+                    await new Promise(resolve => setTimeout(resolve, 300));
+
+                    // Dimensioni fisse per evitare problemi di scala
+                    const exportWidth = 1600;
+                    const exportHeight = 1200;
+
                     const exportCanvas = await html2canvas(canvas, {
-                        backgroundColor: this.getCurrentTab().bwMode ? null : '#ffffff',
                         scale: 2,
-                        useCORS: true
+                        useCORS: true,
+                        allowTaint: true,
+                        backgroundColor: tab.bwMode ? null : '#ffffff',
+                        logging: false,
+                        width: exportWidth,
+                        height: exportHeight,
+                        windowWidth: exportWidth,
+                        windowHeight: exportHeight,
+                        scrollX: 0,
+                        scrollY: 0,
+                        foreignObjectRendering: false,
+                        onclone: (clonedDoc) => {
+                            const clonedCanvas = clonedDoc.getElementById('canvas');
+                            if (clonedCanvas) {
+                                clonedCanvas.style.transform = 'none';
+                                clonedCanvas.style.position = 'relative';
+                                clonedCanvas.style.overflow = 'visible';
+
+                                // Forza SVG con posizioni assolute
+                                const svgs = clonedCanvas.querySelectorAll('.arrow-svg');
+                                svgs.forEach(svg => {
+                                    svg.style.position = 'absolute';
+                                    svg.style.left = '0';
+                                    svg.style.top = '0';
+                                });
+
+                                // Assicura che tutti gli oggetti abbiano posizioni corrette
+                                const objects = clonedCanvas.querySelectorAll('.canvas-object');
+                                objects.forEach(obj => {
+                                    const objData = tab.objects.get(obj.id);
+                                    if (objData) {
+                                        obj.style.left = objData.x + 'px';
+                                        obj.style.top = objData.y + 'px';
+                                        obj.style.transform = `rotate(${objData.rotation}deg)`;
+                                    }
+                                });
+                            }
+                        }
                     });
+
+                    // Ripristina lo stato originale del canvas
+                    canvas.style.transform = originalState.transform;
+                    canvas.style.overflow = originalState.overflow;
+                    canvas.style.position = originalState.position;
+
+                    // Re-renderizza normalmente
+                    tab.arrows.forEach(arrow => this.renderArrow(arrow));
 
                     const format = prompt('Formato di esportazione (png/jpg/pdf):', 'png');
                     const title = document.getElementById('schemaTitle').value || 'schema';
@@ -6804,38 +6841,57 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                         default:
                             this.downloadCanvas(exportCanvas, `${title}.png`, 'image/png');
                     }
+                } catch (error) {
+                    console.error('Errore durante l\'esportazione:', error);
+                    alert('Errore durante l\'esportazione: ' + error.message);
                 } finally {
-                    canvas.style.transform = originalTransform;
+                    // Ripristina tutti gli elementi nascosti
+                    hiddenElements.forEach(el => el.style.display = '');
+
+                    if (sidebar) sidebar.style.display = originalSidebarDisplay;
+                    if (rightSidebar) rightSidebar.style.display = originalRightSidebarDisplay;
+                    if (watermark) watermark.style.display = originalWatermarkDisplay;
                 }
             }
 
+            // Metodo downloadCanvas rimane invariato
             downloadCanvas(canvas, filename, mimeType) {
                 const link = document.createElement('a');
                 link.download = filename;
                 link.href = canvas.toDataURL(mimeType);
                 link.click();
+
             }
 
+            // Metodo exportToPDF aggiornato per utilizzare il canvas già esportato correttamente
             exportToPDF(exportCanvas, title) {
                 const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF('l', 'pt', 'a4'); // landscape, punti, A4
+                const pdf = new jsPDF('l', 'pt', 'a4');
                 const imgData = exportCanvas.toDataURL('image/png');
 
                 const pageWidth = pdf.internal.pageSize.getWidth();
                 const pageHeight = pdf.internal.pageSize.getHeight();
 
-                // Aggiungi immagine schema
-                const ratio = Math.min(pageWidth / exportCanvas.width, pageHeight / exportCanvas.height);
+                // Margini
+                const margin = 40;
+                const availableWidth = pageWidth - (margin * 2);
+                const availableHeight = pageHeight - (margin * 2);
+
+                // Calcola dimensioni mantenendo proporzioni
+                const ratio = Math.min(availableWidth / exportCanvas.width, availableHeight / exportCanvas.height);
                 const imgWidth = exportCanvas.width * ratio;
                 const imgHeight = exportCanvas.height * ratio;
+
+                // Centra l'immagine
                 const x = (pageWidth - imgWidth) / 2;
                 const y = (pageHeight - imgHeight) / 2;
+
                 pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
 
-                // 👉 Aggiungi il watermark in basso a destra
+                // Watermark in basso a destra
                 pdf.setFontSize(12);
-                pdf.setTextColor(150, 150, 150); // grigio chiaro
-                pdf.text("spikecode", pageWidth - 60, pageHeight - 20);
+                pdf.setTextColor(150, 150, 150);
+                pdf.text("spikecode", pageWidth - 80, pageHeight - 20);
 
                 pdf.save(`${title}.pdf`);
             }
@@ -6917,6 +6973,68 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 this.updateBWMode();
                 this.updateZoom();
             }
+            // MODIFICA 1: Aggiungi questo metodo helper per preparare il canvas per l'export
+            prepareCanvasForExport() {
+                const canvas = document.getElementById('canvas');
+                const tab = this.getCurrentTab();
+
+                // Salva lo stato corrente
+                const originalState = {
+                    transform: canvas.style.transform,
+                    overflow: canvas.style.overflow,
+                    position: canvas.style.position
+                };
+
+                // Resetta le trasformazioni per l'export
+                canvas.style.transform = 'none';
+                canvas.style.overflow = 'visible';
+                canvas.style.position = 'relative';
+
+                // Forza il re-render di tutti gli oggetti e frecce con posizioni assolute
+                tab.objects.forEach(obj => {
+                    const element = document.getElementById(obj.id);
+                    if (element) {
+                        element.style.left = obj.x + 'px';
+                        element.style.top = obj.y + 'px';
+                        element.style.transform = `rotate(${obj.rotation}deg)`;
+                    }
+                });
+
+                // Re-renderizza tutte le frecce
+                tab.arrows.forEach(arrow => {
+                    this.renderArrowForExport(arrow);
+                });
+
+                return originalState;
+            }
+
+            // MODIFICA 2: Aggiungi questo metodo per renderizzare le frecce in modo statico per l'export
+            renderArrowForExport(arrow) {
+                let fromPos = this.getArrowPoint(arrow.from);
+                let toPos = this.getArrowPoint(arrow.to);
+
+                let svg = document.getElementById(arrow.id);
+                if (!svg) return;
+
+                // Usa viewBox assoluto invece di relativo
+                const minX = 0;
+                const minY = 0;
+                const maxX = Math.max(document.getElementById('canvas').offsetWidth, 2000);
+                const maxY = Math.max(document.getElementById('canvas').offsetHeight, 2000);
+
+                svg.style.left = '0px';
+                svg.style.top = '0px';
+                svg.style.width = maxX + 'px';
+                svg.style.height = maxY + 'px';
+                svg.setAttribute('viewBox', `${minX} ${minY} ${maxX} ${maxY}`);
+
+                // Aggiorna il path con coordinate assolute
+                const path = svg.querySelector('.arrow-path');
+                if (path) {
+                    const pathData = this.generateArrowPath(fromPos, toPos, arrow.type, arrow.controlPoint);
+                    path.setAttribute('d', pathData);
+                }
+            }
 
             // METODO AGGIORNATO PER SODDISFARE LA RICHIESTA DELL'UTENTE (Disegno affianco a Istruzioni)
             async exportWorkoutToPDF() {
@@ -6936,56 +7054,39 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 const drawingX = margin;
                 const stepsX = margin + colWidth + 5;
                 const pageHeight = doc.internal.pageSize.getHeight();
-                const maxY = pageHeight - 20; // Margine inferiore
+                const maxY = pageHeight - 20;
 
                 let yOffset = 15;
                 let isFirstTab = true;
 
-                // Cicla su tutti i tab
                 for (const [tabId, tab] of this.tabs) {
-                    // Salva il tab corrente e passa a quello da esportare
                     const previousActiveTab = this.activeTabId;
                     if (this.activeTabId !== tabId) {
                         this.switchToTab(tabId);
-                        // Attendi che il rendering sia completato
                         await new Promise(resolve => setTimeout(resolve, 100));
                     }
 
-                    // Calcola altezza necessaria minima per questo tab (approssimativa)
-                    let estimatedHeight = lineSpacing * 3; // Titolo + intestazioni
+                    let estimatedHeight = lineSpacing * 3;
 
                     if (tab.descrizione && tab.descrizione.trim() !== "") {
                         const descLines = doc.splitTextToSize(tab.descrizione, 180);
                         estimatedHeight += (descLines.length * lineSpacing) + lineSpacing * 2;
                     }
 
-                    estimatedHeight += 80; // Spazio minimo per disegno e step
+                    estimatedHeight += 80;
 
-                    // Se non c'è spazio, aggiungi nuova pagina
                     if (!isFirstTab && yOffset + estimatedHeight > maxY) {
                         doc.addPage();
                         yOffset = margin;
                     }
 
-                    // Aggiungi separatore tra tab (tranne il primo)
-                    // if (!isFirstTab) {
-                    //     doc.setLineWidth(0.5);
-                    //     doc.setDrawColor(180, 180, 180);
-                    //     doc.line(margin, yOffset, 195, yOffset);
-                    //     yOffset += lineSpacing;
-                    // }
-                    // isFirstTab = false;
-
-                    // --- Titolo Schema ---
                     doc.setFontSize(fontTitleSize);
                     doc.text(tab.name.toUpperCase(), margin, yOffset);
                     yOffset += lineSpacing * 1.5;
 
-                    // --- Dettagli Allenamento ---
                     doc.setFontSize(fontNormalSize);
                     const date = tab.date ? new Date(tab.date).toLocaleDateString('it-IT') : new Date().toLocaleDateString('it-IT');
 
-                    // Ottieni i testi leggibili dai select
                     const categoryOptions = document.getElementById('workoutCategoria').options;
                     const category = Array.from(categoryOptions).find(opt => opt.value === tab.categoria)?.text || tab.categoria || '-';
 
@@ -6997,9 +7098,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     doc.text(`Genere: ${genre}`, margin + 110, yOffset);
                     yOffset += lineSpacing * 1.5;
 
-                    // --- Descrizione ---
                     if (tab.descrizione && tab.descrizione.trim() !== "") {
-                        // Verifica se c'è spazio per la descrizione
                         const descLines = doc.splitTextToSize(tab.descrizione, 180);
                         const descHeight = (descLines.length * lineSpacing) + lineSpacing * 2;
 
@@ -7019,7 +7118,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                         yOffset += descLines.length * lineSpacing + lineSpacing;
                     }
 
-                    // --- Intestazioni Colonne ---
                     if (yOffset + lineSpacing * 2 > maxY) {
                         doc.addPage();
                         yOffset = margin;
@@ -7035,7 +7133,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
                     const startYSection = yOffset;
 
-                    // --- Dettagli Serie/Ripetizioni/Recupero ---
                     doc.setFontSize(fontNormalSize);
                     const series = tab.series || '-';
                     const repetitions = tab.nr || '-';
@@ -7043,13 +7140,12 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     doc.text(`Serie: ${series} / Ripetizioni: ${repetitions} / Recupero: ${rest}`, drawingX, yOffset);
                     yOffset += lineSpacing;
 
-                    // --- Cattura e Inserimento Disegno ---
+                    // *** SEZIONE MODIFICATA PER IL CANVAS ***
                     const canvasElement = document.getElementById('canvas');
                     const sidebar = document.getElementById('sidebar');
                     const rightSidebar = document.getElementById('rightSidebar');
                     const watermark = document.getElementById('watermark');
 
-                    // Nascondi elementi UI
                     const originalSidebarDisplay = sidebar ? sidebar.style.display : 'none';
                     const originalRightSidebarDisplay = rightSidebar ? rightSidebar.style.display : 'none';
                     const originalWatermarkDisplay = watermark ? watermark.style.display : 'none';
@@ -7058,33 +7154,76 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     if (rightSidebar) rightSidebar.style.display = 'none';
                     if (watermark) watermark.style.display = 'none';
 
-                    try {
-                        // 1. Recupera le dimensioni attuali dell'elemento
-                        const originalWidth = canvasElement.offsetWidth; // o clientWidth
-                        const originalHeight = canvasElement.offsetHeight; // o clientHeight
+                    // Nascondi tutti i controlli interattivi
+                    const interactiveElements = canvasElement.querySelectorAll(
+                        '.resize-handle, .rotate-handle, .connection-point, .control-point, .endpoint-control, .group-rotation-center, .object-label'
+                    );
+                    const hiddenElements = [];
+                    interactiveElements.forEach(el => {
+                        if (el.style.display !== 'none') {
+                            hiddenElements.push(el);
+                            el.style.display = 'none';
+                        }
+                    });
 
-                        // 2. Usa le dimensioni nelle opzioni di html2canvas
+                    try {
+                        // Prepara il canvas per l'export
+                        const originalState = this.prepareCanvasForExport();
+
+                        // Attendi che il browser applichi tutte le modifiche
+                        await new Promise(resolve => setTimeout(resolve, 300));
+
+                        // Dimensioni fisse per evitare problemi di scala
+                        const exportWidth = 1200;
+                        const exportHeight = 800;
+
                         const canvasImage = await html2canvas(canvasElement, {
-                            scale: 3,
+                            scale: 2,
                             useCORS: true,
+                            allowTaint: true,
                             backgroundColor: tab.bwMode ? null : '#ffffff',
                             logging: false,
-                            // AGGIUNGI queste due proprietà per forzare html2canvas a usare
-                            // le dimensioni originali dell'elemento prima di applicare la scala 3.
-                            width: originalWidth,
-                            height: originalHeight,
+                            width: exportWidth,
+                            height: exportHeight,
+                            windowWidth: exportWidth,
+                            windowHeight: exportHeight,
+                            scrollX: 0,
+                            scrollY: 0,
+                            foreignObjectRendering: false, // Disabilita per maggiore compatibilità
+                            onclone: (clonedDoc) => {
+                                // Manipola il DOM clonato per assicurare posizioni corrette
+                                const clonedCanvas = clonedDoc.getElementById('canvas');
+                                if (clonedCanvas) {
+                                    clonedCanvas.style.transform = 'none';
+                                    clonedCanvas.style.position = 'relative';
+
+                                    // Forza SVG con posizioni assolute
+                                    const svgs = clonedCanvas.querySelectorAll('.arrow-svg');
+                                    svgs.forEach(svg => {
+                                        svg.style.position = 'absolute';
+                                        svg.style.left = '0';
+                                        svg.style.top = '0';
+                                    });
+                                }
+                            }
                         });
+
+                        // Ripristina lo stato originale del canvas
+                        canvasElement.style.transform = originalState.transform;
+                        canvasElement.style.overflow = originalState.overflow;
+                        canvasElement.style.position = originalState.position;
+
+                        // Re-renderizza normalmente
+                        tab.arrows.forEach(arrow => this.renderArrow(arrow));
 
                         const imgWidth = colWidth;
                         const imgHeight = (canvasImage.height * imgWidth) / canvasImage.width;
                         const maxImgHeight = 150;
                         const finalImgHeight = imgHeight > maxImgHeight ? maxImgHeight : imgHeight;
 
-                        // Verifica se c'è spazio per l'immagine
                         if (yOffset + finalImgHeight > maxY) {
                             doc.addPage();
                             yOffset = margin;
-                            // Ripeti intestazioni su nuova pagina
                             doc.setFontSize(fontSubtitleSize);
                             doc.text('Disegno Esercizio', drawingX, yOffset);
                             doc.text('Istruzioni / Step', stepsX, yOffset);
@@ -7098,7 +7237,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
                         const nextDrawingY = yOffset + finalImgHeight + lineSpacing;
 
-                        // --- Steps ---
                         let currentStepsY = startYSection + lineSpacing;
 
                         const stepsArray = tab.exerciseSteps || [];
@@ -7123,18 +7261,18 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                             currentStepsY += lineSpacing;
                         });
 
-                        // Aggiorna yOffset al punto più basso tra disegno e steps
                         yOffset = Math.max(nextDrawingY, currentStepsY) + lineSpacing * 2;
 
                     } finally {
-                        // Ripristina elementi UI
+                        // Ripristina tutti gli elementi nascosti
+                        hiddenElements.forEach(el => el.style.display = '');
+
                         if (sidebar) sidebar.style.display = originalSidebarDisplay;
                         if (rightSidebar) rightSidebar.style.display = originalRightSidebarDisplay;
                         if (watermark) watermark.style.display = originalWatermarkDisplay;
                     }
                 }
 
-                // --- Footer / Watermark (ultima pagina) ---
                 const totalPages = doc.internal.getNumberOfPages();
                 doc.setPage(totalPages);
                 const pageWidth = doc.internal.pageSize.getWidth();
@@ -7142,7 +7280,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 doc.setTextColor(150, 150, 150);
                 doc.text("spikecode", pageWidth - 60, pageHeight - 20);
 
-                // Salva il PDF
                 const now = new Date();
                 const timestamp = now.getFullYear() +
                     String(now.getMonth() + 1).padStart(2, '0') +
@@ -7227,7 +7364,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         <div class="volley-ball"></div>
 
         <div class="login-content">
-            <h2 class="login-title">🏐 Benvenuto in <span class="highlight">VolleyPro<span class="w4">W4</span></span>
+            <h2 class="login-title">Benvenuto in <span class="highlight">VolleyPro<span class="w4">W4</span></span>
             </h2>
             <h3 class="login-subtitle">Editor Professionale per Allenatori di Pallavolo</h3>
 
@@ -7246,9 +7383,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 <button type="submit" class="login-button">Accedi</button>
             </form>
         </div>
-
-        <!-- <div class="login-footer">by <a href="https://www.filippomorano.com" target="_blank"><span
-                    class="spikecode">SpikeCode</span></a></div> -->
     </div>
 
 
