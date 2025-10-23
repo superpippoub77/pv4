@@ -1155,7 +1155,8 @@
                     <button id="renumberObjects">🔄 Rinumera</button>
                     <button id="exportPdfBtn" title="Esporta l'allenamento completo in un PDF strutturato.">📄 Esporta
                         PDF</button>
-                        <button id="freehandModeBtn" title="Esporta l'allenamento completo in un PDF strutturato.">✏️ Disegno</button>
+                    <button id="freehandModeBtn" title="Esporta l'allenamento completo in un PDF strutturato.">✏️
+                        Disegno</button>
                 </div>
                 <div class="toolbar-group">
                     <button id="zoomOut">➖</button>
@@ -6140,18 +6141,34 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 const tab = this.getCurrentTab();
                 const copiedObjects = [];
                 const copiedArrows = [];
+                const copiedFreehands = []; // ✅ AGGIUNTO
 
                 try {
                     this.selectedObjects.forEach((pos, id) => {
-                        const obj = tab.objects.get(id);
-                        if (obj) {
-                            const newObj = { ...obj };
-                            copiedObjects.push(newObj);
+                        // ✅ AGGIUNTO: Gestione freehands
+                        if (pos.type === 'freehand') {
+                            const freehand = tab.freehands.get(id);
+                            if (freehand) {
+                                const newFreehand = {
+                                    ...freehand,
+                                    points: freehand.points.map(p => ({ ...p })) // Deep copy dei punti
+                                };
+                                copiedFreehands.push(newFreehand);
+                            }
+                        } else {
+                            // Oggetti normali
+                            const obj = tab.objects.get(id);
+                            if (obj) {
+                                const newObj = { ...obj };
+                                copiedObjects.push(newObj);
+                            }
                         }
                     });
 
+                    // Copia frecce che collegano oggetti selezionati
                     tab.arrows.forEach(arrow => {
-                        if (this.selectedObjects.has(arrow.from.objectId) && this.selectedObjects.has(arrow.to.objectId)) {
+                        if (this.selectedObjects.has(arrow.from.objectId) &&
+                            this.selectedObjects.has(arrow.to.objectId)) {
                             const newArrow = { ...arrow };
                             if (newArrow.from) newArrow.from = { ...newArrow.from };
                             if (newArrow.to) newArrow.to = { ...newArrow.to };
@@ -6160,12 +6177,20 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                         }
                     });
 
-                    this.clipboard = { objects: copiedObjects, arrows: copiedArrows };
+                    this.clipboard = {
+                        objects: copiedObjects,
+                        arrows: copiedArrows,
+                        freehands: copiedFreehands // ✅ AGGIUNTO
+                    };
+
+                    console.log(`✅ Copiati: ${copiedObjects.length} oggetti, ${copiedArrows.length} frecce, ${copiedFreehands.length} disegni`);
+
                 } catch (error) {
                     console.error('Errore durante la copia degli oggetti:', error);
-                    alert('Errore durante la copia. Potrebbe esserci un problema con gli oggetti selezionati. Controlla la console per i dettagli.');
+                    alert('Errore durante la copia. Controlla la console per i dettagli.');
                 }
             }
+
 
             cutSelected() {
                 this.copySelected();
@@ -6181,26 +6206,93 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 const pastedObjectMap = new Map();
                 const offset = 20;
 
+                // Incolla oggetti normali
                 this.clipboard.objects.forEach(obj => {
                     const oldId = obj.id;
-                    const newObj = this.addObject(obj.type, obj.x + offset, obj.y + offset, obj.color, obj.text, obj.rotation, obj.dashed);
+                    const newObj = this.addObject(
+                        obj.type,
+                        obj.x + offset,
+                        obj.y + offset,
+                        obj.color,
+                        obj.text,
+                        obj.rotation,
+                        obj.dashed,
+                        obj.icon,
+                        obj.src,
+                        obj.spriteData
+                    );
                     pastedObjectMap.set(oldId, newObj.id);
                     this.selectedObjects.set(newObj.id, { x: newObj.x, y: newObj.y });
-                    document.getElementById(newObj.id).classList.add('selected');
+                    const element = document.getElementById(newObj.id);
+                    if (element) {
+                        element.classList.add('selected', 'group-selected');
+                    }
                 });
 
+                // ✅ AGGIUNTO: Incolla disegni a mano libera
+                if (this.clipboard.freehands) {
+                    this.clipboard.freehands.forEach(freehand => {
+                        const newPoints = freehand.points.map(p => ({
+                            x: p.x + offset,
+                            y: p.y + offset
+                        }));
+
+                        const newFreehand = this.createFreehand(
+                            newPoints,
+                            freehand.color,
+                            freehand.thickness
+                        );
+
+                        newFreehand.opacity = freehand.opacity || 1;
+
+                        this.selectedObjects.set(newFreehand.id, {
+                            type: 'freehand',
+                            points: [...newPoints]
+                        });
+
+                        const svg = document.getElementById(newFreehand.id);
+                        if (svg) {
+                            const path = svg.querySelector('.freehand-path');
+                            if (path) path.classList.add('selected');
+                        }
+                    });
+                }
+
+                // Incolla frecce
                 this.clipboard.arrows.forEach(arrow => {
                     const newFrom = { ...arrow.from };
                     const newTo = { ...arrow.to };
 
-                    if (newFrom.objectId) newFrom.objectId = pastedObjectMap.get(newFrom.objectId);
-                    if (newTo.objectId) newTo.objectId = pastedObjectMap.get(newTo.objectId);
+                    if (newFrom.objectId) {
+                        newFrom.objectId = pastedObjectMap.get(newFrom.objectId);
+                    } else if (newFrom.x !== undefined) {
+                        newFrom.x += offset;
+                        newFrom.y += offset;
+                    }
 
-                    this.createArrow(newFrom, newTo, arrow.type, arrow.dashed, arrow.color, arrow.thickness);
+                    if (newTo.objectId) {
+                        newTo.objectId = pastedObjectMap.get(newTo.objectId);
+                    } else if (newTo.x !== undefined) {
+                        newTo.x += offset;
+                        newTo.y += offset;
+                    }
+
+                    // Solo se entrambi gli endpoint sono validi
+                    if ((newFrom.objectId || (newFrom.x !== undefined)) &&
+                        (newTo.objectId || (newTo.x !== undefined))) {
+                        this.createArrow(newFrom, newTo, arrow.type, arrow.dashed, arrow.color, arrow.thickness);
+                    }
                 });
+
+                // Mostra il centro di rotazione del gruppo se necessario
+                if (this.selectedObjects.size > 1) {
+                    this.showGroupRotationCenter();
+                }
 
                 this.saveState();
                 this.updateObjectControls();
+
+                console.log(`✅ Incollati: ${this.clipboard.objects.length} oggetti, ${this.clipboard.arrows.length} frecce, ${this.clipboard.freehands?.length || 0} disegni`);
             }
 
             changeZoom(delta) {
@@ -6757,12 +6849,21 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                                 clonedCanvas.style.position = 'relative';
                                 clonedCanvas.style.overflow = 'visible';
 
-                                // Forza SVG con posizioni assolute
+                                // Forza SVG con posizioni assolute per frecce
                                 const svgs = clonedCanvas.querySelectorAll('.arrow-svg');
                                 svgs.forEach(svg => {
                                     svg.style.position = 'absolute';
                                     svg.style.left = '0';
                                     svg.style.top = '0';
+                                });
+
+                                // ✅ AGGIUNTO: Forza SVG con posizioni assolute per freehands
+                                const freehandSvgs = clonedCanvas.querySelectorAll('.freehand-svg');
+                                freehandSvgs.forEach(svg => {
+                                    svg.style.position = 'absolute';
+                                    svg.style.left = '0';
+                                    svg.style.top = '0';
+                                    svg.style.pointerEvents = 'none';
                                 });
 
                                 // Assicura che tutti gli oggetti abbiano posizioni corrette
@@ -6786,6 +6887,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
                     // Re-renderizza normalmente
                     tab.arrows.forEach(arrow => this.renderArrow(arrow));
+                    // ✅ AGGIUNTO: Re-renderizza i freehands normalmente
+                    tab.freehands.forEach(freehand => this.renderFreehand(freehand));
 
                     const format = prompt('Formato di esportazione (png/jpg/pdf):', 'png');
                     const title = document.getElementById('schemaTitle').value || 'schema';
@@ -6877,7 +6980,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                             break;
                         case 'a':
                             e.preventDefault();
-                            this.selectAll();
+                            this.selectAll(); // ✅ Già presente, ora seleziona anche i freehands
                             break;
                         case 'z':
                             e.preventDefault();
@@ -6919,14 +7022,37 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     }
                 }
             }
-
             selectAll() {
                 this.deselectAll();
                 const tab = this.getCurrentTab();
+
+                // Seleziona tutti gli oggetti
                 tab.objects.forEach((obj, id) => {
                     this.selectedObjects.set(id, { x: obj.x, y: obj.y });
-                    document.getElementById(id).classList.add('selected');
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.classList.add('selected', 'group-selected');
+                    }
                 });
+
+                // ✅ AGGIUNTO: Seleziona anche tutti i disegni a mano libera
+                tab.freehands.forEach((freehand, id) => {
+                    this.selectedObjects.set(id, {
+                        type: 'freehand',
+                        points: [...freehand.points] // Copia i punti
+                    });
+                    const svg = document.getElementById(id);
+                    if (svg) {
+                        const path = svg.querySelector('.freehand-path');
+                        if (path) path.classList.add('selected');
+                    }
+                });
+
+                // Mostra il centro di rotazione del gruppo se ci sono più oggetti
+                if (this.selectedObjects.size > 1) {
+                    this.showGroupRotationCenter();
+                }
+
                 this.updateObjectControls();
             }
 
@@ -6967,7 +7093,35 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     this.renderArrowForExport(arrow);
                 });
 
+                // ✅ AGGIUNTO: Re-renderizza tutti i disegni a mano libera
+                tab.freehands.forEach(freehand => {
+                    this.renderFreehandForExport(freehand);
+                });
+
                 return originalState;
+            }
+            renderFreehandForExport(freehand) {
+                let svg = document.getElementById(freehand.id);
+                if (!svg) return;
+
+                // Usa viewBox assoluto invece di relativo
+                const minX = 0;
+                const minY = 0;
+                const maxX = Math.max(document.getElementById('canvas').offsetWidth, 2000);
+                const maxY = Math.max(document.getElementById('canvas').offsetHeight, 2000);
+
+                svg.style.left = '0px';
+                svg.style.top = '0px';
+                svg.style.width = maxX + 'px';
+                svg.style.height = maxY + 'px';
+                svg.setAttribute('viewBox', `${minX} ${minY} ${maxX} ${maxY}`);
+
+                // Aggiorna il path con coordinate assolute
+                const path = svg.querySelector('.freehand-path');
+                if (path) {
+                    const pathData = this.pointsToPath(freehand.points);
+                    path.setAttribute('d', pathData);
+                }
             }
 
             renderArrowForExport(arrow) {
