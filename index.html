@@ -285,11 +285,6 @@
             border-color: black !important;
         }
 
-        /* 3. Regola per le Linee Interne del Campo (se sono create con background-image) */
-        /* Se le linee interne del campo sono disegnate con linear-gradient (background-image), */
-        /* il filtro dovrebbe gestirle. Se non appaiono in nero, devi invertire il colore di sfondo */
-        /* del .court-object e lasciare il background-image intatto, o modificarlo con l'aiuto di JS. */
-        /* Se il background del campo è bianco, le linee nere risalteranno. */
 
         /* Se hai elementi player-object o altri con bordo, assicurati che siano coperti: */
         .canvas.bw-mode .player-object,
@@ -624,7 +619,6 @@
             text-align: center;
         }
 
-        /* Aggiungi/modifica queste regole CSS */
         .control-point {
             opacity: 0;
             transition: opacity 0.2s;
@@ -1067,10 +1061,7 @@
                     </div>
                 </div>
             </div>
-            <div class="component-item" id="freehandModeBtn">
-                <div class="component-icon">✏️</div>
-                <div>Disegno</div>
-            </div>
+
             <div class="component-category">
                 <h3 class="accordion-header">🖼️ Immagini SVG Locali</h3>
                 <div class="accordion-content">
@@ -1164,6 +1155,7 @@
                     <button id="renumberObjects">🔄 Rinumera</button>
                     <button id="exportPdfBtn" title="Esporta l'allenamento completo in un PDF strutturato.">📄 Esporta
                         PDF</button>
+                        <button id="freehandModeBtn" title="Esporta l'allenamento completo in un PDF strutturato.">✏️ Disegno</button>
                 </div>
                 <div class="toolbar-group">
                     <button id="zoomOut">➖</button>
@@ -1767,7 +1759,6 @@
                 label.style.cursor = 'pointer';
                 label.title = 'Doppio click per modificare';
 
-                // ✅ AGGIUNTO: Doppio click per edit inline
                 label.addEventListener('dblclick', (e) => {
                     e.stopPropagation();
                     this.editObjectNumberInline(element, object);
@@ -2250,7 +2241,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 });
             }
 
-            // Modifica il metodo showAnimationControls esistente
             showAnimationControls() {
                 const dialog = document.getElementById('animationDialog');
 
@@ -2513,7 +2503,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                         this.applyFrame(index);
                     });
 
-                    // ✅ DRAG & DROP CORRETTO
                     frameItem.addEventListener('dragstart', (e) => {
                         e.dataTransfer.effectAllowed = 'move';
                         e.dataTransfer.setData('text/plain', index.toString());
@@ -2556,7 +2545,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     container.appendChild(frameItem);
                 });
             }
-            // ✅ NUOVO METODO: Aggiorna il frame corrente quando modifichi un oggetto
             updateCurrentFrame() {
                 const tab = this.getCurrentTab();
                 if (!tab.frames || tab.frames.length === 0) return;
@@ -2772,11 +2760,11 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     series: 1,
                     freehands: new Map(),
                     nextFreehandId: 1,
-                    animations: new Map(), // NUOVO
-                    nextAnimationId: 1,    // NUOVO
-                    isPlaying: false,      // NUOVO
-                    currentFrame: 0,       // NUOVO
-                    animationSpeed: 1000,  // NUOVO (ms per frame)
+                    animations: new Map(),
+                    nextAnimationId: 1,
+                    isPlaying: false,
+                    currentFrame: 0,
+                    animationSpeed: 1000,
                     frames: [],
                     currentFrameIndex: 0,
                     exerciseSteps: []
@@ -2880,8 +2868,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     alert('Dimensioni frame aggiornate. Nota: verifica che corrispondano alla tua sprite sheet!');
                 }
             }
-            // Aggiungere questa funzione al prototipo della classe SchemaEditor
-            // (o direttamente come metodo all'interno della definizione della classe)
             snapObjectsToGrid(gridSize = 20) {
                 // Seleziona il contenitore del canvas
                 const canvas = document.getElementById('canvas');
@@ -3078,7 +3064,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     points: [...points],
                     color: color,
                     thickness: thickness,
-                    opacity: 1, // AGGIUNTO
+                    opacity: 1,
                     zIndex: this.maxZIndex++
                 };
 
@@ -3150,7 +3136,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 path.style.opacity = freehand.opacity || 1;
                 path.style.zIndex = freehand.zIndex || 1;
 
-                // ✅ Event listeners
                 path.addEventListener('mousedown', (e) => {
                     e.stopPropagation();
                     this.selectFreehand(freehand.id);
@@ -3232,8 +3217,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     document.getElementById('freehandColor').value = freehand.color;
                     document.getElementById('freehandThickness').value = freehand.thickness;
                     document.getElementById('freehandThicknessValue').textContent = freehand.thickness;
-                    document.getElementById('freehandOpacity').value = freehand.opacity || 1; // AGGIUNTO
-                    document.getElementById('freehandOpacityValue').textContent = (freehand.opacity || 1).toFixed(2); // AGGIUNTO
+                    document.getElementById('freehandOpacity').value = freehand.opacity || 1;
+                    document.getElementById('freehandOpacityValue').textContent = (freehand.opacity || 1).toFixed(2);
 
                     document.getElementById('objectInfo').textContent = 'Disegno selezionato';
                     document.getElementById('objectControls').style.display = 'none';
@@ -3446,8 +3431,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                         periodo: tab.periodo || 'GEN',
                         ruolo: tab.ruolo || 'GEN',
                         tipologia: tab.tipologia || 'GEN',
-                        genere: tab.genere || 'GEN',        // ✅ NUOVO
-                        categoria: tab.categoria || 'GEN',  // ✅ NUOVO
+                        genere: tab.genere || 'GEN',
+                        categoria: tab.categoria || 'GEN',
                         descrizione: tab.descrizione || '',
                         autore: tab.autore || this.currentUser,
                         place: tab.place || "",
@@ -3527,8 +3512,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                             tab.periodo = tabData.periodo || 'GEN';
                             tab.ruolo = tabData.ruolo || 'GEN';
                             tab.tipologia = tabData.tipologia || 'GEN';
-                            tab.genere = tabData.genere || 'GEN';        // ✅ NUOVO
-                            tab.categoria = tabData.categoria || 'GEN';  // ✅ NUOVO
+                            tab.genere = tabData.genere || 'GEN';
+                            tab.categoria = tabData.categoria || 'GEN';
                             tab.descrizione = tabData.descrizione || '';
                             tab.autore = tabData.autore || 'unknown';
 
@@ -3824,7 +3809,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                                 text: item.dataset.text || '',
                                 icon: item.dataset.icon || null,
                                 src: item.dataset.src || null,
-                                // ✅ AGGIUNTO: Dati sprite
                                 spriteSheet: item.dataset.spriteSheet || null,
                                 spriteCols: parseInt(item.dataset.spriteCols) || 1,
                                 spriteRows: parseInt(item.dataset.spriteRows) || 1,
@@ -3866,7 +3850,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     }
                 });
 
-                // NUOVO: Aggiungi il drag & drop per i tab
                 this.initTabDragDrop();
 
                 document.querySelector('.add-tab').addEventListener('click', () => this.addNewTab());
@@ -4060,7 +4043,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 document.getElementById('workoutDescrizione').addEventListener('input', (e) => {
                     this.getCurrentTab().descrizione = e.target.value;
                 });
-                // ✅ NUOVI EVENT LISTENERS
                 document.getElementById('workoutGenere').addEventListener('change', (e) => {
                     this.getCurrentTab().genere = e.target.value;
                     this.filterCategoriesByGenere(e.target.value); // Filtra le categorie
@@ -4176,7 +4158,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     }
                 });
 
-                // AGGIUNGI QUESTO LISTENER PER IL NUOVO PULSANTE
                 const snapButton = document.getElementById('snapToGridBtn');
                 if (snapButton) {
                     snapButton.addEventListener('click', () => {
@@ -4195,7 +4176,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     }
                 });
 
-                // ✅ AGGIUNTI: Event listeners per controlli sprite
                 document.getElementById('spriteCurrentFrame').addEventListener('change', (e) => {
                     this.changeSpriteFrame(parseInt(e.target.value));
                 });
@@ -4437,7 +4417,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     spriteData: spriteData,
                     animations: [],
                     currentAnimationFrame: 0,
-                    objectNumber: objectNumber  // ✅ AGGIUNTO
+                    objectNumber: objectNumber
                 };
 
                 tab.objects.set(id, object);
@@ -4459,8 +4439,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     'half-court': { width: 250, height: 250 },
                     'icon': { width: 40, height: 40 },
                     'mat': { width: 120, height: 40 },
-                    'local-svg': { width: 60, height: 60 },  // ✅ AGGIUNTO dimensione default più grande
-                    'sprite': { width: 64, height: 64 }  // ✅ AGGIUNTO
+                    'local-svg': { width: 60, height: 60 },
+                    'sprite': { width: 64, height: 64 }
                 };
                 return sizes[type] || { width: 40, height: 40 };
             }
@@ -4478,7 +4458,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     document.getElementById('canvas').appendChild(element);
                 }
 
-                // ✅ IMPORTANTE: Rimuovi vecchi listener prima di aggiungerne di nuovi
                 // Clona l'elemento per rimuovere tutti gli event listener
                 const newElement = element.cloneNode(false);
                 element.parentNode.replaceChild(newElement, element);
@@ -4500,9 +4479,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 this.resizeContent(element, object.width, object.height, object.type);
                 this.addControlHandles(element);
                 this.addConnectionPoints(element);
-                // ✅ AGGIUNTO: Etichetta numerica
                 this.addObjectLabel(element, object);
-                // ✅ Aggiungi context menu
                 element.addEventListener('contextmenu', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -4512,13 +4489,11 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     this.showContextMenu(e, object.id, 'object');
                 });
 
-                // ✅ Aggiungi double click
                 element.addEventListener('dblclick', (e) => {
                     e.stopPropagation();
                     this.startInlineEdit(object.id);
                 });
 
-                // ✅ Previeni drag
                 element.setAttribute('draggable', false);
                 element.addEventListener('dragstart', (e) => e.preventDefault());
             }
@@ -4556,7 +4531,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             createObjectContent(object) {
                 const content = document.createElement('div');
                 content.className = object.type + '-object';
-                // ✅ AGGIUNTO: Gestione sprite
                 if (object.type === 'sprite' && object.spriteData) {
                     const sprite = object.spriteData;
                     const frameX = (sprite.frame % sprite.cols) * sprite.frameWidth;
@@ -4660,7 +4634,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             resizeContent(element, width, height, type) {
                 const content = element.querySelector(`.${type}-object`);
                 if (!content) return;
-                // ✅ AGGIUNTO: Gestione sprite
                 if (type === 'sprite') {
                     // Gli sprite mantengono le proporzioni tramite background-size
                     // Non serve ridimensionare manualmente, il CSS lo gestisce
@@ -4679,12 +4652,12 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     const img = content.querySelector('img');
                     if (img) {
                         const minDimension = Math.min(width, height);
-                        let size = minDimension * 0.8;  // ✅ AUMENTATO da 0.6 a 0.8 per renderle più visibili
-                        size = Math.max(12, size);      // ✅ AUMENTATO da 8 a 12
-                        size = Math.min(150, size);     // ✅ AUMENTATO da 100 a 150
+                        let size = minDimension * 0.8;
+                        size = Math.max(12, size);
+                        size = Math.min(150, size);
                         img.style.width = `${size}px`;
                         img.style.height = `${size}px`;
-                        img.style.objectFit = 'contain';  // ✅ AGGIUNTO per mantenere proporzioni
+                        img.style.objectFit = 'contain';
                     }
                 } else {
                     const editableText = content.querySelector('.editable-text');
@@ -5067,7 +5040,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 if (!e.ctrlKey && !e.metaKey && this.selectedObject) {
                     this.selectedObjects.clear();
                     const objData = this.getCurrentTab().objects.get(this.selectedObject.id);
-                    if (objData) {  // ✅ AGGIUNTO CONTROLLO
+                    if (objData) {
                         this.selectedObjects.set(this.selectedObject.id, { x: objData.x, y: objData.y });
                     }
                 }
@@ -5343,7 +5316,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     const firstSelectedId = this.selectedObjects.keys().next().value;
                     const objectData = this.getCurrentTab().objects.get(firstSelectedId);
 
-                    // ✅ AGGIUNTO: Gestione controlli sprite
                     const spriteControls = document.getElementById('spriteControls');
                     if (objectData.type === 'sprite' && objectData.spriteData) {
                         // Nascondi altri controlli
@@ -5417,7 +5389,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     document.getElementById('objectInfo').textContent = 'Nessun oggetto selezionato';
                     document.getElementById('objectText').value = '';
                     document.getElementById('dashedObjectToggle').style.display = 'none';
-                    document.getElementById('spriteControls').style.display = 'none'; // ✅ AGGIUNTO
+                    document.getElementById('spriteControls').style.display = 'none';
 
                     document.getElementById('objectControls').style.display = 'flex';
                     document.getElementById('arrowControls').style.display = 'none';
@@ -5432,7 +5404,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     document.getElementById('arrowThickness').value = arrowData.thickness;
                     document.getElementById('thicknessValue').textContent = arrowData.thickness;
 
-                    // ✅ AGGIUNGI OPACITÀ
                     document.getElementById('arrowOpacity').value = arrowData.opacity || 1;
                     document.getElementById('arrowOpacityValue').textContent = (arrowData.opacity || 1).toFixed(2);
 
@@ -5440,7 +5411,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     document.getElementById('arrowMarkerStart').checked = arrowData.markerStart || false;
                     document.getElementById('arrowMarkerEnd').checked = arrowData.markerEnd !== false;
 
-                    // ✅ AGGIUNGI STATO TRATTEGGIO
                     const dashedBtn = document.getElementById('dashedArrowToggle');
                     dashedBtn.style.display = 'inline-block';
                     dashedBtn.classList.toggle('active', arrowData.dashed);
@@ -5457,7 +5427,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             }
 
             deselectAll() {
-                // ✅ AGGIUNTO: Ferma animazioni sprite attive
                 if (this.selectedObject) {
                     const objectData = this.getCurrentTab().objects.get(this.selectedObject.id);
                     if (objectData && objectData.type === 'sprite' && objectData.animationInterval) {
@@ -5490,7 +5459,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 });
                 this.selectedFreehand = null;
                 document.getElementById('freehandControls').style.display = 'none';
-                document.getElementById('spriteControls').style.display = 'none'; // ✅ AGGIUNTO
+                document.getElementById('spriteControls').style.display = 'none';
             }
 
             startConnection(from, e) {
@@ -5970,7 +5939,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 });
 
                 this.saveState();
-                this.updateCurrentFrame(); // ✅ AGGIUNTO
+                this.updateCurrentFrame();
             }
 
             // Nel metodo changeSelectedObjectsText(), aggiungi alla fine:
@@ -5986,7 +5955,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 });
 
                 this.saveState();
-                this.updateCurrentFrame(); // ✅ AGGIUNTO
+                this.updateCurrentFrame();
             }
 
             // Nel metodo changeSelectedObjectsOpacity(), aggiungi alla fine:
@@ -6006,7 +5975,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 });
 
                 this.saveState();
-                this.updateCurrentFrame(); // ✅ AGGIUNTO
+                this.updateCurrentFrame();
             }
 
             // Nel metodo rotateSelected(), aggiungi alla fine:
@@ -6023,7 +5992,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     }
                 });
                 this.saveState();
-                this.updateCurrentFrame(); // ✅ AGGIUNTO
+                this.updateCurrentFrame();
             }
 
             // Nel metodo toggleDashedObject(), aggiungi alla fine:
@@ -6044,14 +6013,13 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 });
                 document.getElementById('dashedObjectToggle').classList.toggle('active', newState);
                 this.saveState();
-                this.updateCurrentFrame(); // ✅ AGGIUNTO
+                this.updateCurrentFrame();
             }
             changeArrowColor(color) {
                 if (!this.selectedArrow) return;
                 const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
                 if (arrowData) {
                     arrowData.color = color;
-                    // ✅ IMPORTANTE: Ri-renderizza completamente la freccia per aggiornare i marker
                     this.renderArrow(arrowData);
                     this.saveState();
                 }
@@ -6062,7 +6030,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
                 if (arrowData) {
                     arrowData.thickness = parseInt(thickness);
-                    // ✅ IMPORTANTE: Ri-renderizza completamente la freccia
                     this.renderArrow(arrowData);
                     this.saveState();
                 }
@@ -6149,7 +6116,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                             }
                         });
 
-                        // AGGIUNTO: Controlla se è un freehand
                         if (pos.type === 'freehand') {
                             tab.freehands.delete(objectId);
                             document.getElementById(objectId)?.remove();
@@ -6300,7 +6266,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 const tab = document.createElement('div');
                 tab.className = 'tab';
                 tab.dataset.tabId = id;
-                tab.setAttribute('draggable', 'true'); // AGGIUNTO
+                tab.setAttribute('draggable', 'true');
                 tab.innerHTML = `<input class='no-style tab-title' value='${name}'/><span class="tab-close">×</span>`;
 
                 const tabTitleInput = tab.querySelector('.tab-title');
@@ -6312,7 +6278,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     e.stopPropagation();
                 });
 
-                // AGGIUNTO: previeni il drag quando si clicca sull'input
                 tabTitleInput.addEventListener('mousedown', (e) => {
                     e.stopPropagation();
                 });
@@ -6452,7 +6417,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
                 this.filterCategoriesByGenere(tab.genere || 'GEN');
 
-                // ✅ AGGIUNTO: Inizializza e renderizza gli steps
                 this.initExerciseSteps();
                 this.renderStepsList();
 
@@ -6577,7 +6541,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                         objects: Array.from(frame.objects.entries())
                     })),
                     animationSpeed: tab.animationSpeed || 1000,
-                    exerciseSteps: tab.exerciseSteps || [] // ✅ AGGIUNTO
+                    exerciseSteps: tab.exerciseSteps || []
                 };
 
                 const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -6674,12 +6638,11 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 tab.nr = data.nr || 1;
                 tab.series = data.series || 1;
                 tab.groups = data.groups || 1;
-                tab.exerciseSteps = data.exerciseSteps || []; // ✅ AGGIUNTO
+                tab.exerciseSteps = data.exerciseSteps || [];
 
-                this.initExerciseSteps(); // ✅ AGGIUNTO
-                this.renderStepsList(); // ✅ AGGIUNTO
+                this.initExerciseSteps();
+                this.renderStepsList();
 
-                // ✅ AGGIUNTO: Carica i frames
                 if (data.frames) {
                     tab.frames = data.frames.map(frameData => ({
                         id: frameData.id,
@@ -6973,7 +6936,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 this.updateBWMode();
                 this.updateZoom();
             }
-            // MODIFICA 1: Aggiungi questo metodo helper per preparare il canvas per l'export
             prepareCanvasForExport() {
                 const canvas = document.getElementById('canvas');
                 const tab = this.getCurrentTab();
@@ -7008,7 +6970,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 return originalState;
             }
 
-            // MODIFICA 2: Aggiungi questo metodo per renderizzare le frecce in modo statico per l'export
             renderArrowForExport(arrow) {
                 let fromPos = this.getArrowPoint(arrow.from);
                 let toPos = this.getArrowPoint(arrow.to);
@@ -7036,7 +6997,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 }
             }
 
-            // METODO AGGIORNATO PER SODDISFARE LA RICHIESTA DELL'UTENTE (Disegno affianco a Istruzioni)
             async exportWorkoutToPDF() {
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF({
@@ -7124,12 +7084,12 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     }
 
                     doc.setFontSize(fontSubtitleSize);
-                    doc.text('Disegno Esercizio', drawingX, yOffset);
-                    doc.text('Istruzioni / Step', stepsX, yOffset);
+                    // doc.text('Disegno Esercizio', drawingX, yOffset);
+                    // doc.text('Istruzioni / Step', stepsX, yOffset);
                     doc.setLineWidth(0.5);
-                    doc.line(drawingX, yOffset + 1, drawingX + colWidth, yOffset + 1);
-                    doc.line(stepsX, yOffset + 1, stepsX + colWidth, yOffset + 1);
-                    yOffset += lineSpacing;
+                    // doc.line(drawingX, yOffset + 1, drawingX + colWidth, yOffset + 1);
+                    // doc.line(stepsX, yOffset + 1, stepsX + colWidth, yOffset + 1);
+                    //yOffset += lineSpacing;
 
                     const startYSection = yOffset;
 
@@ -7137,10 +7097,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     const series = tab.series || '-';
                     const repetitions = tab.nr || '-';
                     const rest = '-';
-                    doc.text(`Serie: ${series} / Ripetizioni: ${repetitions} / Recupero: ${rest}`, drawingX, yOffset);
+                    doc.text(`Serie: [${series}] - Ripetizioni: [${repetitions}] - Recupero: [${rest}]`, drawingX, yOffset);
                     yOffset += lineSpacing;
 
-                    // *** SEZIONE MODIFICATA PER IL CANVAS ***
                     const canvasElement = document.getElementById('canvas');
                     const sidebar = document.getElementById('sidebar');
                     const rightSidebar = document.getElementById('rightSidebar');
@@ -7225,12 +7184,12 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                             doc.addPage();
                             yOffset = margin;
                             doc.setFontSize(fontSubtitleSize);
-                            doc.text('Disegno Esercizio', drawingX, yOffset);
-                            doc.text('Istruzioni / Step', stepsX, yOffset);
+                            //doc.text('Disegno Esercizio', drawingX, yOffset);
+                            //doc.text('Istruzioni / Step', stepsX, yOffset);
                             doc.setLineWidth(0.5);
-                            doc.line(drawingX, yOffset + 1, drawingX + colWidth, yOffset + 1);
-                            doc.line(stepsX, yOffset + 1, stepsX + colWidth, yOffset + 1);
-                            yOffset += lineSpacing;
+                            //doc.line(drawingX, yOffset + 1, drawingX + colWidth, yOffset + 1);
+                            //doc.line(stepsX, yOffset + 1, stepsX + colWidth, yOffset + 1);
+                            //yOffset += lineSpacing;
                         }
 
                         doc.addImage(canvasImage.toDataURL('image/jpeg', 0.9), 'JPEG', drawingX, yOffset, imgWidth, finalImgHeight);
