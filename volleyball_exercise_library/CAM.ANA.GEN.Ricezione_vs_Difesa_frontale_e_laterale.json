@@ -1,0 +1,672 @@
+{
+  "title": "Ricezione vs Difesa frontale e laterale",
+  "note": "In questo esercizio di attivazione analitico si vuole allenare in sequenza la tipologia di bagher in ricezione e difesa, curando poi il bagher laterale in entrambe le condizioni.",
+  "tipologia": "ANA",
+  "ruolo": "GEN",
+  "periodo": "CAM",
+  "autore": "unknown",
+  "nr": 1,
+  "series": 1,
+  "place": "",
+  "date": "2025-10-24T15:18:55.946Z",
+  "groups": 1,
+  "objects": [
+    [
+      "obj-2",
+      {
+        "id": "obj-2",
+        "type": "half-court",
+        "x": 146,
+        "y": 82,
+        "width": 250,
+        "height": 250,
+        "color": "",
+        "rotation": 0,
+        "text": "",
+        "dashed": false,
+        "opacity": 1,
+        "zIndex": 2,
+        "icon": null,
+        "src": null,
+        "spriteData": null,
+        "animations": [],
+        "currentAnimationFrame": 0,
+        "objectNumber": 2
+      }
+    ],
+    [
+      "obj-3",
+      {
+        "id": "obj-3",
+        "type": "player",
+        "x": 188,
+        "y": 96,
+        "width": 40,
+        "height": 40,
+        "color": "",
+        "rotation": 0,
+        "text": "A",
+        "dashed": false,
+        "opacity": 1,
+        "zIndex": 3,
+        "icon": null,
+        "src": null,
+        "spriteData": null,
+        "animations": [],
+        "currentAnimationFrame": 0,
+        "objectNumber": 1
+      }
+    ],
+    [
+      "obj-4",
+      {
+        "id": "obj-4",
+        "type": "player",
+        "x": 190,
+        "y": 276,
+        "width": 40,
+        "height": 40,
+        "color": "",
+        "rotation": 0,
+        "text": "B",
+        "dashed": true,
+        "opacity": 1,
+        "zIndex": 4,
+        "icon": null,
+        "src": null,
+        "spriteData": null,
+        "animations": [],
+        "currentAnimationFrame": 0,
+        "objectNumber": 3
+      }
+    ],
+    [
+      "obj-5",
+      {
+        "id": "obj-5",
+        "type": "ball",
+        "x": 198,
+        "y": 116,
+        "width": 20,
+        "height": 20,
+        "color": "",
+        "rotation": 0,
+        "text": "",
+        "dashed": false,
+        "opacity": 1,
+        "zIndex": 7,
+        "icon": null,
+        "src": null,
+        "spriteData": null,
+        "animations": [],
+        "currentAnimationFrame": 0,
+        "objectNumber": 4
+      }
+    ],
+    [
+      "obj-6",
+      {
+        "id": "obj-6",
+        "type": "ball",
+        "x": 200,
+        "y": 266,
+        "width": 20,
+        "height": 20,
+        "color": "",
+        "rotation": 0,
+        "text": "",
+        "dashed": false,
+        "opacity": 1,
+        "zIndex": 7,
+        "icon": null,
+        "src": null,
+        "spriteData": null,
+        "animations": [],
+        "currentAnimationFrame": 0,
+        "objectNumber": 5
+      }
+    ],
+    [
+      "obj-8",
+      {
+        "id": "obj-8",
+        "type": "player",
+        "x": 190,
+        "y": 339,
+        "width": 40,
+        "height": 40,
+        "color": "",
+        "rotation": 0,
+        "text": "B",
+        "dashed": false,
+        "opacity": 1,
+        "zIndex": 9,
+        "icon": null,
+        "src": null,
+        "spriteData": null,
+        "animations": [],
+        "currentAnimationFrame": 0,
+        "objectNumber": 6
+      }
+    ],
+    [
+      "obj-9",
+      {
+        "id": "obj-9",
+        "type": "player",
+        "x": 188,
+        "y": 219,
+        "width": 40,
+        "height": 40,
+        "color": "",
+        "rotation": 0,
+        "text": "B",
+        "dashed": true,
+        "opacity": 1,
+        "zIndex": 10,
+        "icon": null,
+        "src": null,
+        "spriteData": null,
+        "animations": [],
+        "currentAnimationFrame": 0,
+        "objectNumber": 7
+      }
+    ],
+    [
+      "obj-10",
+      {
+        "id": "obj-10",
+        "type": "half-court",
+        "x": 465,
+        "y": 81,
+        "width": 250,
+        "height": 250,
+        "color": "",
+        "rotation": 0,
+        "text": "",
+        "dashed": true,
+        "opacity": 1,
+        "zIndex": 11,
+        "icon": null,
+        "src": null,
+        "spriteData": null,
+        "animations": [],
+        "currentAnimationFrame": 0,
+        "objectNumber": 8
+      }
+    ],
+    [
+      "obj-11",
+      {
+        "id": "obj-11",
+        "type": "player",
+        "x": 522,
+        "y": 95,
+        "width": 40,
+        "height": 40,
+        "color": "",
+        "rotation": 0,
+        "text": "A",
+        "dashed": false,
+        "opacity": 1,
+        "zIndex": 12,
+        "icon": null,
+        "src": null,
+        "spriteData": null,
+        "animations": [],
+        "currentAnimationFrame": 0,
+        "objectNumber": 9
+      }
+    ],
+    [
+      "obj-12",
+      {
+        "id": "obj-12",
+        "type": "player",
+        "x": 524,
+        "y": 275,
+        "width": 40,
+        "height": 40,
+        "color": "",
+        "rotation": 0,
+        "text": "B",
+        "dashed": true,
+        "opacity": 1,
+        "zIndex": 13,
+        "icon": null,
+        "src": null,
+        "spriteData": null,
+        "animations": [],
+        "currentAnimationFrame": 0,
+        "objectNumber": 10
+      }
+    ],
+    [
+      "obj-13",
+      {
+        "id": "obj-13",
+        "type": "ball",
+        "x": 532,
+        "y": 115,
+        "width": 20,
+        "height": 20,
+        "color": "",
+        "rotation": 0,
+        "text": "",
+        "dashed": false,
+        "opacity": 1,
+        "zIndex": 14,
+        "icon": null,
+        "src": null,
+        "spriteData": null,
+        "animations": [],
+        "currentAnimationFrame": 0,
+        "objectNumber": 11
+      }
+    ],
+    [
+      "obj-14",
+      {
+        "id": "obj-14",
+        "type": "ball",
+        "x": 534,
+        "y": 265,
+        "width": 20,
+        "height": 20,
+        "color": "",
+        "rotation": 0,
+        "text": "",
+        "dashed": false,
+        "opacity": 1,
+        "zIndex": 15,
+        "icon": null,
+        "src": null,
+        "spriteData": null,
+        "animations": [],
+        "currentAnimationFrame": 0,
+        "objectNumber": 12
+      }
+    ],
+    [
+      "obj-15",
+      {
+        "id": "obj-15",
+        "type": "player",
+        "x": 524,
+        "y": 338,
+        "width": 40,
+        "height": 40,
+        "color": "",
+        "rotation": 0,
+        "text": "B",
+        "dashed": false,
+        "opacity": 1,
+        "zIndex": 16,
+        "icon": null,
+        "src": null,
+        "spriteData": null,
+        "animations": [],
+        "currentAnimationFrame": 0,
+        "objectNumber": 13
+      }
+    ],
+    [
+      "obj-16",
+      {
+        "id": "obj-16",
+        "type": "player",
+        "x": 522,
+        "y": 218,
+        "width": 40,
+        "height": 40,
+        "color": "",
+        "rotation": 0,
+        "text": "B",
+        "dashed": true,
+        "opacity": 1,
+        "zIndex": 17,
+        "icon": null,
+        "src": null,
+        "spriteData": null,
+        "animations": [],
+        "currentAnimationFrame": 0,
+        "objectNumber": 14
+      }
+    ],
+    [
+      "obj-17",
+      {
+        "id": "obj-17",
+        "type": "player",
+        "x": 582,
+        "y": 225,
+        "width": 40,
+        "height": 40,
+        "color": "",
+        "rotation": 0,
+        "text": "B",
+        "dashed": true,
+        "opacity": 0.5,
+        "zIndex": 18,
+        "icon": null,
+        "src": null,
+        "spriteData": null,
+        "animations": [],
+        "currentAnimationFrame": 0,
+        "objectNumber": 15
+      }
+    ],
+    [
+      "obj-18",
+      {
+        "id": "obj-18",
+        "type": "player",
+        "x": 469,
+        "y": 219,
+        "width": 40,
+        "height": 40,
+        "color": "",
+        "rotation": 0,
+        "text": "B",
+        "dashed": true,
+        "opacity": 0.5,
+        "zIndex": 19,
+        "icon": null,
+        "src": null,
+        "spriteData": null,
+        "animations": [],
+        "currentAnimationFrame": 0,
+        "objectNumber": 16
+      }
+    ],
+    [
+      "obj-19",
+      {
+        "id": "obj-19",
+        "type": "text",
+        "x": 203,
+        "y": 20,
+        "width": 130,
+        "height": 58,
+        "color": "",
+        "rotation": 0,
+        "text": "1 Serie",
+        "dashed": false,
+        "opacity": 1,
+        "zIndex": 20,
+        "icon": null,
+        "src": null,
+        "spriteData": null,
+        "animations": [],
+        "currentAnimationFrame": 0,
+        "objectNumber": 17
+      }
+    ],
+    [
+      "obj-20",
+      {
+        "id": "obj-20",
+        "type": "text",
+        "x": 531,
+        "y": 20,
+        "width": 125,
+        "height": 48,
+        "color": "",
+        "rotation": 0,
+        "text": "2 Serie",
+        "dashed": false,
+        "opacity": 1,
+        "zIndex": 21,
+        "icon": null,
+        "src": null,
+        "spriteData": null,
+        "animations": [],
+        "currentAnimationFrame": 0,
+        "objectNumber": 18
+      }
+    ]
+  ],
+  "arrows": [
+    [
+      "arrow-8",
+      {
+        "id": "arrow-8",
+        "from": {
+          "objectId": "obj-8",
+          "position": "top"
+        },
+        "to": {
+          "objectId": "obj-4",
+          "position": "bottom"
+        },
+        "type": "linear",
+        "dashed": false,
+        "color": "#000000",
+        "thickness": 1,
+        "opacity": 1,
+        "controlPoint": {
+          "x": 257.37203159583527,
+          "y": 336.39952505533364
+        },
+        "markerStart": false,
+        "markerEnd": true
+      }
+    ],
+    [
+      "arrow-9",
+      {
+        "id": "arrow-9",
+        "from": {
+          "objectId": "obj-3",
+          "position": "bottom"
+        },
+        "to": {
+          "x": 210,
+          "y": 273
+        },
+        "type": "linear",
+        "dashed": false,
+        "color": "#000000",
+        "thickness": 1,
+        "opacity": 1,
+        "controlPoint": {
+          "x": 159.00532708290453,
+          "y": 205.22984923966564
+        },
+        "markerStart": false,
+        "markerEnd": true
+      }
+    ],
+    [
+      "arrow-11",
+      {
+        "id": "arrow-11",
+        "from": {
+          "objectId": "obj-3",
+          "position": "bottom"
+        },
+        "to": {
+          "objectId": "obj-9",
+          "position": "top"
+        },
+        "type": "curved",
+        "dashed": false,
+        "color": "#000000",
+        "thickness": 1,
+        "opacity": 0.5,
+        "controlPoint": {
+          "x": 241,
+          "y": 193
+        },
+        "markerStart": false,
+        "markerEnd": true
+      }
+    ],
+    [
+      "arrow-13",
+      {
+        "id": "arrow-13",
+        "from": {
+          "objectId": "obj-15",
+          "position": "top"
+        },
+        "to": {
+          "objectId": "obj-12",
+          "position": "bottom"
+        },
+        "type": "linear",
+        "dashed": false,
+        "color": "#000000",
+        "thickness": 1,
+        "opacity": 1,
+        "controlPoint": {
+          "x": 280,
+          "y": 347.5
+        },
+        "markerStart": false,
+        "markerEnd": true
+      }
+    ],
+    [
+      "arrow-14",
+      {
+        "id": "arrow-14",
+        "from": {
+          "objectId": "obj-11",
+          "position": "bottom"
+        },
+        "to": {
+          "objectId": "obj-12",
+          "position": "top"
+        },
+        "type": "linear",
+        "dashed": false,
+        "color": "#000000",
+        "thickness": 1,
+        "opacity": 1,
+        "controlPoint": {
+          "x": 543,
+          "y": 199
+        },
+        "markerStart": false,
+        "markerEnd": true
+      }
+    ],
+    [
+      "arrow-15",
+      {
+        "id": "arrow-15",
+        "from": {
+          "objectId": "obj-16",
+          "position": "left"
+        },
+        "to": {
+          "x": 501,
+          "y": 239
+        },
+        "type": "linear",
+        "dashed": true,
+        "color": "#000000",
+        "thickness": 1,
+        "opacity": 0.5,
+        "controlPoint": {
+          "x": 514.4968808471946,
+          "y": 187.56238305610776
+        },
+        "markerStart": false,
+        "markerEnd": true
+      }
+    ],
+    [
+      "arrow-16",
+      {
+        "id": "arrow-16",
+        "from": {
+          "objectId": "obj-16",
+          "position": "right"
+        },
+        "to": {
+          "x": 587,
+          "y": 239
+        },
+        "type": "linear",
+        "dashed": true,
+        "color": "#000000",
+        "thickness": 1,
+        "opacity": 0.5,
+        "controlPoint": {
+          "x": 572.5015980825564,
+          "y": 288.4600479360895
+        },
+        "markerStart": false,
+        "markerEnd": true
+      }
+    ],
+    [
+      "arrow-17",
+      {
+        "id": "arrow-17",
+        "from": {
+          "objectId": "obj-13",
+          "position": "bottom"
+        },
+        "to": {
+          "objectId": "obj-18",
+          "position": "top"
+        },
+        "type": "curved",
+        "dashed": true,
+        "color": "#000000",
+        "thickness": 1,
+        "opacity": 0.5,
+        "controlPoint": {
+          "x": 490,
+          "y": 174
+        },
+        "markerStart": false,
+        "markerEnd": true
+      }
+    ],
+    [
+      "arrow-18",
+      {
+        "id": "arrow-18",
+        "from": {
+          "objectId": "obj-13",
+          "position": "bottom"
+        },
+        "to": {
+          "objectId": "obj-17",
+          "position": "top"
+        },
+        "type": "curved",
+        "dashed": true,
+        "color": "#000000",
+        "thickness": 1,
+        "opacity": 0.5,
+        "controlPoint": {
+          "x": 594,
+          "y": 176
+        },
+        "markerStart": false,
+        "markerEnd": true
+      }
+    ]
+  ],
+  "background": "none",
+  "gridVisible": true,
+  "bwMode": false,
+  "zoom": 1,
+  "freehands": [],
+  "frames": [],
+  "animationSpeed": 1000,
+  "exerciseSteps": [
+    "1. A sottorete con palla",
+    "3. B fondocampo senza palla",
+    "6. B Si sposta sui 9 metri mentre A esegue un servizio piedi a terra",
+    "7. B Riceve il pallone e lo manda vs A",
+    "A attacca su 7 metri",
+    "A recupera il pallone difeso da B",
+    "B esce nuovamente dal campo e si ripete"
+  ]
+}
