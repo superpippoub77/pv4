@@ -1704,36 +1704,6 @@
                 if (this.selectedObjects.size === 0 || isNaN(newNumber) || newNumber < 1) return;
 
                 const tab = this.getCurrentTab();
-
-                // Verifica se il numero è già in uso
-                let isUsed = false;
-                tab.objects.forEach((obj, id) => {
-                    if (obj.objectNumber === newNumber && !this.selectedObjects.has(id)) {
-                        isUsed = true;
-                    }
-                });
-
-                if (isUsed) {
-                    // Chiedi conferma per lo scambio
-                    if (!confirm(`Il numero ${newNumber} è già assegnato. Vuoi scambiare i numeri?`)) {
-                        // Ripristina il valore precedente
-                        const firstSelectedId = this.selectedObjects.keys().next().value;
-                        const objectData = tab.objects.get(firstSelectedId);
-                        document.getElementById('objectNumber').value = objectData.objectNumber;
-                        return;
-                    }
-
-                    // Scambia i numeri
-                    tab.objects.forEach((obj, id) => {
-                        if (obj.objectNumber === newNumber && !this.selectedObjects.has(id)) {
-                            const firstSelectedId = this.selectedObjects.keys().next().value;
-                            const selectedObj = tab.objects.get(firstSelectedId);
-                            obj.objectNumber = selectedObj.objectNumber;
-                            this.renderObject(obj);
-                        }
-                    });
-                }
-
                 // Applica il nuovo numero agli oggetti selezionati
                 this.selectedObjects.forEach((pos, id) => {
                     const objectData = tab.objects.get(id);
@@ -1798,39 +1768,13 @@
                 const finishEdit = () => {
                     const newNumber = parseInt(input.value);
 
-                    if (!isNaN(newNumber) && newNumber > 0 && newNumber !== currentNumber) {
-                        // Verifica duplicati
-                        const tab = this.getCurrentTab();
-                        let isDuplicate = false;
-
-                        tab.objects.forEach((obj, id) => {
-                            if (obj.objectNumber === newNumber && obj.id !== object.id) {
-                                isDuplicate = true;
-                            }
-                        });
-
-                        if (isDuplicate) {
-                            if (confirm(`Il numero ${newNumber} è già in uso. Scambiare?`)) {
-                                // Scambia
-                                tab.objects.forEach((obj, id) => {
-                                    if (obj.objectNumber === newNumber) {
-                                        obj.objectNumber = currentNumber;
-                                        this.renderObject(obj);
-                                    }
-                                });
-                                object.objectNumber = newNumber;
-                            } else {
-                                object.objectNumber = currentNumber;
-                            }
-                        } else {
-                            object.objectNumber = newNumber;
-                        }
+                    if (!isNaN(newNumber) && newNumber > 0) {
+                        object.objectNumber = newNumber;
                     }
 
                     this.renderObject(object);
                     this.saveState();
 
-                    // Se l'oggetto è selezionato, aggiorna i controlli
                     if (this.selectedObjects.has(object.id)) {
                         document.getElementById('objectNumber').value = object.objectNumber;
                     }
@@ -5441,6 +5385,25 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 document.querySelectorAll('.canvas-object.selected').forEach(obj => {
                     obj.classList.remove('selected', 'group-selected');
                 });
+
+                // ✅ AGGIUNGI QUESTO BLOCCO
+                // Nascondi i pallini degli endpoint delle frecce
+                document.querySelectorAll('.endpoint-control').forEach(endpoint => {
+                    endpoint.style.opacity = '0';
+                    endpoint.style.pointerEvents = 'none';
+                });
+
+                // Nascondi i punti di controllo delle curve
+                document.querySelectorAll('.control-point').forEach(cp => {
+                    cp.style.opacity = '0';
+                    cp.style.pointerEvents = 'none';
+                });
+
+                document.querySelectorAll('.arrow-path.selected').forEach(arrow => {
+                    arrow.classList.remove('selected');
+                });
+
+                this.hideGroupRotationCenter();
                 document.querySelectorAll('.arrow-path.selected').forEach(arrow => {
                     arrow.classList.remove('selected');
                 });
@@ -5874,7 +5837,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             }
 
             selectArrow(arrowId) {
-                this.deselectAll();
+                this.deselectAll(); // ✅ Questo è già presente
                 this.selectedArrow = arrowId;
 
                 const arrowElement = document.getElementById(arrowId);
@@ -5884,12 +5847,20 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                         path.classList.add('selected');
                     }
 
+                    // ✅ VERIFICA CHE CI SIA QUESTO CODICE
                     // Mostra i punti di controllo endpoint
                     const endpoints = arrowElement.querySelectorAll('.endpoint-control');
                     endpoints.forEach(ep => {
                         ep.style.opacity = '1';
                         ep.style.pointerEvents = 'auto';
                     });
+
+                    // Mostra il punto di controllo della curva
+                    const controlPoint = arrowElement.querySelector('.control-point');
+                    if (controlPoint) {
+                        controlPoint.style.opacity = '1';
+                        controlPoint.style.pointerEvents = 'auto';
+                    }
                 }
                 this.updateArrowControls();
             }
@@ -6411,8 +6382,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     const rect = tab.getBoundingClientRect();
                     const midpoint = rect.left + rect.width / 2;
 
-                    // Rimuovi il placeholder precedente
-                    if (placeholder.parentNode) {
+                    // ✅ VERIFICA CHE IL PLACEHOLDER ESISTA E SIA NEL DOM
+                    if (placeholder && placeholder.parentNode) {
                         placeholder.parentNode.removeChild(placeholder);
                     }
 
@@ -6429,8 +6400,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
                     draggedTab.style.opacity = '1';
 
-                    // Sposta effettivamente il tab nella nuova posizione
-                    if (placeholder.parentNode) {
+                    // ✅ VERIFICA CHE IL PLACEHOLDER ESISTA E SIA NEL DOM
+                    if (placeholder && placeholder.parentNode) {
                         tabsContainer.insertBefore(draggedTab, placeholder);
                         placeholder.parentNode.removeChild(placeholder);
                     }
@@ -6442,6 +6413,14 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 tabsContainer.addEventListener('drop', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
+                });
+
+                // ✅ AGGIUNGI GESTIONE DRAGLEAVE PER PULIZIA
+                tabsContainer.addEventListener('dragleave', (e) => {
+                    // Se usciamo completamente dal container
+                    if (e.target === tabsContainer && placeholder && placeholder.parentNode) {
+                        placeholder.parentNode.removeChild(placeholder);
+                    }
                 });
 
                 // Rendi i tab trascinabili
