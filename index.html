@@ -342,49 +342,55 @@
             border-style: dashed;
         }
 
+        /* MODIFICA QUESTA REGOLA CSS ESISTENTE */
         .canvas-object .resize-handle {
             position: absolute;
-            width: 12px;
-            height: 12px;
+            width: 14px;
+            /* aumentato da 12px */
+            height: 14px;
+            /* aumentato da 12px */
             background: #3498db;
             border: 2px solid white;
             border-radius: 50%;
             cursor: se-resize;
-            right: -6px;
-            bottom: -6px;
+            right: -7px;
+            /* adattato */
+            bottom: -7px;
+            /* adattato */
             opacity: 0;
-            /* AGGIUNTO */
             pointer-events: none;
-            /* AGGIUNTO */
             transition: opacity 0.2s;
-            /* AGGIUNTO */
+            z-index: 10;
         }
 
         .canvas-object .rotate-handle {
             position: absolute;
-            width: 12px;
-            height: 12px;
+            width: 14px;
+            /* aumentato da 12px */
+            height: 14px;
+            /* aumentato da 12px */
             background: #e74c3c;
             border: 2px solid white;
             border-radius: 50%;
             cursor: grab;
-            right: -6px;
-            top: -6px;
+            right: -7px;
+            /* adattato */
+            top: -7px;
+            /* adattato */
             opacity: 0;
-            /* AGGIUNTO */
             pointer-events: none;
-            /* AGGIUNTO */
             transition: opacity 0.2s;
-            /* AGGIUNTO */
+            z-index: 10;
         }
 
-        /* NUOVA REGOLA CSS AGGIUNTA */
+        /* QUESTA REGOLA RIMANE UGUALE */
         .canvas-object.selected .resize-handle,
         .canvas-object.selected .rotate-handle {
             opacity: 1;
             pointer-events: auto;
         }
 
+        /* AGGIUNGI QUESTA NUOVA REGOLA PER I CONNECTION POINTS */
         .canvas-object .connection-point {
             position: absolute;
             width: 10px;
@@ -396,7 +402,10 @@
             opacity: 0;
             transition: opacity 0.2s, transform 0.2s;
             pointer-events: none;
+            z-index: 5;
+            /* AGGIUNGI QUESTA RIGA - z-index inferiore ai controlli */
         }
+
 
         /* Mostra SEMPRE i connection points quando si sta trascinando un endpoint */
         body.dragging-endpoint .canvas-object .connection-point {
@@ -415,9 +424,25 @@
             transform: scale(1.2);
         }
 
+        /* Aggiorna le posizioni dei connection points per 8 punti */
         .canvas-object .connection-point.top {
             top: -5px;
             left: calc(50% - 5px);
+        }
+
+        .canvas-object .connection-point.top-right {
+            top: -5px;
+            right: -5px;
+        }
+
+        .canvas-object .connection-point.right {
+            right: -5px;
+            top: calc(50% - 5px);
+        }
+
+        .canvas-object .connection-point.bottom-right {
+            bottom: -5px;
+            right: -5px;
         }
 
         .canvas-object .connection-point.bottom {
@@ -425,14 +450,19 @@
             left: calc(50% - 5px);
         }
 
+        .canvas-object .connection-point.bottom-left {
+            bottom: -5px;
+            left: -5px;
+        }
+
         .canvas-object .connection-point.left {
             left: -5px;
             top: calc(50% - 5px);
         }
 
-        .canvas-object .connection-point.right {
-            right: -5px;
-            top: calc(50% - 5px);
+        .canvas-object .connection-point.top-left {
+            top: -5px;
+            left: -5px;
         }
 
         /* Object controls */
@@ -4642,8 +4672,12 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 });
             }
 
+            // Modifica il metodo addConnectionPoints nella classe SchemaEditor
+
             addConnectionPoints(element) {
-                const positions = ['top', 'bottom', 'left', 'right'];
+                // 8 posizioni: top, top-right, right, bottom-right, bottom, bottom-left, left, top-left
+                const positions = ['top', 'top-right', 'right', 'bottom-right', 'bottom', 'bottom-left', 'left', 'top-left'];
+
                 positions.forEach(pos => {
                     let point = element.querySelector(`.connection-point.${pos}`);
                     if (!point) {
@@ -5529,14 +5563,26 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     case 'top':
                         offset = { x: 0, y: -halfHeight };
                         break;
+                    case 'top-right':
+                        offset = { x: halfWidth, y: -halfHeight };
+                        break;
+                    case 'right':
+                        offset = { x: halfWidth, y: 0 };
+                        break;
+                    case 'bottom-right':
+                        offset = { x: halfWidth, y: halfHeight };
+                        break;
                     case 'bottom':
                         offset = { x: 0, y: halfHeight };
+                        break;
+                    case 'bottom-left':
+                        offset = { x: -halfWidth, y: halfHeight };
                         break;
                     case 'left':
                         offset = { x: -halfWidth, y: 0 };
                         break;
-                    case 'right':
-                        offset = { x: halfWidth, y: 0 };
+                    case 'top-left':
+                        offset = { x: -halfWidth, y: -halfHeight };
                         break;
                 }
 
