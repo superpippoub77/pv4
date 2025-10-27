@@ -3795,7 +3795,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     }
                 });
 
-                this.initTabDragDrop();
+                document.addEventListener('DOMContentLoaded', () => {
+                    initTabDragDrop();
+                });
 
                 document.querySelector('.add-tab').addEventListener('click', () => this.addNewTab());
                 document.getElementById('backgroundSelect').addEventListener('change', (e) => {
@@ -6382,12 +6384,15 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     const rect = tab.getBoundingClientRect();
                     const midpoint = rect.left + rect.width / 2;
 
-                    // ✅ VERIFICA CHE IL PLACEHOLDER ESISTA E SIA NEL DOM
                     if (placeholder && placeholder.parentNode) {
                         placeholder.parentNode.removeChild(placeholder);
                     }
 
-                    // Inserisci il placeholder nella nuova posizione
+                    if (!(placeholder instanceof Node) || !(tab instanceof Node) || !(tabsContainer instanceof Node)) {
+                        console.warn('Nodo non valido in insertBefore');
+                        return;
+                    }
+
                     if (e.clientX < midpoint) {
                         tabsContainer.insertBefore(placeholder, tab);
                     } else {
