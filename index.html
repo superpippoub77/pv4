@@ -2742,7 +2742,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     animationSpeed: 1000,
                     frames: [],
                     currentFrameIndex: 0,
-                    exerciseSteps: []
+                    exerciseSteps: [],
+                    connectionPointCounters: new Map()
                 });
             }
 
@@ -4675,7 +4676,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             // Modifica il metodo addConnectionPoints nella classe SchemaEditor
 
             addConnectionPoints(element) {
-                // 8 posizioni: top, top-right, right, bottom-right, bottom, bottom-left, left, top-left
                 const positions = ['top', 'top-right', 'right', 'bottom-right', 'bottom', 'bottom-left', 'left', 'top-left'];
 
                 positions.forEach(pos => {
@@ -4686,14 +4686,16 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                         element.appendChild(point);
                     }
 
-                    // Mantieni gli event listener esistenti
-                    point.addEventListener('mousedown', (e) => {
+                    // MODIFICA: Rimuovi il vecchio listener e aggiungi quello nuovo
+                    const newPoint = point.cloneNode(true);
+                    point.parentNode.replaceChild(newPoint, point);
+
+                    newPoint.addEventListener('mousedown', (e) => {
                         e.stopPropagation();
                         this.startConnection({ objectId: element.id, position: pos }, e);
                     });
 
-                    // Mostra durante il drag di endpoint
-                    point.style.pointerEvents = 'auto';
+                    newPoint.style.pointerEvents = 'auto';
                 });
             }
 
@@ -5625,6 +5627,17 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 const tab = this.getCurrentTab();
                 const arrowId = 'arrow-' + tab.nextArrowId++;
 
+                // RIMUOVI QUESTO BLOCCO SE ESISTE:
+                // if (from.objectId && to.objectId) {
+                //     const existingArrow = Array.from(tab.arrows.values()).find(a => 
+                //         a.from.objectId === from.objectId && 
+                //         a.from.position === from.position &&
+                //         a.to.objectId === to.objectId && 
+                //         a.to.position === to.position
+                //     );
+                //     if (existingArrow) return existingArrow;
+                // }
+
                 const arrow = {
                     id: arrowId,
                     from: from,
@@ -5639,16 +5652,61 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     markerEnd: true
                 };
 
-                // Aggiungi sempre il punto di controllo
                 const fromPos = this.getArrowPoint(arrow.from);
                 const toPos = this.getArrowPoint(arrow.to);
                 arrow.controlPoint = this.generateDefaultControlPoint(fromPos, toPos);
 
                 tab.arrows.set(arrowId, arrow);
+
+                // NUOVO: Aggiorna il counter per visualizzare quante frecce partono da quel punto
+                if (from.objectId && from.position) {
+                    const key = `${from.objectId}-${from.position}`;
+                    const counter = tab.connectionPointCounters.get(key) || 0;
+                    tab.connectionPointCounters.set(key, counter + 1);
+                    this.updateConnectionPointBadge(from.objectId, from.position, counter + 1);
+                }
+
                 this.renderArrow(arrow);
                 this.saveState();
 
                 return arrow;
+            }
+
+            updateConnectionPointBadge(objectId, position, count) {
+                const element = document.getElementById(objectId);
+                if (!element) return;
+
+                const point = element.querySelector(`.connection-point.${position}`);
+                if (!point) return;
+
+                // Rimuovi badge esistente
+                const existingBadge = point.querySelector('.connection-badge');
+                if (existingBadge) existingBadge.remove();
+
+                // Aggiungi badge solo se ci sono 2+ collegamenti
+                if (count >= 2) {
+                    const badge = document.createElement('span');
+                    badge.className = 'connection-badge';
+                    badge.textContent = count;
+                    badge.style.cssText = `
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #e74c3c;
+            color: white;
+            font-size: 9px;
+            font-weight: bold;
+            border-radius: 50%;
+            width: 14px;
+            height: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            z-index: 10;
+        `;
+                    point.appendChild(badge);
+                }
             }
 
             renderArrow(arrow) {
@@ -5843,7 +5901,16 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             generateDefaultControlPoint(from, to) {
                 const midX = (from.x + to.x) / 2;
                 const midY = (from.y + to.y) / 2;
-                const offset = 50;
+
+                // NUOVO: Varia l'offset in base al numero di frecce esistenti
+                const tab = this.getCurrentTab();
+                const existingArrows = Array.from(tab.arrows.values()).filter(a =>
+                    (a.from.x === from.x && a.from.y === from.y) ||
+                    (a.from.objectId === from.objectId && a.from.position === from.position)
+                );
+
+                const offset = 50 + (existingArrows.length * 15); // Incrementa l'offset per ogni freccia
+
                 const dx = to.x - from.x;
                 const dy = to.y - from.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
@@ -6128,23 +6195,44 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 const tab = this.getCurrentTab();
                 if (this.selectedObjects.size > 0) {
                     this.selectedObjects.forEach((pos, objectId) => {
-                        // Elimina frecce collegate
+                        // Elimina frecce collegate E aggiorna contatori
                         tab.arrows.forEach((arrow, arrowId) => {
                             if (arrow.from.objectId === objectId || arrow.to.objectId === objectId) {
+                                // NUOVO: Decrementa counter
+                                if (arrow.from.objectId && arrow.from.position) {
+                                    const key = `${arrow.from.objectId}-${arrow.from.position}`;
+                                    const counter = tab.connectionPointCounters.get(key) || 0;
+                                    if (counter > 1) {
+                                        tab.connectionPointCounters.set(key, counter - 1);
+                                        this.updateConnectionPointBadge(arrow.from.objectId, arrow.from.position, counter - 1);
+                                    } else {
+                                        tab.connectionPointCounters.delete(key);
+                                        this.updateConnectionPointBadge(arrow.from.objectId, arrow.from.position, 0);
+                                    }
+                                }
+
                                 document.getElementById(arrowId)?.remove();
                                 tab.arrows.delete(arrowId);
                             }
                         });
 
-                        if (pos.type === 'freehand') {
-                            tab.freehands.delete(objectId);
-                            document.getElementById(objectId)?.remove();
-                        } else {
-                            tab.objects.delete(objectId);
-                            document.getElementById(objectId)?.remove();
-                        }
+                        // ... resto del codice per eliminazione oggetti/freehands ...
                     });
                 } else if (this.selectedArrow) {
+                    // NUOVO: Aggiorna contatori quando elimini una freccia
+                    const arrow = tab.arrows.get(this.selectedArrow);
+                    if (arrow && arrow.from.objectId && arrow.from.position) {
+                        const key = `${arrow.from.objectId}-${arrow.from.position}`;
+                        const counter = tab.connectionPointCounters.get(key) || 0;
+                        if (counter > 1) {
+                            tab.connectionPointCounters.set(key, counter - 1);
+                            this.updateConnectionPointBadge(arrow.from.objectId, arrow.from.position, counter - 1);
+                        } else {
+                            tab.connectionPointCounters.delete(key);
+                            this.updateConnectionPointBadge(arrow.from.objectId, arrow.from.position, 0);
+                        }
+                    }
+
                     document.getElementById(this.selectedArrow)?.remove();
                     tab.arrows.delete(this.selectedArrow);
                 } else if (this.selectedFreehand) {
