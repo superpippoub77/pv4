@@ -6160,11 +6160,11 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 const tab = this.getCurrentTab();
                 const copiedObjects = [];
                 const copiedArrows = [];
-                const copiedFreehands = []; // ✅ AGGIUNTO
+                const copiedFreehands = [];
 
                 try {
                     this.selectedObjects.forEach((pos, id) => {
-                        // ✅ AGGIUNTO: Gestione freehands
+                        // Gestione freehands
                         if (pos.type === 'freehand') {
                             const freehand = tab.freehands.get(id);
                             if (freehand) {
@@ -6178,7 +6178,11 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                             // Oggetti normali
                             const obj = tab.objects.get(id);
                             if (obj) {
-                                const newObj = { ...obj };
+                                // Deep copy completo dell'oggetto
+                                const newObj = {
+                                    ...obj,
+                                    spriteData: obj.spriteData ? { ...obj.spriteData } : null
+                                };
                                 copiedObjects.push(newObj);
                             }
                         }
@@ -6188,10 +6192,13 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     tab.arrows.forEach(arrow => {
                         if (this.selectedObjects.has(arrow.from.objectId) &&
                             this.selectedObjects.has(arrow.to.objectId)) {
-                            const newArrow = { ...arrow };
-                            if (newArrow.from) newArrow.from = { ...newArrow.from };
-                            if (newArrow.to) newArrow.to = { ...newArrow.to };
-                            if (newArrow.controlPoint) newArrow.controlPoint = { ...newArrow.controlPoint };
+                            const newArrow = {
+                                ...arrow,
+                                from: { ...arrow.from },
+                                to: { ...arrow.to },
+                                // ✅ IMPORTANTE: Copia il punto di controllo
+                                controlPoint: arrow.controlPoint ? { ...arrow.controlPoint } : null
+                            };
                             copiedArrows.push(newArrow);
                         }
                     });
@@ -6199,7 +6206,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     this.clipboard = {
                         objects: copiedObjects,
                         arrows: copiedArrows,
-                        freehands: copiedFreehands // ✅ AGGIUNTO
+                        freehands: copiedFreehands
                     };
 
                     console.log(`✅ Copiati: ${copiedObjects.length} oggetti, ${copiedArrows.length} frecce, ${copiedFreehands.length} disegni`);
@@ -6240,6 +6247,18 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                         obj.src,
                         obj.spriteData
                     );
+
+                    // ✅ Copia anche opacity e zIndex
+                    const objectData = tab.objects.get(newObj.id);
+                    if (objectData) {
+                        objectData.opacity = obj.opacity || 1;
+                        objectData.zIndex = obj.zIndex || 1;
+                        objectData.objectNumber = obj.objectNumber;
+                        objectData.width = obj.width;
+                        objectData.height = obj.height;
+                        this.renderObject(objectData);
+                    }
+
                     pastedObjectMap.set(oldId, newObj.id);
                     this.selectedObjects.set(newObj.id, { x: newObj.x, y: newObj.y });
                     const element = document.getElementById(newObj.id);
@@ -6248,7 +6267,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     }
                 });
 
-                // ✅ AGGIUNTO: Incolla disegni a mano libera
+                // Incolla disegni a mano libera
                 if (this.clipboard.freehands) {
                     this.clipboard.freehands.forEach(freehand => {
                         const newPoints = freehand.points.map(p => ({
@@ -6282,6 +6301,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     const newFrom = { ...arrow.from };
                     const newTo = { ...arrow.to };
 
+                    // ✅ Aggiorna gli ID degli oggetti collegati
                     if (newFrom.objectId) {
                         newFrom.objectId = pastedObjectMap.get(newFrom.objectId);
                     } else if (newFrom.x !== undefined) {
@@ -6299,7 +6319,31 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     // Solo se entrambi gli endpoint sono validi
                     if ((newFrom.objectId || (newFrom.x !== undefined)) &&
                         (newTo.objectId || (newTo.x !== undefined))) {
-                        this.createArrow(newFrom, newTo, arrow.type, arrow.dashed, arrow.color, arrow.thickness);
+
+                        // ✅ IMPORTANTE: Sposta anche il punto di controllo
+                        const newArrow = this.createArrow(
+                            newFrom,
+                            newTo,
+                            arrow.type,
+                            arrow.dashed,
+                            arrow.color,
+                            arrow.thickness
+                        );
+
+                        // Aggiorna il punto di controllo con l'offset
+                        if (arrow.controlPoint) {
+                            const arrowData = tab.arrows.get(newArrow.id);
+                            if (arrowData) {
+                                arrowData.controlPoint = {
+                                    x: arrow.controlPoint.x + offset,
+                                    y: arrow.controlPoint.y + offset
+                                };
+                                arrowData.opacity = arrow.opacity || 1;
+                                arrowData.markerStart = arrow.markerStart || false;
+                                arrowData.markerEnd = arrow.markerEnd !== false;
+                                this.renderArrow(arrowData);
+                            }
+                        }
                     }
                 });
 
@@ -6994,6 +7038,66 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
 
             handleKeyboard(e) {
+                // NUOVO: Gestione movimento con frecce direzionali
+                if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                    e.preventDefault();
+
+                    if (this.selectedObjects.size === 0) return;
+
+                    // Distanza di movimento (pixel)
+                    const moveStep = e.shiftKey ? 10 : 1; // Shift per movimento più veloce
+
+                    let deltaX = 0;
+                    let deltaY = 0;
+
+                    switch (e.key) {
+                        case 'ArrowUp':
+                            deltaY = -moveStep;
+                            break;
+                        case 'ArrowDown':
+                            deltaY = moveStep;
+                            break;
+                        case 'ArrowLeft':
+                            deltaX = -moveStep;
+                            break;
+                        case 'ArrowRight':
+                            deltaX = moveStep;
+                            break;
+                    }
+
+                    const tab = this.getCurrentTab();
+
+                    this.selectedObjects.forEach((pos, id) => {
+                        const objectData = tab.objects.get(id);
+                        if (objectData) {
+                            objectData.x += deltaX;
+                            objectData.y += deltaY;
+
+                            const element = document.getElementById(id);
+                            if (element) {
+                                element.style.left = objectData.x + 'px';
+                                element.style.top = objectData.y + 'px';
+                            }
+
+                            this.updateArrowsForObject(id);
+                        } else if (pos.type === 'freehand') {
+                            // Gestione freehands
+                            const freehand = tab.freehands.get(id);
+                            if (freehand) {
+                                freehand.points = freehand.points.map(p => ({
+                                    x: p.x + deltaX,
+                                    y: p.y + deltaY
+                                }));
+                                this.renderFreehand(freehand);
+                            }
+                        }
+                    });
+
+                    this.updateCurrentFrame();
+                    this.saveState();
+                    return;
+                }
+
                 if (e.ctrlKey || e.metaKey) {
                     switch (e.key.toLowerCase()) {
                         case 'c':
@@ -7010,7 +7114,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                             break;
                         case 'a':
                             e.preventDefault();
-                            this.selectAll(); // ✅ Già presente, ora seleziona anche i freehands
+                            this.selectAll();
                             break;
                         case 'z':
                             e.preventDefault();
