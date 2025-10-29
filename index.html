@@ -1486,6 +1486,16 @@
                 </div>
                 <div class="detail-row">
                     <div class="detail-field">
+                        <label for="workoutTiming">Durata (sec):</label>
+                        <input type="number" id="workoutTiming" min="0" max="600" value="1">
+                    </div>
+                    <div class="detail-field">
+                        <label for="workoutRec">Recupero (sec):</label>
+                        <input type="number" id="workoutRec" min="0" max="600" value="60">
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-field">
                         <label for="workoutPeriodo">Periodo:</label>
                         <select id="workoutPeriodo">
                             <option value="GEN">Generico</option>
@@ -2733,6 +2743,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     nr: 1,
                     date: new Date(),
                     series: 1,
+                    timing: 10,
+                    rec: 60,
                     freehands: new Map(),
                     nextFreehandId: 1,
                     animations: new Map(),
@@ -4225,6 +4237,24 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 document.getElementById('renumberObjects').addEventListener('click', () => {
                     this.renumberAllObjects();
                 });
+
+                document.getElementById('workoutTiming').addEventListener('input', (e) => {
+                    this.getCurrentTab().timing = parseInt(e.target.value) || 10;
+                });
+                document.getElementById('workoutRec').addEventListener('input', (e) => {
+                    this.getCurrentTab().rec = parseInt(e.target.value) || 60;
+                });
+
+                
+                document.getElementById('workoutSeries').addEventListener('input', (e) => {
+                    this.getCurrentTab().series = parseInt(e.target.value) || 1;
+                });
+                document.getElementById('workoutNr').addEventListener('input', (e) => {
+                    this.getCurrentTab().nr = parseInt(e.target.value) || 1;
+                });
+
+
+
 
             }
 
@@ -6668,6 +6698,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 document.getElementById('workoutNr').value = tab.nr || 1;
                 document.getElementById('workoutSeries').value = tab.series || 1;
                 document.getElementById('workoutGroups').value = tab.groups || 1;
+                document.getElementById('workoutTiming').value = tab.timing || 10;    // ✅ AGGIUNTO
+                document.getElementById('workoutRec').value = tab.rec || 60;          // ✅ AGGIUNTO
 
                 this.filterCategoriesByGenere(tab.genere || 'GEN');
 
@@ -6779,6 +6811,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     autore: tab.autore || this.currentUser,
                     nr: tab.nr,
                     series: tab.series,
+                    timing: tab.timing,
+                    rec: tab.rec,
                     place: tab.place,
                     date: tab.date,
                     groups: tab.groups,
@@ -6892,6 +6926,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 tab.nr = data.nr || 1;
                 tab.series = data.series || 1;
                 tab.groups = data.groups || 1;
+                tab.timing = data.timing || 10;      // ✅ AGGIUNTO
+                tab.rec = data.rec || 60;            // ✅ AGGIUNTO                
                 tab.exerciseSteps = data.exerciseSteps || [];
 
                 this.initExerciseSteps();
@@ -6940,7 +6976,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 document.getElementById('workoutNr').value = tab.nr;
                 document.getElementById('workoutSeries').value = tab.series;
                 document.getElementById('workoutGroups').value = tab.groups;
-
+                document.getElementById('workoutTiming').value = tab.timing;
+                document.getElementById('workoutRec').value = tab.rec;
                 // Applica il filtro per le categorie in base al genere
                 this.filterCategoriesByGenere(tab.genere);
 
@@ -7382,10 +7419,10 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 });
 
                 const margin = 15;
-                const lineSpacing = 6;
-                const fontTitleSize = 14;
-                const fontSubtitleSize = 12;
-                const fontNormalSize = 10;
+                const lineSpacing = 5; // Ridotto da 6 a 5
+                const fontTitleSize = 11; // Ridotto da 14 a 11
+                const fontSubtitleSize = 10; // Ridotto da 12 a 10
+                const fontNormalSize = 8; // Ridotto da 10 a 8
                 const colWidth = 85;
                 const drawingX = margin;
                 const stepsX = margin + colWidth + 5;
@@ -7416,11 +7453,15 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                         yOffset = margin;
                     }
 
+                    // Titolo esercizio
                     doc.setFontSize(fontTitleSize);
+                    doc.setFont(undefined, 'bold');
                     doc.text(tab.name.toUpperCase(), margin, yOffset);
-                    yOffset += lineSpacing * 1.5;
+                    yOffset += lineSpacing * 1.2;
 
+                    // Info base
                     doc.setFontSize(fontNormalSize);
+                    doc.setFont(undefined, 'normal');
                     const date = tab.date ? new Date(tab.date).toLocaleDateString('it-IT') : new Date().toLocaleDateString('it-IT');
 
                     const categoryOptions = document.getElementById('workoutCategoria').options;
@@ -7430,13 +7471,14 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     const genre = Array.from(genreOptions).find(opt => opt.value === tab.genere)?.text || tab.genere || '-';
 
                     doc.text(`Data: ${date}`, margin, yOffset);
-                    doc.text(`Categoria: ${category}`, margin + 50, yOffset);
-                    doc.text(`Genere: ${genre}`, margin + 110, yOffset);
-                    yOffset += lineSpacing * 1.5;
+                    doc.text(`Categoria: ${category}`, margin + 45, yOffset);
+                    doc.text(`Genere: ${genre}`, margin + 100, yOffset);
+                    yOffset += lineSpacing * 1.2;
 
+                    // Descrizione/Obiettivo (più compatta)
                     if (tab.descrizione && tab.descrizione.trim() !== "") {
                         const descLines = doc.splitTextToSize(tab.descrizione, 180);
-                        const descHeight = (descLines.length * lineSpacing) + lineSpacing * 2;
+                        const descHeight = (descLines.length * lineSpacing) + lineSpacing * 1.5;
 
                         if (yOffset + descHeight > maxY) {
                             doc.addPage();
@@ -7444,12 +7486,14 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                         }
 
                         doc.setFontSize(fontSubtitleSize);
+                        doc.setFont(undefined, 'bold');
                         doc.text('Descrizione/Obiettivo', margin, yOffset);
-                        doc.setLineWidth(0.5);
-                        doc.line(margin, yOffset + 1, 195, yOffset + 1);
-                        yOffset += lineSpacing;
+                        doc.setLineWidth(0.3);
+                        doc.line(margin, yOffset + 0.8, 195, yOffset + 0.8);
+                        yOffset += lineSpacing * 0.8;
 
                         doc.setFontSize(fontNormalSize);
+                        doc.setFont(undefined, 'normal');
                         doc.text(descLines, margin, yOffset);
                         yOffset += descLines.length * lineSpacing + lineSpacing;
                     }
@@ -7459,21 +7503,16 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                         yOffset = margin;
                     }
 
-                    doc.setFontSize(fontSubtitleSize);
-                    // doc.text('Disegno Esercizio', drawingX, yOffset);
-                    // doc.text('Istruzioni / Step', stepsX, yOffset);
-                    doc.setLineWidth(0.5);
-                    // doc.line(drawingX, yOffset + 1, drawingX + colWidth, yOffset + 1);
-                    // doc.line(stepsX, yOffset + 1, stepsX + colWidth, yOffset + 1);
-                    //yOffset += lineSpacing;
-
                     const startYSection = yOffset;
 
+                    // Serie, Ripetizioni, Recupero e Timing (più compatti)
                     doc.setFontSize(fontNormalSize);
+                    doc.setFont(undefined, 'normal');
                     const series = tab.series || '-';
                     const repetitions = tab.nr || '-';
-                    const rest = '-';
-                    doc.text(`Serie: [${series}] - Ripetizioni: [${repetitions}] - Recupero: [${rest}]`, drawingX, yOffset);
+                    const timing = tab.timing || 10;
+                    const rec = tab.rec || 60;                    
+                    doc.text(`Serie: ${series} | Rip: ${repetitions} | Rec: ${rec}s | Tempo: ${timing}min`, drawingX, yOffset);
                     yOffset += lineSpacing;
 
                     const canvasElement = document.getElementById('canvas');
@@ -7489,7 +7528,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     if (rightSidebar) rightSidebar.style.display = 'none';
                     if (watermark) watermark.style.display = 'none';
 
-                    // Nascondi tutti i controlli interattivi
                     const interactiveElements = canvasElement.querySelectorAll(
                         '.resize-handle, .rotate-handle, .connection-point, .control-point, .endpoint-control, .group-rotation-center, .object-label'
                     );
@@ -7502,13 +7540,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     });
 
                     try {
-                        // Prepara il canvas per l'export
                         const originalState = this.prepareCanvasForExport();
-
-                        // Attendi che il browser applichi tutte le modifiche
                         await new Promise(resolve => setTimeout(resolve, 300));
 
-                        // Dimensioni fisse per evitare problemi di scala
                         const exportWidth = 1200;
                         const exportHeight = 800;
 
@@ -7524,15 +7558,12 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                             windowHeight: exportHeight,
                             scrollX: 0,
                             scrollY: 0,
-                            foreignObjectRendering: false, // Disabilita per maggiore compatibilità
+                            foreignObjectRendering: false,
                             onclone: (clonedDoc) => {
-                                // Manipola il DOM clonato per assicurare posizioni corrette
                                 const clonedCanvas = clonedDoc.getElementById('canvas');
                                 if (clonedCanvas) {
                                     clonedCanvas.style.transform = 'none';
                                     clonedCanvas.style.position = 'relative';
-
-                                    // Forza SVG con posizioni assolute
                                     const svgs = clonedCanvas.querySelectorAll('.arrow-svg');
                                     svgs.forEach(svg => {
                                         svg.style.position = 'absolute';
@@ -7543,29 +7574,19 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                             }
                         });
 
-                        // Ripristina lo stato originale del canvas
                         canvasElement.style.transform = originalState.transform;
                         canvasElement.style.overflow = originalState.overflow;
                         canvasElement.style.position = originalState.position;
-
-                        // Re-renderizza normalmente
                         tab.arrows.forEach(arrow => this.renderArrow(arrow));
 
                         const imgWidth = colWidth;
                         const imgHeight = (canvasImage.height * imgWidth) / canvasImage.width;
-                        const maxImgHeight = 150;
+                        const maxImgHeight = 120; // Ridotto da 150 a 120
                         const finalImgHeight = imgHeight > maxImgHeight ? maxImgHeight : imgHeight;
 
                         if (yOffset + finalImgHeight > maxY) {
                             doc.addPage();
                             yOffset = margin;
-                            doc.setFontSize(fontSubtitleSize);
-                            //doc.text('Disegno Esercizio', drawingX, yOffset);
-                            //doc.text('Istruzioni / Step', stepsX, yOffset);
-                            doc.setLineWidth(0.5);
-                            //doc.line(drawingX, yOffset + 1, drawingX + colWidth, yOffset + 1);
-                            //doc.line(stepsX, yOffset + 1, stepsX + colWidth, yOffset + 1);
-                            //yOffset += lineSpacing;
                         }
 
                         doc.addImage(canvasImage.toDataURL('image/jpeg', 0.9), 'JPEG', drawingX, yOffset, imgWidth, finalImgHeight);
@@ -7574,6 +7595,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
                         let currentStepsY = startYSection + lineSpacing;
 
+                        // Step (più compatti)
                         const stepsArray = tab.exerciseSteps || [];
                         let stepsText = '';
                         stepsArray.forEach((step, index) => {
@@ -7585,6 +7607,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                         }
 
                         doc.setFontSize(fontNormalSize);
+                        doc.setFont(undefined, 'normal');
                         const stepsLines = doc.splitTextToSize(stepsText, colWidth);
 
                         stepsLines.forEach(line => {
@@ -7593,25 +7616,26 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                                 currentStepsY = margin;
                             }
                             doc.text(line, stepsX, currentStepsY);
-                            currentStepsY += lineSpacing;
+                            currentStepsY += lineSpacing * 0.9; // Ridotto leggermente
                         });
 
-                        yOffset = Math.max(nextDrawingY, currentStepsY) + lineSpacing * 2;
+                        yOffset = Math.max(nextDrawingY, currentStepsY) + lineSpacing * 1.5;
 
                     } finally {
-                        // Ripristina tutti gli elementi nascosti
                         hiddenElements.forEach(el => el.style.display = '');
-
                         if (sidebar) sidebar.style.display = originalSidebarDisplay;
                         if (rightSidebar) rightSidebar.style.display = originalRightSidebarDisplay;
                         if (watermark) watermark.style.display = originalWatermarkDisplay;
                     }
+
+                    isFirstTab = false;
                 }
 
+                // Watermark finale
                 const totalPages = doc.internal.getNumberOfPages();
                 doc.setPage(totalPages);
                 const pageWidth = doc.internal.pageSize.getWidth();
-                doc.setFontSize(12);
+                doc.setFontSize(10);
                 doc.setTextColor(150, 150, 150);
                 doc.text("spikecode", pageWidth - 60, pageHeight - 20);
 
