@@ -45,6 +45,7 @@
     <link rel="stylesheet" href="./css/arrow.css">
     <link rel="stylesheet" href="./css/exercise-steps.css">
     <link rel="stylesheet" href="./css/object-label.css">
+    <link rel="stylesheet" href="./css/butttons.css">
     <style>
         * {
             margin: 0;
@@ -1185,8 +1186,10 @@
                     <button id="renumberObjects">🔄 Rinumera</button>
                     <button id="exportPdfBtn" title="Esporta l'allenamento completo in un PDF strutturato.">📄 Esporta
                         PDF</button>
-                    <button id="freehandModeBtn" title="Esporta l'allenamento completo in un PDF strutturato.">✏️
+                    <button id="freehandModeBtn" title="Attiva modalità disegno a mano libera.">✏️
                         Disegno</button>
+                    <button id="exportFormationsBtn" title="Genera foglio formazioni per partite con 5 set">📋 Foglio
+                        Formazioni</button>
                 </div>
                 <div class="toolbar-group">
                     <button id="zoomOut">➖</button>
@@ -4252,7 +4255,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 document.getElementById('workoutNr').addEventListener('input', (e) => {
                     this.getCurrentTab().nr = parseInt(e.target.value) || 1;
                 });
-
+                document.getElementById('exportFormationsBtn').addEventListener('click', () => {
+                    this.exportFormationSheet();
+                });
 
 
 
@@ -7696,6 +7701,129 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 doc.save(`Allenamento_${timestamp}.pdf`);
                 alert('Esportazione PDF completata con successo!');
             }
+
+            async exportFormationSheet() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({
+                    orientation: 'p',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const pageHeight = doc.internal.pageSize.getHeight();
+                const margin = 15;
+
+                // Titolo
+                doc.setFontSize(18);
+                doc.setFont(undefined, 'bold');
+                doc.text('FOGLIO FORMAZIONI', pageWidth / 2, 20, { align: 'center' });
+
+                // Info partita
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'normal');
+
+                let yOffset = 35;
+
+                // Campi per compilazione
+                doc.text('SQUADRA: _________________________________', margin, yOffset);
+                doc.text('DATA: _______________', pageWidth - 70, yOffset);
+                yOffset += 10;
+                doc.text('AVVERSARIO: _________________________________', margin, yOffset);
+                doc.text('LUOGO: _______________', pageWidth - 70, yOffset);
+                yOffset += 15;
+
+                // Disegna i 5 set
+                const courtWidth = 85;
+                const courtHeight = 50;
+                const spacing = 8;
+
+                for (let set = 1; set <= 5; set++) {
+                    // Calcola posizione
+                    const startY = yOffset + ((set - 1) * (courtHeight + spacing + 15));
+
+                    // Numero del set
+                    doc.setFontSize(14);
+                    doc.setFont(undefined, 'bold');
+                    doc.text(`SET ${set}`, margin, startY);
+
+                    // Disegna il mezzo campo
+                    const courtX = margin;
+                    const courtY = startY + 5;
+
+                    // Perimetro del campo
+                    doc.setLineWidth(0.5);
+                    doc.rect(courtX, courtY, courtWidth, courtHeight);
+
+                    // Linea dei 3 metri
+                    const threeMetersLine = courtY + (courtHeight / 3);
+                    doc.setLineWidth(0.3);
+                    doc.line(courtX, threeMetersLine, courtX + courtWidth, threeMetersLine);
+
+                    // Rete (linea centrale più spessa)
+                    doc.setLineWidth(1);
+                    const netY = courtY + (courtHeight / 2);
+                    doc.line(courtX, netY, courtX + courtWidth, netY);
+
+                    // Posizioni dei giocatori (cerchi)
+                    doc.setLineWidth(0.3);
+                    const positions = [
+                        { x: courtWidth * 0.25, y: courtHeight * 0.25, label: '4' },
+                        { x: courtWidth * 0.50, y: courtHeight * 0.25, label: '3' },
+                        { x: courtWidth * 0.75, y: courtHeight * 0.25, label: '2' },
+                        { x: courtWidth * 0.25, y: courtHeight * 0.75, label: '5' },
+                        { x: courtWidth * 0.50, y: courtHeight * 0.75, label: '6' },
+                        { x: courtWidth * 0.75, y: courtHeight * 0.75, label: '1' }
+                    ];
+
+                    doc.setFontSize(8);
+                    doc.setFont(undefined, 'normal');
+                    positions.forEach(pos => {
+                        const cx = courtX + pos.x;
+                        const cy = courtY + pos.y;
+                        doc.circle(cx, cy, 3);
+                        doc.text(pos.label, cx - 1, cy + 1);
+                    });
+
+                    // Spazio per annotazioni a destra del campo
+                    const notesX = courtX + courtWidth + 5;
+                    doc.setFontSize(9);
+                    doc.text('Sostituzioni:', notesX, courtY + 10);
+                    doc.line(notesX, courtY + 12, pageWidth - margin, courtY + 12);
+                    doc.line(notesX, courtY + 18, pageWidth - margin, courtY + 18);
+                    doc.line(notesX, courtY + 24, pageWidth - margin, courtY + 24);
+
+                    doc.text('Note:', notesX, courtY + 32);
+                    doc.line(notesX, courtY + 34, pageWidth - margin, courtY + 34);
+                    doc.line(notesX, courtY + 40, pageWidth - margin, courtY + 40);
+
+                    // Linea per firma dell'allenatore
+                    const signY = courtY + courtHeight + 5;
+                    doc.setFontSize(9);
+                    doc.text('Firma Allenatore: ___________________________', margin, signY);
+                }
+
+                // Footer
+                doc.setFontSize(8);
+                doc.setTextColor(150, 150, 150);
+                doc.text('Generato da VolleyProW4 - spikecode', pageWidth / 2, pageHeight - 10, { align: 'center' });
+
+                // Salva il PDF
+                const now = new Date();
+                const timestamp = now.getFullYear() +
+                    String(now.getMonth() + 1).padStart(2, '0') +
+                    String(now.getDate()).padStart(2, '0') + '_' +
+                    String(now.getHours()).padStart(2, '0') +
+                    String(now.getMinutes()).padStart(2, '0');
+
+                doc.save(`Formazioni_${timestamp}.pdf`);
+
+                console.log('✅ Foglio formazioni generato con successo');
+            }
+
+
+
+
         }
 
         // document.addEventListener('DOMContentLoaded', () => {

@@ -1,0 +1,8 @@
+#exportFormationsBtn {
+    background: #9b59b6;
+    color: white;
+}
+
+#exportFormationsBtn:hover {
+    background: #8e44ad;
+}
