@@ -7715,7 +7715,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 const margin = 15;
 
                 // Titolo
-                doc.setFontSize(18);
+                doc.setFontSize(14);
                 doc.setFont(undefined, 'bold');
                 doc.text('FOGLIO FORMAZIONI', pageWidth / 2, 20, { align: 'center' });
 
@@ -7731,10 +7731,10 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 yOffset += 10;
                 doc.text('AVVERSARIO: _________________________________', margin, yOffset);
                 doc.text('LUOGO: _______________', pageWidth - 70, yOffset);
-                yOffset += 15;
+                yOffset += 5;
 
                 // Disegna i 5 set
-                const courtWidth = 85;
+                const courtWidth = 50;
                 const courtHeight = 50;
                 const spacing = 8;
 
@@ -7743,7 +7743,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     const startY = yOffset + ((set - 1) * (courtHeight + spacing + 15));
 
                     // Numero del set
-                    doc.setFontSize(14);
+                    doc.setFontSize(12);
                     doc.setFont(undefined, 'bold');
                     doc.text(`SET ${set}`, margin, startY);
 
@@ -7762,18 +7762,18 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
                     // Rete (linea centrale più spessa)
                     doc.setLineWidth(1);
-                    const netY = courtY + (courtHeight / 2);
-                    doc.line(courtX, netY, courtX + courtWidth, netY);
+                    //const netY = courtY + (courtHeight / 2);
+                    doc.line(courtX, courtY, courtX + courtWidth, courtY);
 
                     // Posizioni dei giocatori (cerchi)
                     doc.setLineWidth(0.3);
                     const positions = [
-                        { x: courtWidth * 0.25, y: courtHeight * 0.25, label: '4' },
-                        { x: courtWidth * 0.50, y: courtHeight * 0.25, label: '3' },
-                        { x: courtWidth * 0.75, y: courtHeight * 0.25, label: '2' },
-                        { x: courtWidth * 0.25, y: courtHeight * 0.75, label: '5' },
-                        { x: courtWidth * 0.50, y: courtHeight * 0.75, label: '6' },
-                        { x: courtWidth * 0.75, y: courtHeight * 0.75, label: '1' }
+                        { x: courtWidth * 0.25, y: courtHeight * 0.15, label: '' },
+                        { x: courtWidth * 0.50, y: courtHeight * 0.15, label: '' },
+                        { x: courtWidth * 0.75, y: courtHeight * 0.15, label: '' },
+                        { x: courtWidth * 0.25, y: courtHeight * 0.75, label: '' },
+                        { x: courtWidth * 0.50, y: courtHeight * 0.75, label: '' },
+                        { x: courtWidth * 0.75, y: courtHeight * 0.75, label: '' }
                     ];
 
                     doc.setFontSize(8);
@@ -7781,7 +7781,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     positions.forEach(pos => {
                         const cx = courtX + pos.x;
                         const cy = courtY + pos.y;
-                        doc.circle(cx, cy, 3);
+                        doc.circle(cx, cy, 4);
                         doc.text(pos.label, cx - 1, cy + 1);
                     });
 
@@ -7800,7 +7800,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     // Linea per firma dell'allenatore
                     const signY = courtY + courtHeight + 5;
                     doc.setFontSize(9);
-                    doc.text('Firma Allenatore: ___________________________', margin, signY);
+                    doc.text('Firma Allenatore: ___________________________', notesX, courtY + 52);
                 }
 
                 // Footer
