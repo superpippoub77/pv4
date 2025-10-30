@@ -6228,33 +6228,46 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
             deleteSelected() {
                 const tab = this.getCurrentTab();
+
                 if (this.selectedObjects.size > 0) {
                     this.selectedObjects.forEach((pos, objectId) => {
-                        // Elimina frecce collegate E aggiorna contatori
-                        tab.arrows.forEach((arrow, arrowId) => {
-                            if (arrow.from.objectId === objectId || arrow.to.objectId === objectId) {
-                                // NUOVO: Decrementa counter
-                                if (arrow.from.objectId && arrow.from.position) {
-                                    const key = `${arrow.from.objectId}-${arrow.from.position}`;
-                                    const counter = tab.connectionPointCounters.get(key) || 0;
-                                    if (counter > 1) {
-                                        tab.connectionPointCounters.set(key, counter - 1);
-                                        this.updateConnectionPointBadge(arrow.from.objectId, arrow.from.position, counter - 1);
-                                    } else {
-                                        tab.connectionPointCounters.delete(key);
-                                        this.updateConnectionPointBadge(arrow.from.objectId, arrow.from.position, 0);
+                        // Gestione eliminazione oggetti normali
+                        if (!pos.type || pos.type !== 'freehand') {
+                            // Elimina frecce collegate E aggiorna contatori
+                            tab.arrows.forEach((arrow, arrowId) => {
+                                if (arrow.from.objectId === objectId || arrow.to.objectId === objectId) {
+                                    // Decrementa counter per from
+                                    if (arrow.from.objectId && arrow.from.position) {
+                                        const key = `${arrow.from.objectId}-${arrow.from.position}`;
+                                        const counter = tab.connectionPointCounters.get(key) || 0;
+                                        if (counter > 1) {
+                                            tab.connectionPointCounters.set(key, counter - 1);
+                                            this.updateConnectionPointBadge(arrow.from.objectId, arrow.from.position, counter - 1);
+                                        } else {
+                                            tab.connectionPointCounters.delete(key);
+                                            this.updateConnectionPointBadge(arrow.from.objectId, arrow.from.position, 0);
+                                        }
                                     }
+
+                                    // Elimina la freccia
+                                    document.getElementById(arrowId)?.remove();
+                                    tab.arrows.delete(arrowId);
                                 }
+                            });
 
-                                document.getElementById(arrowId)?.remove();
-                                tab.arrows.delete(arrowId);
-                            }
-                        });
-
-                        // ... resto del codice per eliminazione oggetti/freehands ...
+                            // Elimina l'oggetto
+                            document.getElementById(objectId)?.remove();
+                            tab.objects.delete(objectId);
+                        }
+                        // Gestione eliminazione freehands
+                        else if (pos.type === 'freehand') {
+                            document.getElementById(objectId)?.remove();
+                            tab.freehands.delete(objectId);
+                        }
                     });
-                } else if (this.selectedArrow) {
-                    // NUOVO: Aggiorna contatori quando elimini una freccia
+                }
+                // Elimina freccia selezionata
+                else if (this.selectedArrow) {
                     const arrow = tab.arrows.get(this.selectedArrow);
                     if (arrow && arrow.from.objectId && arrow.from.position) {
                         const key = `${arrow.from.objectId}-${arrow.from.position}`;
@@ -6270,7 +6283,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
                     document.getElementById(this.selectedArrow)?.remove();
                     tab.arrows.delete(this.selectedArrow);
-                } else if (this.selectedFreehand) {
+                }
+                // Elimina freehand selezionato
+                else if (this.selectedFreehand) {
                     document.getElementById(this.selectedFreehand)?.remove();
                     tab.freehands.delete(this.selectedFreehand);
                 }
