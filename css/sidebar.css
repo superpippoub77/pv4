@@ -16,20 +16,11 @@
 }
 
 .sidebar-switch {
-    position: absolute;
     top: 50%;
     right: -25px;
     transform: translateY(-50%);
-    width: 25px;
-    height: 50px;
-    background: #34495e;
-    border: 2px solid #2c3e50;
     border-left: none;
     border-radius: 0 8px 8px 0;
-    cursor: pointer;
-    color: white;
-    font-size: 20px;
-    z-index: 10;
 }
 
 .sidebar-handle {
@@ -82,23 +73,11 @@
 }
 
 .right-sidebar-switch {
-    position: absolute;
     top: 50%;
     left: -25px;
     transform: translateY(-50%);
-    width: 25px;
-    height: 50px;
-    background: #34495e;
-    border: 2px solid #2c3e50;
     border-right: none;
     border-radius: 8px 0 0 8px;
-    cursor: pointer;
-    color: white;
-    font-size: 20px;
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .right-sidebar-handle {
@@ -178,15 +157,61 @@
 
 .detail-row {
     display: flex;
-    gap: 5px; /* spazio orizzontale tra le due colonne */
+    gap: 5px;
+    /* spazio orizzontale tra le due colonne */
 }
 
 .detail-row .detail-field {
-    flex: 1; /* entrambe le colonne con larghezza uguale */
+    flex: 1;
+    /* entrambe le colonne con larghezza uguale */
 }
 
 @media (max-width: 600px) {
     .detail-row {
         flex-direction: column;
     }
+}
+
+
+.sidebar-switch,
+.right-sidebar-switch {
+    position: absolute;
+    width: 25px;
+    height: 50px;
+    background: #34495e;
+    border: 2px solid #2c3e50;
+    border-radius: 8px;
+    cursor: pointer !important;
+    color: white;
+    font-size: 20px;
+    z-index: 1000; /* ✅ AUMENTATO per stare sopra tutto */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto !important; /* ✅ Sempre cliccabile */
+    user-select: none;
+}
+
+.sidebar-switch:active,
+.right-sidebar-switch:active {
+    background: #2c3e50;
+}
+
+.sidebar-handle,
+.right-sidebar-handle {
+    width: 10px;
+    cursor: ew-resize;
+    background: #4a6a8a;
+    position: relative;
+    pointer-events: auto; /* ✅ Assicura che sia cliccabile */
+}
+
+/* ✅ AGGIUNTO: Previene interferenze durante il resize */
+body.resizing-sidebar * {
+    pointer-events: none !important;
+}
+
+body.resizing-sidebar .sidebar-handle,
+body.resizing-sidebar .right-sidebar-handle {
+    pointer-events: auto !important;
 }

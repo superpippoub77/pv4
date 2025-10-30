@@ -3985,43 +3985,53 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     document.getElementById('workoutFileInput').click();
                 });
 
-                // Right sidebar functionality
+                // ========== RIGHT SIDEBAR ==========
                 const rightSidebar = document.getElementById('rightSidebar');
                 const rightSidebarHandle = document.getElementById('rightSidebarHandle');
                 const rightSidebarSwitch = document.getElementById('rightSidebarSwitch');
-                let isResizingRightSidebar = false;
-                let startXRight;
-                let startWidthRight;
 
-                rightSidebarHandle.addEventListener('mousedown', (e) => {
+                // ✅ TOGGLE con gestione semplificata
+                rightSidebarSwitch.onclick = function (e) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    rightSidebar.classList.toggle('hidden');
+                    this.textContent = rightSidebar.classList.contains('hidden') ? '◀' : '▶';
+                    return false;
+                };
+
+                // ✅ RESIZE con flag sul body
+                let isResizingRightSidebar = false;
+                rightSidebarHandle.onmousedown = function (e) {
+                    // ✅ Ignora se il click è sul pulsante
+                    if (e.target === rightSidebarSwitch) return;
+
                     e.preventDefault();
                     isResizingRightSidebar = true;
-                    startXRight = e.clientX;
-                    startWidthRight = rightSidebar.offsetWidth;
-                    document.documentElement.addEventListener('mousemove', handleRightMouseMove);
-                    document.documentElement.addEventListener('mouseup', handleRightMouseUp);
-                });
+                    document.body.classList.add('resizing-sidebar');
 
-                const handleRightMouseMove = (e) => {
-                    if (!isResizingRightSidebar) return;
-                    const newWidth = startWidthRight - (e.clientX - startXRight);
-                    const minWidth = 200;
-                    const maxWidth = window.innerWidth / 2;
-                    if (newWidth > minWidth && newWidth < maxWidth) {
-                        rightSidebar.style.width = newWidth + 'px';
+                    const startX = e.clientX;
+                    const startWidth = rightSidebar.offsetWidth;
+
+                    function onMouseMove(e) {
+                        if (!isResizingRightSidebar) return;
+                        const newWidth = startWidth - (e.clientX - startX);
+                        const minWidth = 200;
+                        const maxWidth = window.innerWidth / 2;
+                        if (newWidth >= minWidth && newWidth <= maxWidth) {
+                            rightSidebar.style.width = newWidth + 'px';
+                        }
                     }
-                };
 
-                const handleRightMouseUp = () => {
-                    isResizingRightSidebar = false;
-                    document.documentElement.removeEventListener('mousemove', handleRightMouseMove);
-                    document.documentElement.removeEventListener('mouseup', handleRightMouseUp);
-                };
+                    function onMouseUp() {
+                        isResizingRightSidebar = false;
+                        document.body.classList.remove('resizing-sidebar');
+                        document.removeEventListener('mousemove', onMouseMove);
+                        document.removeEventListener('mouseup', onMouseUp);
+                    }
 
-                rightSidebarSwitch.addEventListener('click', () => {
-                    rightSidebar.classList.toggle('hidden');
-                    rightSidebarSwitch.textContent = rightSidebar.classList.contains('hidden') ? '◀' : '▶';
-                });
+                    document.addEventListener('mousemove', onMouseMove);
+                    document.addEventListener('mouseup', onMouseUp);
+                };
 
                 // Workout details event listeners
                 document.getElementById('workoutPeriodo').addEventListener('change', (e) => {
@@ -4046,43 +4056,55 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 document.getElementById('workoutDescrizione').addEventListener('input', (e) => {
                     this.getCurrentTab().descrizione = e.target.value;
                 });
-                // Added sidebar functionality
+                // ========== LEFT SIDEBAR ==========
                 const sidebar = document.getElementById('sidebar');
                 const sidebarHandle = document.getElementById('sidebarHandle');
                 const sidebarSwitch = document.getElementById('sidebarSwitch');
-                let isResizingSidebar = false;
-                let startX;
-                let startWidth;
 
-                sidebarHandle.addEventListener('mousedown', (e) => {
+                // ✅ TOGGLE con gestione semplificata
+                sidebarSwitch.onclick = function (e) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    sidebar.classList.toggle('hidden');
+                    this.textContent = sidebar.classList.contains('hidden') ? '▶' : '◀';
+                    return false;
+                };
+
+                // ✅ RESIZE con flag sul body
+                let isResizingSidebar = false;
+                sidebarHandle.onmousedown = function (e) {
+                    // ✅ Ignora se il click è sul pulsante
+                    if (e.target === sidebarSwitch) return;
+
                     e.preventDefault();
                     isResizingSidebar = true;
-                    startX = e.clientX;
-                    startWidth = sidebar.offsetWidth;
-                    document.documentElement.addEventListener('mousemove', handleMouseMove);
-                    document.documentElement.addEventListener('mouseup', handleMouseUp);
-                });
+                    document.body.classList.add('resizing-sidebar');
 
-                const handleMouseMove = (e) => {
-                    if (!isResizingSidebar) return;
-                    const newWidth = startWidth + (e.clientX - startX);
-                    const minWidth = 150;
-                    const maxWidth = window.innerWidth / 2;
-                    if (newWidth > minWidth && newWidth < maxWidth) {
-                        sidebar.style.width = newWidth + 'px';
+                    const startX = e.clientX;
+                    const startWidth = sidebar.offsetWidth;
+
+                    function onMouseMove(e) {
+                        if (!isResizingSidebar) return;
+                        const newWidth = startWidth + (e.clientX - startX);
+                        const minWidth = 150;
+                        const maxWidth = window.innerWidth / 2;
+                        if (newWidth >= minWidth && newWidth <= maxWidth) {
+                            sidebar.style.width = newWidth + 'px';
+                        }
                     }
+
+                    function onMouseUp() {
+                        isResizingSidebar = false;
+                        document.body.classList.remove('resizing-sidebar');
+                        document.removeEventListener('mousemove', onMouseMove);
+                        document.removeEventListener('mouseup', onMouseUp);
+                    }
+
+                    document.addEventListener('mousemove', onMouseMove);
+                    document.addEventListener('mouseup', onMouseUp);
                 };
 
-                const handleMouseUp = () => {
-                    isResizingSidebar = false;
-                    document.documentElement.removeEventListener('mousemove', handleMouseMove);
-                    document.documentElement.removeEventListener('mouseup', handleMouseUp);
-                };
 
-                sidebarSwitch.addEventListener('click', () => {
-                    sidebar.classList.toggle('hidden');
-                    sidebarSwitch.textContent = sidebar.classList.contains('hidden') ? '▶' : '◀';
-                });
 
 
                 // Event listeners per il popup di salvataggio workout
