@@ -6,13 +6,12 @@
     overflow-y: auto;
     border-right: 3px solid #34495e;
     position: relative;
-    transition: width 0.3s ease;
+    transition: transform 0.3s ease, width 0.1s ease;
+    transform: translateX(0);
 }
 
 .sidebar.hidden {
-    width: 0;
-    min-width: 0;
-    overflow: hidden;
+    display: none;
 }
 
 .sidebar-switch {
@@ -28,17 +27,6 @@
     cursor: ew-resize;
     background: #4a6a8a;
     position: relative;
-}
-
-.sidebar-handle::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 50%;
-    width: 1px;
-    height: 100%;
-    background: #34495e;
-    transform: translateX(-50%);
 }
 
 /* WebKit browsers (Chrome, Safari, Edge) */
@@ -61,15 +49,14 @@
     overflow-y: auto;
     border-left: 3px solid #34495e;
     position: relative;
-    transition: width 0.3s ease;
+    transition: transform 0.3s ease, width 0.1s ease;
     display: flex;
     flex-direction: column;
+    transform: translateX(0);
 }
 
 .right-sidebar.hidden {
-    width: 0;
-    min-width: 0;
-    overflow: hidden;
+    display: none;
 }
 
 .right-sidebar-switch {
@@ -81,21 +68,15 @@
 }
 
 .right-sidebar-handle {
-    width: 10px;
+    width: 5px;
     cursor: ew-resize;
     background: #4a6a8a;
     position: relative;
 }
 
+.sidebar-handle::before,
 .right-sidebar-handle::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 50%;
-    width: 1px;
-    height: 100%;
-    background: #34495e;
-    transform: translateX(-50%);
+    content: none;
 }
 
 .right-sidebar::-webkit-scrollbar {
@@ -136,7 +117,6 @@
 
 .detail-field select,
 .detail-field textarea,
-/* AGGIUNGI QUESTO NUOVO SELETTORE */
 .detail-field input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]) {
     width: 100%;
     padding: 8px;
@@ -145,7 +125,6 @@
     font-size: 13px;
     background: #ecf0f1;
     color: #2c3e50;
-    /* Aggiunto per uniformità: */
     box-sizing: border-box;
 }
 
@@ -158,12 +137,10 @@
 .detail-row {
     display: flex;
     gap: 5px;
-    /* spazio orizzontale tra le due colonne */
 }
 
 .detail-row .detail-field {
     flex: 1;
-    /* entrambe le colonne con larghezza uguale */
 }
 
 @media (max-width: 600px) {
@@ -172,24 +149,29 @@
     }
 }
 
-
 .sidebar-switch,
 .right-sidebar-switch {
     position: absolute;
-    width: 25px;
+    width: 10px;
+    opacity: 0.2;
+    min-width: 10px; /* 🔒 impedisce che cambi */
+    max-width: 10px; /* 🔒 blocca la larghezza */
     height: 50px;
     background: #34495e;
     border: 2px solid #2c3e50;
-    border-radius: 8px;
     cursor: pointer !important;
     color: white;
-    font-size: 20px;
-    z-index: 1000; /* ✅ AUMENTATO per stare sopra tutto */
+    font-size: 14px;
+    z-index: 1000;
     display: flex;
     align-items: center;
     justify-content: center;
-    pointer-events: auto !important; /* ✅ Sempre cliccabile */
+    pointer-events: auto !important;
     user-select: none;
+    flex-shrink: 0;
+
+    /* Mantieni transizione SOLO sul colore */
+    transition: background 0.2s ease;
 }
 
 .sidebar-switch:active,
@@ -197,16 +179,37 @@
     background: #2c3e50;
 }
 
+.sidebar-switch:hover,
+.right-sidebar-switch:hover {
+    opacity: 1;
+}
+
+
+.sidebar-switch {
+    top: 50%;
+    right: -10px; /* metà della width + metà del border */
+    transform: translateY(-50%);
+    border-left: none;
+    border-radius: 0 8px 8px 0;
+}
+
+.right-sidebar-switch {
+    top: 50%;
+    left: -10px; /* idem */
+    transform: translateY(-50%);
+    border-right: none;
+    border-radius: 8px 0 0 8px;
+}
+
 .sidebar-handle,
 .right-sidebar-handle {
-    width: 10px;
+    width: 5px;
     cursor: ew-resize;
     background: #4a6a8a;
     position: relative;
-    pointer-events: auto; /* ✅ Assicura che sia cliccabile */
+    pointer-events: auto;
 }
 
-/* ✅ AGGIUNTO: Previene interferenze durante il resize */
 body.resizing-sidebar * {
     pointer-events: none !important;
 }

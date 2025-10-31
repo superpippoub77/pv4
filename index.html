@@ -3990,22 +3990,40 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 const rightSidebarHandle = document.getElementById('rightSidebarHandle');
                 const rightSidebarSwitch = document.getElementById('rightSidebarSwitch');
 
-                // ✅ TOGGLE con gestione semplificata
+                // Toggle
                 rightSidebarSwitch.onclick = function (e) {
                     e.stopPropagation();
                     e.preventDefault();
-                    rightSidebar.classList.toggle('hidden');
-                    this.textContent = rightSidebar.classList.contains('hidden') ? '◀' : '▶';
+
+                    const isHidden = rightSidebar.classList.contains('hidden');
+
+                    if (isHidden) {
+                        // Mostra sidebar
+                        rightSidebar.classList.remove('hidden');
+                        this.textContent = '▶';
+                    } else {
+                        // Nascondi sidebar
+                        rightSidebar.classList.add('hidden');
+                        this.textContent = '◀';
+                    }
+
                     return false;
                 };
 
-                // ✅ RESIZE con flag sul body
+                // Resize
                 let isResizingRightSidebar = false;
+                let rightSidebarOriginalWidth = null;
+
                 rightSidebarHandle.onmousedown = function (e) {
-                    // ✅ Ignora se il click è sul pulsante
                     if (e.target === rightSidebarSwitch) return;
 
                     e.preventDefault();
+
+                    // Salva la larghezza corrente prima del resize
+                    if (!rightSidebar.classList.contains('hidden')) {
+                        rightSidebarOriginalWidth = rightSidebar.offsetWidth;
+                    }
+
                     isResizingRightSidebar = true;
                     document.body.classList.add('resizing-sidebar');
 
@@ -4019,6 +4037,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                         const maxWidth = window.innerWidth / 2;
                         if (newWidth >= minWidth && newWidth <= maxWidth) {
                             rightSidebar.style.width = newWidth + 'px';
+                            rightSidebarOriginalWidth = newWidth;
                         }
                     }
 
@@ -4061,22 +4080,40 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 const sidebarHandle = document.getElementById('sidebarHandle');
                 const sidebarSwitch = document.getElementById('sidebarSwitch');
 
-                // ✅ TOGGLE con gestione semplificata
+                // Toggle
                 sidebarSwitch.onclick = function (e) {
                     e.stopPropagation();
                     e.preventDefault();
-                    sidebar.classList.toggle('hidden');
-                    this.textContent = sidebar.classList.contains('hidden') ? '▶' : '◀';
+
+                    const isHidden = sidebar.classList.contains('hidden');
+
+                    if (isHidden) {
+                        // Mostra sidebar
+                        sidebar.classList.remove('hidden');
+                        this.textContent = '◀';
+                    } else {
+                        // Nascondi sidebar
+                        sidebar.classList.add('hidden');
+                        this.textContent = '▶';
+                    }
+
                     return false;
                 };
 
-                // ✅ RESIZE con flag sul body
+                // Resize
                 let isResizingSidebar = false;
+                let sidebarOriginalWidth = null;
+
                 sidebarHandle.onmousedown = function (e) {
-                    // ✅ Ignora se il click è sul pulsante
                     if (e.target === sidebarSwitch) return;
 
                     e.preventDefault();
+
+                    // Salva la larghezza corrente prima del resize
+                    if (!sidebar.classList.contains('hidden')) {
+                        sidebarOriginalWidth = sidebar.offsetWidth;
+                    }
+
                     isResizingSidebar = true;
                     document.body.classList.add('resizing-sidebar');
 
@@ -4090,6 +4127,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                         const maxWidth = window.innerWidth / 2;
                         if (newWidth >= minWidth && newWidth <= maxWidth) {
                             sidebar.style.width = newWidth + 'px';
+                            sidebarOriginalWidth = newWidth;
                         }
                     }
 
