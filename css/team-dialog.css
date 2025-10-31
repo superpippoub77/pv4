@@ -1,0 +1,223 @@
+/* Team Management Dialog */
+.team-dialog {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 700px;
+    max-height: 80vh;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    z-index: 10000;
+    overflow: hidden;
+}
+
+.team-dialog.active {
+    display: flex;
+    flex-direction: column;
+}
+
+.team-dialog-header {
+    background: #3498db;
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: move;
+}
+
+.team-dialog-header h3 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.team-dialog-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.team-dialog-body {
+    padding: 20px;
+    overflow-y: auto;
+    max-height: calc(80vh - 60px);
+}
+
+.team-form-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 6px;
+}
+
+.team-form-section h4 {
+    margin: 0 0 15px 0;
+    color: #2c3e50;
+    font-size: 14px;
+}
+
+.team-form-row {
+    display: grid;
+    grid-template-columns: 100px 80px 1fr 80px;
+    gap: 10px;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+.team-form-row label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #34495e;
+}
+
+.team-form-row input,
+.team-form-row select {
+    padding: 6px 8px;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.team-form-row button {
+    padding: 6px 12px;
+    background: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.team-form-row button:hover {
+    background: #229954;
+}
+
+.team-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.team-player-item {
+    display: grid;
+    grid-template-columns: 80px 60px 1fr 100px 80px;
+    gap: 10px;
+    padding: 10px;
+    border-bottom: 1px solid #ecf0f1;
+    align-items: center;
+    font-size: 12px;
+}
+
+.team-player-item:hover {
+    background: #f8f9fa;
+}
+
+.team-player-role {
+    font-weight: bold;
+    color: #3498db;
+}
+
+.team-player-number {
+    text-align: center;
+    font-weight: bold;
+    background: #ecf0f1;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.team-player-name {
+    color: #2c3e50;
+}
+
+.team-player-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.team-player-actions button {
+    padding: 4px 8px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px;
+}
+
+.btn-edit {
+    background: #f39c12;
+    color: white;
+}
+
+.btn-delete {
+    background: #e74c3c;
+    color: white;
+}
+
+.team-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 2px solid #ecf0f1;
+}
+
+.team-actions button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.btn-import {
+    background: #9b59b6;
+    color: white;
+}
+
+.btn-export {
+    background: #3498db;
+    color: white;
+}
+
+.btn-clear {
+    background: #95a5a6;
+    color: white;
+}
+
+/* Player name badge */
+.player-name-badge {
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(52, 152, 219, 0.9);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 9px;
+    font-weight: bold;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 100;
+    display: none;
+}
+
+.canvas-object.show-player-names .player-name-badge {
+    display: block;
+}
+
+body.show-all-player-names .canvas-object .player-name-badge {
+    display: block;
+}

@@ -46,6 +46,7 @@
     <link rel="stylesheet" href="./css/exercise-steps.css">
     <link rel="stylesheet" href="./css/object-label.css">
     <link rel="stylesheet" href="./css/butttons.css">
+    <link rel="stylesheet" href="./css/team-dialog.css">
     <style>
         * {
             margin: 0;
@@ -1174,6 +1175,10 @@
                     </select>
                 </div>
                 <div class="toolbar-group">
+                    <button id="manageTeamBtn">👥 Gestisci Squadra</button>
+                    <button id="togglePlayerNames">🏷️ Nomi Giocatori</button>
+                </div>
+                <div class="toolbar-group">
                     <button id="bringToFront">⬆️ In primo piano</button>
                     <button id="sendToBack">⬇️ In background</button>
                 </div>
@@ -1236,7 +1241,7 @@
                             <button class="logout-button" id="logoutButton">Esci</button>
                         </div>
                     </div>
-                    
+
                 </div>
             </div>
 
@@ -1664,6 +1669,8 @@
                 this.selectedFreehand = null;
                 this.draggedFrameIndex = null;
                 this.draggedStepIndex = null;
+                this.teamPlayers = this.loadTeamFromStorage();
+                this.showPlayerNames = false;
                 // Inizializza il login prima di tutto
                 this.initLogin();
                 // Inizializza la logica della libreria
@@ -1674,6 +1681,198 @@
                 this.initializeExistingTabs();
                 this.updateUI();
             }
+            // Metodi per la gestione squadra
+            loadTeamFromStorage() {
+                try {
+                    const saved = localStorage.getItem('volleyTeam');
+                    return saved ? JSON.parse(saved) : [];
+                } catch (error) {
+                    console.error('Errore nel caricamento della squadra:', error);
+                    return [];
+                }
+            }
+
+            saveTeamToStorage() {
+                try {
+                    localStorage.setItem('volleyTeam', JSON.stringify(this.teamPlayers));
+                } catch (error) {
+                    console.error('Errore nel salvataggio della squadra:', error);
+                }
+            }
+
+            showTeamDialog() {
+                const dialog = document.getElementById('teamDialog');
+                dialog.classList.add('active');
+                this.renderTeamPlayersList();
+            }
+
+            hideTeamDialog() {
+                document.getElementById('teamDialog').classList.remove('active');
+            }
+
+            addTeamPlayer() {
+                const role = document.getElementById('newPlayerRole').value;
+                const number = parseInt(document.getElementById('newPlayerNumber').value);
+                const name = document.getElementById('newPlayerName').value.trim();
+
+                if (!name || !number) {
+                    alert('Inserisci numero e nome del giocatore');
+                    return;
+                }
+
+                // Verifica duplicati
+                const exists = this.teamPlayers.find(p =>
+                    p.role === role || p.number === number
+                );
+
+                if (exists) {
+                    if (!confirm('Ruolo o numero già assegnato. Sostituire?')) return;
+                    this.teamPlayers = this.teamPlayers.filter(p =>
+                        p.role !== role && p.number !== number
+                    );
+                }
+
+                this.teamPlayers.push({ role, number, name });
+                this.teamPlayers.sort((a, b) => a.number - b.number);
+
+                this.saveTeamToStorage();
+                this.renderTeamPlayersList();
+
+                // Reset form
+                document.getElementById('newPlayerNumber').value = '';
+                document.getElementById('newPlayerName').value = '';
+            }
+
+            renderTeamPlayersList() {
+                const container = document.getElementById('teamPlayersList');
+                container.innerHTML = '';
+
+                if (this.teamPlayers.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; padding: 20px; color: #999;">Nessun giocatore inserito</p>';
+                    return;
+                }
+
+                this.teamPlayers.forEach((player, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'team-player-item';
+
+                    const roleDiv = document.createElement('div');
+                    roleDiv.className = 'team-player-role';
+                    roleDiv.textContent = player.role;
+
+                    const numberDiv = document.createElement('div');
+                    numberDiv.className = 'team-player-number';
+                    numberDiv.textContent = `#${player.number}`;
+
+                    const nameDiv = document.createElement('div');
+                    nameDiv.className = 'team-player-name';
+                    nameDiv.textContent = player.name;
+
+                    const actionsDiv = document.createElement('div');
+                    actionsDiv.className = 'team-player-actions';
+
+                    const editBtn = document.createElement('button');
+                    editBtn.className = 'btn-edit';
+                    editBtn.innerHTML = '✏️';
+                    editBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        this.editTeamPlayer(index);
+                    });
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'btn-delete';
+                    deleteBtn.innerHTML = '🗑️';
+                    deleteBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        this.deleteTeamPlayer(index);
+                    });
+
+                    actionsDiv.appendChild(editBtn);
+                    actionsDiv.appendChild(deleteBtn);
+
+                    item.appendChild(roleDiv);
+                    item.appendChild(numberDiv);
+                    item.appendChild(nameDiv);
+                    item.appendChild(actionsDiv);
+
+                    container.appendChild(item);
+                });
+            }
+
+            editTeamPlayer(index) {
+                const player = this.teamPlayers[index];
+                document.getElementById('newPlayerRole').value = player.role;
+                document.getElementById('newPlayerNumber').value = player.number;
+                document.getElementById('newPlayerName').value = player.name;
+                this.deleteTeamPlayer(index);
+            }
+
+            deleteTeamPlayer(index) {
+                if (!confirm('Eliminare questo giocatore?')) return;
+                this.teamPlayers.splice(index, 1);
+                this.saveTeamToStorage();
+                this.renderTeamPlayersList();
+            }
+
+            exportTeam() {
+                const data = {
+                    version: '1.0',
+                    date: new Date().toISOString(),
+                    team: this.teamPlayers
+                };
+
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `squadra_${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+
+            importTeam(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        if (data.team && Array.isArray(data.team)) {
+                            this.teamPlayers = data.team;
+                            this.saveTeamToStorage();
+                            this.renderTeamPlayersList();
+                            alert('Squadra importata con successo!');
+                        } else {
+                            alert('File non valido');
+                        }
+                    } catch (error) {
+                        alert('Errore nel caricamento del file');
+                    }
+                };
+                reader.readAsText(file);
+                event.target.value = '';
+            }
+
+            clearTeam() {
+                if (!confirm('Eliminare tutti i giocatori della squadra?')) return;
+                this.teamPlayers = [];
+                this.saveTeamToStorage();
+                this.renderTeamPlayersList();
+            }
+
+            togglePlayerNames() {
+                this.showPlayerNames = !this.showPlayerNames;
+                document.body.classList.toggle('show-all-player-names', this.showPlayerNames);
+                document.getElementById('togglePlayerNames').classList.toggle('active', this.showPlayerNames);
+            }
+
+            getPlayerByRole(role) {
+                return this.teamPlayers.find(p => p.role === role);
+            }
+
             renumberAllObjects() {
                 if (!confirm('Rinumerare tutti gli oggetti in sequenza (da sinistra a destra, dall\'alto in basso)?')) {
                     return;
@@ -4274,8 +4473,80 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     this.exportFormationSheet();
                 });
 
+                // Gestione squadra
+                document.getElementById('manageTeamBtn').addEventListener('click', () => {
+                    this.showTeamDialog();
+                });
 
+                document.getElementById('closeTeamDialog').addEventListener('click', () => {
+                    this.hideTeamDialog();
+                });
 
+                document.getElementById('addPlayerBtn').addEventListener('click', () => {
+                    this.addTeamPlayer();
+                });
+
+                document.getElementById('exportTeamBtn').addEventListener('click', () => {
+                    this.exportTeam();
+                });
+
+                document.getElementById('importTeamBtn').addEventListener('click', () => {
+                    document.getElementById('importTeamFile').click();
+                });
+
+                document.getElementById('importTeamFile').addEventListener('change', (e) => {
+                    this.importTeam(e);
+                });
+
+                document.getElementById('clearTeamBtn').addEventListener('click', () => {
+                    this.clearTeam();
+                });
+
+                document.getElementById('togglePlayerNames').addEventListener('click', () => {
+                    this.togglePlayerNames();
+                });
+
+                // Rendi draggable il team dialog
+                this.initTeamDialogDrag();
+
+            }
+
+            initTeamDialogDrag() {
+                const dialog = document.getElementById('teamDialog');
+                const header = document.getElementById('teamDialogHeader');
+
+                let isDragging = false;
+                let currentX = 0;
+                let currentY = 0;
+                let initialX = 0;
+                let initialY = 0;
+
+                header.addEventListener('mousedown', (e) => {
+                    const rect = dialog.getBoundingClientRect();
+                    initialX = e.clientX - rect.left;
+                    initialY = e.clientY - rect.top;
+                    isDragging = true;
+                    header.style.cursor = 'grabbing';
+                    dialog.style.transform = 'none';
+                    dialog.style.left = rect.left + 'px';
+                    dialog.style.top = rect.top + 'px';
+                });
+
+                document.addEventListener('mousemove', (e) => {
+                    if (!isDragging) return;
+                    e.preventDefault();
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+                    dialog.style.left = currentX + 'px';
+                    dialog.style.top = currentY + 'px';
+                });
+
+                document.addEventListener('mouseup', () => {
+                    if (isDragging) {
+                        isDragging = false;
+                        header.style.cursor = 'move';
+                    }
+                });
             }
 
             showCanvasContextMenu(e) {
@@ -4559,6 +4830,15 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             createObjectContent(object) {
                 const content = document.createElement('div');
                 content.className = object.type + '-object';
+                if (object.type === 'player' && object.text) {
+                    const player = this.getPlayerByRole(object.text);
+                    if (player) {
+                        const badge = document.createElement('div');
+                        badge.className = 'player-name-badge';
+                        badge.textContent = `${player.name} (#${player.number})`;
+                        content.appendChild(badge);
+                    }
+                }
                 if (object.type === 'sprite' && object.spriteData) {
                     const sprite = object.spriteData;
                     const frameX = (sprite.frame % sprite.cols) * sprite.frameWidth;
@@ -7755,13 +8035,21 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
                 let yOffset = 35;
 
-                // Campi per compilazione
+                // Larghezza massima per i campi testo
+                const fieldWidth = 200; // lunghezza della linea di compilazione
+                const smallFieldWidth = 50; // per DATA o LUOGO
+
+                // Riga 1: SQUADRA e DATA
                 doc.text('SQUADRA: _________________________________', margin, yOffset);
-                doc.text('DATA: _______________', pageWidth - 70, yOffset);
-                yOffset += 10;
+                doc.text('DATA: _______________', pageWidth - margin - smallFieldWidth, yOffset);
+
+                yOffset += 10; // passo verticale
+
+                // Riga 2: AVVERSARIO e LUOGO
                 doc.text('AVVERSARIO: _________________________________', margin, yOffset);
-                doc.text('LUOGO: _______________', pageWidth - 70, yOffset);
-                yOffset += 5;
+                doc.text('LUOGO: _______________', pageWidth - margin - smallFieldWidth, yOffset);
+
+                yOffset += 10;
 
                 // Disegna i 5 set
                 const courtWidth = 50;
@@ -7770,7 +8058,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
                 for (let set = 1; set <= 5; set++) {
                     // Calcola posizione
-                    const startY = yOffset + ((set - 1) * (courtHeight + spacing + 15));
+                    const startY = yOffset + ((set - 1) * (courtHeight + spacing + 2));
 
                     // Numero del set
                     doc.setFontSize(12);
@@ -7779,7 +8067,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
                     // Disegna il mezzo campo
                     const courtX = margin;
-                    const courtY = startY + 5;
+                    const courtY = startY + 2;
 
                     // Perimetro del campo
                     doc.setLineWidth(0.5);
@@ -7793,17 +8081,40 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     // Rete (linea centrale più spessa)
                     doc.setLineWidth(1);
                     //const netY = courtY + (courtHeight / 2);
-                    doc.line(courtX, courtY, courtX + courtWidth, courtY);
+                    doc.line(courtX - 5, courtY, courtX + courtWidth + 5, courtY);
+
+                    // Larghezza lineetta
+                    const serveLineLength = 2; // lunghezza verticale delle lineette in mm
+                    const serveLineOffset = 1; // distanza dai lati del campo
+                    const serveLineBelow = 2;  // distanza sotto il campo
+
+                    doc.setLineWidth(0.5); // spessore lineetta
+
+                    // Lineetta sinistra (fuori dal campo, allineata al lato sinistro)
+                    doc.line(
+                        courtX + serveLineOffset,                  // x inizio
+                        courtY + courtHeight + serveLineBelow,    // y inizio (sotto il campo)
+                        courtX + serveLineOffset,                  // x fine
+                        courtY + courtHeight + serveLineBelow + serveLineLength // y fine
+                    );
+
+                    // Lineetta destra (fuori dal campo, allineata al lato destro)
+                    doc.line(
+                        courtX + courtWidth - serveLineOffset,
+                        courtY + courtHeight + serveLineBelow,
+                        courtX + courtWidth - serveLineOffset,
+                        courtY + courtHeight + serveLineBelow + serveLineLength
+                    );
 
                     // Posizioni dei giocatori (cerchi)
                     doc.setLineWidth(0.3);
                     const positions = [
-                        { x: courtWidth * 0.25, y: courtHeight * 0.15, label: '' },
+                        { x: courtWidth * 0.15, y: courtHeight * 0.15, label: '' },
                         { x: courtWidth * 0.50, y: courtHeight * 0.15, label: '' },
-                        { x: courtWidth * 0.75, y: courtHeight * 0.15, label: '' },
-                        { x: courtWidth * 0.25, y: courtHeight * 0.75, label: '' },
+                        { x: courtWidth * 0.85, y: courtHeight * 0.15, label: '' },
+                        { x: courtWidth * 0.15, y: courtHeight * 0.75, label: '' },
                         { x: courtWidth * 0.50, y: courtHeight * 0.75, label: '' },
-                        { x: courtWidth * 0.75, y: courtHeight * 0.75, label: '' }
+                        { x: courtWidth * 0.85, y: courtHeight * 0.75, label: '' }
                     ];
 
                     doc.setFontSize(8);
@@ -7811,7 +8122,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     positions.forEach(pos => {
                         const cx = courtX + pos.x;
                         const cy = courtY + pos.y;
-                        doc.circle(cx, cy, 4);
+                        doc.setDrawColor(200);
+                        doc.circle(cx, cy, 6, 'S');
                         doc.text(pos.label, cx - 1, cy + 1);
                     });
 
@@ -8021,8 +8333,62 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             </div>
         </div>
     </div>
-    <div id="watermark">VBProW4 by <a href="https://www.filippomorano.com" target="_blank">spikecode</>
+    <div id="watermark">
+        VBProW4 by <a href="https://www.filippomorano.com" target="_blank" rel="noopener noreferrer">spikecode</a>
     </div>
+    <!-- Team Management Dialog -->
+    <div id="teamDialog" class="team-dialog">
+        <div class="team-dialog-header" id="teamDialogHeader">
+            <h3>👥 Gestione Squadra</h3>
+            <button class="team-dialog-close" id="closeTeamDialog">&times;</button>
+        </div>
+        <div class="team-dialog-body">
+            <!-- Add Player Form -->
+            <div class="team-form-section">
+                <h4>➕ Aggiungi Giocatore</h4>
+                <div class="team-form-row">
+                    <label>Ruolo:</label>
+                    <label>Numero:</label>
+                    <label>Nome Completo:</label>
+                    <label></label>
+                </div>
+                <div class="team-form-row">
+                    <select id="newPlayerRole">
+                        <option value="P1">P1 - Alzatore</option>
+                        <option value="L1">L1 - Libero</option>
+                        <option value="S1">S1 - Banda</option>
+                        <option value="O">O - Opposto</option>
+                        <option value="C1">C1 - Centro</option>
+                        <option value="All">All - Allenatore</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                    </select>
+                    <input type="number" id="newPlayerNumber" min="1" max="99" placeholder="N°">
+                    <input type="text" id="newPlayerName" placeholder="Nome e Cognome">
+                    <button id="addPlayerBtn">➕ Aggiungi</button>
+                </div>
+            </div>
+
+            <!-- Players List -->
+            <div class="team-form-section">
+                <h4>📋 Rosa Giocatori</h4>
+                <div class="team-list" id="teamPlayersList">
+                    <!-- Popolato dinamicamente -->
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="team-actions">
+                <input type="file" id="importTeamFile" accept=".json" style="display: none;">
+                <button class="btn-import" id="importTeamBtn">📥 Importa</button>
+                <button class="btn-export" id="exportTeamBtn">📤 Esporta</button>
+                <button class="btn-clear" id="clearTeamBtn">🗑️ Cancella Tutto</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             setDefaultDate('workoutDate');
