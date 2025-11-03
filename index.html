@@ -8030,119 +8030,173 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 doc.text('FOGLIO FORMAZIONI', pageWidth / 2, 20, { align: 'center' });
 
                 // Info partita
-                doc.setFontSize(12);
+                doc.setFontSize(10);
                 doc.setFont(undefined, 'normal');
 
                 let yOffset = 35;
 
-                // Larghezza massima per i campi testo
-                const fieldWidth = 200; // lunghezza della linea di compilazione
-                const smallFieldWidth = 50; // per DATA o LUOGO
+                // ============ PRIMA RIGA: 3 CAMPI ============
+                const fieldWidth1 = 50;
+                const spacing = 5;
 
-                // Riga 1: SQUADRA e DATA
-                doc.text('SQUADRA: _________________________________', margin, yOffset);
-                doc.text('DATA: _______________', pageWidth - margin - smallFieldWidth, yOffset);
+                doc.text('SQUADRA: _____________________', margin, yOffset);
+                doc.text('DATA: _____________', margin + fieldWidth1 + spacing, yOffset);
+                doc.text('LUOGO: _____________', margin + (fieldWidth1 + spacing) * 2, yOffset);
 
-                yOffset += 10; // passo verticale
+                yOffset += 8;
 
-                // Riga 2: AVVERSARIO e LUOGO
-                doc.text('AVVERSARIO: _________________________________', margin, yOffset);
-                doc.text('LUOGO: _______________', pageWidth - margin - smallFieldWidth, yOffset);
+                // ============ SECONDA RIGA: 2 CAMPI ============
+                const fieldWidth2 = 80;
+
+                doc.text('AVVERSARIO: __________________________________', margin, yOffset);
+                doc.text('ARBITRO: __________________________________', margin + fieldWidth2 + spacing, yOffset);
 
                 yOffset += 10;
 
-                // Disegna i 5 set
-                const courtWidth = 50;
-                const courtHeight = 50;
-                const spacing = 8;
+                // ============ ELENCO NOMI FORMAZIONI ============
+                doc.setFontSize(11);
+                doc.setFont(undefined, 'bold');
+                doc.text('ELENCO GIOCATORI:', margin, yOffset);
+                yOffset += 5;
+
+                doc.setFontSize(9);
+                doc.setFont(undefined, 'normal');
+
+                // Crea 3 colonne per i giocatori
+                const col1X = margin;
+                const col2X = margin + 60;
+                const col3X = margin + 120;
+                const lineHeight = 5;
+                const maxPlayersPerColumn = 6;
+
+                // Disegna le linee per i nomi (3 colonne da 6 righe)
+                for (let i = 0; i < maxPlayersPerColumn; i++) {
+                    const currentY = yOffset + (i * lineHeight);
+
+                    // Colonna 1
+                    doc.text(`${i + 1}.`, col1X, currentY);
+                    doc.line(col1X + 5, currentY + 0.5, col1X + 50, currentY + 0.5);
+
+                    // Colonna 2
+                    doc.text(`${i + 7}.`, col2X, currentY);
+                    doc.line(col2X + 5, currentY + 0.5, col2X + 50, currentY + 0.5);
+
+                    // Colonna 3
+                    doc.text(`${i + 13}.`, col3X, currentY);
+                    doc.line(col3X + 5, currentY + 0.5, col3X + 50, currentY + 0.5);
+                }
+
+                yOffset += (maxPlayersPerColumn * lineHeight) + 10;
+
+                // ============ DISEGNA I 5 SET (3 PER RIGA) ============
+                const courtWidth = 55;
+                const courtHeight = 45;
+                const notesHeight = 25; // Altezza sezione note
+                const horizontalSpacing = 8;
+                const verticalSpacing = 8;
+                const setsPerRow = 3;
 
                 for (let set = 1; set <= 5; set++) {
-                    // Calcola posizione
-                    const startY = yOffset + ((set - 1) * (courtHeight + spacing + 2));
+                    // Calcola posizione nella griglia (3 colonne)
+                    const col = (set - 1) % setsPerRow;
+                    const row = Math.floor((set - 1) / setsPerRow);
+
+                    const courtX = margin + col * (courtWidth + horizontalSpacing);
+                    const courtY = yOffset + row * (courtHeight + notesHeight + verticalSpacing);
 
                     // Numero del set
-                    doc.setFontSize(12);
+                    doc.setFontSize(10);
                     doc.setFont(undefined, 'bold');
-                    doc.text(`SET ${set}`, margin, startY);
+                    doc.text(`SET ${set}`, courtX + courtWidth / 2, courtY, { align: 'center' });
 
                     // Disegna il mezzo campo
-                    const courtX = margin;
-                    const courtY = startY + 2;
+                    const fieldY = courtY + 3;
 
                     // Perimetro del campo
                     doc.setLineWidth(0.5);
-                    doc.rect(courtX, courtY, courtWidth, courtHeight);
+                    doc.rect(courtX, fieldY, courtWidth, courtHeight);
 
                     // Linea dei 3 metri
-                    const threeMetersLine = courtY + (courtHeight / 3);
+                    const threeMetersLine = fieldY + (courtHeight / 3);
                     doc.setLineWidth(0.3);
                     doc.line(courtX, threeMetersLine, courtX + courtWidth, threeMetersLine);
 
                     // Rete (linea centrale più spessa)
                     doc.setLineWidth(1);
-                    //const netY = courtY + (courtHeight / 2);
-                    doc.line(courtX - 5, courtY, courtX + courtWidth + 5, courtY);
+                    doc.line(courtX - 3, fieldY, courtX + courtWidth + 3, fieldY);
 
-                    // Larghezza lineetta
-                    const serveLineLength = 2; // lunghezza verticale delle lineette in mm
-                    const serveLineOffset = 1; // distanza dai lati del campo
-                    const serveLineBelow = 2;  // distanza sotto il campo
+                    // Lineette per indicare la zona di battuta
+                    const serveLineLength = 2;
+                    const serveLineOffset = 1;
+                    const serveLineBelow = 2;
 
-                    doc.setLineWidth(0.5); // spessore lineetta
+                    doc.setLineWidth(0.5);
 
-                    // Lineetta sinistra (fuori dal campo, allineata al lato sinistro)
+                    // Lineetta sinistra
                     doc.line(
-                        courtX + serveLineOffset,                  // x inizio
-                        courtY + courtHeight + serveLineBelow,    // y inizio (sotto il campo)
-                        courtX + serveLineOffset,                  // x fine
-                        courtY + courtHeight + serveLineBelow + serveLineLength // y fine
+                        courtX + serveLineOffset,
+                        fieldY + courtHeight + serveLineBelow,
+                        courtX + serveLineOffset,
+                        fieldY + courtHeight + serveLineBelow + serveLineLength
                     );
 
-                    // Lineetta destra (fuori dal campo, allineata al lato destro)
+                    // Lineetta destra
                     doc.line(
                         courtX + courtWidth - serveLineOffset,
-                        courtY + courtHeight + serveLineBelow,
+                        fieldY + courtHeight + serveLineBelow,
                         courtX + courtWidth - serveLineOffset,
-                        courtY + courtHeight + serveLineBelow + serveLineLength
+                        fieldY + courtHeight + serveLineBelow + serveLineLength
                     );
 
                     // Posizioni dei giocatori (cerchi)
                     doc.setLineWidth(0.3);
                     const positions = [
-                        { x: courtWidth * 0.15, y: courtHeight * 0.15, label: '' },
-                        { x: courtWidth * 0.50, y: courtHeight * 0.15, label: '' },
-                        { x: courtWidth * 0.85, y: courtHeight * 0.15, label: '' },
-                        { x: courtWidth * 0.15, y: courtHeight * 0.75, label: '' },
-                        { x: courtWidth * 0.50, y: courtHeight * 0.75, label: '' },
-                        { x: courtWidth * 0.85, y: courtHeight * 0.75, label: '' }
+                        { x: courtWidth * 0.15, y: courtHeight * 0.15 },
+                        { x: courtWidth * 0.50, y: courtHeight * 0.15 },
+                        { x: courtWidth * 0.85, y: courtHeight * 0.15 },
+                        { x: courtWidth * 0.15, y: courtHeight * 0.75 },
+                        { x: courtWidth * 0.50, y: courtHeight * 0.75 },
+                        { x: courtWidth * 0.85, y: courtHeight * 0.75 }
                     ];
 
-                    doc.setFontSize(8);
+                    doc.setFontSize(7);
                     doc.setFont(undefined, 'normal');
                     positions.forEach(pos => {
                         const cx = courtX + pos.x;
-                        const cy = courtY + pos.y;
+                        const cy = fieldY + pos.y;
                         doc.setDrawColor(200);
-                        doc.circle(cx, cy, 6, 'S');
-                        doc.text(pos.label, cx - 1, cy + 1);
+                        doc.circle(cx, cy, 5, 'S');
                     });
 
-                    // Spazio per annotazioni a destra del campo
-                    const notesX = courtX + courtWidth + 5;
-                    doc.setFontSize(9);
-                    doc.text('Sostituzioni:', notesX, courtY + 10);
-                    doc.line(notesX, courtY + 12, pageWidth - margin, courtY + 12);
-                    doc.line(notesX, courtY + 18, pageWidth - margin, courtY + 18);
-                    doc.line(notesX, courtY + 24, pageWidth - margin, courtY + 24);
+                    // ============ SOSTITUZIONI E NOTE SOTTO IL CAMPO ============
+                    const notesY = fieldY + courtHeight + 10;
 
-                    doc.text('Note:', notesX, courtY + 32);
-                    doc.line(notesX, courtY + 34, pageWidth - margin, courtY + 34);
-                    doc.line(notesX, courtY + 40, pageWidth - margin, courtY + 40);
+                    doc.setFontSize(8);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('Sostituzioni:', courtX, notesY);
 
-                    // Linea per firma dell'allenatore
-                    const signY = courtY + courtHeight + 5;
-                    doc.setFontSize(9);
-                    doc.text('Firma Allenatore: ___________________________', notesX, courtY + 52);
+                    doc.setFont(undefined, 'normal');
+                    doc.setFontSize(7);
+                    // 3 linee per sostituzioni
+                    doc.line(courtX, notesY + 2, courtX + courtWidth, notesY + 2);
+                    doc.line(courtX, notesY + 5, courtX + courtWidth, notesY + 5);
+                    doc.line(courtX, notesY + 8, courtX + courtWidth, notesY + 8);
+
+                    doc.setFontSize(8);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('Note:', courtX, notesY + 12);
+
+                    doc.setFont(undefined, 'normal');
+                    doc.setFontSize(7);
+                    // 2 linee per note
+                    doc.line(courtX, notesY + 14, courtX + courtWidth, notesY + 14);
+                    doc.line(courtX, notesY + 17, courtX + courtWidth, notesY + 17);
+
+                    // Firma allenatore (solo per i primi 3 set, allineati in basso)
+                    if (set <= 3) {
+                        doc.setFontSize(7);
+                        doc.text('Firma All.: ______________', courtX, notesY + 22);
+                    }
                 }
 
                 // Footer
