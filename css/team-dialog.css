@@ -1,4 +1,20 @@
 /* Team Management Dialog */
+.team-dialog-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    backdrop-filter: blur(2px);
+}
+
+.team-dialog-overlay.active {
+    display: block;
+}
+
 .team-dialog {
     display: none;
     position: fixed;
@@ -97,6 +113,46 @@
     border-radius: 4px;
     cursor: pointer;
     font-size: 12px;
+}
+
+/* Import from Text Styles */
+.import-text-help {
+    font-size: 0.9em;
+    color: #666;
+    margin: 5px 0;
+}
+
+.import-text-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.import-text-area {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    font-size: 14px;
+    resize: vertical;
+    background: white;
+}
+
+.btn-import-text {
+    align-self: flex-start;
+    padding: 8px 16px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-size: 12px;
+}
+
+.btn-import-text:hover {
+    background-color: #2980b9;
 }
 
 .team-form-row button:hover {

@@ -850,3 +850,81 @@ body.dragging-endpoint .canvas-object .connection-point {
     font-size: 12px;
     width: 220px;
 }
+
+/* Stili uniformi per tutte le dialog */
+.dialog-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+}
+
+.dialog-overlay.active {
+    display: block;
+}
+
+.dialog-container {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    z-index: 10000;
+    max-height: 80vh;
+    overflow: hidden;
+}
+
+.dialog-container.active {
+    display: flex;
+    flex-direction: column;
+}
+
+.dialog-header {
+    background: #3498db;
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: move;
+    user-select: none;
+}
+
+.dialog-header h3 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.dialog-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.dialog-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.dialog-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+}

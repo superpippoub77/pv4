@@ -818,11 +818,11 @@
                 this.draggedStepIndex = null;
                 this.teamPlayers = this.loadTeamFromStorage();
                 this.showPlayerNames = false;
-                // Inizializza il login prima di tutto
+                this.currentWorkoutObjective = '';
+                this.currentWorkoutObservations = '';
+
                 this.initLogin();
-                // Inizializza la logica della libreria
                 this.initLibraryLoading();
-                // Inizializza i tab
                 this.initializeTab(1, 'Schema 1');
                 this.initializeEventListeners();
                 this.initializeExistingTabs();
@@ -2703,9 +2703,43 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 this.saveWorkout(fileName);
             }
 
+            showSaveWorkoutDialog() {
+                // Genera un nome predefinito con data e ora
+                const now = new Date();
+                const defaultName = `Allenamento_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+
+                document.getElementById('workOutListName').innerHTML = '';
+                this.tabs.forEach((tab, tabId) => {
+                    const tabName = tab.name || `Tab_${tabId + 1}`;
+                    const tabDiv = document.createElement('div');
+                    tabDiv.classList.add('tab');
+                    tabDiv.textContent = tabName;
+                    document.getElementById('workOutListName').appendChild(tabDiv);
+                });
+
+                document.getElementById('workoutFileName').value = defaultName;
+
+                // ✅ Ripristina i valori salvati in precedenza (se esistono)
+                document.getElementById('workoutGlobalObjective').value = this.currentWorkoutObjective || '';
+                document.getElementById('workoutGlobalObservations').value = this.currentWorkoutObservations || '';
+
+                document.getElementById('saveWorkoutModal').style.display = 'block';
+
+                // Focus sull'input e seleziona il testo
+                setTimeout(() => {
+                    const input = document.getElementById('workoutFileName');
+                    input.focus();
+                    input.select();
+                }, 100);
+            }
+
             saveWorkout(fileName) {
                 // Salva lo stato corrente del tab attivo
                 this.saveTabState();
+
+                // ✅ Leggi i campi globali dal modal
+                const globalObjective = document.getElementById('workoutGlobalObjective').value.trim();
+                const globalObservations = document.getElementById('workoutGlobalObservations').value.trim();
 
                 // Crea un array con tutti i tab
                 const allTabs = [];
@@ -2731,16 +2765,27 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                         groups: tab.groups || 1,
                         nr: tab.nr || 1,
                         date: tab.date || new Date(),
-                        series: tab.series || 1
+                        series: tab.series || 1,
+                        timing: tab.timing || 10,
+                        rec: tab.rec || 60,
+                        freehands: Array.from(tab.freehands?.entries() || []),
+                        frames: tab.frames?.map(frame => ({
+                            id: frame.id,
+                            timestamp: frame.timestamp,
+                            objects: Array.from(frame.objects.entries())
+                        })) || [],
+                        exerciseSteps: tab.exerciseSteps || []
                     };
                     allTabs.push(tabData);
                 });
 
-                // Crea il JSON completo
+                // ✅ Crea il JSON completo con i nuovi campi
                 const workoutData = {
-                    version: '1.0',
+                    version: '1.1',
                     savedDate: new Date().toISOString(),
                     author: this.currentUser,
+                    objective: globalObjective,        // ✅ NUOVO
+                    observations: globalObservations,  // ✅ NUOVO
                     tabs: allTabs
                 };
 
@@ -2756,6 +2801,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 URL.revokeObjectURL(url);
 
                 console.log(`Allenamento salvato: ${allTabs.length} schemi`);
+
+                // ✅ Chiudi il modal dopo il salvataggio
+                document.getElementById('saveWorkoutModal').style.display = 'none';
             }
 
             loadWorkout(event) {
@@ -2773,10 +2821,26 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                             return;
                         }
 
-                        // Conferma prima di sovrascrivere
-                        if (!confirm(`Questo caricamento sostituirà tutti gli schemi attuali con ${workoutData.tabs.length} schemi dal file. Continuare?`)) {
+                        // ✅ Mostra obiettivo e osservazioni se presenti
+                        let confirmMessage = `Questo caricamento sostituirà tutti gli schemi attuali con ${workoutData.tabs.length} schemi dal file.`;
+
+                        if (workoutData.objective) {
+                            confirmMessage += `\n\n📋 Obiettivo: ${workoutData.objective}`;
+                        }
+
+                        if (workoutData.observations) {
+                            confirmMessage += `\n\n📝 Osservazioni: ${workoutData.observations}`;
+                        }
+
+                        confirmMessage += `\n\nContinuare?`;
+
+                        if (!confirm(confirmMessage)) {
                             return;
                         }
+
+                        // ✅ Salva i dati globali per uso futuro (opzionale)
+                        this.currentWorkoutObjective = workoutData.objective || '';
+                        this.currentWorkoutObservations = workoutData.observations || '';
 
                         // Pulisci tutti i tab esistenti
                         this.tabs.clear();
@@ -2797,6 +2861,11 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                             tabData.objects.forEach(([id, obj]) => tab.objects.set(id, obj));
                             tabData.arrows.forEach(([id, arrow]) => tab.arrows.set(id, arrow));
 
+                            // ✅ Gestisci freehands se presenti
+                            if (tabData.freehands) {
+                                tabData.freehands.forEach(([id, freehand]) => tab.freehands.set(id, freehand));
+                            }
+
                             tab.background = tabData.background || 'none';
                             tab.gridVisible = tabData.gridVisible || false;
                             tab.bwMode = tabData.bwMode || false;
@@ -2808,12 +2877,24 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                             tab.categoria = tabData.categoria || 'GEN';
                             tab.descrizione = tabData.descrizione || '';
                             tab.autore = tabData.autore || 'unknown';
-
                             tab.series = tabData.series || 1;
                             tab.nr = tabData.nr || 1;
                             tab.groups = tabData.groups || 1;
                             tab.place = tabData.place || "";
                             tab.date = tabData.date || new Date();
+                            tab.timing = tabData.timing || 10;
+                            tab.rec = tabData.rec || 60;
+                            tab.exerciseSteps = tabData.exerciseSteps || [];
+
+                            // ✅ Carica frames se presenti
+                            if (tabData.frames) {
+                                tab.frames = tabData.frames.map(frameData => ({
+                                    id: frameData.id,
+                                    timestamp: frameData.timestamp,
+                                    objects: new Map(frameData.objects)
+                                }));
+                                tab.currentFrameIndex = 0;
+                            }
 
                             // Aggiorna nextObjectId e nextArrowId
                             tab.nextObjectId = Math.max(...Array.from(tab.objects.keys()).map(id => parseInt(id.split('-')[1]) || 0)) + 1;
@@ -2831,7 +2912,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                             this.switchToTab(firstTabId);
                         }
 
-                        console.log(`Allenamento caricato: ${workoutData.tabs.length} schemi`);
+                        console.log(`✅ Allenamento caricato: ${workoutData.tabs.length} schemi`);
+                        console.log(`📋 Obiettivo: ${workoutData.objective || 'Non specificato'}`);
+                        console.log(`📝 Osservazioni: ${workoutData.observations || 'Nessuna'}`);
 
                     } catch (error) {
                         alert('Errore nel caricamento del file: ' + error.message);
@@ -2844,7 +2927,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 // Reset dell'input per permettere di caricare lo stesso file di nuovo
                 event.target.value = '';
             }
-
             showMainApp() {
                 this.hideLoginModal();
 
@@ -7368,7 +7450,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
 
         }
-
+        const editor = new SchemaEditor();
         // document.addEventListener('DOMContentLoaded', () => {
         //     window.editor = new SchemaEditor();
         // });
@@ -7411,18 +7493,39 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             <button id="loadSelectedWorkout" disabled>Carica Allenamento</button>
         </div>
     </div>
+
+
     <!-- Popup per nome allenamento -->
     <div id="saveWorkoutModal" class="modal">
-        <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-content" style="max-width: 600px;">
             <span class="close-button" id="closeSaveWorkout">&times;</span>
             <h2>Salva Allenamento Completo</h2>
+
             <div id="workOutListName"></div>
+
             <div style="padding: 20px 0;">
-                <label for="workoutFileName" style="display: block; margin-bottom: 10px;">Nome del file:</label>
+                <label for="workoutFileName" style="display: block; margin-bottom: 10px; font-weight: bold;">
+                    Nome del file:
+                </label>
                 <input type="text" id="workoutFileName"
-                    style="width: 100%; padding: 8px; border: 1px solid #bdc3c7; border-radius: 4px;"
+                    style="width: 100%; padding: 8px; border: 1px solid #bdc3c7; border-radius: 4px; margin-bottom: 15px;"
                     placeholder="es: Allenamento_Settimana1">
+
+                <label for="workoutGlobalObjective" style="display: block; margin-bottom: 10px; font-weight: bold;">
+                    Obiettivo dell'allenamento:
+                </label>
+                <textarea id="workoutGlobalObjective"
+                    style="width: 100%; padding: 8px; border: 1px solid #bdc3c7; border-radius: 4px; margin-bottom: 15px; resize: vertical; min-height: 80px; font-family: inherit;"
+                    placeholder="Descrivi l'obiettivo generale di questo allenamento..."></textarea>
+
+                <label for="workoutGlobalObservations" style="display: block; margin-bottom: 10px; font-weight: bold;">
+                    Osservazioni:
+                </label>
+                <textarea id="workoutGlobalObservations"
+                    style="width: 100%; padding: 8px; border: 1px solid #bdc3c7; border-radius: 4px; resize: vertical; min-height: 100px; font-family: inherit;"
+                    placeholder="Aggiungi eventuali osservazioni o note post-allenamento..."></textarea>
             </div>
+
             <div style="display: flex; gap: 10px; justify-content: flex-end;">
                 <button id="cancelSaveWorkout"
                     style="padding: 8px 16px; background: #95a5a6; color: white; border: none; border-radius: 4px; cursor: pointer;">
@@ -7435,6 +7538,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             </div>
         </div>
     </div>
+
+
     <!-- Login Modal - VolleyProW4 Edition -->
     <div id="loginModal" class="login-modal">
         <div class="volley-bg"></div>
@@ -7537,58 +7642,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     <div id="watermark">
         VBProW4 by <a href="https://www.filippomorano.com" target="_blank" rel="noopener noreferrer">spikecode</a>
     </div>
-    <!-- Team Management Dialog -->
-    <div id="teamDialog" class="team-dialog">
-        <div class="team-dialog-header" id="teamDialogHeader">
-            <h3>👥 Gestione Squadra</h3>
-            <button class="team-dialog-close" id="closeTeamDialog">&times;</button>
-        </div>
-        <div class="team-dialog-body">
-            <!-- Add Player Form -->
-            <div class="team-form-section">
-                <h4>➕ Aggiungi Giocatore</h4>
-                <div class="team-form-row">
-                    <label>Ruolo:</label>
-                    <label>Numero:</label>
-                    <label>Nome Completo:</label>
-                    <label></label>
-                </div>
-                <div class="team-form-row">
-                    <select id="newPlayerRole">
-                        <option value="P1">P1 - Alzatore</option>
-                        <option value="L1">L1 - Libero</option>
-                        <option value="S1">S1 - Banda</option>
-                        <option value="O">O - Opposto</option>
-                        <option value="C1">C1 - Centro</option>
-                        <option value="All">All - Allenatore</option>
-                        <option value="A">A</option>
-                        <option value="B">B</option>
-                        <option value="C">C</option>
-                        <option value="D">D</option>
-                    </select>
-                    <input type="number" id="newPlayerNumber" min="1" max="99" placeholder="N°">
-                    <input type="text" id="newPlayerName" placeholder="Nome e Cognome">
-                    <button id="addPlayerBtn">➕ Aggiungi</button>
-                </div>
-            </div>
-
-            <!-- Players List -->
-            <div class="team-form-section">
-                <h4>📋 Rosa Giocatori</h4>
-                <div class="team-list" id="teamPlayersList">
-                    <!-- Popolato dinamicamente -->
-                </div>
-            </div>
-
-            <!-- Actions -->
-            <div class="team-actions">
-                <input type="file" id="importTeamFile" accept=".json" style="display: none;">
-                <button class="btn-import" id="importTeamBtn">📥 Importa</button>
-                <button class="btn-export" id="exportTeamBtn">📤 Esporta</button>
-                <button class="btn-clear" id="clearTeamBtn">🗑️ Cancella Tutto</button>
-            </div>
-        </div>
-    </div>
+    <team-management-dialog></team-management-dialog>
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
@@ -7607,6 +7661,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             }
         });
     </script>
+    <script defer src="components/components.js"></script>
+
 </body>
 
 </html>
