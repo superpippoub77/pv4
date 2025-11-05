@@ -33,7 +33,7 @@ body {
 }
 
 .component-item {
-    background: #3498db;
+    background: #3498db; /* default blue */
     border: 2px solid #2980b9;
     border-radius: 6px;
     padding: 2px;
@@ -56,6 +56,43 @@ body {
 
 .component-item:active {
     cursor: grabbing;
+}
+
+/* Varianti colore */
+.component-item.yellow {
+    background: #f1c40f;
+    border-color: #d4ac0d;
+}
+.component-item.yellow:hover {
+    background: #d4ac0d;
+    border-color: #f1c40f;
+}
+
+.component-item.green {
+    background: #2ecc71;
+    border-color: #27ae60;
+}
+.component-item.green:hover {
+    background: #27ae60;
+    border-color: #2ecc71;
+}
+
+.component-item.orange {
+    background: #e67e22;
+    border-color: #ca6e17;
+}
+.component-item.orange:hover {
+    background: #ca6e17;
+    border-color: #e67e22;
+}
+
+.component-item.red {
+    background: #e74c3c;
+    border-color: #c0392b;
+}
+.component-item.red:hover {
+    background: #c0392b;
+    border-color: #e74c3c;
 }
 
 .component-icon {
@@ -506,21 +543,6 @@ body.dragging-endpoint .canvas-object .connection-point {
     border-style: dashed;
 }
 
-.net-object {
-    width: 100%;
-    height: 100%;
-    background: repeating-linear-gradient(0deg,
-            transparent,
-            transparent 5px,
-            #666 5px,
-            #666 6px),
-        repeating-linear-gradient(90deg,
-            transparent,
-            transparent 5px,
-            #666 5px,
-            #666 6px);
-    border-top: 2px solid #666;
-}
 
 .text-object {
     background: transparent;

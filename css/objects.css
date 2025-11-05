@@ -1,19 +1,136 @@
 .mat-object {
     width: 100%;
     height: 100%;
-
     position: absolute;
     box-sizing: border-box;
     cursor: grab;
     overflow: hidden;
 
-    /* Colore di sfondo tipico del materassino */
-    background-color: #6995ce; /* verde intenso */
+    /* Tipico blu materassino palestra */
+    background-color: #1e73be;
 
-    /* Bordo Perimetrale */
-    border: 1px solid rgb(26, 25, 129);
-    border-radius: 8px; /* angoli leggermente arrotondati */
-    background-size: 100% 100%;
-    background-position: center center;
-    background-repeat: no-repeat;
+    /* Leggera texture effetto gomma */
+    background-image: repeating-linear-gradient(90deg,
+            rgba(255, 255, 255, 0.12) 0,
+            rgba(255, 255, 255, 0.12) 2px,
+            rgba(255, 255, 255, 0.05) 2px,
+            rgba(255, 255, 255, 0.05) 4px);
+
+    border: 2px solid #0f4a84;
+    /* bordo stile gomma rinforzata */
+    border-radius: 10px;
+
+    /* Leggera ombra per dare fisicità */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+
+    background-size: cover;
+}
+
+
+.net-object {
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(0deg,
+            transparent,
+            transparent 5px,
+            #666 5px,
+            #666 6px),
+        repeating-linear-gradient(90deg,
+            transparent,
+            transparent 5px,
+            #666 5px,
+            #666 6px);
+    border-top: 2px solid #666;
+    position: absolute;
+    box-sizing: border-box;
+}
+
+/* Astine pallavolo che superano la rete */
+.net-object::before,
+.net-object::after {
+    content: "";
+    position: absolute;
+    width: 3px;
+    height: 205%; /* sale sopra la rete */
+    top: -100%; /* parte sopra */
+    background: repeating-linear-gradient(
+        to bottom,
+        #fff 0 10px,
+        #e84118 10px 20px
+    );
+}
+
+/* Sinistra */
+.net-object::before {
+    left: 2px;
+}
+
+/* Destra */
+.net-object::after {
+    right: 2px;
+}
+
+
+
+
+
+.brick-object {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    box-sizing: border-box;
+
+    /* Dimensione mattoni e fuga */
+    --brick-w: 50px;
+    --brick-h: 20px;
+    --mortar: 4px;
+
+    /* colore mattoni e malta */
+    --brick-color: #b33e2e;
+    --mortar-color: #d4d4d4;
+
+    /* muro: mattoni sfalsati + malta */
+    background:
+        /* file intere */
+        repeating-linear-gradient(
+            90deg,
+            var(--brick-color) 0 calc(var(--brick-w)),
+            var(--mortar-color) calc(var(--brick-w)) calc(var(--brick-w) + var(--mortar))
+        ),
+        /* file sfalsate */
+        repeating-linear-gradient(
+            90deg,
+            var(--brick-color) 0 calc(var(--brick-w)),
+            var(--mortar-color) calc(var(--brick-w)) calc(var(--brick-w) + var(--mortar))
+        );
+    background-size:
+        100% calc((var(--brick-h) + var(--mortar)) * 2),
+        calc(100% + var(--brick-w)) calc((var(--brick-h) + var(--mortar)) * 2);
+    background-position:
+        0 0,
+        calc(var(--brick-w) / -2) calc(var(--brick-h) + var(--mortar));
+
+    /* linea orizzontale fuga */
+    background-image:
+        repeating-linear-gradient(
+            90deg,
+            var(--brick-color) 0 calc(var(--brick-w)),
+            var(--mortar-color) calc(var(--brick-w)) calc(var(--brick-w) + var(--mortar))
+        ),
+        repeating-linear-gradient(
+            90deg,
+            var(--brick-color) 0 calc(var(--brick-w)),
+            var(--mortar-color) calc(var(--brick-w)) calc(var(--brick-w) + var(--mortar))
+        ),
+        repeating-linear-gradient(
+            to bottom,
+            var(--mortar-color) 0 var(--mortar),
+            transparent var(--mortar) calc(var(--brick-h) + var(--mortar))
+        );
+
+    /* Almeno 8 file di mattoni */
+    min-height: calc((var(--brick-h) + var(--mortar)) * 8);
+
+    border: 1px solid #8b2e1e;
+    border-radius: 6px;
 }
