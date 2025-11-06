@@ -48,6 +48,7 @@
     <link rel="stylesheet" href="./css/object-label.css">
     <link rel="stylesheet" href="./css/butttons.css">
     <link rel="stylesheet" href="./css/team-dialog.css">
+    <link rel="stylesheet" href="./css/bottom-sidebar.css">
 </head>
 
 <body>
@@ -291,13 +292,14 @@
                             </div>
                             <div>Player bagher</div>
                         </div>
-                        <div class="component-item" data-type="local-svg" data-src="data/images/player-bagher-front.png">
+                        <div class="component-item" data-type="local-svg"
+                            data-src="data/images/player-bagher-front.png">
                             <div class="component-icon">
                                 <img src="data/images/player-bagher-front.png" alt="Campo volleyball"
                                     style="width: 20px; height: 20px;" />
                             </div>
                             <div>Player front</div>
-                        </div>                        
+                        </div>
                         <div class="component-item" data-type="local-svg" data-src="data/images/player-jump-spike.png">
                             <div class="component-icon">
                                 <img src="data/images/player-jump-spike.png" alt="Campo volleyball"
@@ -305,7 +307,7 @@
                             </div>
                             <div>Player spike</div>
                         </div>
-                                                <div class="component-item" data-type="local-svg" data-src="data/images/player-upball.png">
+                        <div class="component-item" data-type="local-svg" data-src="data/images/player-upball.png">
                             <div class="component-icon">
                                 <img src="data/images/player-upball.png" alt="Campo volleyball"
                                     style="width: 20px; height: 20px;" />
@@ -462,112 +464,130 @@
                 </svg>
             </div>
 
-            <div class="object-controls">
-                <div id="objectControls" style="display: none; background: #f8f9fa; padding: 15px; border-radius: 8px;">
-                    <div class="color-picker-container">
-                        <label>Colore oggetto:</label>
-                        <input type="color" class="color-picker" id="objectColor" value="#3498db">
-                    </div>
-                    <div>
-                        <label>Opacità:</label>
-                        <input type="range" id="objectOpacity" min="0" max="1" value="1" step="0.01">
-                        <span id="objectOpacityValue">1.00</span>
-                    </div>
-                    <div>
-                        <label>Testo:</label>
-                        <input type="text" id="objectText" placeholder="Modifica testo">
-                    </div>
-                    <div>
-                        <label>Numero etichetta:</label>
-                        <input type="number" id="objectNumber" min="1" placeholder="Numero" style="width: 80px;">
-                    </div>
-                    <button id="dashedObjectToggle" class="toolbar-button" style="display: none;">Bordo
-                        Tratteggiato</button>
-                </div>
+            <!-- Bottom Sidebar (Object Controls) -->
+            <div class="bottom-sidebar-handle" id="bottomSidebarHandle">
+                <button class="bottom-sidebar-switch" id="bottomSidebarSwitch">▲</button>
+            </div>
 
-                <div id="arrowControls" style="display: none; background: #f8f9fa; padding: 15px; border-radius: 8px;">
-                    <div class="color-picker-container">
-                        <label>Colore freccia:</label>
-                        <input type="color" class="color-picker" id="arrowColor" value="#000000">
-                    </div>
-                    <div>
-                        <label>Opacità:</label>
-                        <input type="range" id="arrowOpacity" min="0" max="1" value="1" step="0.01">
-                        <span id="arrowOpacityValue">1.00</span>
-                    </div>
-                    <div>
-                        <label>Spessore:</label>
-                        <input type="range" id="arrowThickness" min="1" max="10" value="3">
-                        <span id="thicknessValue">3</span>
-                    </div>
-                    <div class="arrow-type-controls">
-                        <label>Tipo:</label>
-                        <button id="arrowTypeLinear" class="arrow-type-btn">Lineare</button>
-                        <button id="arrowTypeCurved" class="arrow-type-btn">Curva</button>
-                        <button id="arrowTypeZigzag" class="arrow-type-btn">Zigzag</button>
-                    </div>
-                    <button id="dashedArrowToggle" class="toolbar-button">Freccia Tratteggiata</button>
-                </div>
-
-
-                <div id="spriteControls" style="display: none; background: #f8f9fa; padding: 15px; border-radius: 8px;">
-                    <div>
-                        <label>Frame corrente:</label>
-                        <input type="number" id="spriteCurrentFrame" min="0" max="7" value="0" style="width: 60px;">
-                        <span id="spriteFrameInfo">(0-7)</span>
+            <div class="bottom-sidebar" id="bottomSidebar">
+                <div class="object-controls">
+                    <div id="objectControls"
+                        style="display: none; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                        <div class="color-picker-container">
+                            <label>Colore oggetto:</label>
+                            <input type="color" class="color-picker" id="objectColor" value="#3498db">
+                        </div>
+                        <div>
+                            <label>Opacità:</label>
+                            <input type="range" id="objectOpacity" min="0" max="1" value="1" step="0.01">
+                            <span id="objectOpacityValue">1.00</span>
+                        </div>
+                        <div>
+                            <label>Testo:</label>
+                            <input type="text" id="objectText" placeholder="Modifica testo">
+                        </div>
+                        <div>
+                            <label>Numero etichetta:</label>
+                            <input type="number" id="objectNumber" min="1" placeholder="Numero" style="width: 80px;">
+                        </div>
+                        <button id="dashedObjectToggle" class="toolbar-button" style="display: none;">Bordo
+                            Tratteggiato</button>
                     </div>
 
-                    <div class="sprite-animation-controls">
-                        <label>Animazione:</label>
-                        <input type="text" id="spriteAnimationFrames" placeholder="es: 0,1,2,3" style="width: 120px;"
-                            title="Sequenza frame separati da virgola">
-                        <label>FPS:</label>
-                        <input type="number" id="spriteAnimationFPS" min="1" max="60" value="10" style="width: 60px;">
-                        <button id="spritePlayAnimation" class="toolbar-button">▶ Play</button>
-                        <button id="spriteStopAnimation" class="toolbar-button" style="display: none;">⏸ Stop</button>
+                    <div id="arrowControls"
+                        style="display: none; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                        <div class="color-picker-container">
+                            <label>Colore freccia:</label>
+                            <input type="color" class="color-picker" id="arrowColor" value="#000000">
+                        </div>
+                        <div>
+                            <label>Opacità:</label>
+                            <input type="range" id="arrowOpacity" min="0" max="1" value="1" step="0.01">
+                            <span id="arrowOpacityValue">1.00</span>
+                        </div>
+                        <div>
+                            <label>Spessore:</label>
+                            <input type="range" id="arrowThickness" min="1" max="10" value="3">
+                            <span id="thicknessValue">3</span>
+                        </div>
+                        <div class="arrow-type-controls">
+                            <label>Tipo:</label>
+                            <button id="arrowTypeLinear" class="arrow-type-btn">Lineare</button>
+                            <button id="arrowTypeCurved" class="arrow-type-btn">Curva</button>
+                            <button id="arrowTypeZigzag" class="arrow-type-btn">Zigzag</button>
+                        </div>
+                        <button id="dashedArrowToggle" class="toolbar-button">Freccia Tratteggiata</button>
+                    </div>
+
+                    <div id="spriteControls"
+                        style="display: none; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                        <div>
+                            <label>Frame corrente:</label>
+                            <input type="number" id="spriteCurrentFrame" min="0" max="7" value="0" style="width: 60px;">
+                            <span id="spriteFrameInfo">(0-7)</span>
+                        </div>
+
+                        <div class="sprite-animation-controls">
+                            <label>Animazione:</label>
+                            <input type="text" id="spriteAnimationFrames" placeholder="es: 0,1,2,3"
+                                style="width: 120px;" title="Sequenza frame separati da virgola">
+                            <label>FPS:</label>
+                            <input type="number" id="spriteAnimationFPS" min="1" max="60" value="10"
+                                style="width: 60px;">
+                            <button id="spritePlayAnimation" class="toolbar-button">▶ Play</button>
+                            <button id="spriteStopAnimation" class="toolbar-button" style="display: none;">⏸
+                                Stop</button>
+                        </div>
+
+                        <div>
+                            <label>Dimensioni frame:</label>
+                            <input type="number" id="spriteFrameWidth" min="8" max="512" value="64"
+                                style="width: 60px;">
+                            <span>×</span>
+                            <input type="number" id="spriteFrameHeight" min="8" max="512" value="64"
+                                style="width: 60px;">
+                            <button id="spriteApplySize" class="toolbar-button">Applica</button>
+                        </div>
+                    </div>
+
+                    <div class="toolbar-group">
+                        <button id="showAnimationControls">🎬 Animazione</button>
+                    </div>
+
+                    <div id="freehandControls" style="display: none; align-items: center; gap: 10px;">
+                        <div class="color-picker-container">
+                            <label>Colore traccia:</label>
+                            <input type="color" class="color-picker" id="freehandColor" value="#000000">
+                        </div>
+                        <div>
+                            <label>Spessore:</label>
+                            <input type="range" id="freehandThickness" min="1" max="15" value="3">
+                            <span id="freehandThicknessValue">3</span>
+                        </div>
+                        <div>
+                            <label>Opacità:</label>
+                            <input type="range" id="freehandOpacity" min="0" max="1" value="1" step="0.01">
+                            <span id="freehandOpacityValue">1.00</span>
+                        </div>
+                    </div>
+
+                    <div class="arrow-marker-controls">
+                        <label>Terminali:</label>
+                        <label style="display: flex; align-items: center; gap: 5px;">
+                            <input type="checkbox" id="arrowMarkerStart"> Inizio
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 5px;">
+                            <input type="checkbox" id="arrowMarkerEnd" checked> Fine
+                        </label>
                     </div>
 
                     <div>
-                        <label>Dimensioni frame:</label>
-                        <input type="number" id="spriteFrameWidth" min="8" max="512" value="64" style="width: 60px;">
-                        <span>×</span>
-                        <input type="number" id="spriteFrameHeight" min="8" max="512" value="64" style="width: 60px;">
-                        <button id="spriteApplySize" class="toolbar-button">Applica</button>
+                        <button id="deleteBtn">🗑️ Elimina</button>
                     </div>
-                </div>
-                <div class="toolbar-group">
-                    <button id="showAnimationControls">🎬 Animazione</button>
-                </div>
-                <div id="freehandControls" style="display: none; align-items: center; gap: 10px;">
-                    <div class="color-picker-container">
-                        <label>Colore traccia:</label>
-                        <input type="color" class="color-picker" id="freehandColor" value="#000000">
-                    </div>
+
                     <div>
-                        <label>Spessore:</label>
-                        <input type="range" id="freehandThickness" min="1" max="15" value="3">
-                        <span id="freehandThicknessValue">3</span>
+                        <span id="objectInfo">Nessun oggetto selezionato</span>
                     </div>
-                    <div>
-                        <label>Opacità:</label>
-                        <input type="range" id="freehandOpacity" min="0" max="1" value="1" step="0.01">
-                        <span id="freehandOpacityValue">1.00</span>
-                    </div>
-                </div>
-                <div class="arrow-marker-controls">
-                    <label>Terminali:</label>
-                    <label style="display: flex; align-items: center; gap: 5px;">
-                        <input type="checkbox" id="arrowMarkerStart"> Inizio
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 5px;">
-                        <input type="checkbox" id="arrowMarkerEnd" checked> Fine
-                    </label>
-                </div>
-                <div>
-                    <button id="deleteBtn">🗑️ Elimina</button>
-                </div>
-                <div>
-                    <span id="objectInfo">Nessun oggetto selezionato</span>
                 </div>
             </div>
         </div>
@@ -3275,10 +3295,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     }
                 });
 
-                document.addEventListener('DOMContentLoaded', () => {
-                    initTabDragDrop();
-                });
-
                 document.querySelector('.add-tab').addEventListener('click', () => this.addNewTab());
                 document.getElementById('backgroundSelect').addEventListener('change', (e) => {
                     this.getCurrentTab().background = e.target.value;
@@ -3578,6 +3594,72 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
 
 
+                // ========== BOTTOM SIDEBAR (Object Controls) ==========
+                const bottomSidebar = document.getElementById('bottomSidebar');
+                const bottomSidebarHandle = document.getElementById('bottomSidebarHandle');
+                const bottomSidebarSwitch = document.getElementById('bottomSidebarSwitch');
+
+                // Toggle
+                bottomSidebarSwitch.onclick = function (e) {
+                    e.stopPropagation();
+                    e.preventDefault();
+
+                    const isHidden = bottomSidebar.classList.contains('hidden');
+
+                    if (isHidden) {
+                        bottomSidebar.classList.remove('hidden');
+                        this.textContent = '▼';
+                    } else {
+                        bottomSidebar.classList.add('hidden');
+                        this.textContent = '▲';
+                    }
+
+                    return false;
+                };
+
+                // Resize
+                let isResizingBottomSidebar = false;
+                let bottomSidebarOriginalHeight = null;
+
+                bottomSidebarHandle.onmousedown = function (e) {
+                    if (e.target === bottomSidebarSwitch) return;
+
+                    e.preventDefault();
+
+                    if (!bottomSidebar.classList.contains('hidden')) {
+                        bottomSidebarOriginalHeight = bottomSidebar.offsetHeight;
+                    }
+
+                    isResizingBottomSidebar = true;
+                    document.body.classList.add('resizing-bottom-sidebar');
+
+                    const startY = e.clientY;
+                    const startHeight = bottomSidebar.offsetHeight;
+
+                    function onMouseMove(e) {
+                        if (!isResizingBottomSidebar) return;
+                        const newHeight = startHeight - (e.clientY - startY);
+                        const minHeight = 100;
+                        const maxHeight = window.innerHeight / 2;
+                        if (newHeight >= minHeight && newHeight <= maxHeight) {
+                            bottomSidebar.style.height = newHeight + 'px';
+                            bottomSidebarOriginalHeight = newHeight;
+                        }
+                    }
+
+                    function onMouseUp() {
+                        isResizingBottomSidebar = false;
+                        document.body.classList.remove('resizing-bottom-sidebar');
+                        document.removeEventListener('mousemove', onMouseMove);
+                        document.removeEventListener('mouseup', onMouseUp);
+                    }
+
+                    document.addEventListener('mousemove', onMouseMove);
+                    document.addEventListener('mouseup', onMouseUp);
+                };
+
+
+
 
                 // Event listeners per il popup di salvataggio workout
                 document.getElementById('closeSaveWorkout').addEventListener('click', () => {
@@ -3788,6 +3870,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
                 // Rendi draggable il team dialog
                 this.initTeamDialogDrag();
+
+                this.initTabDragDrop();
+
 
             }
 
@@ -6216,7 +6301,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     e.dataTransfer.effectAllowed = 'move';
                     e.dataTransfer.setData('text/html', tab.innerHTML);
 
-                    // Crea un placeholder
+                    // Crea placeholder
                     placeholder = document.createElement('div');
                     placeholder.className = 'tab tab-placeholder';
                     placeholder.style.width = tab.offsetWidth + 'px';
@@ -6256,7 +6341,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
                     draggedTab.style.opacity = '1';
 
-                    // ✅ VERIFICA CHE IL PLACEHOLDER ESISTA E SIA NEL DOM
                     if (placeholder && placeholder.parentNode) {
                         tabsContainer.insertBefore(draggedTab, placeholder);
                         placeholder.parentNode.removeChild(placeholder);
@@ -6271,9 +6355,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     e.stopPropagation();
                 });
 
-                // ✅ AGGIUNGI GESTIONE DRAGLEAVE PER PULIZIA
                 tabsContainer.addEventListener('dragleave', (e) => {
-                    // Se usciamo completamente dal container
                     if (e.target === tabsContainer && placeholder && placeholder.parentNode) {
                         placeholder.parentNode.removeChild(placeholder);
                     }
