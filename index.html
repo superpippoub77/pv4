@@ -403,6 +403,19 @@
                 </div>
 
                 <div class="toolbar-group">
+                    <label>Dimensione:</label>
+                    <select id="canvasSizeSelect">
+                        <option value="custom">Personalizzato</option>
+                        <option value="a4-portrait">A4 Verticale</option>
+                        <option value="a4-landscape">A4 Orizzontale</option>
+                        <option value="a3-portrait">A3 Verticale</option>
+                        <option value="a3-landscape">A3 Orizzontale</option>
+                        <option value="business-card">Biglietto da Visita</option>
+                    </select>
+                    <button id="toggleCanvasBorder">🖼️ Bordi</button>
+                </div>
+
+                <div class="toolbar-group">
                     <button id="rotateLeft">↺</button>
                     <button id="rotateRight">↻</button>
                     <button id="undoBtn">⏪ Undo</button>
@@ -891,6 +904,8 @@
                 this.showPlayerNames = false;
                 this.currentWorkoutObjective = '';
                 this.currentWorkoutObservations = '';
+                this.canvasSize = 'custom';
+                this.showCanvasBorder = false;
 
                 this.initLogin();
                 this.initLibraryLoading();
@@ -2130,10 +2145,51 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     frames: [],
                     currentFrameIndex: 0,
                     exerciseSteps: [],
-                    connectionPointCounters: new Map()
+                    connectionPointCounters: new Map(),
+                    canvasSize: 'custom',
+                    showBorder: false,
+                    maxZIndex: 1000
                 });
             }
+            setCanvasSize(size) {
+                const tab = this.getCurrentTab();
+                tab.canvasSize = size;
+                this.canvasSize = size;
 
+                const canvas = document.getElementById('canvas');
+
+                // Rimuovi tutte le classi di dimensione
+                canvas.classList.remove(
+                    'size-a4-portrait',
+                    'size-a4-landscape',
+                    'size-a3-portrait',
+                    'size-a3-landscape',
+                    'size-business-card'
+                );
+
+                // Applica la nuova dimensione
+                if (size !== 'custom') {
+                    canvas.classList.add(`size-${size}`);
+                } else {
+                    // Rimuovi dimensioni fisse per custom
+                    canvas.style.width = '';
+                    canvas.style.height = '';
+                }
+
+                this.saveState();
+            }
+
+            // NUOVO METODO - Toggle bordi canvas
+            toggleCanvasBorder() {
+                const tab = this.getCurrentTab();
+                tab.showBorder = !tab.showBorder;
+                this.showCanvasBorder = tab.showBorder;
+
+                const canvas = document.getElementById('canvas');
+                canvas.classList.toggle('show-border', tab.showBorder);
+
+                document.getElementById('toggleCanvasBorder').classList.toggle('active', tab.showBorder);
+            }
 
             changeSpriteFrame(frameNumber) {
                 if (!this.selectedObject) return;
@@ -3868,6 +3924,14 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     this.togglePlayerNames();
                 });
 
+                document.getElementById('canvasSizeSelect').addEventListener('change', (e) => {
+                    this.setCanvasSize(e.target.value);
+                });
+
+                document.getElementById('toggleCanvasBorder').addEventListener('click', () => {
+                    this.toggleCanvasBorder();
+                });
+
                 // Rendi draggable il team dialog
                 this.initTeamDialogDrag();
 
@@ -4060,7 +4124,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 const tab = this.getCurrentTab();
                 const id = 'obj-' + tab.nextObjectId++;
 
-                // Calcola numero sequenziale
                 const objectNumber = tab.objects.size + 1;
 
                 const object = {
@@ -4075,7 +4138,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     text: text,
                     dashed: dashed,
                     opacity: 1,
-                    zIndex: this.maxZIndex++,
+                    zIndex: this.maxZIndex++, // USA maxZIndex globale
                     icon: icon,
                     src: src,
                     spriteData: spriteData,
@@ -4085,6 +4148,10 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 };
 
                 tab.objects.set(id, object);
+
+                // AGGIORNA maxZIndex del tab
+                tab.maxZIndex = this.maxZIndex;
+
                 this.renderObject(object);
                 this.saveState();
 
@@ -6410,6 +6477,25 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 }
 
                 const tab = this.getCurrentTab();
+                this.canvasSize = tab.canvasSize || 'custom';
+                this.showCanvasBorder = tab.showBorder || false;
+
+                document.getElementById('canvasSizeSelect').value = this.canvasSize;
+                this.setCanvasSize(this.canvasSize);
+
+                const canvas = document.getElementById('canvas');
+                if (this.showCanvasBorder) {
+                    canvas.classList.add('show-border');
+                    document.getElementById('toggleCanvasBorder').classList.add('active');
+                } else {
+                    canvas.classList.remove('show-border');
+                    document.getElementById('toggleCanvasBorder').classList.remove('active');
+                }
+
+                // AGGIUNGI RIPRISTINO maxZIndex
+                if (tab.maxZIndex) {
+                    this.maxZIndex = tab.maxZIndex;
+                }
                 document.getElementById('workoutPeriodo').value = tab.periodo || 'GEN';
                 document.getElementById('workoutRuolo').value = tab.ruolo || 'GEN';
                 document.getElementById('workoutTipologia').value = tab.tipologia || 'GEN';
@@ -6444,13 +6530,22 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 }
             }
 
+            // MODIFICA saveTabState per salvare z-index
             saveTabState() {
                 const tab = this.getCurrentTab();
                 if (!tab) return;
+
                 tab.background = document.getElementById('backgroundSelect').value;
                 tab.gridVisible = document.getElementById('gridToggle').classList.contains('active');
                 tab.bwMode = document.getElementById('bwToggle').classList.contains('active');
                 tab.zoom = this.zoom;
+
+                // AGGIUNGI SALVATAGGIO DIMENSIONE E BORDI
+                tab.canvasSize = this.canvasSize;
+                tab.showBorder = this.showCanvasBorder;
+
+                // AGGIUNGI SALVATAGGIO maxZIndex
+                tab.maxZIndex = this.maxZIndex;
             }
 
             loadTabState() {
@@ -6461,11 +6556,27 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     canvas.removeChild(canvas.firstChild);
                 }
 
-                tab.objects.forEach(obj => this.renderObject(obj));
+                // ORDINA GLI OGGETTI PER z-index PRIMA DI RENDERIZZARLI
+                const sortedObjects = Array.from(tab.objects.values()).sort((a, b) => {
+                    return (a.zIndex || 1) - (b.zIndex || 1);
+                });
+
+                sortedObjects.forEach(obj => this.renderObject(obj));
+
                 tab.arrows.forEach(arrow => this.renderArrow(arrow));
                 tab.freehands.forEach(freehand => this.renderFreehand(freehand));
+
                 document.getElementById('backgroundSelect').value = tab.background;
                 this.zoom = tab.zoom;
+
+                // RIPRISTINA DIMENSIONE E BORDI
+                this.setCanvasSize(tab.canvasSize || 'custom');
+                if (tab.showBorder) {
+                    canvas.classList.add('show-border');
+                } else {
+                    canvas.classList.remove('show-border');
+                }
+
                 this.updateBackground();
                 this.updateZoom();
                 this.updateGrid();
@@ -6547,6 +6658,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     gridVisible: tab.gridVisible,
                     bwMode: tab.bwMode,
                     zoom: tab.zoom,
+                    canvasSize: tab.canvasSize || 'custom',
+                    showBorder: tab.showBorder || false,
+                    maxZIndex: this.maxZIndex,
                     freehands: Array.from(tab.freehands.entries()),
                     frames: tab.frames.map(frame => ({
                         id: frame.id,
@@ -6614,7 +6728,20 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 tab.objects.clear();
                 tab.arrows.clear();
                 tab.freehands.clear();
+                tab.canvasSize = data.canvasSize || 'custom';
+                tab.showBorder = data.showBorder || false;
+                if (data.maxZIndex) {
+                    this.maxZIndex = data.maxZIndex;
+                    tab.maxZIndex = data.maxZIndex;
+                }
+                // APPLICA DIMENSIONE E BORDI
+                this.setCanvasSize(tab.canvasSize);
+                document.getElementById('canvasSizeSelect').value = tab.canvasSize;
 
+                if (tab.showBorder) {
+                    document.getElementById('canvas').classList.add('show-border');
+                    document.getElementById('toggleCanvasBorder').classList.add('active');
+                }
                 // Carica gli oggetti
                 if (data.objects) {
                     let maxNumber = 0;
