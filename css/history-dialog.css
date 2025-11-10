@@ -1,0 +1,193 @@
+.history-dialog {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px;
+    max-height: 80vh;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    overflow: hidden;
+}
+
+.history-dialog.active {
+    display: flex;
+    flex-direction: column;
+}
+
+.history-dialog-header {
+    background: #3498db;
+    color: white;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: move;
+}
+
+.history-dialog-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+}
+
+.history-dialog-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+.history-list-panel {
+    width: 250px;
+    border-right: 1px solid #ddd;
+    overflow-y: auto;
+    background: #f8f9fa;
+}
+
+.history-item {
+    padding: 12px 15px;
+    border-bottom: 1px solid #e0e0e0;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.history-item:hover {
+    background: #e8f4f8;
+}
+
+.history-item.current {
+    background: #d4edda;
+    border-left: 4px solid #28a745;
+}
+
+.history-item.selected {
+    background: #cce5ff;
+    border-left: 4px solid #3498db;
+}
+
+.history-item-time {
+    font-size: 11px;
+    color: #7f8c8d;
+    margin-bottom: 4px;
+}
+
+.history-item-info {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.history-item-details {
+    font-size: 11px;
+    color: #95a5a6;
+    margin-top: 4px;
+}
+
+.history-preview-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.history-preview-header {
+    padding: 15px;
+    border-bottom: 1px solid #ddd;
+    background: #f8f9fa;
+}
+
+.history-preview-content {
+    flex: 1;
+    overflow: auto;
+    padding: 15px;
+}
+
+.history-preview-canvas {
+    width: 100%;
+    height: 400px;
+    border: 1px solid #ddd;
+    background: white;
+    position: relative;
+    overflow: auto;
+}
+
+.history-preview-stats {
+    margin-top: 15px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.history-preview-stats div {
+    margin-bottom: 5px;
+}
+
+.history-actions {
+    padding: 15px;
+    border-top: 1px solid #ddd;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.history-actions button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.btn-restore {
+    background: #27ae60;
+    color: white;
+}
+
+.btn-restore:hover {
+    background: #229954;
+}
+
+.btn-compare {
+    background: #3498db;
+    color: white;
+}
+
+.btn-compare:hover {
+    background: #2980b9;
+}
+
+.btn-delete-history {
+    background: #e74c3c;
+    color: white;
+}
+
+.btn-delete-history:hover {
+    background: #c0392b;
+}
+
+.history-comparison {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.comparison-side {
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.comparison-title {
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: center;
+}

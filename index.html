@@ -49,6 +49,7 @@
     <link rel="stylesheet" href="./css/butttons.css">
     <link rel="stylesheet" href="./css/team-dialog.css">
     <link rel="stylesheet" href="./css/bottom-sidebar.css">
+    <link rel="stylesheet" href="./css/history-dialog.css">
 </head>
 
 <body>
@@ -420,6 +421,7 @@
                     <button id="rotateRight">↻</button>
                     <button id="undoBtn">⏪ Undo</button>
                     <button id="redoBtn">⏩ Redo</button>
+                    <button id="historyBtn" title="Storico modifiche (Ctrl+H)">📜 Storico</button>
                 </div>
                 <div class="toolbar-group">
                     <button id="groupRotateLeft">⟲ Ruota Gruppo -15°</button>
@@ -906,7 +908,7 @@
                 this.currentWorkoutObservations = '';
                 this.canvasSize = 'custom';
                 this.showCanvasBorder = false;
-
+                this.historyMetadata = new Map();
                 this.initLogin();
                 this.initLibraryLoading();
                 this.initializeTab(1, 'Schema 1');
@@ -1127,7 +1129,7 @@
                     this.renderObject(obj);
                 });
 
-                this.saveState();
+                this.saveState(`Rinumerati ${sortedObjects.length} oggetti`);
                 alert(`✅ ${sortedObjects.length} oggetti rinumerati`);
             }
             changeSelectedObjectsNumber(newNumber) {
@@ -1143,7 +1145,7 @@
                     this.renderObject(objectData);
                 });
 
-                this.saveState();
+                this.saveState(`Modificato numero di ${this.selectedObjects.size} oggetti`);
                 this.updateCurrentFrame();
             }
             addObjectLabel(element, object) {
@@ -1203,7 +1205,7 @@
                     }
 
                     this.renderObject(object);
-                    this.saveState();
+                    this.saveState(`Modificato numero oggetto ${object.id}`);
 
                     if (this.selectedObjects.has(object.id)) {
                         document.getElementById('objectNumber').value = object.objectNumber;
@@ -1348,7 +1350,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     // Sostituisci gli step esistenti
                     tab.exerciseSteps = steps;
                     this.renderStepsList();
-                    this.saveState();
+                    this.saveState('Generati step con AI');
 
                     alert('✅ Step generati con successo!');
 
@@ -1487,7 +1489,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 input.value = '';
 
                 this.renderStepsList();
-                this.saveState();
+                this.saveState(`Aggiunto step: ${stepText}`);
             }
 
             moveStep(index, direction) {
@@ -1501,7 +1503,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 tab.exerciseSteps[newIndex] = temp;
 
                 this.renderStepsList();
-                this.saveState();
+                this.saveState(`Spostato step da ${index} a ${newIndex}`);
             }
 
             reorderSteps(fromIndex, toIndex) {
@@ -1510,7 +1512,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 tab.exerciseSteps.splice(toIndex, 0, movedStep);
 
                 this.renderStepsList();
-                this.saveState();
+                this.saveState(`Riorganizzato step da ${fromIndex} a ${toIndex}`);
             }
 
             editStep(index) {
@@ -1521,7 +1523,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 if (newText !== null && newText.trim() !== '') {
                     tab.exerciseSteps[index] = newText.trim();
                     this.renderStepsList();
-                    this.saveState();
+                    this.saveState(`Modificato step ${index}: ${newText.trim()}`);
                 }
             }
 
@@ -1532,7 +1534,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 tab.exerciseSteps.splice(index, 1);
 
                 this.renderStepsList();
-                this.saveState();
+                this.saveState(`Eliminato step ${index}`);
             }
 
             addArrowEndpointControl(svg, arrow, type, position) {
@@ -1717,7 +1719,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
                 this.renderFramesList();
                 this.selectFrame(tab.currentFrameIndex);
-                this.saveState();
+                this.saveState(`Creato frame ${frameData.id} con ${frameData.objects.size} oggetti`);
 
                 console.log(`Frame ${frameNumber} creato con ${frameData.objects.size} oggetti`);
             }
@@ -1801,7 +1803,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 // Riordina i frame dopo la modifica del timestamp
                 tab.frames.sort((a, b) => a.timestamp - b.timestamp);
                 tab.currentFrameIndex = tab.frames.findIndex(f => f.id === frame.id);
-                this.saveState();
+                this.saveState(`Aggiornato frame ${frame.number}`);
                 alert(`Frame ${frame.number} aggiornato`);
             }
 
@@ -1824,7 +1826,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     document.getElementById('frameProperties').style.display = 'none';
                 }
 
-                this.saveState();
+                this.saveState(`Eliminato frame ${frame.number}`);
             }
 
             renderFramesList() {
@@ -1969,7 +1971,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 }
 
                 this.renderFramesList();
-                this.saveState();
+                this.saveState(`Riorganizzato frame da ${fromIndex} a ${toIndex}`);
             }
 
             applyFrame(frameIndex) {
@@ -2176,7 +2178,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     canvas.style.height = '';
                 }
 
-                this.saveState();
+                this.saveState(`Impostata dimensione canvas: ${size}`);
             }
 
             // NUOVO METODO - Toggle bordi canvas
@@ -2202,7 +2204,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
                 objectData.spriteData.frame = frameNumber;
                 this.renderObject(objectData);
-                this.saveState();
+                this.saveState(`Modificato frame sprite a ${frameNumber}`);
 
                 // Aggiorna l'info
                 document.getElementById('objectInfo').textContent = `Sprite selezionato (Frame ${frameNumber}/${maxFrame})`;
@@ -2282,7 +2284,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     objectData.spriteData.frameWidth = newWidth;
                     objectData.spriteData.frameHeight = newHeight;
                     this.renderObject(objectData);
-                    this.saveState();
+                    this.saveState(`Modificate dimensioni frame sprite a ${newWidth}x${newHeight}`);
 
                     alert('Dimensioni frame aggiornate. Nota: verifica che corrispondano alla tua sprite sheet!');
                 }
@@ -2333,7 +2335,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
                 // Registra lo stato dopo l'allineamento per l'Undo/Redo (se SchemaEditor ha questo metodo)
                 if (this.saveState) {
-                    this.saveState('Allineamento alla Griglia');
+                    this.saveState(`Allineati ${snappedCount} oggetti alla griglia di ${gridSize}px`);
                 }
             };
 
@@ -2489,7 +2491,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
                 tab.freehands.set(id, freehand);
                 this.renderFreehand(freehand);
-                this.saveState();
+                this.saveState(`Creato disegno a mano libera ${id}`);
                 return freehand;
             }
 
@@ -2595,7 +2597,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                         const path = svg.querySelector('.freehand-path');
                         if (path) path.style.opacity = opacity;
                     }
-                    this.saveState();
+                    this.saveState(`Modificata opacità disegno a mano libera ${freehand.id} a ${opacity}`);
                 }
             }
 
@@ -2614,7 +2616,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     }
                 });
 
-                this.saveState();
+                this.saveState(`Modificata opacità oggetti selezionati a ${opacity}`);
             }
 
             selectFreehand(freehandId) {
@@ -2653,7 +2655,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     freehand.color = color;
                     // ✅ Ri-renderizza completamente il disegno
                     this.renderFreehand(freehand);
-                    this.saveState();
+                    this.saveState(`Modificato colore disegno a mano libera ${freehand.id} a ${color}`);
                 }
             }
 
@@ -2663,7 +2665,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 if (freehand) {
                     freehand.thickness = parseInt(thickness);
                     this.renderFreehand(freehand);
-                    this.saveState();
+                    this.saveState(`Modificato spessore disegno a mano libera ${freehand.id} a ${thickness}`);
                 }
             }
             filterCategoriesByGenere(genere) {
@@ -3437,7 +3439,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                                     }
                                 }
                             }
-                            this.saveState();
+                            this.saveState(`Modificato marker start freccia ${this.selectedArrow} a ${e.target.checked}`);
                         }
                     }
                 });
@@ -3459,7 +3461,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                                     }
                                 }
                             }
-                            this.saveState();
+                            this.saveState(`Modificato marker end freccia ${this.selectedArrow} a ${e.target.checked}`);
                         }
                     }
                 });
@@ -3932,11 +3934,25 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     this.toggleCanvasBorder();
                 });
 
+                // AGGIUNGI QUESTO BLOCCO
+                this.initHistoryDialog();
+
+                // Aggiungi listener per aprire lo storico (puoi usare Ctrl+H o un pulsante)
+                document.addEventListener('keydown', (e) => {
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'h') {
+                        e.preventDefault();
+                        this.showHistoryDialog();
+                    }
+                });
+
                 // Rendi draggable il team dialog
                 this.initTeamDialogDrag();
 
                 this.initTabDragDrop();
-
+                // E aggiungi il listener
+                document.getElementById('historyBtn').addEventListener('click', () => {
+                    this.showHistoryDialog();
+                });
 
             }
 
@@ -4117,7 +4133,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 });
 
                 this.showGroupRotationCenter(); // Riposiziona il centro di rotazione
-                this.saveState();
+                this.saveState(`Ruotati ${this.selectedObjects.size} oggetti di ${degrees}°`);
             }
 
             addObject(type, x, y, color = '#3498db', text = '', rotation = 0, dashed = this.dashedMode, icon = null, src = null, spriteData = null) {
@@ -4153,7 +4169,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 tab.maxZIndex = this.maxZIndex;
 
                 this.renderObject(object);
-                this.saveState();
+                this.saveState(`Aggiunto oggetto ${object.type} con ID ${object.id}`);
 
                 return object;
             }
@@ -4242,7 +4258,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                         document.getElementById(id).style.zIndex = objectData.zIndex;
                     }
                 });
-                this.saveState();
+                this.saveState(`Portati in primo piano ${this.selectedObjects.size} oggetti`);
             }
 
             sendToBack() {
@@ -4256,7 +4272,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                         document.getElementById(id).style.zIndex = objectData.zIndex;
                     }
                 });
-                this.saveState();
+                this.saveState(`Portati in secondo piano ${this.selectedObjects.size} oggetti`);
             }
 
 
@@ -4366,7 +4382,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
                     editableText.addEventListener('blur', () => {
                         editableText.contentEditable = 'false';
-                        this.saveState();
+                        this.saveState(`Modificato testo oggetto ${objectId} a "${editableText.textContent}"`);
                         this.selectObject(objectElement);
                     }, { once: true });
                 }
@@ -4671,11 +4687,11 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     }
 
                     this.clearConnectionPointHighlights();
-                    this.saveState();
+                    this.saveState(`Modificato endpoint freccia ${this.selectedArrow}`);
                 } else if (this.isConnecting) {
                     this.finishConnection(e);
                 } else if (this.isDragging || this.isResizing || this.isRotating || this.isDraggingControlPoint || this.isRotatingGroup) {
-                    this.saveState();
+                    this.saveState(`Modificato posizione oggetto${this.selectedObjects.size > 1 ? 's' : ''}`);
                     this.updateCurrentFrame();
                 } else if (this.isSelecting) {
                     this.finalizeSelectionBox(e);
@@ -5430,7 +5446,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 }
 
                 this.renderArrow(arrow);
-                this.saveState();
+                this.saveState(`Aggiunta freccia da ${from.objectId}-${from.position} a ${to.objectId}-${to.position}`);
 
                 return arrow;
             }
@@ -5756,7 +5772,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     }
                     this.renderArrow(arrowData);
                     this.updateArrowControls();
-                    this.saveState();
+                    this.saveState(`Modificato tipo freccia ${arrowData.from.objectId}-${arrowData.from.position} a ${arrowData.to.objectId}-${arrowData.to.position}`);
                 }
             }
             // Nel metodo changeSelectedObjectsColor(), aggiungi alla fine:
@@ -5788,7 +5804,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     this.renderObject(objectData);
                 });
 
-                this.saveState();
+                this.saveState(`Modificato colore di ${this.selectedObjects.size} oggetti`);
                 this.updateCurrentFrame();
             }
 
@@ -5804,7 +5820,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     this.renderObject(objectData);
                 });
 
-                this.saveState();
+                this.saveState(`Modificato testo di ${this.selectedObjects.size} oggetti`);
                 this.updateCurrentFrame();
             }
 
@@ -5824,7 +5840,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     }
                 });
 
-                this.saveState();
+                this.saveState(`Modificato opacità di ${this.selectedObjects.size} oggetti`);
                 this.updateCurrentFrame();
             }
 
@@ -5841,7 +5857,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                         this.updateArrowsForObject(id);
                     }
                 });
-                this.saveState();
+                this.saveState(`Ruotato di ${degrees} gradi ${this.selectedObjects.size} oggetti`);
                 this.updateCurrentFrame();
             }
 
@@ -5862,7 +5878,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     }
                 });
                 document.getElementById('dashedObjectToggle').classList.toggle('active', newState);
-                this.saveState();
+                this.saveState(`Modificato tratteggio di ${this.selectedObjects.size} oggetti`);
                 this.updateCurrentFrame();
             }
             changeArrowColor(color) {
@@ -5871,7 +5887,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 if (arrowData) {
                     arrowData.color = color;
                     this.renderArrow(arrowData);
-                    this.saveState();
+                    this.saveState(`Modificato colore freccia ${arrowData.from.objectId}-${arrowData.from.position} a ${arrowData.to.objectId}-${arrowData.to.position}`);
                 }
             }
 
@@ -5881,7 +5897,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 if (arrowData) {
                     arrowData.thickness = parseInt(thickness);
                     this.renderArrow(arrowData);
-                    this.saveState();
+                    this.saveState(`Modificato spessore freccia ${arrowData.from.objectId}-${arrowData.from.position} a ${arrowData.to.objectId}-${arrowData.to.position}`);
                 }
             }
             changeArrowOpacity(opacity) {
@@ -5896,7 +5912,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                             path.style.opacity = opacity;
                         }
                     }
-                    this.saveState();
+                    this.saveState(`Modificato opacità freccia ${arrowData.from.objectId}-${arrowData.from.position} a ${arrowData.to.objectId}-${arrowData.to.position}`);
                 }
             }
 
@@ -5917,7 +5933,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                         }
                     }
                     document.getElementById('dashedArrowToggle').classList.toggle('active', arrowData.dashed);
-                    this.saveState();
+                    this.saveState(`Modificato tratteggio freccia ${arrowData.from.objectId}-${arrowData.from.position} a ${arrowData.to.objectId}-${arrowData.to.position}`);
                 }
             }
             toggleDashedObject() {
@@ -5936,7 +5952,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     }
                 });
                 document.getElementById('dashedObjectToggle').classList.toggle('active', newState);
-                this.saveState();
+                this.saveState(`Modificato tratteggio di ${this.selectedObjects.size} oggetti`);
             }
 
             rotateSelected(degrees) {
@@ -5951,7 +5967,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                         this.updateArrowsForObject(id);
                     }
                 });
-                this.saveState();
+                this.saveState(`Ruotato di ${degrees} gradi ${this.selectedObjects.size} oggetti`);
             }
 
             deleteSelected() {
@@ -6019,7 +6035,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 }
 
                 this.deselectAll();
-                this.saveState();
+                this.saveState(`Eliminato ${this.selectedObjects.size} oggetti, ${this.selectedArrows.size} frecce, ${this.selectedFreehands.size} freehands`);
             }
 
             copySelected() {
@@ -6265,7 +6281,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     this.showGroupRotationCenter();
                 }
 
-                this.saveState();
+                this.saveState(`Incollati: ${this.clipboard.objects.length} oggetti, ${this.clipboard.arrows.length} frecce, ${this.clipboard.freehands?.length || 0} disegni`);
                 this.updateObjectControls();
 
                 console.log(`✅ Incollati: ${this.clipboard.objects.length} oggetti, ${this.clipboard.arrows.length} frecce, ${this.clipboard.freehands?.length || 0} disegni`);
@@ -6584,12 +6600,14 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 this.deselectAll();
             }
 
-            saveState() {
+            saveState(description = 'Modifica') {
                 const tab = this.getCurrentTab();
                 const state = {
                     objects: Array.from(tab.objects.entries()),
                     arrows: Array.from(tab.arrows.entries()),
-                    freehands: Array.from(tab.freehands.entries())
+                    freehands: Array.from(tab.freehands.entries()),
+                    timestamp: Date.now(),
+                    description: description
                 };
 
                 if (tab.historyIndex < tab.history.length - 1) {
@@ -6598,6 +6616,18 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
                 tab.history.push(state);
                 tab.historyIndex++;
+
+                // Salva metadati per questa modifica
+                const historyKey = `${this.activeTabId}-${tab.historyIndex}`;
+                this.historyMetadata.set(historyKey, {
+                    tabId: this.activeTabId,
+                    index: tab.historyIndex,
+                    timestamp: state.timestamp,
+                    description: description,
+                    objectCount: tab.objects.size,
+                    arrowCount: tab.arrows.size,
+                    freehandCount: tab.freehands.size
+                });
 
                 if (tab.history.length > 50) {
                     tab.history.shift();
@@ -6628,6 +6658,345 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 tab.freehands = new Map(state.freehands);
                 this.loadTabState();
             }
+
+            initHistoryDialog() {
+                const dialog = document.getElementById('historyDialog');
+                const header = document.getElementById('historyDialogHeader');
+                const closeBtn = document.getElementById('closeHistoryDialog');
+
+                let isDragging = false;
+                let currentX = 0;
+                let currentY = 0;
+                let initialX = 0;
+                let initialY = 0;
+
+                header.addEventListener('mousedown', (e) => {
+                    const rect = dialog.getBoundingClientRect();
+                    initialX = e.clientX - rect.left;
+                    initialY = e.clientY - rect.top;
+                    isDragging = true;
+                    header.style.cursor = 'grabbing';
+                    dialog.style.transform = 'none';
+                    dialog.style.left = rect.left + 'px';
+                    dialog.style.top = rect.top + 'px';
+                });
+
+                document.addEventListener('mousemove', (e) => {
+                    if (!isDragging) return;
+                    e.preventDefault();
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+                    dialog.style.left = currentX + 'px';
+                    dialog.style.top = currentY + 'px';
+                });
+
+                document.addEventListener('mouseup', () => {
+                    if (isDragging) {
+                        isDragging = false;
+                        header.style.cursor = 'move';
+                    }
+                });
+
+                closeBtn.addEventListener('click', () => {
+                    dialog.classList.remove('active');
+                });
+
+                document.getElementById('restoreHistoryBtn').addEventListener('click', () => {
+                    this.restoreSelectedHistory();
+                });
+
+                document.getElementById('deleteHistoryBtn').addEventListener('click', () => {
+                    this.deleteSelectedHistory();
+                });
+
+                document.getElementById('compareHistoryBtn').addEventListener('click', () => {
+                    this.compareWithCurrent();
+                });
+            }
+
+            showHistoryDialog() {
+                const dialog = document.getElementById('historyDialog');
+                dialog.classList.add('active');
+                this.renderHistoryList();
+            }
+
+            renderHistoryList() {
+                const tab = this.getCurrentTab();
+                const container = document.getElementById('historyList');
+                container.innerHTML = '';
+
+                if (!tab.history || tab.history.length === 0) {
+                    container.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">Nessuna modifica nello storico</div>';
+                    return;
+                }
+
+                tab.history.forEach((state, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'history-item';
+                    item.dataset.index = index;
+
+                    if (index === tab.historyIndex) {
+                        item.classList.add('current');
+                    }
+
+                    const time = new Date(state.timestamp);
+                    const timeStr = `${time.getHours().toString().padStart(2, '0')}:${time.getMinutes().toString().padStart(2, '0')}`;
+
+                    const historyKey = `${this.activeTabId}-${index}`;
+                    const metadata = this.historyMetadata.get(historyKey) || {
+                        description: state.description || 'Modifica',
+                        objectCount: state.objects?.length || 0,
+                        arrowCount: state.arrows?.length || 0,
+                        freehandCount: state.freehands?.length || 0
+                    };
+
+                    item.innerHTML = `
+            <div class="history-item-time">${timeStr}</div>
+            <div class="history-item-info">${metadata.description}</div>
+            <div class="history-item-details">
+                📦 ${metadata.objectCount} obj | 
+                ➡️ ${metadata.arrowCount} frecce | 
+                ✏️ ${metadata.freehandCount} disegni
+            </div>
+        `;
+
+                    item.addEventListener('click', () => {
+                        this.selectHistoryItem(index);
+                    });
+
+                    container.appendChild(item);
+                });
+
+                // Scroll all'elemento corrente
+                const currentItem = container.querySelector('.history-item.current');
+                if (currentItem) {
+                    currentItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+
+            selectHistoryItem(index) {
+                const tab = this.getCurrentTab();
+
+                // Rimuovi selezione precedente
+                document.querySelectorAll('.history-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+
+                // Seleziona nuovo item
+                const selectedItem = document.querySelector(`.history-item[data-index="${index}"]`);
+                if (selectedItem) {
+                    selectedItem.classList.add('selected');
+                }
+
+                // Abilita i pulsanti
+                document.getElementById('restoreHistoryBtn').disabled = false;
+                document.getElementById('deleteHistoryBtn').disabled = (index === tab.historyIndex);
+                document.getElementById('compareHistoryBtn').disabled = false;
+
+                // Mostra preview
+                this.showHistoryPreview(index);
+            }
+
+            showHistoryPreview(index) {
+                const tab = this.getCurrentTab();
+                const state = tab.history[index];
+
+                if (!state) return;
+
+                const previewCanvas = document.getElementById('historyPreviewCanvas');
+                const previewTitle = document.getElementById('historyPreviewTitle');
+                const previewStats = document.getElementById('historyPreviewStats');
+
+                const time = new Date(state.timestamp);
+                const timeStr = time.toLocaleString('it-IT');
+
+                previewTitle.textContent = `Anteprima: ${state.description || 'Modifica'} (${timeStr})`;
+
+                // Crea una preview miniaturizzata
+                previewCanvas.innerHTML = '';
+
+                const miniCanvas = document.createElement('div');
+                miniCanvas.style.cssText = `
+        width: 100%;
+        height: 100%;
+        position: relative;
+        transform: scale(0.5);
+        transform-origin: top left;
+        background: white;
+    `;
+
+                // Rendering oggetti
+                if (state.objects) {
+                    state.objects.forEach(([id, obj]) => {
+                        const element = document.createElement('div');
+                        element.style.cssText = `
+                position: absolute;
+                left: ${obj.x}px;
+                top: ${obj.y}px;
+                width: ${obj.width}px;
+                height: ${obj.height}px;
+                background: ${obj.color};
+                opacity: ${obj.opacity || 1};
+                transform: rotate(${obj.rotation}deg);
+                border: ${obj.dashed ? '2px dashed' : '2px solid'} #333;
+                border-radius: 4px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 10px;
+                color: white;
+                text-shadow: 1px 1px 2px black;
+            `;
+                        element.textContent = obj.text || '';
+                        miniCanvas.appendChild(element);
+                    });
+                }
+
+                // Rendering frecce (semplificato)
+                if (state.arrows) {
+                    state.arrows.forEach(([id, arrow]) => {
+                        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                        svg.style.cssText = `
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+            `;
+
+                        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        const from = arrow.from.x !== undefined ? arrow.from : { x: 0, y: 0 };
+                        const to = arrow.to.x !== undefined ? arrow.to : { x: 100, y: 100 };
+
+                        line.setAttribute('x1', from.x);
+                        line.setAttribute('y1', from.y);
+                        line.setAttribute('x2', to.x);
+                        line.setAttribute('y2', to.y);
+                        line.setAttribute('stroke', arrow.color || '#000');
+                        line.setAttribute('stroke-width', arrow.thickness || 2);
+
+                        if (arrow.dashed) {
+                            line.setAttribute('stroke-dasharray', '5,5');
+                        }
+
+                        svg.appendChild(line);
+                        miniCanvas.appendChild(svg);
+                    });
+                }
+
+                previewCanvas.appendChild(miniCanvas);
+
+                // Mostra statistiche
+                const historyKey = `${this.activeTabId}-${index}`;
+                const metadata = this.historyMetadata.get(historyKey) || {};
+
+                previewStats.innerHTML = `
+        <div><strong>📅 Timestamp:</strong> ${timeStr}</div>
+        <div><strong>📦 Oggetti:</strong> ${state.objects?.length || 0}</div>
+        <div><strong>➡️ Frecce:</strong> ${state.arrows?.length || 0}</div>
+        <div><strong>✏️ Disegni:</strong> ${state.freehands?.length || 0}</div>
+        <div><strong>📝 Descrizione:</strong> ${state.description || 'Nessuna descrizione'}</div>
+        ${index === tab.historyIndex ? '<div style="color: #28a745; font-weight: bold;">✅ Stato Corrente</div>' : ''}
+    `;
+            }
+
+            restoreSelectedHistory() {
+                const selectedItem = document.querySelector('.history-item.selected');
+                if (!selectedItem) return;
+
+                const index = parseInt(selectedItem.dataset.index);
+                const tab = this.getCurrentTab();
+
+                if (confirm(`Ripristinare lo stato: "${tab.history[index].description}"?\n\nQuesta azione creerà un nuovo punto nello storico.`)) {
+                    tab.historyIndex = index;
+                    this.restoreState(tab.history[index]);
+
+                    // Crea un nuovo punto nello storico per il ripristino
+                    this.saveState(`Ripristinato: ${tab.history[index].description}`);
+
+                    this.renderHistoryList();
+                    this.showHistoryPreview(tab.historyIndex);
+
+                    alert('✅ Stato ripristinato con successo!');
+                }
+            }
+
+            deleteSelectedHistory() {
+                const selectedItem = document.querySelector('.history-item.selected');
+                if (!selectedItem) return;
+
+                const index = parseInt(selectedItem.dataset.index);
+                const tab = this.getCurrentTab();
+
+                if (index === tab.historyIndex) {
+                    alert('❌ Non puoi eliminare lo stato corrente');
+                    return;
+                }
+
+                if (confirm(`Eliminare la modifica: "${tab.history[index].description}"?`)) {
+                    tab.history.splice(index, 1);
+
+                    // Aggiorna historyIndex se necessario
+                    if (tab.historyIndex >= index) {
+                        tab.historyIndex--;
+                    }
+
+                    // Rimuovi metadati
+                    const historyKey = `${this.activeTabId}-${index}`;
+                    this.historyMetadata.delete(historyKey);
+
+                    this.renderHistoryList();
+                    document.getElementById('historyPreviewCanvas').innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">Seleziona una modifica</div>';
+                    document.getElementById('historyPreviewStats').innerHTML = '';
+                    document.getElementById('restoreHistoryBtn').disabled = true;
+                    document.getElementById('deleteHistoryBtn').disabled = true;
+                    document.getElementById('compareHistoryBtn').disabled = true;
+                }
+            }
+
+            compareWithCurrent() {
+                const selectedItem = document.querySelector('.history-item.selected');
+                if (!selectedItem) return;
+
+                const index = parseInt(selectedItem.dataset.index);
+                const tab = this.getCurrentTab();
+                const selectedState = tab.history[index];
+                const currentState = tab.history[tab.historyIndex];
+
+                const previewStats = document.getElementById('historyPreviewStats');
+
+                const selectedObjects = selectedState.objects?.length || 0;
+                const currentObjects = currentState.objects?.length || 0;
+                const selectedArrows = selectedState.arrows?.length || 0;
+                const currentArrows = currentState.arrows?.length || 0;
+                const selectedFreehands = selectedState.freehands?.length || 0;
+                const currentFreehands = currentState.freehands?.length || 0;
+
+                previewStats.innerHTML = `
+        <div class="history-comparison">
+            <div class="comparison-side">
+                <div class="comparison-title">Stato Selezionato</div>
+                <div>📦 Oggetti: ${selectedObjects}</div>
+                <div>➡️ Frecce: ${selectedArrows}</div>
+                <div>✏️ Disegni: ${selectedFreehands}</div>
+            </div>
+            <div class="comparison-side">
+                <div class="comparison-title">Stato Corrente</div>
+                <div>📦 Oggetti: ${currentObjects}</div>
+                <div>➡️ Frecce: ${currentArrows}</div>
+                <div>✏️ Disegni: ${currentFreehands}</div>
+            </div>
+        </div>
+        <div style="margin-top: 10px; padding: 10px; background: ${selectedObjects === currentObjects && selectedArrows === currentArrows && selectedFreehands === currentFreehands ? '#d4edda' : '#fff3cd'}; border-radius: 4px;">
+            ${selectedObjects === currentObjects && selectedArrows === currentArrows && selectedFreehands === currentFreehands ?
+                        '✅ Gli stati hanno lo stesso numero di elementi' :
+                        `⚠️ Differenze: ${Math.abs(selectedObjects - currentObjects)} oggetti, ${Math.abs(selectedArrows - currentArrows)} frecce, ${Math.abs(selectedFreehands - currentFreehands)} disegni`
+                    }
+        </div>
+    `;
+            }
+
 
             saveSchema() {
                 const tab = this.getCurrentTab();
@@ -6835,7 +7204,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
                 // Ricarica lo stato visivo
                 this.loadTabState();
-                this.saveState();
+                this.saveState(`Dati caricati con successo`);
 
                 console.log("Dati caricati con successo");
             }
@@ -7071,7 +7440,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     });
 
                     this.updateCurrentFrame();
-                    this.saveState();
+                    this.saveState(`Spostato ${this.selectedObjects.size} oggetti`);
                     return;
                 }
 
@@ -7900,6 +8269,42 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             </div>
         </div>
     </div>
+
+
+    <div id="historyDialog" class="history-dialog">
+        <div class="history-dialog-header" id="historyDialogHeader">
+            <h3>📜 Storico Modifiche</h3>
+            <button class="history-dialog-close" id="closeHistoryDialog">&times;</button>
+        </div>
+        <div class="history-dialog-body">
+            <div class="history-list-panel">
+                <div id="historyList">
+                    <!-- Popolato dinamicamente -->
+                </div>
+            </div>
+            <div class="history-preview-panel">
+                <div class="history-preview-header">
+                    <strong id="historyPreviewTitle">Seleziona una modifica per visualizzare l'anteprima</strong>
+                </div>
+                <div class="history-preview-content">
+                    <div class="history-preview-canvas" id="historyPreviewCanvas">
+                        <!-- Canvas di preview -->
+                    </div>
+                    <div class="history-preview-stats" id="historyPreviewStats">
+                        <!-- Statistiche della modifica -->
+                    </div>
+                </div>
+                <div class="history-actions">
+                    <button class="btn-delete-history" id="deleteHistoryBtn" disabled>🗑️ Elimina</button>
+                    <button class="btn-compare" id="compareHistoryBtn" disabled>🔄 Confronta</button>
+                    <button class="btn-restore" id="restoreHistoryBtn" disabled>✅ Ripristina</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
     <div id="watermark">
         VBProW4 by <a href="https://www.filippomorano.com" target="_blank" rel="noopener noreferrer">spikecode</a>
     </div>
