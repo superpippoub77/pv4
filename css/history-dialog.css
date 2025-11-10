@@ -1,4 +1,4 @@
-.history-dialog {
+.windows-dialog {
     display: none;
     position: fixed;
     z-index: 10000;
@@ -13,12 +13,12 @@
     overflow: hidden;
 }
 
-.history-dialog.active {
+.windows-dialog.active {
     display: flex;
     flex-direction: column;
 }
 
-.history-dialog-header {
+.windows-dialog-header {
     background: #3498db;
     color: white;
     padding: 15px;
@@ -28,7 +28,7 @@
     cursor: move;
 }
 
-.history-dialog-close {
+.windows-dialog-close {
     background: none;
     border: none;
     color: white;
@@ -39,7 +39,7 @@
     height: 30px;
 }
 
-.history-dialog-body {
+.windows-dialog-body {
     display: flex;
     flex: 1;
     overflow: hidden;
