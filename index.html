@@ -36,16 +36,12 @@
     <link rel="stylesheet" href="./css/icons.css">
     <link rel="stylesheet" href="./css/selection.css">
     <link rel="stylesheet" href="./css/tab.css">
-    <link rel="stylesheet" href="./css/watermark.css">
-    <link rel="stylesheet" href="./css/player.css">
     <link rel="stylesheet" href="./css/freehand.css">
     <link rel="stylesheet" href="./css/objects.css">
     <link rel="stylesheet" href="./css/contextmenu.css">
-    <link rel="stylesheet" href="./css/sprite-volleyball.css">
     <link rel="stylesheet" href="./css/frame.css">
     <link rel="stylesheet" href="./css/arrow.css">
     <link rel="stylesheet" href="./css/exercise-steps.css">
-    <link rel="stylesheet" href="./css/object-label.css">
     <link rel="stylesheet" href="./css/butttons.css">
     <link rel="stylesheet" href="./css/team-dialog.css">
     <link rel="stylesheet" href="./css/bottom-sidebar.css">
@@ -367,6 +363,19 @@
         <div class="main-content">
             <div class="toolbar">
                 <div class="toolbar-group">
+                    <label>Dimensione:</label>
+                    <select id="canvasSizeSelect">
+                        <option value="custom">Personalizzato</option>
+                        <option value="a5-portrait">A5 Verticale</option>
+                        <option value="a5-landscape">A5 Orizzontale</option>
+                        <option value="a4-portrait">A4 Verticale</option>
+                        <option value="a4-landscape">A4 Orizzontale</option>
+                        <option value="a3-portrait">A3 Verticale</option>
+                        <option value="a3-landscape">A3 Orizzontale</option>
+                        <option value="business-card">Biglietto da Visita</option>
+                    </select>
+                    <button id="toggleCanvasBorder">🖼️ Bordi</button>
+
                     <label>Background:</label>
                     <select id="backgroundSelect">
                         <option value="none">Nessuno</option>
@@ -374,6 +383,10 @@
                         <option value="full-field">Intero</option>
                         <option value="3d-field">Campo 3D</option>
                     </select>
+                    <button id="zoomOut">➖</button>
+                    <div class="zoom-display" id="zoomDisplay">100%</div>
+                    <button id="zoomIn">➕</button>
+
                 </div>
                 <div class="toolbar-group">
                     <button id="manageTeamBtn">👥 Gestisci Squadra</button>
@@ -398,48 +411,16 @@
                         Formazioni</button>
                 </div>
                 <div class="toolbar-group">
-                    <button id="zoomOut">➖</button>
-                    <div class="zoom-display" id="zoomDisplay">100%</div>
-                    <button id="zoomIn">➕</button>
-                </div>
-
-                <div class="toolbar-group">
-                    <label>Dimensione:</label>
-                    <select id="canvasSizeSelect">
-                        <option value="custom">Personalizzato</option>
-                        <option value="a4-portrait">A4 Verticale</option>
-                        <option value="a4-landscape">A4 Orizzontale</option>
-                        <option value="a3-portrait">A3 Verticale</option>
-                        <option value="a3-landscape">A3 Orizzontale</option>
-                        <option value="business-card">Biglietto da Visita</option>
-                    </select>
-                    <button id="toggleCanvasBorder">🖼️ Bordi</button>
-                </div>
-
-                <div class="toolbar-group">
                     <button id="rotateLeft">↺</button>
                     <button id="rotateRight">↻</button>
+                    <button id="groupRotateLeft">⟲ Ruota Gruppo -15°</button>
+                    <button id="groupRotateRight">⟳ Ruota Gruppo +15°</button>
                     <button id="undoBtn">⏪ Undo</button>
                     <button id="redoBtn">⏩ Redo</button>
                     <button id="historyBtn" title="Storico modifiche (Ctrl+H)">📜 Storico</button>
                 </div>
-                <div class="toolbar-group">
-                    <button id="groupRotateLeft">⟲ Ruota Gruppo -15°</button>
-                    <button id="groupRotateRight">⟳ Ruota Gruppo +15°</button>
-                </div>
-                <div class="toolbar-group">
-                    <div id="iconControls" style="display: none; align-items: center; gap: 10px;">
-                        <label>Icona:</label>
-                        <select id="iconSelect">
-                            <option value="fas fa-trophy">Trofeo</option>
-                            <option value="fas fa-medal">Medaglia</option>
-                            <option value="fas fa-star">Stella</option>
-                            <!-- Aggiungi altre opzioni -->
-                        </select>
-                    </div>
-                </div>
 
-                <div class="file-controls">
+                <div class="toolbar-group">
                     <input type="text" id="schemaTitle" placeholder="Titolo schema">
                     <button id="saveBtn">💾 Salva</button>
                     <button id="saveWorkOutBtn">💾 Salva Allenamento</button>
@@ -450,13 +431,12 @@
                     <button id="exportBtn">📤 Esporta</button>
                     <button id="exportWorkOutBtn">📤 Genera la scheda di allenamento</button>
                     <button id="loadFromLibrary">📁 Libreria</button>
-                    <div class="toolbar-group">
-                        <div class="user-info" id="userInfo" style="display: none;">
-                            <span>👤 <span id="currentUsername"></span></span>
-                            <button class="logout-button" id="logoutButton">Esci</button>
-                        </div>
+                </div>
+                <div class="toolbar-group">
+                    <div class="user-info" id="userInfo" style="display: none;">
+                        <span>👤 <span id="currentUsername"></span></span>
+                        <button class="logout-button" id="logoutButton">Esci</button>
                     </div>
-
                 </div>
             </div>
 
@@ -481,13 +461,14 @@
 
             <!-- Bottom Sidebar (Object Controls) -->
             <div class="bottom-sidebar-handle" id="bottomSidebarHandle">
-                <button class="bottom-sidebar-switch" id="bottomSidebarSwitch">▲</button>
+                <button class="bottom-sidebar-switch" id="bottomSidebarSwitch">▼</button>
             </div>
 
             <div class="bottom-sidebar" id="bottomSidebar">
                 <div class="object-controls">
                     <div id="objectControls"
-                        style="display: none; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                        class="toolbar-group"
+                        style="display: none">
                         <div class="color-picker-container">
                             <label>Colore oggetto:</label>
                             <input type="color" class="color-picker" id="objectColor" value="#3498db">
@@ -510,7 +491,8 @@
                     </div>
 
                     <div id="arrowControls"
-                        style="display: none; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                        class="toolbar-group"
+                        style="display: none">
                         <div class="color-picker-container">
                             <label>Colore freccia:</label>
                             <input type="color" class="color-picker" id="arrowColor" value="#000000">
@@ -535,7 +517,8 @@
                     </div>
 
                     <div id="spriteControls"
-                        style="display: none; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                        class="toolbar-group"
+                        style="display: none">
                         <div>
                             <label>Frame corrente:</label>
                             <input type="number" id="spriteCurrentFrame" min="0" max="7" value="0" style="width: 60px;">
@@ -569,7 +552,8 @@
                         <button id="showAnimationControls">🎬 Animazione</button>
                     </div>
 
-                    <div id="freehandControls" style="display: none; align-items: center; gap: 10px;">
+                    <div id="freehandControls" class="toolbar-group"
+                        style="display: none">
                         <div class="color-picker-container">
                             <label>Colore traccia:</label>
                             <input type="color" class="color-picker" id="freehandColor" value="#000000">
@@ -912,6 +896,7 @@
                 this.initLogin();
                 this.initLibraryLoading();
                 this.initializeTab(1, 'Schema 1');
+                this.initCanvasResize();
                 this.initializeEventListeners();
                 this.initializeExistingTabs();
                 this.updateUI();
@@ -926,7 +911,28 @@
                     return [];
                 }
             }
+            saveTabState() {
+                const tab = this.getCurrentTab();
+                if (!tab) return;
 
+                tab.background = document.getElementById('backgroundSelect').value;
+                tab.gridVisible = document.getElementById('gridToggle').classList.contains('active');
+                tab.bwMode = document.getElementById('bwToggle').classList.contains('active');
+                tab.zoom = this.zoom;
+
+                // SALVA DIMENSIONE E BORDI
+                tab.canvasSize = this.canvasSize;
+                tab.showBorder = this.showCanvasBorder;
+
+                // ✅ NUOVO: Salva dimensioni custom
+                if (tab.canvasSize === 'custom') {
+                    const canvas = document.getElementById('canvas');
+                    tab.customWidth = canvas.offsetWidth;
+                    tab.customHeight = canvas.offsetHeight;
+                }
+
+                tab.maxZIndex = this.maxZIndex;
+            }
             saveTeamToStorage() {
                 try {
                     localStorage.setItem('volleyTeam', JSON.stringify(this.teamPlayers));
@@ -2166,21 +2172,213 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     'size-a4-landscape',
                     'size-a3-portrait',
                     'size-a3-landscape',
+                    'size-a5-portrait',
+                    'size-a5-landscape',
                     'size-business-card'
                 );
 
-                // Applica la nuova dimensione
-                if (size !== 'custom') {
-                    canvas.classList.add(`size-${size}`);
-                } else {
-                    // Rimuovi dimensioni fisse per custom
+                // Se custom, mantieni le dimensioni attuali ma rimuovi i vincoli
+                if (size === 'custom') {
                     canvas.style.width = '';
                     canvas.style.height = '';
+                    canvas.style.minWidth = '';
+                    canvas.style.minHeight = '';
+                } else {
+                    // Applica la nuova dimensione preset
+                    canvas.classList.add(`size-${size}`);
                 }
 
                 this.saveState(`Impostata dimensione canvas: ${size}`);
             }
+            initCanvasResize() {
+                const canvas = document.getElementById('canvas');
 
+                // Crea tutti gli 8 handle di resize se non esistono
+                const handles = ['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'];
+
+                handles.forEach(direction => {
+                    let handle = document.getElementById(`canvasResizeHandle-${direction}`);
+                    if (!handle) {
+                        handle = document.createElement('div');
+                        handle.id = `canvasResizeHandle-${direction}`;
+                        handle.className = `canvas-resize-handle canvas-resize-${direction}`;
+
+                        // Icone per ogni direzione
+                        const icons = {
+                            'n': '↕',
+                            'ne': '⇗',
+                            'e': '↔',
+                            'se': '⇲',
+                            's': '↕',
+                            'sw': '⇙',
+                            'w': '↔',
+                            'nw': '⇖'
+                        };
+                        handle.innerHTML = icons[direction];
+
+                        canvas.parentElement.appendChild(handle);
+                    }
+                });
+
+                let isResizingCanvas = false;
+                let currentHandle = null;
+                let startX, startY, startWidth, startHeight, startLeft, startTop;
+
+                // Event listener per tutti gli handle
+                document.querySelectorAll('[id^="canvasResizeHandle-"]').forEach(handle => {
+                    handle.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        // Passa a modalità custom quando inizi il resize
+                        const currentSize = document.getElementById('canvasSizeSelect').value;
+                        if (currentSize !== 'custom') {
+                            document.getElementById('canvasSizeSelect').value = 'custom';
+                            this.setCanvasSize('custom');
+                        }
+
+                        isResizingCanvas = true;
+                        currentHandle = handle.id.split('-')[1]; // estrae 'n', 'se', etc.
+
+                        startX = e.clientX;
+                        startY = e.clientY;
+                        startWidth = canvas.offsetWidth;
+                        startHeight = canvas.offsetHeight;
+
+                        const canvasRect = canvas.getBoundingClientRect();
+                        startLeft = canvasRect.left;
+                        startTop = canvasRect.top;
+
+                        document.body.style.cursor = window.getComputedStyle(handle).cursor;
+                        document.body.classList.add('resizing-canvas');
+                    });
+                });
+
+                document.addEventListener('mousemove', (e) => {
+                    if (!isResizingCanvas) return;
+
+                    const deltaX = e.clientX - startX;
+                    const deltaY = e.clientY - startY;
+
+                    let newWidth = startWidth;
+                    let newHeight = startHeight;
+                    let offsetX = 0;
+                    let offsetY = 0;
+
+                    // Calcola nuove dimensioni in base alla direzione
+                    switch (currentHandle) {
+                        case 'e': // Est (destra)
+                            newWidth = startWidth + deltaX;
+                            break;
+                        case 'w': // Ovest (sinistra)
+                            newWidth = startWidth - deltaX;
+                            offsetX = deltaX;
+                            break;
+                        case 's': // Sud (basso)
+                            newHeight = startHeight + deltaY;
+                            break;
+                        case 'n': // Nord (alto)
+                            newHeight = startHeight - deltaY;
+                            offsetY = deltaY;
+                            break;
+                        case 'se': // Sud-Est
+                            newWidth = startWidth + deltaX;
+                            newHeight = startHeight + deltaY;
+                            break;
+                        case 'sw': // Sud-Ovest
+                            newWidth = startWidth - deltaX;
+                            newHeight = startHeight + deltaY;
+                            offsetX = deltaX;
+                            break;
+                        case 'ne': // Nord-Est
+                            newWidth = startWidth + deltaX;
+                            newHeight = startHeight - deltaY;
+                            offsetY = deltaY;
+                            break;
+                        case 'nw': // Nord-Ovest
+                            newWidth = startWidth - deltaX;
+                            newHeight = startHeight - deltaY;
+                            offsetX = deltaX;
+                            offsetY = deltaY;
+                            break;
+                    }
+
+                    // Applica dimensioni minime
+                    newWidth = Math.max(400, newWidth);
+                    newHeight = Math.max(300, newHeight);
+
+                    canvas.style.width = newWidth + 'px';
+                    canvas.style.height = newHeight + 'px';
+
+                    // Aggiorna posizione per handle sinistri/superiori
+                    if (offsetX || offsetY) {
+                        const container = canvas.parentElement;
+                        container.scrollLeft -= offsetX;
+                        container.scrollTop -= offsetY;
+                    }
+
+                    // Aggiorna posizioni di tutti gli handle
+                    this.updateAllResizeHandles();
+                });
+
+                document.addEventListener('mouseup', () => {
+                    if (isResizingCanvas) {
+                        isResizingCanvas = false;
+                        currentHandle = null;
+                        document.body.style.cursor = '';
+                        document.body.classList.remove('resizing-canvas');
+
+                        // Salva dimensioni custom
+                        const tab = this.getCurrentTab();
+                        tab.customWidth = canvas.offsetWidth;
+                        tab.customHeight = canvas.offsetHeight;
+
+                        this.saveState(`Ridimensionato canvas a ${canvas.offsetWidth}x${canvas.offsetHeight}px`);
+                    }
+                });
+
+                // Inizializza posizioni
+                this.updateAllResizeHandles();
+            }
+
+            updateAllResizeHandles() {
+                const canvas = document.getElementById('canvas');
+                const rect = canvas.getBoundingClientRect();
+                const container = canvas.parentElement.getBoundingClientRect();
+
+                const positions = {
+                    'n': { left: rect.left + rect.width / 2 - container.left - 10, top: rect.top - container.top - 10 },
+                    'ne': { left: rect.right - container.left - 10, top: rect.top - container.top - 10 },
+                    'e': { left: rect.right - container.left - 10, top: rect.top + rect.height / 2 - container.top - 10 },
+                    'se': { left: rect.right - container.left - 10, top: rect.bottom - container.top - 10 },
+                    's': { left: rect.left + rect.width / 2 - container.left - 10, top: rect.bottom - container.top - 10 },
+                    'sw': { left: rect.left - container.left - 10, top: rect.bottom - container.top - 10 },
+                    'w': { left: rect.left - container.left - 10, top: rect.top + rect.height / 2 - container.top - 10 },
+                    'nw': { left: rect.left - container.left - 10, top: rect.top - container.top - 10 }
+                };
+
+                Object.entries(positions).forEach(([direction, pos]) => {
+                    const handle = document.getElementById(`canvasResizeHandle-${direction}`);
+                    if (handle) {
+                        handle.style.left = pos.left + 'px';
+                        handle.style.top = pos.top + 'px';
+                    }
+                });
+            }
+
+            // 3. AGGIUNGI METODO per aggiornare la posizione dell'handle
+            updateResizeHandlePosition() {
+                const canvas = document.getElementById('canvas');
+                const handle = document.getElementById('canvasResizeHandle');
+
+                if (handle && canvas) {
+                    const rect = canvas.getBoundingClientRect();
+                    const containerRect = canvas.parentElement.getBoundingClientRect();
+
+                    handle.style.left = (rect.right - containerRect.left - 10) + 'px';
+                    handle.style.top = (rect.bottom - containerRect.top - 10) + 'px';
+                }
+            }
             // NUOVO METODO - Toggle bordi canvas
             toggleCanvasBorder() {
                 const tab = this.getCurrentTab();
@@ -6578,7 +6776,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 });
 
                 sortedObjects.forEach(obj => this.renderObject(obj));
-
                 tab.arrows.forEach(arrow => this.renderArrow(arrow));
                 tab.freehands.forEach(freehand => this.renderFreehand(freehand));
 
@@ -6587,17 +6784,26 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
                 // RIPRISTINA DIMENSIONE E BORDI
                 this.setCanvasSize(tab.canvasSize || 'custom');
+
+                // ✅ NUOVO: Ripristina dimensioni custom se presenti
+                if (tab.canvasSize === 'custom' && tab.customWidth && tab.customHeight) {
+                    canvas.style.width = tab.customWidth + 'px';
+                    canvas.style.height = tab.customHeight + 'px';
+                }
+
                 if (tab.showBorder) {
                     canvas.classList.add('show-border');
                 } else {
                     canvas.classList.remove('show-border');
                 }
 
+                this.updateResizeHandlePosition();
                 this.updateBackground();
                 this.updateZoom();
                 this.updateGrid();
                 this.updateBWMode();
                 this.deselectAll();
+                this.updateAllResizeHandles();
             }
 
             saveState(description = 'Modifica') {

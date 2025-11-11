@@ -991,3 +991,62 @@ body.dragging-endpoint .canvas-object .connection-point {
     overflow-y: auto;
     flex: 1;
 }
+
+/* Canvas Resize Handle */
+.canvas-resize-handle {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: #3498db;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: nwse-resize;
+    border-radius: 0 0 4px 0;
+    font-size: 16px;
+    z-index: 1000;
+    user-select: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: background 0.2s;
+}
+
+.canvas-resize-handle:hover {
+    background: #2980b9;
+    transform: scale(1.1);
+}
+
+.canvas-resize-handle:active {
+    background: #1f5d8c;
+}
+
+body.resizing-canvas {
+    cursor: nwse-resize !important;
+    user-select: none;
+}
+
+body.resizing-canvas * {
+    cursor: nwse-resize !important;
+    pointer-events: none;
+}
+
+body.resizing-canvas .canvas-resize-handle {
+    pointer-events: auto;
+}
+
+/* Dimensioni A5 */
+.canvas.size-a5-portrait {
+    width: 148mm !important;
+    height: 210mm !important;
+}
+
+.canvas.size-a5-landscape {
+    width: 210mm !important;
+    height: 148mm !important;
+
+}
+
+/* Permetti ridimensionamento in modalità custom */
+.canvas {
+    resize: none; /* Disabilita resize nativo del browser */
+}
