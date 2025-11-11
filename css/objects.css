@@ -134,3 +134,210 @@
     border: 1px solid #8b2e1e;
     border-radius: 6px;
 }
+
+
+/* LABEL OGGETTI SUL CANVAS */
+.object-label {
+    position: absolute;
+    top: -18px;
+    right: -18px;
+    width: 20px;
+    height: 20px;
+    background: #3498db;
+    color: white;
+    border: 2px solid white;
+    border-radius: 50%;
+    font-size: 10px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto; /* ✅ Cambiato da none */
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+.object-label:hover {
+    transform: scale(1.2);
+    background: #2980b9;
+}
+
+.canvas-object.show-labels .object-label {
+    opacity: 1;
+}
+
+.canvas.show-all-labels .object-label {
+    opacity: 1;
+}
+
+
+/* ICONA OGGETTO GENERICO */
+.icon-object {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+    position: relative;
+}
+
+.icon-object i {
+    /* Rimuovi width e height fissi */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Il font-size sarà gestito dinamicamente dal JavaScript */
+}
+
+.icon-object.dashed {
+    border: 2px dashed #333;
+    border-radius: 4px;
+}
+
+
+/* SPRITE OBJECT */
+.sprite-object {
+  width: 100%;
+  height: 100%;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  /* Per sprite in pixel art */
+}
+
+/* .sprite-preview {
+  image-rendering: pixelated;
+  background-repeat: no-repeat;
+} */
+
+.sprite-preview {
+    transform: scale(0.5);
+    transform-origin: top left;
+}
+
+#spriteControls {
+  background: #ecf0f1;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+#spriteControls>div {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #bdc3c7;
+}
+
+#spriteControls label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+#spriteControls input[type="number"],
+#spriteControls input[type="text"] {
+  padding: 4px 6px;
+  border: 1px solid #bdc3c7;
+  border-radius: 3px;
+  font-size: 11px;
+}
+
+#spriteControls .toolbar-button {
+  padding: 4px 8px;
+  font-size: 11px;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+#spriteControls .toolbar-button:hover {
+  background: #2980b9;
+}
+
+#spriteStopAnimation {
+  background: #e74c3c;
+}
+
+#spriteStopAnimation:hover {
+  background: #c0392b;
+}
+
+.sprite-animation-controls {
+  border-left: 2px solid #bdc3c7;
+  padding-left: 10px;
+  margin-left: 10px;
+}
+
+
+/* VOLLEYBALL PLAYER - BAGHER POSE */
+.volleyball-player-bagher-object {
+    width: 60px; /* Larghezza del corpo */
+    height: 100px;
+    position: relative;
+    background-color: transparent;
+    display: block; /* Importante per centrare */
+    
+    /* Corpo principale e gambe */
+    /* Testa e Tronco (usiamo l'elemento base) */
+    
+    /* Testa: un cerchio in alto */
+    background: black;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    
+    /* Aggiungiamo il tronco sotto la testa con un'ombra (o un altro elemento) */
+    box-shadow: 0 35px 0 0 black,  /* Tronco */
+                0 75px 0 0 black; /* Bacino/Base */
+}
+
+/* Gambe: create con pseudo-elemento ::after e box-shadow */
+.volleyball-player-bagher-object::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 35px; /* Lunghezza della parte superiore della gamba */
+    background: black;
+    top: 65px; /* Posizione sotto il tronco */
+    left: 50%;
+    transform: translateX(-50%);
+    
+    /* Gamba destra e sinistra con ombra */
+    box-shadow: -15px 0 0 0 black, /* Gamba Sinistra */
+                15px 0 0 0 black; /* Gamba Destra */
+    
+    /* Inclinazione leggera per le ginocchia piegate del bagher */
+    transform: translateX(-50%) rotate(5deg);
+}
+
+/* Braccia: create con pseudo-elemento ::before per la posa unita del bagher */
+.volleyball-player-bagher-object::before {
+    content: '';
+    position: absolute;
+    width: 70px; /* Larghezza delle braccia unite */
+    height: 12px;
+    background: black;
+    top: 55px; /* Posizione appena sotto la spalla/tronco */
+    left: 50%;
+    transform: translateX(-50%) rotate(-10deg); /* Leggera inclinazione del bagher */
+    border-radius: 6px; /* Bordi arrotondati per un look più morbido */
+}
+
+/* Contenitore per dare spazio e centrare la figura */
+.player-container {
+    width: 150px;
+    height: 150px;
+    border: 1px dashed #ccc; /* Solo per visualizzazione */
+    position: relative;
+}

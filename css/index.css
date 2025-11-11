@@ -152,13 +152,32 @@ body {
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 2px;
+    box-sizing: border-box;
 }
 
+/* Ogni gruppo */
 .toolbar-group {
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: center; /* centra il contenuto */
+    gap: 2px;
+
+    border: 1px solid lightgrey;
+    border-radius: 6px;
+    padding: 4px 6px;
+    background-color: #f0f0f0;
+    cursor: grab;
+
+    /* Rendiamo ogni gruppo flessibile per occupare spazio disponibile */
+    flex: 1 1 auto; /* cresce e si restringe se necessario */
+}
+
+/* Feedback visivo al drag */
+.toolbar-group:active {
+    cursor: grabbing;
+    transform: translateY(1px);
+    box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.15);
 }
 
 .toolbar-group label {
@@ -233,24 +252,26 @@ body {
 
 
 /* Canvas container */
+/* CANVAS CONTAINER - Sezione Critica per il Posizionamento */
 .canvas-container {
-    flex: 1;
-    display: flex;
+    flex: 1; /* Occupa lo spazio rimanente in verticale */
+    position: relative; /* **CRUCIALE**: Stabilisce il contesto di posizionamento per gli handle di ridimensionamento (i quadratini) e l'SVG delle frecce. */
+    display: flex; /* Per centrare il canvas */
     justify-content: center;
-    align-items: flex-start;
-    overflow: auto;
-    background: #ecf0f1;
-    padding: 20px;
+    align-items: center;
+    overflow: auto; /* Permette lo scroll se il canvas è zoomato/ridimensionato oltre la viewport */
+    padding: 20px; 
 }
 
 .canvas {
     position: relative;
     background: white;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     transition: all 0.3s ease;
-    /* Dimensioni predefinite quando non è specificato nessun formato */
+    transform-origin: center center; /* Per un corretto zoom al centro */
     min-width: 800px;
     min-height: 600px;
+    resize: none;
 }
 
 .canvas.show-border {
@@ -264,6 +285,71 @@ body {
         linear-gradient(to bottom, #ddd 1px, transparent 1px);
     background-size: 20px 20px;
 }
+
+
+
+
+.canvas-resize-handle {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: #3498db;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    font-size: 14px;
+    z-index: 1001;
+    user-select: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: background 0.2s, transform 0.2s;
+    pointer-events: auto;
+}
+
+.canvas-resize-handle:hover {
+    background: #2980b9;
+    transform: scale(1.1);
+}
+
+.canvas-resize-handle:active {
+    background: #1f5d8c;
+}
+
+body.resizing-canvas {
+    cursor: nwse-resize !important;
+    user-select: none;
+}
+
+body.resizing-canvas * {
+    cursor: nwse-resize !important;
+    pointer-events: none;
+}
+
+body.resizing-canvas .canvas-resize-handle {
+    pointer-events: auto;
+}
+
+/* Dimensioni A5 */
+.canvas.size-a5-portrait {
+    width: 148mm !important;
+    height: 210mm !important;
+}
+
+.canvas.size-a5-landscape {
+    width: 210mm !important;
+    height: 148mm !important;
+
+}
+
+
+/* Cursori specifici per direzione */
+.canvas-resize-n, .canvas-resize-s { cursor: ns-resize; }
+.canvas-resize-e, .canvas-resize-w { cursor: ew-resize; }
+.canvas-resize-ne, .canvas-resize-sw { cursor: nesw-resize; }
+.canvas-resize-nw, .canvas-resize-se { cursor: nwse-resize; }
+
+
 
 /* Stile per forzare i bordi a nero in modalità B/N */
 
@@ -319,6 +405,11 @@ body {
     width: 340px;
     height: 191px;
 }
+
+
+
+
+
 
 
 
@@ -407,7 +498,7 @@ body {
     /* adattato */
     top: -7px;
     /* adattato */
-    opacity: 0;
+    opacity: 1;
     pointer-events: none;
     transition: opacity 0.2s;
     z-index: 10;
@@ -990,63 +1081,4 @@ body.dragging-endpoint .canvas-object .connection-point {
     padding: 20px;
     overflow-y: auto;
     flex: 1;
-}
-
-/* Canvas Resize Handle */
-.canvas-resize-handle {
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    background: #3498db;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: nwse-resize;
-    border-radius: 0 0 4px 0;
-    font-size: 16px;
-    z-index: 1000;
-    user-select: none;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    transition: background 0.2s;
-}
-
-.canvas-resize-handle:hover {
-    background: #2980b9;
-    transform: scale(1.1);
-}
-
-.canvas-resize-handle:active {
-    background: #1f5d8c;
-}
-
-body.resizing-canvas {
-    cursor: nwse-resize !important;
-    user-select: none;
-}
-
-body.resizing-canvas * {
-    cursor: nwse-resize !important;
-    pointer-events: none;
-}
-
-body.resizing-canvas .canvas-resize-handle {
-    pointer-events: auto;
-}
-
-/* Dimensioni A5 */
-.canvas.size-a5-portrait {
-    width: 148mm !important;
-    height: 210mm !important;
-}
-
-.canvas.size-a5-landscape {
-    width: 210mm !important;
-    height: 148mm !important;
-
-}
-
-/* Permetti ridimensionamento in modalità custom */
-.canvas {
-    resize: none; /* Disabilita resize nativo del browser */
 }
