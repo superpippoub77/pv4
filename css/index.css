@@ -330,18 +330,6 @@ body.resizing-canvas .canvas-resize-handle {
     pointer-events: auto;
 }
 
-/* Dimensioni A5 */
-.canvas.size-a5-portrait {
-    width: 148mm !important;
-    height: 210mm !important;
-}
-
-.canvas.size-a5-landscape {
-    width: 210mm !important;
-    height: 148mm !important;
-
-}
-
 
 /* Cursori specifici per direzione */
 .canvas-resize-n, .canvas-resize-s { cursor: ns-resize; }
@@ -406,6 +394,17 @@ body.resizing-canvas .canvas-resize-handle {
     height: 191px;
 }
 
+/* Dimensioni A5 */
+.canvas.size-a5-portrait {
+    width: 148mm !important;
+    height: 210mm !important;
+}
+
+.canvas.size-a5-landscape {
+    width: 210mm !important;
+    height: 148mm !important;
+
+}
 
 
 

@@ -372,6 +372,8 @@
                         <option value="a4-landscape">A4 Orizzontale</option>
                         <option value="a3-portrait">A3 Verticale</option>
                         <option value="a3-landscape">A3 Orizzontale</option>
+                        <option value="a2-portrait">A2 Verticale</option>
+                        <option value="a2-landscape">A2 Orizzontale</option>
                         <option value="business-card">Biglietto da Visita</option>
                     </select>
                     <button id="toggleCanvasBorder">🖼️ Bordi</button>
@@ -466,9 +468,7 @@
 
             <div class="bottom-sidebar" id="bottomSidebar">
                 <div class="object-controls">
-                    <div id="objectControls"
-                        class="toolbar-group"
-                        style="display: none">
+                    <div id="objectControls" class="toolbar-group" style="display: none">
                         <div class="color-picker-container">
                             <label>Colore oggetto:</label>
                             <input type="color" class="color-picker" id="objectColor" value="#3498db">
@@ -490,9 +490,7 @@
                             Tratteggiato</button>
                     </div>
 
-                    <div id="arrowControls"
-                        class="toolbar-group"
-                        style="display: none">
+                    <div id="arrowControls" class="toolbar-group" style="display: none">
                         <div class="color-picker-container">
                             <label>Colore freccia:</label>
                             <input type="color" class="color-picker" id="arrowColor" value="#000000">
@@ -516,9 +514,7 @@
                         <button id="dashedArrowToggle" class="toolbar-button">Freccia Tratteggiata</button>
                     </div>
 
-                    <div id="spriteControls"
-                        class="toolbar-group"
-                        style="display: none">
+                    <div id="spriteControls" class="toolbar-group" style="display: none">
                         <div>
                             <label>Frame corrente:</label>
                             <input type="number" id="spriteCurrentFrame" min="0" max="7" value="0" style="width: 60px;">
@@ -552,8 +548,7 @@
                         <button id="showAnimationControls">🎬 Animazione</button>
                     </div>
 
-                    <div id="freehandControls" class="toolbar-group"
-                        style="display: none">
+                    <div id="freehandControls" class="toolbar-group" style="display: none">
                         <div class="color-picker-container">
                             <label>Colore traccia:</label>
                             <input type="color" class="color-picker" id="freehandColor" value="#000000">
@@ -893,6 +888,8 @@
                 this.canvasSize = 'custom';
                 this.showCanvasBorder = false;
                 this.historyMetadata = new Map();
+                this.floatingToolbarGroups = new Map(); // Traccia gruppi floating
+                this.initToolbarDragDrop();
                 this.initLogin();
                 this.initLibraryLoading();
                 this.initializeTab(1, 'Schema 1');
@@ -901,6 +898,169 @@
                 this.initializeExistingTabs();
                 this.updateUI();
             }
+
+            // Aggiungi questo nuovo metodo dopo initializeEventListeners()
+            initToolbarDragDrop() {
+                const toolbar = document.querySelector('.toolbar');
+                const toolbarGroups = document.querySelectorAll('.toolbar-group');
+
+                let draggedGroup = null;
+                let placeholder = null;
+                let isDraggingToolbar = false;
+                let startX, startY;
+                let offsetX, offsetY;
+                let isFloating = false;
+
+                toolbarGroups.forEach(group => {
+                    group.setAttribute('draggable', 'true');
+
+                    group.addEventListener('dragstart', (e) => {
+                        draggedGroup = group;
+                        isDraggingToolbar = true;
+
+                        const rect = group.getBoundingClientRect();
+                        offsetX = e.clientX - rect.left;
+                        offsetY = e.clientY - rect.top;
+                        startX = e.clientX;
+                        startY = e.clientY;
+
+                        group.classList.add('dragging');
+
+                        // Crea placeholder
+                        placeholder = document.createElement('div');
+                        placeholder.className = 'toolbar-group toolbar-placeholder';
+                        placeholder.style.width = rect.width + 'px';
+                        placeholder.style.height = rect.height + 'px';
+                        placeholder.style.display = 'inline-flex';
+
+                        e.dataTransfer.effectAllowed = 'move';
+                        e.dataTransfer.setData('text/html', group.innerHTML);
+                    });
+
+                    group.addEventListener('dragend', (e) => {
+                        if (!draggedGroup) return;
+
+                        draggedGroup.classList.remove('dragging');
+
+                        const toolbarRect = toolbar.getBoundingClientRect();
+                        const isInsideToolbar = (
+                            e.clientX >= toolbarRect.left &&
+                            e.clientX <= toolbarRect.right &&
+                            e.clientY >= toolbarRect.top &&
+                            e.clientY <= toolbarRect.bottom
+                        );
+
+                        if (!isInsideToolbar) {
+                            // Gruppo diventa floating
+                            draggedGroup.classList.remove('docked');
+                            draggedGroup.classList.add('floating');
+                            draggedGroup.style.position = 'fixed';
+                            draggedGroup.style.left = (e.clientX - offsetX) + 'px';
+                            draggedGroup.style.top = (e.clientY - offsetY) + 'px';
+                            draggedGroup.style.zIndex = '9999';
+
+                            // Salva stato floating
+                            this.floatingToolbarGroups.set(draggedGroup.id || Date.now(), {
+                                element: draggedGroup,
+                                x: e.clientX - offsetX,
+                                y: e.clientY - offsetY
+                            });
+
+                            // Rimuovi dalla toolbar
+                            if (draggedGroup.parentNode === toolbar) {
+                                draggedGroup.remove();
+                            }
+                        } else {
+                            // Gruppo rimane docked
+                            draggedGroup.classList.remove('floating');
+                            draggedGroup.classList.add('docked');
+                            draggedGroup.style.position = '';
+                            draggedGroup.style.left = '';
+                            draggedGroup.style.top = '';
+                            draggedGroup.style.zIndex = '';
+                        }
+
+                        if (placeholder && placeholder.parentNode) {
+                            placeholder.parentNode.removeChild(placeholder);
+                        }
+
+                        draggedGroup = null;
+                        placeholder = null;
+                        isDraggingToolbar = false;
+                    });
+                });
+
+                toolbar.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    if (!draggedGroup) return;
+
+                    e.dataTransfer.dropEffect = 'move';
+
+                    const afterElement = this.getDragAfterElement(toolbar, e.clientX);
+
+                    if (placeholder && placeholder.parentNode) {
+                        placeholder.remove();
+                    }
+
+                    if (afterElement == null) {
+                        toolbar.appendChild(placeholder);
+                    } else {
+                        toolbar.insertBefore(placeholder, afterElement);
+                    }
+                });
+
+                toolbar.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    if (!draggedGroup) return;
+
+                    if (placeholder && placeholder.parentNode) {
+                        toolbar.insertBefore(draggedGroup, placeholder);
+                        placeholder.remove();
+                    }
+                });
+
+                // Permetti di ri-dockare gruppi floating
+                this.initFloatingGroupsDocking();
+            }
+
+            getDragAfterElement(container, x) {
+                const draggableElements = [...container.querySelectorAll('.toolbar-group:not(.dragging):not(.toolbar-placeholder)')];
+
+                return draggableElements.reduce((closest, child) => {
+                    const box = child.getBoundingClientRect();
+                    const offset = x - box.left - box.width / 2;
+
+                    if (offset < 0 && offset > closest.offset) {
+                        return { offset: offset, element: child };
+                    } else {
+                        return closest;
+                    }
+                }, { offset: Number.NEGATIVE_INFINITY }).element;
+            }
+
+            initFloatingGroupsDocking() {
+                document.addEventListener('dragover', (e) => {
+                    this.floatingToolbarGroups.forEach((data, id) => {
+                        const group = data.element;
+                        if (!group.classList.contains('dragging')) return;
+
+                        const toolbar = document.querySelector('.toolbar');
+                        const toolbarRect = toolbar.getBoundingClientRect();
+
+                        const isNearToolbar = (
+                            Math.abs(e.clientY - toolbarRect.top) < 50 ||
+                            Math.abs(e.clientY - toolbarRect.bottom) < 50
+                        );
+
+                        if (isNearToolbar) {
+                            toolbar.style.background = '#d1e7fd'; // Evidenzia
+                        } else {
+                            toolbar.style.background = '';
+                        }
+                    });
+                });
+            }
+
             // Metodi per la gestione squadra
             loadTeamFromStorage() {
                 try {
@@ -2172,12 +2332,13 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     'size-a4-landscape',
                     'size-a3-portrait',
                     'size-a3-landscape',
+                    'size-a2-portrait',
+                    'size-a2-landscape',
                     'size-a5-portrait',
                     'size-a5-landscape',
                     'size-business-card'
                 );
 
-                // Se custom, mantieni le dimensioni attuali ma rimuovi i vincoli
                 if (size === 'custom') {
                     canvas.style.width = '';
                     canvas.style.height = '';
@@ -2186,8 +2347,13 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 } else {
                     // Applica la nuova dimensione preset
                     canvas.classList.add(`size-${size}`);
+
+                    // Forza il rendering
+                    canvas.offsetHeight; // trigger reflow
                 }
 
+                this.updateResizeHandlePosition();
+                this.updateAllResizeHandles();
                 this.saveState(`Impostata dimensione canvas: ${size}`);
             }
             initCanvasResize() {
@@ -6760,6 +6926,15 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
                 // AGGIUNGI SALVATAGGIO maxZIndex
                 tab.maxZIndex = this.maxZIndex;
+                tab.floatingToolbars = [];
+                this.floatingToolbarGroups.forEach((data, id) => {
+                    tab.floatingToolbars.push({
+                        id: id,
+                        html: data.element.outerHTML,
+                        x: data.x,
+                        y: data.y
+                    });
+                });
             }
 
             loadTabState() {
@@ -6795,6 +6970,26 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     canvas.classList.add('show-border');
                 } else {
                     canvas.classList.remove('show-border');
+                }
+
+                if (tab.floatingToolbars) {
+                    tab.floatingToolbars.forEach(data => {
+                        const group = document.createElement('div');
+                        group.innerHTML = data.html;
+                        const element = group.firstElementChild;
+                        element.classList.add('floating');
+                        element.style.position = 'fixed';
+                        element.style.left = data.x + 'px';
+                        element.style.top = data.y + 'px';
+                        element.style.zIndex = '9999';
+                        document.body.appendChild(element);
+
+                        this.floatingToolbarGroups.set(data.id, {
+                            element: element,
+                            x: data.x,
+                            y: data.y
+                        });
+                    });
                 }
 
                 this.updateResizeHandlePosition();
