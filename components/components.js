@@ -1,15 +1,15 @@
 class TeamManagementDialog extends HTMLElement {
     connectedCallback() {
         this.innerHTML = `
-        <div id="teamDialog" class="team-dialog">
-            <div class="team-dialog-header" id="teamDialogHeader">
+        <div id="teamDialog" class="windows-dialog xl">
+            <div class="windows-dialog-header" id="teamDialogHeader">
                 <h3>👥 Gestione Squadra</h3>
-                <button class="team-dialog-close" id="closeTeamDialog">&times;</button>
+                <button class="windows-dialog-close" id="closeTeamDialog">&times;</button>
             </div>
 
-            <div class="team-dialog-body">
+            <div class="windows-dialog-body">
                 <!-- Add Player Form -->
-                <div class="team-form-section">
+                <div class="windows-form-section">
                     <h4>➕ Aggiungi Giocatore</h4>
                     <div class="team-form-row">
                         <label>Ruolo:</label>

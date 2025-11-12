@@ -39,11 +39,11 @@
     height: 30px;
 }
 
-.windows-dialog-body {
+/* .windows-dialog-body {
     display: flex;
     flex: 1;
     overflow: hidden;
-}
+} */
 
 .history-list-panel {
     width: 250px;
@@ -190,4 +190,64 @@
     font-weight: bold;
     margin-bottom: 10px;
     text-align: center;
+}
+
+
+/* 🔹 Versione leggermente più grande */
+.windows-dialog.lg {
+    width: 800px;
+    max-height: 85vh;
+}
+
+/* 🔹 Versione molto grande */
+.windows-dialog.xl {
+    width: 1000px;
+    max-height: 90vh;
+}
+
+/* 🔹 Versione compatta (piccola) */
+.windows-dialog.sm {
+    width: 450px;
+    max-height: 70vh;
+}
+
+
+
+/* Base — invariata */
+.windows-form-section {
+    flex: 1 1 100%;
+    box-sizing: border-box;
+    padding: 2px;
+    margin-bottom: 20px;
+}
+
+/* ---------- VARIANTI PER COLONNE ---------- */
+
+/* 🔹 Layout 1 colonna (default) */
+.columns-1 .windows-form-section {
+    flex: 1 1 100%;
+}
+
+/* 🔹 Layout 2 colonne */
+.columns-2 .windows-form-section {
+    flex: 1 1 50%;
+}
+
+/* 🔹 Layout 3 colonne */
+.columns-3 .windows-form-section {
+    flex: 1 1 33.3333%;
+}
+
+/* 🔹 Layout 4 colonne */
+.columns-4 .windows-form-section {
+    flex: 1 1 25%;
+}
+
+/* ---------- Migliora la resa con spazi ---------- */
+.windows-dialog-body {
+    display: flex;
+    flex-wrap: wrap; /* consente il corretto adattamento */
+    flex: 1;
+    overflow: hidden;
+    gap: 10px; /* aggiunge respiro tra le colonne */
 }

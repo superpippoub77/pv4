@@ -71,16 +71,27 @@
 }
 
 .team-form-section {
+    flex: 0 0 50%;          /* occupa esattamente il 50% */
+    max-width: 50%;
+    box-sizing: border-box;
+    padding: 10px;
     margin-bottom: 20px;
-    padding: 15px;
-    background: #f8f9fa;
-    border-radius: 6px;
+}
+
+/* Fai sì che l’ultima sezione (la lista) occupi tutta la riga */
+.team-form-section:last-of-type {
+    flex: 0 0 100%;
+    max-width: 100%;
 }
 
 .team-form-section h4 {
     margin: 0 0 15px 0;
     color: #2c3e50;
     font-size: 14px;
+}
+
+.team-form-section:nth-of-type(1) {
+    margin-right: 10px;
 }
 
 .team-form-row {
