@@ -2340,157 +2340,95 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 );
 
                 if (size === 'custom') {
+                    // Ripristina dimensioni custom se salvate
+                    if (tab.customWidth && tab.customHeight) {
+                        canvas.style.width = tab.customWidth + 'px';
+                        canvas.style.height = tab.customHeight + 'px';
+                    } else {
+                        canvas.style.width = '';
+                        canvas.style.height = '';
+                    }
+                } else {
+                    // Applica la classe preset
+                    canvas.classList.add(`size-${size}`);
+                    // Resetta gli stili inline per permettere al CSS di applicarsi
                     canvas.style.width = '';
                     canvas.style.height = '';
-                    canvas.style.minWidth = '';
-                    canvas.style.minHeight = '';
-                } else {
-                    // Applica la nuova dimensione preset
-                    canvas.classList.add(`size-${size}`);
-
-                    // Forza il rendering
-                    canvas.offsetHeight; // trigger reflow
                 }
 
-                this.updateResizeHandlePosition();
-                this.updateAllResizeHandles();
                 this.saveState(`Impostata dimensione canvas: ${size}`);
             }
             initCanvasResize() {
                 const canvas = document.getElementById('canvas');
+                const container = canvas.parentElement;
 
-                // Crea tutti gli 8 handle di resize se non esistono
-                const handles = ['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'];
+                // Crea UN SOLO handle nell'angolo in basso a destra
+                let handle = document.getElementById('canvasResizeHandle');
+                if (!handle) {
+                    handle = document.createElement('div');
+                    handle.id = 'canvasResizeHandle';
+                    handle.className = 'canvas-resize-handle-single';
+                    handle.innerHTML = '⇲';
+                    container.appendChild(handle);
+                }
 
-                handles.forEach(direction => {
-                    let handle = document.getElementById(`canvasResizeHandle-${direction}`);
-                    if (!handle) {
-                        handle = document.createElement('div');
-                        handle.id = `canvasResizeHandle-${direction}`;
-                        handle.className = `canvas-resize-handle canvas-resize-${direction}`;
+                let isResizing = false;
+                let startX, startY, startWidth, startHeight;
 
-                        // Icone per ogni direzione
-                        const icons = {
-                            'n': '↕',
-                            'ne': '⇗',
-                            'e': '↔',
-                            'se': '⇲',
-                            's': '↕',
-                            'sw': '⇙',
-                            'w': '↔',
-                            'nw': '⇖'
-                        };
-                        handle.innerHTML = icons[direction];
+                // Funzione per posizionare l'handle
+                const updateHandlePosition = () => {
+                    const rect = canvas.getBoundingClientRect();
+                    const containerRect = container.getBoundingClientRect();
 
-                        canvas.parentElement.appendChild(handle);
+                    handle.style.left = (rect.right - containerRect.left - 10) + 'px';
+                    handle.style.top = (rect.bottom - containerRect.top - 10) + 'px';
+                };
+
+                // Posiziona inizialmente
+                updateHandlePosition();
+
+                // MouseDown sull'handle
+                handle.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    // Passa a modalità custom quando inizi il resize
+                    const currentSize = document.getElementById('canvasSizeSelect').value;
+                    if (currentSize !== 'custom') {
+                        document.getElementById('canvasSizeSelect').value = 'custom';
+                        this.setCanvasSize('custom');
                     }
+
+                    isResizing = true;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    startWidth = canvas.offsetWidth;
+                    startHeight = canvas.offsetHeight;
+
+                    document.body.style.cursor = 'nwse-resize';
+                    document.body.classList.add('resizing-canvas');
                 });
 
-                let isResizingCanvas = false;
-                let currentHandle = null;
-                let startX, startY, startWidth, startHeight, startLeft, startTop;
-
-                // Event listener per tutti gli handle
-                document.querySelectorAll('[id^="canvasResizeHandle-"]').forEach(handle => {
-                    handle.addEventListener('mousedown', (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-
-                        // Passa a modalità custom quando inizi il resize
-                        const currentSize = document.getElementById('canvasSizeSelect').value;
-                        if (currentSize !== 'custom') {
-                            document.getElementById('canvasSizeSelect').value = 'custom';
-                            this.setCanvasSize('custom');
-                        }
-
-                        isResizingCanvas = true;
-                        currentHandle = handle.id.split('-')[1]; // estrae 'n', 'se', etc.
-
-                        startX = e.clientX;
-                        startY = e.clientY;
-                        startWidth = canvas.offsetWidth;
-                        startHeight = canvas.offsetHeight;
-
-                        const canvasRect = canvas.getBoundingClientRect();
-                        startLeft = canvasRect.left;
-                        startTop = canvasRect.top;
-
-                        document.body.style.cursor = window.getComputedStyle(handle).cursor;
-                        document.body.classList.add('resizing-canvas');
-                    });
-                });
-
+                // MouseMove
                 document.addEventListener('mousemove', (e) => {
-                    if (!isResizingCanvas) return;
+                    if (!isResizing) return;
 
                     const deltaX = e.clientX - startX;
                     const deltaY = e.clientY - startY;
 
-                    let newWidth = startWidth;
-                    let newHeight = startHeight;
-                    let offsetX = 0;
-                    let offsetY = 0;
-
-                    // Calcola nuove dimensioni in base alla direzione
-                    switch (currentHandle) {
-                        case 'e': // Est (destra)
-                            newWidth = startWidth + deltaX;
-                            break;
-                        case 'w': // Ovest (sinistra)
-                            newWidth = startWidth - deltaX;
-                            offsetX = deltaX;
-                            break;
-                        case 's': // Sud (basso)
-                            newHeight = startHeight + deltaY;
-                            break;
-                        case 'n': // Nord (alto)
-                            newHeight = startHeight - deltaY;
-                            offsetY = deltaY;
-                            break;
-                        case 'se': // Sud-Est
-                            newWidth = startWidth + deltaX;
-                            newHeight = startHeight + deltaY;
-                            break;
-                        case 'sw': // Sud-Ovest
-                            newWidth = startWidth - deltaX;
-                            newHeight = startHeight + deltaY;
-                            offsetX = deltaX;
-                            break;
-                        case 'ne': // Nord-Est
-                            newWidth = startWidth + deltaX;
-                            newHeight = startHeight - deltaY;
-                            offsetY = deltaY;
-                            break;
-                        case 'nw': // Nord-Ovest
-                            newWidth = startWidth - deltaX;
-                            newHeight = startHeight - deltaY;
-                            offsetX = deltaX;
-                            offsetY = deltaY;
-                            break;
-                    }
-
-                    // Applica dimensioni minime
-                    newWidth = Math.max(400, newWidth);
-                    newHeight = Math.max(300, newHeight);
+                    let newWidth = Math.max(400, startWidth + deltaX);
+                    let newHeight = Math.max(300, startHeight + deltaY);
 
                     canvas.style.width = newWidth + 'px';
                     canvas.style.height = newHeight + 'px';
 
-                    // Aggiorna posizione per handle sinistri/superiori
-                    if (offsetX || offsetY) {
-                        const container = canvas.parentElement;
-                        container.scrollLeft -= offsetX;
-                        container.scrollTop -= offsetY;
-                    }
-
-                    // Aggiorna posizioni di tutti gli handle
-                    this.updateAllResizeHandles();
+                    updateHandlePosition();
                 });
 
+                // MouseUp
                 document.addEventListener('mouseup', () => {
-                    if (isResizingCanvas) {
-                        isResizingCanvas = false;
-                        currentHandle = null;
+                    if (isResizing) {
+                        isResizing = false;
                         document.body.style.cursor = '';
                         document.body.classList.remove('resizing-canvas');
 
@@ -2503,24 +2441,60 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     }
                 });
 
-                // Inizializza posizioni
-                this.updateAllResizeHandles();
+                // Aggiorna handle quando il canvas cambia dimensione
+                const resizeObserver = new ResizeObserver(() => {
+                    updateHandlePosition();
+                });
+                resizeObserver.observe(canvas);
+
+                // Aggiorna anche sullo scroll del container
+                container.addEventListener('scroll', updateHandlePosition);
             }
 
             updateAllResizeHandles() {
                 const canvas = document.getElementById('canvas');
-                const rect = canvas.getBoundingClientRect();
-                const container = canvas.parentElement.getBoundingClientRect();
+                const canvasContainer = canvas.parentElement;
+
+                // ✅ FORZA il browser a ricalcolare le dimensioni del canvas
+                canvas.offsetHeight;
+
+                // ✅ USA getBoundingClientRect per coordinate ACCURATE
+                const canvasRect = canvas.getBoundingClientRect();
+                const containerRect = canvasContainer.getBoundingClientRect();
 
                 const positions = {
-                    'n': { left: rect.left + rect.width / 2 - container.left - 10, top: rect.top - container.top - 10 },
-                    'ne': { left: rect.right - container.left - 10, top: rect.top - container.top - 10 },
-                    'e': { left: rect.right - container.left - 10, top: rect.top + rect.height / 2 - container.top - 10 },
-                    'se': { left: rect.right - container.left - 10, top: rect.bottom - container.top - 10 },
-                    's': { left: rect.left + rect.width / 2 - container.left - 10, top: rect.bottom - container.top - 10 },
-                    'sw': { left: rect.left - container.left - 10, top: rect.bottom - container.top - 10 },
-                    'w': { left: rect.left - container.left - 10, top: rect.top + rect.height / 2 - container.top - 10 },
-                    'nw': { left: rect.left - container.left - 10, top: rect.top - container.top - 10 }
+                    'n': {
+                        left: canvasRect.left + canvasRect.width / 2 - containerRect.left - 10,
+                        top: canvasRect.top - containerRect.top - 10
+                    },
+                    'ne': {
+                        left: canvasRect.right - containerRect.left - 10,
+                        top: canvasRect.top - containerRect.top - 10
+                    },
+                    'e': {
+                        left: canvasRect.right - containerRect.left - 10,
+                        top: canvasRect.top + canvasRect.height / 2 - containerRect.top - 10
+                    },
+                    'se': {
+                        left: canvasRect.right - containerRect.left - 10,
+                        top: canvasRect.bottom - containerRect.top - 10
+                    },
+                    's': {
+                        left: canvasRect.left + canvasRect.width / 2 - containerRect.left - 10,
+                        top: canvasRect.bottom - containerRect.top - 10
+                    },
+                    'sw': {
+                        left: canvasRect.left - containerRect.left - 10,
+                        top: canvasRect.bottom - containerRect.top - 10
+                    },
+                    'w': {
+                        left: canvasRect.left - containerRect.left - 10,
+                        top: canvasRect.top + canvasRect.height / 2 - containerRect.top - 10
+                    },
+                    'nw': {
+                        left: canvasRect.left - containerRect.left - 10,
+                        top: canvasRect.top - containerRect.top - 10
+                    }
                 };
 
                 Object.entries(positions).forEach(([direction, pos]) => {
@@ -6965,6 +6939,11 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     canvas.style.width = tab.customWidth + 'px';
                     canvas.style.height = tab.customHeight + 'px';
                 }
+
+                // ✅ AGGIUNGI TIMEOUT per aggiornare handle dopo il caricamento
+                setTimeout(() => {
+                    this.updateAllResizeHandles();
+                }, 150);
 
                 if (tab.showBorder) {
                     canvas.classList.add('show-border');

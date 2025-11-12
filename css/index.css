@@ -289,7 +289,9 @@ body {
 
 
 
-.canvas-resize-handle {
+
+/* Handle singolo di resize */
+.canvas-resize-handle-single {
     position: absolute;
     width: 20px;
     height: 20px;
@@ -304,15 +306,16 @@ body {
     user-select: none;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     transition: background 0.2s, transform 0.2s;
+    cursor: nwse-resize;
     pointer-events: auto;
 }
 
-.canvas-resize-handle:hover {
+.canvas-resize-handle-single:hover {
     background: #2980b9;
     transform: scale(1.1);
 }
 
-.canvas-resize-handle:active {
+.canvas-resize-handle-single:active {
     background: #1f5d8c;
 }
 
@@ -326,16 +329,9 @@ body.resizing-canvas * {
     pointer-events: none;
 }
 
-body.resizing-canvas .canvas-resize-handle {
+body.resizing-canvas .canvas-resize-handle-single {
     pointer-events: auto;
 }
-
-
-/* Cursori specifici per direzione */
-.canvas-resize-n, .canvas-resize-s { cursor: ns-resize; }
-.canvas-resize-e, .canvas-resize-w { cursor: ew-resize; }
-.canvas-resize-ne, .canvas-resize-sw { cursor: nesw-resize; }
-.canvas-resize-nw, .canvas-resize-se { cursor: nwse-resize; }
 
 
 
@@ -406,6 +402,16 @@ body.resizing-canvas .canvas-resize-handle {
 
 }
 
+/* Dimensioni A2 */
+.canvas.size-a2-portrait {
+    width: 420mm !important;
+    height: 594mm !important;
+}
+
+.canvas.size-a2-landscape {
+    width: 594mm !important;
+    height: 420mm !important;
+}
 
 
 
