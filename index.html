@@ -909,7 +909,7 @@
                 let isDraggingToolbar = false;
                 let startX, startY;
                 let offsetX, offsetY;
-                let isFloating = false;
+                let initialParent = null;
 
                 toolbarGroups.forEach(group => {
                     group.setAttribute('draggable', 'true');
@@ -917,6 +917,7 @@
                     group.addEventListener('dragstart', (e) => {
                         draggedGroup = group;
                         isDraggingToolbar = true;
+                        initialParent = group.parentElement;
 
                         const rect = group.getBoundingClientRect();
                         offsetX = e.clientX - rect.left;
@@ -937,21 +938,34 @@
                         e.dataTransfer.setData('text/html', group.innerHTML);
                     });
 
+                    group.addEventListener('drag', (e) => {
+                        if (!isDraggingToolbar || !draggedGroup) return;
+
+                        // Se il gruppo è già floating, aggiorna la posizione in tempo reale
+                        if (draggedGroup.classList.contains('floating')) {
+                            if (e.clientX !== 0 && e.clientY !== 0) {
+                                draggedGroup.style.left = (e.clientX - offsetX) + 'px';
+                                draggedGroup.style.top = (e.clientY - offsetY) + 'px';
+                            }
+                        }
+                    });
+
                     group.addEventListener('dragend', (e) => {
                         if (!draggedGroup) return;
 
                         draggedGroup.classList.remove('dragging');
+                        toolbar.classList.remove('drag-over');
 
                         const toolbarRect = toolbar.getBoundingClientRect();
-                        const isInsideToolbar = (
+                        const isOverToolbar = (
                             e.clientX >= toolbarRect.left &&
                             e.clientX <= toolbarRect.right &&
                             e.clientY >= toolbarRect.top &&
                             e.clientY <= toolbarRect.bottom
                         );
 
-                        if (!isInsideToolbar) {
-                            // Gruppo diventa floating
+                        if (!isOverToolbar && initialParent === toolbar) {
+                            // Diventa floating
                             draggedGroup.classList.remove('docked');
                             draggedGroup.classList.add('floating');
                             draggedGroup.style.position = 'fixed';
@@ -960,7 +974,10 @@
                             draggedGroup.style.zIndex = '9999';
 
                             // Salva stato floating
-                            this.floatingToolbarGroups.set(draggedGroup.id || Date.now(), {
+                            const floatingId = draggedGroup.id || `floating-${Date.now()}`;
+                            if (!draggedGroup.id) draggedGroup.id = floatingId;
+
+                            this.floatingToolbarGroups.set(floatingId, {
                                 element: draggedGroup,
                                 x: e.clientX - offsetX,
                                 y: e.clientY - offsetY
@@ -969,9 +986,17 @@
                             // Rimuovi dalla toolbar
                             if (draggedGroup.parentNode === toolbar) {
                                 draggedGroup.remove();
+                                document.body.appendChild(draggedGroup);
                             }
+
+                            // Aggiungi pulsante per re-dockare
+                            this.addRedockButton(draggedGroup);
+
+                        } else if (isOverToolbar && draggedGroup.classList.contains('floating')) {
+                            // Re-dock del gruppo floating
+                            this.redockGroup(draggedGroup);
                         } else {
-                            // Gruppo rimane docked
+                            // Rimane docked, aggiorna solo la posizione
                             draggedGroup.classList.remove('floating');
                             draggedGroup.classList.add('docked');
                             draggedGroup.style.position = '';
@@ -987,6 +1012,15 @@
                         draggedGroup = null;
                         placeholder = null;
                         isDraggingToolbar = false;
+                        initialParent = null;
+                    });
+
+                    // Doppio click su floating group per re-dockare
+                    group.addEventListener('dblclick', (e) => {
+                        if (group.classList.contains('floating')) {
+                            e.preventDefault();
+                            this.redockGroup(group);
+                        }
                     });
                 });
 
@@ -995,6 +1029,7 @@
                     if (!draggedGroup) return;
 
                     e.dataTransfer.dropEffect = 'move';
+                    toolbar.classList.add('drag-over');
 
                     const afterElement = this.getDragAfterElement(toolbar, e.clientX);
 
@@ -1009,8 +1044,16 @@
                     }
                 });
 
+                toolbar.addEventListener('dragleave', (e) => {
+                    if (e.target === toolbar) {
+                        toolbar.classList.remove('drag-over');
+                    }
+                });
+
                 toolbar.addEventListener('drop', (e) => {
                     e.preventDefault();
+                    toolbar.classList.remove('drag-over');
+
                     if (!draggedGroup) return;
 
                     if (placeholder && placeholder.parentNode) {
@@ -1018,9 +1061,76 @@
                         placeholder.remove();
                     }
                 });
+            }
 
-                // Permetti di ri-dockare gruppi floating
-                this.initFloatingGroupsDocking();
+            addRedockButton(group) {
+                // Rimuovi eventuali pulsanti esistenti
+                const existingBtn = group.querySelector('.redock-btn');
+                if (existingBtn) return;
+
+                const redockBtn = document.createElement('button');
+                redockBtn.className = 'redock-btn';
+                redockBtn.innerHTML = '📌';
+                redockBtn.title = 'Riancora alla toolbar (doppio click)';
+                redockBtn.style.cssText = `
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #27ae60;
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-size: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        z-index: 10001;
+    `;
+
+                redockBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.redockGroup(group);
+                });
+
+                group.appendChild(redockBtn);
+            }
+
+            redockGroup(group) {
+                const toolbar = document.querySelector('.toolbar');
+
+                // Rimuovi stili floating
+                group.classList.remove('floating');
+                group.classList.add('docked');
+                group.style.position = '';
+                group.style.left = '';
+                group.style.top = '';
+                group.style.zIndex = '';
+
+                // Rimuovi pulsante redock
+                const redockBtn = group.querySelector('.redock-btn');
+                if (redockBtn) redockBtn.remove();
+
+                // Rimuovi dal body se necessario
+                if (group.parentElement === document.body) {
+                    group.remove();
+                }
+
+                // Aggiungi alla toolbar
+                const addButton = toolbar.querySelector('.add-tab');
+                if (addButton) {
+                    toolbar.insertBefore(group, addButton.parentElement);
+                } else {
+                    toolbar.appendChild(group);
+                }
+
+                // Rimuovi dal tracking dei floating
+                if (group.id && this.floatingToolbarGroups.has(group.id)) {
+                    this.floatingToolbarGroups.delete(group.id);
+                }
             }
 
             getDragAfterElement(container, x) {
@@ -1092,6 +1202,38 @@
                 }
 
                 tab.maxZIndex = this.maxZIndex;
+                tab.floatingToolbars = [];
+                this.floatingToolbarGroups.forEach((data, id) => {
+                    tab.floatingToolbars.push({
+                        id: id,
+                        html: data.element.innerHTML,
+                        x: data.x,
+                        y: data.y
+                    });
+                });
+
+                // In loadTabState() - aggiungi:
+                if (tab.floatingToolbars) {
+                    tab.floatingToolbars.forEach(data => {
+                        const group = document.createElement('div');
+                        group.innerHTML = data.html;
+                        const element = group.firstElementChild;
+                        element.classList.add('floating', 'toolbar-group');
+                        element.style.position = 'fixed';
+                        element.style.left = data.x + 'px';
+                        element.style.top = data.y + 'px';
+                        element.style.zIndex = '9999';
+                        document.body.appendChild(element);
+
+                        this.floatingToolbarGroups.set(data.id, {
+                            element: element,
+                            x: data.x,
+                            y: data.y
+                        });
+
+                        this.addRedockButton(element);
+                    });
+                }
             }
             saveTeamToStorage() {
                 try {
