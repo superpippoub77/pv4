@@ -28,6 +28,7 @@
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- <script src="https://cdn.tailwindcss.com"></script> -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="./css/main.css">
 </head>
@@ -373,6 +374,7 @@
                     <button id="zoomOut">➖</button>
                     <div class="zoom-display" id="zoomDisplay">100%</div>
                     <button id="zoomIn">➕</button>
+                    <button id="menu-notepad">Apri Blocco Note</button>
 
                 </fieldset>
                 <fieldset class="toolbar-group">
@@ -912,7 +914,7 @@
                 let startX, startY;
                 let offsetX, offsetY;
                 let initialParent = null;
-                let dragClone = null; // ✅ NUOVO: Clone per preview
+                let dragClone = null;
 
                 toolbarGroups.forEach(group => {
                     group.setAttribute('draggable', 'true');
@@ -1056,7 +1058,83 @@
                     });
                 });
 
-                // ... resto del codice dragover/drop invariato ...
+                // Dragover per toolbar superiore
+                toolbar.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    if (!draggedGroup) return;
+
+                    e.dataTransfer.dropEffect = 'move';
+                    toolbar.classList.add('drag-over');
+
+                    const afterElement = this.getDragAfterElement(toolbar, e.clientX);
+
+                    if (placeholder && placeholder.parentNode) {
+                        placeholder.remove();
+                    }
+
+                    if (afterElement == null) {
+                        toolbar.appendChild(placeholder);
+                    } else {
+                        toolbar.insertBefore(placeholder, afterElement);
+                    }
+                });
+
+                // Dragover per bottom toolbar
+                bottomToolbarGroup.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    if (!draggedGroup) return;
+
+                    e.dataTransfer.dropEffect = 'move';
+                    bottomToolbarGroup.classList.add('drag-over');
+
+                    const afterElement = this.getDragAfterElement(bottomToolbarGroup, e.clientX);
+
+                    if (placeholder && placeholder.parentNode) {
+                        placeholder.remove();
+                    }
+
+                    if (afterElement == null) {
+                        bottomToolbarGroup.appendChild(placeholder);
+                    } else {
+                        bottomToolbarGroup.insertBefore(placeholder, afterElement);
+                    }
+                });
+
+                toolbar.addEventListener('dragleave', (e) => {
+                    if (e.target === toolbar) {
+                        toolbar.classList.remove('drag-over');
+                    }
+                });
+
+                bottomToolbarGroup.addEventListener('dragleave', (e) => {
+                    if (e.target === bottomToolbarGroup) {
+                        bottomToolbarGroup.classList.remove('drag-over');
+                    }
+                });
+
+                toolbar.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    toolbar.classList.remove('drag-over');
+
+                    if (!draggedGroup) return;
+
+                    if (placeholder && placeholder.parentNode) {
+                        toolbar.insertBefore(draggedGroup, placeholder);
+                        placeholder.remove();
+                    }
+                });
+
+                bottomToolbarGroup.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    bottomToolbarGroup.classList.remove('drag-over');
+
+                    if (!draggedGroup) return;
+
+                    if (placeholder && placeholder.parentNode) {
+                        bottomToolbarGroup.insertBefore(draggedGroup, placeholder);
+                        placeholder.remove();
+                    }
+                });
             }
 
             // Modifica il metodo showDockMenu per permettere la scelta
@@ -8910,6 +8988,219 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     <team-management-dialog></team-management-dialog>
 
     <script>
+        let zCounter = 200; // baseline z-index for windows
+        const minWidth = 200;
+        const minHeight = 80;
+        // createWindow factory
+        function createWindow({ title = "Finestra", contentHTML = "", buttons = [], modal = false, icon = "📝" } = {}) {
+            let overlay;
+            if (modal) {
+                overlay = document.createElement('div');
+                overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center';
+                overlay.style.zIndex = zCounter + 1000; // ensure above other windows
+                document.body.appendChild(overlay);
+
+                // click on overlay closes modal (only if clicked outside the modal)
+                overlay.addEventListener('click', () => {
+                    // remove the win + overlay
+                    if (win) win.remove();
+                    overlay.remove();
+                });
+            }
+
+            const win = document.createElement('div');
+            win.className = 'win absolute bg-white shadow-lg';
+            win.style.width = '540px';
+            win.style.height = '360px';
+            win.style.left = `${120 + Math.random() * 60}px`;
+            win.style.top = `${120 + Math.random() * 60}px`;
+            win.style.zIndex = modal ? (zCounter + 1001) : zCounter + 1;
+            if (modal) {
+                // append inside overlay so it's above the overlay background but clicks inside must not propagate
+                overlay.appendChild(win);
+                win.addEventListener('click', e => e.stopPropagation());
+            } else {
+                document.body.appendChild(win);
+            }
+
+            // titlebar
+            const titlebar = document.createElement('div');
+            titlebar.className = 'win-titlebar flex items-center justify-between px-3 py-2 win-titlebar';
+            titlebar.innerHTML = `
+    <div class="flex items-center gap-2">
+      <div style="width:10px;height:10px;background:#34d399;border-radius:4px"></div>
+      <div style="font-weight:600">${title}</div>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn-min w-6 h-6 rounded-full" title="Minimize" style="background:#fbbf24"></button>
+      <button class="btn-max w-6 h-6 rounded-full" title="Maximize" style="background:#60a5fa"></button>
+      <button class="btn-close w-6 h-6 rounded-full" title="Close" style="background:#f87171"></button>
+    </div>
+  `;
+            titlebar.style.background = 'linear-gradient(90deg,#0ea5e9,#0369a1)';
+            titlebar.style.color = '#fff';
+            win.appendChild(titlebar);
+
+            // content
+            const content = document.createElement('div');
+            content.className = 'p-4';
+            content.style.height = 'calc(100% - 48px)';
+            content.innerHTML = contentHTML;
+            win.appendChild(content);
+
+            // bottom buttons area (optional)
+            if (buttons && buttons.length) {
+                const btnArea = document.createElement('div');
+                btnArea.className = 'absolute left-0 right-0 bottom-0 p-2 flex justify-end bg-gray-100 border-t';
+                buttons.forEach(b => {
+                    const btn = document.createElement('button');
+                    btn.textContent = b.label;
+                    btn.className = 'ml-2 px-3 py-1 rounded bg-sky-600 text-white';
+                    btn.addEventListener('click', b.onClick);
+                    btnArea.appendChild(btn);
+                });
+                win.appendChild(btnArea);
+                // shrink content area
+                content.style.height = 'calc(100% - 48px - 44px)';
+            }
+
+            // resize handles
+            const handles = ["t", "b", "l", "r", "tl", "tr", "bl", "br"];
+            handles.forEach(hc => {
+                const h = document.createElement('div');
+                h.className = `resize-handle ${hc}`;
+                win.appendChild(h);
+            });
+
+            // --- interactions: bring to front on mousedown anywhere in window ---
+            win.addEventListener('mousedown', () => bringToFront(win));
+
+            // drag from titlebar
+            let dragging = false, dx = 0, dy = 0;
+            titlebar.addEventListener('mousedown', (e) => {
+                if (e.target.tagName === 'BUTTON') return;
+                dragging = true;
+                dx = e.clientX - win.offsetLeft;
+                dy = e.clientY - win.offsetTop;
+                bringToFront(win);
+                // prevent selection
+                document.body.style.userSelect = 'none';
+            });
+            window.addEventListener('mousemove', (e) => {
+                if (!dragging) return;
+                win.style.left = `${e.clientX - dx}px`;
+                win.style.top = `${e.clientY - dy}px`;
+            });
+            window.addEventListener('mouseup', () => {
+                dragging = false;
+                document.body.style.userSelect = '';
+            });
+
+            // resize logic (shared)
+            let resizing = false, handleType = null, startX = 0, startY = 0, startW = 0, startH = 0, startL = 0, startT = 0;
+            win.querySelectorAll('.resize-handle').forEach(hEl => {
+                hEl.addEventListener('mousedown', e => {
+                    e.stopPropagation();
+                    resizing = true;
+                    handleType = hEl.classList[1];
+                    startX = e.clientX; startY = e.clientY;
+                    startW = win.offsetWidth; startH = win.offsetHeight;
+                    startL = win.offsetLeft; startT = win.offsetTop;
+                    bringToFront(win);
+                    document.body.style.userSelect = 'none';
+                });
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!resizing) return;
+                const mx = e.clientX - startX;
+                const my = e.clientY - startY;
+                let newW = startW, newH = startH, newL = startL, newT = startT;
+                switch (handleType) {
+                    case 'r': newW = Math.max(minWidth, startW + mx); break;
+                    case 'l': newW = Math.max(minWidth, startW - mx); newL = startL + mx; break;
+                    case 'b': newH = Math.max(minHeight, startH + my); break;
+                    case 't': newH = Math.max(minHeight, startH - my); newT = startT + my; break;
+                    case 'br': newW = Math.max(minWidth, startW + mx); newH = Math.max(minHeight, startH + my); break;
+                    case 'bl': newW = Math.max(minWidth, startW - mx); newL = startL + mx; newH = Math.max(minHeight, startH + my); break;
+                    case 'tr': newW = Math.max(minWidth, startW + mx); newH = Math.max(minHeight, startH - my); newT = startT + my; break;
+                    case 'tl': newW = Math.max(minWidth, startW - mx); newL = startL + mx; newH = Math.max(minHeight, startH - my); newT = startT + my; break;
+                }
+                win.style.width = newW + 'px';
+                win.style.height = newH + 'px';
+                win.style.left = newL + 'px';
+                win.style.top = newT + 'px';
+            });
+
+            window.addEventListener('mouseup', () => {
+                if (resizing) {
+                    resizing = false;
+                    document.body.style.userSelect = '';
+                }
+            });
+
+            // window control buttons
+            const btnClose = titlebar.querySelector('.btn-close');
+            const btnMin = titlebar.querySelector('.btn-min');
+            const btnMax = titlebar.querySelector('.btn-max');
+
+            btnClose.addEventListener('click', () => {
+                win.remove();
+                if (overlay) overlay.remove();
+            });
+
+            btnMin.addEventListener('click', () => {
+                win.classList.add('hidden');
+                if (overlay) overlay.classList.add('hidden'); // nasconde l’overlay con la finestra modale
+
+                const icon = document.createElement('div');
+                icon.className = 'w-8 h-8 rounded flex items-center justify-center bg-yellow-400 text-sm cursor-pointer';
+                icon.textContent = "🪟"; // icona generica
+                icon.title = title;
+                icon.addEventListener('click', () => {
+                    win.classList.remove('hidden');
+                    if (overlay) overlay.classList.remove('hidden'); // riporta anche l’overlay visibile
+                    icon.remove();
+                });
+                taskbarIcons.appendChild(icon);
+            });
+
+            let maximized = false;
+            let prev = {};
+            btnMax.addEventListener('click', () => {
+                if (!maximized) {
+                    prev = { left: win.offsetLeft, top: win.offsetTop, width: win.offsetWidth, height: win.offsetHeight };
+                    win.style.left = `${sidebarLeft.offsetWidth + 12}px`;
+                    win.style.top = `${topbar.offsetHeight + 8}px`;
+                    win.style.width = `${window.innerWidth - sidebarLeft.offsetWidth - sidebarRight.offsetWidth - 24}px`;
+                    win.style.height = `${window.innerHeight - topbar.offsetHeight - taskbar.offsetHeight - 24}px`;
+                    maximized = true;
+                } else {
+                    win.style.left = prev.left + 'px';
+                    win.style.top = prev.top + 'px';
+                    win.style.width = prev.width + 'px';
+                    win.style.height = prev.height + 'px';
+                    maximized = false;
+                }
+            });
+
+            return win;
+        }
+
+        /* =========================
+           Menu buttons - example windows
+           ========================= */
+        document.getElementById('menu-notepad').addEventListener('click', () => {
+            createWindow({
+                title: 'Blocco Note',
+                contentHTML: `<textarea style="width:100%;height:100%;box-sizing:border-box">Qui puoi scrivere...</textarea>`,
+                buttons: [
+                    { label: 'Conferma', onClick: () => alert('Confermato') },
+                    { label: 'Annulla', onClick: () => alert('Annullato') }
+                ]
+            });
+        });
+
         document.addEventListener("DOMContentLoaded", () => {
             setDefaultDate('workoutDate');
             window.editor = new SchemaEditor();
