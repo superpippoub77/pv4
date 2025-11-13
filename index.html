@@ -346,7 +346,8 @@
 
         <div class="main-content">
             <div class="toolbar">
-                <div class="toolbar-group">
+                <fieldset class="toolbar-group">
+                    <legend>Dimensione</legend>
                     <label>Dimensione:</label>
                     <select id="canvasSizeSelect">
                         <option value="custom">Personalizzato</option>
@@ -373,16 +374,19 @@
                     <div class="zoom-display" id="zoomDisplay">100%</div>
                     <button id="zoomIn">➕</button>
 
-                </div>
-                <div class="toolbar-group">
+                </fieldset>
+                <fieldset class="toolbar-group">
+                    <legend>Squadra</legend>
                     <button id="manageTeamBtn">👥 Gestisci Squadra</button>
                     <button id="togglePlayerNames">🏷️ Nomi Giocatori</button>
-                </div>
-                <div class="toolbar-group">
+                </fieldset>
+                <fieldset class="toolbar-group">
+                    <legend>Ordina</legend>
                     <button id="bringToFront">⬆️ In primo piano</button>
                     <button id="sendToBack">⬇️ In background</button>
-                </div>
-                <div class="toolbar-group">
+                </fieldset>
+                <fieldset class="toolbar-group">
+                    <legend>Visualizza</legend>
                     <button id="gridToggle">📐 Griglia</button>
                     <button id="snapToGridBtn">🧲 Allinea alla Griglia</button>
                     <button id="bwToggle">⚫ B/N</button>
@@ -395,8 +399,9 @@
                         Disegno</button>
                     <button id="exportFormationsBtn" title="Genera foglio formazioni per partite con 5 set">📋 Foglio
                         Formazioni</button>
-                </div>
-                <div class="toolbar-group">
+                </fieldset>
+                <fieldset class="toolbar-group">
+                    <legend>Modifica</legend>
                     <button id="rotateLeft">↺</button>
                     <button id="rotateRight">↻</button>
                     <button id="groupRotateLeft">⟲ Ruota Gruppo -15°</button>
@@ -404,9 +409,10 @@
                     <button id="undoBtn">⏪ Undo</button>
                     <button id="redoBtn">⏩ Redo</button>
                     <button id="historyBtn" title="Storico modifiche (Ctrl+H)">📜 Storico</button>
-                </div>
+                </fieldset>
 
-                <div class="toolbar-group">
+                <fieldset class="toolbar-group">
+                    <legend>File</legend>
                     <input type="text" id="schemaTitle" placeholder="Titolo schema">
                     <button id="saveBtn">💾 Salva</button>
                     <button id="saveWorkOutBtn">💾 Salva Allenamento</button>
@@ -417,13 +423,14 @@
                     <button id="exportBtn">📤 Esporta</button>
                     <button id="exportWorkOutBtn">📤 Genera la scheda di allenamento</button>
                     <button id="loadFromLibrary">📁 Libreria</button>
-                </div>
-                <div class="toolbar-group">
+                </fieldset>
+                <fieldset class="toolbar-group">
+                    <legend>Utente</legend>
                     <div class="user-info" id="userInfo" style="display: none;">
                         <span>👤 <span id="currentUsername"></span></span>
                         <button class="logout-button" id="logoutButton">Esci</button>
                     </div>
-                </div>
+                </fieldset>
             </div>
 
             <div class="tabs-container">
@@ -451,8 +458,9 @@
             </div>
 
             <div class="bottom-sidebar" id="bottomSidebar">
-                <div class="toolbar-group bottom-toolbar-group">
-                    <div id="objectControls" class="toolbar-group" style="display: none">
+                <div class="bottom-toolbar-group">
+                    <fieldset id="objectControls" class="toolbar-group" style="display: none">
+                        <legend>Oggetto</legend>
                         <div class="color-picker-container">
                             <label>Colore oggetto:</label>
                             <input type="color" class="color-picker" id="objectColor" value="#3498db">
@@ -472,9 +480,10 @@
                         </div>
                         <button id="dashedObjectToggle" class="toolbar-button" style="display: none;">Bordo
                             Tratteggiato</button>
-                    </div>
+                    </fieldset>
 
-                    <div id="arrowControls" class="toolbar-group" style="display: none">
+                    <fieldset id="arrowControls" class="toolbar-group" style="display: none">
+                        <legend>Freccia</legend>
                         <div class="color-picker-container">
                             <label>Colore freccia:</label>
                             <input type="color" class="color-picker" id="arrowColor" value="#000000">
@@ -496,9 +505,10 @@
                             <button id="arrowTypeZigzag" class="arrow-type-btn">Zigzag</button>
                         </div>
                         <button id="dashedArrowToggle" class="toolbar-button">Freccia Tratteggiata</button>
-                    </div>
+                    </fieldset>
 
-                    <div id="spriteControls" class="toolbar-group" style="display: none">
+                    <fieldset id="spriteControls" class="toolbar-group" style="display: none">
+                        <legend>Sprite</legend>
                         <div>
                             <label>Frame corrente:</label>
                             <input type="number" id="spriteCurrentFrame" min="0" max="7" value="0" style="width: 60px;">
@@ -526,13 +536,14 @@
                                 style="width: 60px;">
                             <button id="spriteApplySize" class="toolbar-button">Applica</button>
                         </div>
-                    </div>
+                    </fieldset>
 
-                    <div class="toolbar-group">
+                    <fieldset class="toolbar-group">
+                        <legend>Animazione</legend>
                         <button id="showAnimationControls">🎬 Animazione</button>
-                    </div>
-
-                    <div id="freehandControls" class="toolbar-group" style="display: none">
+                    </fieldset>
+                    <fieldset id="freehandControls" class="toolbar-group" style="display: none">
+                        <legend>Disegno a mano libera</legend>
                         <div class="color-picker-container">
                             <label>Colore traccia:</label>
                             <input type="color" class="color-picker" id="freehandColor" value="#000000">
@@ -547,7 +558,7 @@
                             <input type="range" id="freehandOpacity" min="0" max="1" value="1" step="0.01">
                             <span id="freehandOpacityValue">1.00</span>
                         </div>
-                    </div>
+                    </fieldset>
 
                     <div class="arrow-marker-controls">
                         <label>Terminali:</label>

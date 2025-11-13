@@ -19,24 +19,24 @@
     align-items: center;
     justify-content: center;
     gap: 4px;
-    
+
     border: 1px solid #bdc3c7;
     border-radius: 6px;
     padding: 4px 8px;
     background-color: white;
     cursor: grab;
-    
+
     /* Non più flessibile, dimensione fissa al contenuto */
     flex: 0 0 auto;
     white-space: nowrap;
-    
+
     transition: all 0.2s ease;
     position: relative;
     z-index: 1;
 }
 
 .toolbar-group:hover {
-    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
     border-color: #3498db;
 }
 
@@ -44,7 +44,7 @@
 .toolbar-group.floating {
     position: fixed;
     z-index: 9999;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     background: white;
     border: 2px solid #3498db;
 }
@@ -125,10 +125,30 @@
     justify-content: center;
     font-size: 10px;
     cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .toolbar-group.floating::before:hover {
     background: #229954;
     transform: scale(1.1);
+}
+
+/* ✅ Stili specifici per la legenda del fieldset */
+.toolbar-group legend {
+    /* Sovrascrive lo stile predefinito di fieldset/legend */
+    font-size: 11px;
+    /* La dimensione dei testi della toolbar */
+    font-weight: 600;
+    color: #2c3e50;
+    /* Garantisce che lo sfondo della toolbar copra la linea del bordo sotto il testo */
+    background-color: #ecf0f1;
+    /* Colore di background della .toolbar */
+    padding: 0 5px;
+    /* Spazio orizzontale */
+    margin-left: 5px;
+    /* Sposta il titolo a sinistra */
+    position: absolute;
+    /* Per posizionarla in modo preciso */
+    top: -10px;
+    /* Spostala leggermente sopra il bordo del fieldset */
 }
