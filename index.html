@@ -451,7 +451,7 @@
             </div>
 
             <div class="bottom-sidebar" id="bottomSidebar">
-                <div class="object-controls">
+                <div class="toolbar-group bottom-toolbar-group">
                     <div id="objectControls" class="toolbar-group" style="display: none">
                         <div class="color-picker-container">
                             <label>Colore oggetto:</label>
@@ -886,6 +886,8 @@
             // Aggiungi questo nuovo metodo dopo initializeEventListeners()
             initToolbarDragDrop() {
                 const toolbar = document.querySelector('.toolbar');
+                const bottomSidebar = document.getElementById('bottomSidebar');
+                const bottomToolbarGroup = bottomSidebar.querySelector('.bottom-toolbar-group');
                 const toolbarGroups = document.querySelectorAll('.toolbar-group');
 
                 let draggedGroup = null;
@@ -939,8 +941,11 @@
 
                         draggedGroup.classList.remove('dragging');
                         toolbar.classList.remove('drag-over');
+                        bottomToolbarGroup.classList.remove('drag-over');
 
                         const toolbarRect = toolbar.getBoundingClientRect();
+                        const bottomRect = bottomToolbarGroup.getBoundingClientRect();
+
                         const isOverToolbar = (
                             e.clientX >= toolbarRect.left &&
                             e.clientX <= toolbarRect.right &&
@@ -948,7 +953,16 @@
                             e.clientY <= toolbarRect.bottom
                         );
 
-                        if (!isOverToolbar && initialParent === toolbar) {
+                        const isOverBottom = (
+                            e.clientX >= bottomRect.left &&
+                            e.clientX <= bottomRect.right &&
+                            e.clientY >= bottomRect.top &&
+                            e.clientY <= bottomRect.bottom
+                        );
+
+                        // Se era nella toolbar o nella bottom toolbar e viene trascinato fuori
+                        if (!isOverToolbar && !isOverBottom &&
+                            (initialParent === toolbar || initialParent === bottomToolbarGroup)) {
                             // Diventa floating
                             draggedGroup.classList.remove('docked');
                             draggedGroup.classList.add('floating');
@@ -967,8 +981,8 @@
                                 y: e.clientY - offsetY
                             });
 
-                            // Rimuovi dalla toolbar
-                            if (draggedGroup.parentNode === toolbar) {
+                            // Rimuovi dalla toolbar/bottom toolbar
+                            if (draggedGroup.parentNode === toolbar || draggedGroup.parentNode === bottomToolbarGroup) {
                                 draggedGroup.remove();
                                 document.body.appendChild(draggedGroup);
                             }
@@ -977,8 +991,11 @@
                             this.addRedockButton(draggedGroup);
 
                         } else if (isOverToolbar && draggedGroup.classList.contains('floating')) {
-                            // Re-dock del gruppo floating
-                            this.redockGroup(draggedGroup);
+                            // Re-dock nella toolbar superiore
+                            this.redockGroup(draggedGroup, 'top');
+                        } else if (isOverBottom && draggedGroup.classList.contains('floating')) {
+                            // Re-dock nella bottom toolbar
+                            this.redockGroup(draggedGroup, 'bottom');
                         } else {
                             // Rimane docked, aggiorna solo la posizione
                             draggedGroup.classList.remove('floating');
@@ -1003,11 +1020,12 @@
                     group.addEventListener('dblclick', (e) => {
                         if (group.classList.contains('floating')) {
                             e.preventDefault();
-                            this.redockGroup(group);
+                            this.showDockMenu(group, e.clientX, e.clientY);
                         }
                     });
                 });
 
+                // Dragover per toolbar superiore
                 toolbar.addEventListener('dragover', (e) => {
                     e.preventDefault();
                     if (!draggedGroup) return;
@@ -1028,9 +1046,36 @@
                     }
                 });
 
+                // Dragover per bottom toolbar
+                bottomToolbarGroup.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    if (!draggedGroup) return;
+
+                    e.dataTransfer.dropEffect = 'move';
+                    bottomToolbarGroup.classList.add('drag-over');
+
+                    const afterElement = this.getDragAfterElement(bottomToolbarGroup, e.clientX);
+
+                    if (placeholder && placeholder.parentNode) {
+                        placeholder.remove();
+                    }
+
+                    if (afterElement == null) {
+                        bottomToolbarGroup.appendChild(placeholder);
+                    } else {
+                        bottomToolbarGroup.insertBefore(placeholder, afterElement);
+                    }
+                });
+
                 toolbar.addEventListener('dragleave', (e) => {
                     if (e.target === toolbar) {
                         toolbar.classList.remove('drag-over');
+                    }
+                });
+
+                bottomToolbarGroup.addEventListener('dragleave', (e) => {
+                    if (e.target === bottomToolbarGroup) {
+                        bottomToolbarGroup.classList.remove('drag-over');
                     }
                 });
 
@@ -1045,6 +1090,58 @@
                         placeholder.remove();
                     }
                 });
+
+                bottomToolbarGroup.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    bottomToolbarGroup.classList.remove('drag-over');
+
+                    if (!draggedGroup) return;
+
+                    if (placeholder && placeholder.parentNode) {
+                        bottomToolbarGroup.insertBefore(draggedGroup, placeholder);
+                        placeholder.remove();
+                    }
+                });
+            }
+
+            // Modifica il metodo showDockMenu per permettere la scelta
+            showDockMenu(group, x, y) {
+                const menu = document.createElement('div');
+                menu.className = 'context-menu';
+                menu.id = 'dockMenu';
+                menu.style.position = 'fixed';
+                menu.style.left = x + 'px';
+                menu.style.top = y + 'px';
+                menu.style.zIndex = '10001';
+
+                menu.innerHTML = `
+        <div class="context-menu-item" data-dock="top">🔝 Ancora in alto</div>
+        <div class="context-menu-item" data-dock="bottom">🔽 Ancora in basso</div>
+        <div class="context-menu-separator"></div>
+        <div class="context-menu-item" data-dock="cancel">❌ Annulla</div>
+    `;
+
+                document.body.appendChild(menu);
+
+                menu.addEventListener('click', (e) => {
+                    const item = e.target.closest('.context-menu-item');
+                    if (!item) return;
+
+                    const dockPosition = item.dataset.dock;
+
+                    if (dockPosition === 'top') {
+                        this.redockGroup(group, 'top');
+                    } else if (dockPosition === 'bottom') {
+                        this.redockGroup(group, 'bottom');
+                    }
+
+                    menu.remove();
+                });
+
+                // Chiudi menu al click fuori
+                setTimeout(() => {
+                    document.addEventListener('click', () => menu.remove(), { once: true });
+                }, 0);
             }
 
             addRedockButton(group) {
@@ -1055,7 +1152,7 @@
                 const redockBtn = document.createElement('button');
                 redockBtn.className = 'redock-btn';
                 redockBtn.innerHTML = '📌';
-                redockBtn.title = 'Riancora alla toolbar (doppio click)';
+                redockBtn.title = 'Ancora toolbar (doppio click per scegliere posizione)';
                 redockBtn.style.cssText = `
         position: absolute;
         top: -10px;
@@ -1077,14 +1174,21 @@
 
                 redockBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    this.redockGroup(group);
+                    this.showDockMenu(group, e.clientX, e.clientY);
                 });
 
                 group.appendChild(redockBtn);
             }
 
-            redockGroup(group) {
-                const toolbar = document.querySelector('.toolbar');
+            redockGroup(group, position = 'top') {
+                let targetContainer;
+
+                if (position === 'bottom') {
+                    const bottomSidebar = document.getElementById('bottomSidebar');
+                    targetContainer = bottomSidebar.querySelector('.bottom-toolbar-group');
+                } else {
+                    targetContainer = document.querySelector('.toolbar');
+                }
 
                 // Rimuovi stili floating
                 group.classList.remove('floating');
@@ -1103,12 +1207,16 @@
                     group.remove();
                 }
 
-                // Aggiungi alla toolbar
-                const addButton = toolbar.querySelector('.add-tab');
-                if (addButton) {
-                    toolbar.insertBefore(group, addButton.parentElement);
+                // Aggiungi al container target
+                if (position === 'bottom') {
+                    targetContainer.appendChild(group);
                 } else {
-                    toolbar.appendChild(group);
+                    const addButton = targetContainer.querySelector('.add-tab');
+                    if (addButton) {
+                        targetContainer.insertBefore(group, addButton.parentElement);
+                    } else {
+                        targetContainer.appendChild(group);
+                    }
                 }
 
                 // Rimuovi dal tracking dei floating
