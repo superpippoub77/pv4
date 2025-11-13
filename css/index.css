@@ -1072,3 +1072,8 @@ body.dragging-endpoint .canvas-object .connection-point {
     background: #bdc3c7;
     margin: 5px 0;
 }
+
+/* Nascondi container all'avvio */
+.container.hidden-on-load {
+    display: none !important;
+}

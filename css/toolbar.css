@@ -53,18 +53,6 @@
     border-color: #2980b9;
 }
 
-/* Stato dragging */
-.toolbar-group.dragging {
-    opacity: 0.5;
-    cursor: grabbing;
-}
-
-/* Placeholder durante il drag */
-.toolbar-placeholder {
-    background: rgba(52, 152, 219, 0.2) !important;
-    border: 2px dashed #3498db !important;
-    opacity: 0.7 !important;
-}
 
 /* Feedback visivo al drag */
 .toolbar-group:active {
@@ -151,4 +139,15 @@
     /* Per posizionarla in modo preciso */
     top: -10px;
     /* Spostala leggermente sopra il bordo del fieldset */
+}
+
+.toolbar-group.dragging {
+    opacity: 0.3 !important;
+    pointer-events: none;
+}
+
+.toolbar-placeholder {
+    background: rgba(52, 152, 219, 0.1) !important;
+    border: 2px dashed #3498db !important;
+    transition: none !important;
 }

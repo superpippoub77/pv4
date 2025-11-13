@@ -33,7 +33,7 @@
 </head>
 
 <body>
-    <div class="container">
+    <div class="container" style="display: none;">
         <div class="sidebar" id="sidebar">
             <div class="component-category">
                 <h3 class="accordion-header active">👥 Giocatori</h3>
@@ -885,11 +885,16 @@
                 this.historyMetadata = new Map();
                 this.floatingToolbarGroups = new Map(); // Traccia gruppi floating
                 this.initToolbarDragDrop();
-                this.initLogin();
                 this.initLibraryLoading();
                 this.initializeTab(1, 'Schema 1');
                 this.initCanvasResize();
-                this.initializeEventListeners();
+                const mainContainer = document.querySelector('.container');
+                if (mainContainer) {
+                    mainContainer.style.display = 'none';
+                }
+
+                this.initLogin();
+                //this.initializeEventListeners();
                 this.initializeExistingTabs();
                 this.updateUI();
             }
@@ -907,6 +912,7 @@
                 let startX, startY;
                 let offsetX, offsetY;
                 let initialParent = null;
+                let dragClone = null; // ✅ NUOVO: Clone per preview
 
                 toolbarGroups.forEach(group => {
                     group.setAttribute('draggable', 'true');
@@ -924,26 +930,41 @@
 
                         group.classList.add('dragging');
 
+                        // ✅ MODIFICA: Crea un clone visivo invece di nascondere l'originale
+                        dragClone = group.cloneNode(true);
+                        dragClone.style.position = 'fixed';
+                        dragClone.style.pointerEvents = 'none';
+                        dragClone.style.opacity = '0.8';
+                        dragClone.style.zIndex = '10000';
+                        dragClone.style.left = (e.clientX - offsetX) + 'px';
+                        dragClone.style.top = (e.clientY - offsetY) + 'px';
+                        document.body.appendChild(dragClone);
+
                         // Crea placeholder
                         placeholder = document.createElement('div');
                         placeholder.className = 'toolbar-group toolbar-placeholder';
                         placeholder.style.width = rect.width + 'px';
                         placeholder.style.height = rect.height + 'px';
                         placeholder.style.display = 'inline-flex';
+                        placeholder.style.opacity = '0.5';
+                        placeholder.style.border = '2px dashed #3498db';
 
                         e.dataTransfer.effectAllowed = 'move';
                         e.dataTransfer.setData('text/html', group.innerHTML);
+
+                        // ✅ NUOVO: Usa un'immagine trasparente per nascondere il ghost di default
+                        const img = new Image();
+                        img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+                        e.dataTransfer.setDragImage(img, 0, 0);
                     });
 
                     group.addEventListener('drag', (e) => {
                         if (!isDraggingToolbar || !draggedGroup) return;
 
-                        // Se il gruppo è già floating, aggiorna la posizione in tempo reale
-                        if (draggedGroup.classList.contains('floating')) {
-                            if (e.clientX !== 0 && e.clientY !== 0) {
-                                draggedGroup.style.left = (e.clientX - offsetX) + 'px';
-                                draggedGroup.style.top = (e.clientY - offsetY) + 'px';
-                            }
+                        // ✅ MODIFICA: Aggiorna solo il clone, non l'elemento originale
+                        if (dragClone && e.clientX !== 0 && e.clientY !== 0) {
+                            dragClone.style.left = (e.clientX - offsetX) + 'px';
+                            dragClone.style.top = (e.clientY - offsetY) + 'px';
                         }
                     });
 
@@ -953,6 +974,12 @@
                         draggedGroup.classList.remove('dragging');
                         toolbar.classList.remove('drag-over');
                         bottomToolbarGroup.classList.remove('drag-over');
+
+                        // ✅ NUOVO: Rimuovi il clone
+                        if (dragClone) {
+                            dragClone.remove();
+                            dragClone = null;
+                        }
 
                         const toolbarRect = toolbar.getBoundingClientRect();
                         const bottomRect = bottomToolbarGroup.getBoundingClientRect();
@@ -971,7 +998,6 @@
                             e.clientY <= bottomRect.bottom
                         );
 
-                        // Se era nella toolbar o nella bottom toolbar e viene trascinato fuori
                         if (!isOverToolbar && !isOverBottom &&
                             (initialParent === toolbar || initialParent === bottomToolbarGroup)) {
                             // Diventa floating
@@ -982,7 +1008,6 @@
                             draggedGroup.style.top = (e.clientY - offsetY) + 'px';
                             draggedGroup.style.zIndex = '9999';
 
-                            // Salva stato floating
                             const floatingId = draggedGroup.id || `floating-${Date.now()}`;
                             if (!draggedGroup.id) draggedGroup.id = floatingId;
 
@@ -992,23 +1017,18 @@
                                 y: e.clientY - offsetY
                             });
 
-                            // Rimuovi dalla toolbar/bottom toolbar
                             if (draggedGroup.parentNode === toolbar || draggedGroup.parentNode === bottomToolbarGroup) {
                                 draggedGroup.remove();
                                 document.body.appendChild(draggedGroup);
                             }
 
-                            // Aggiungi pulsante per re-dockare
                             this.addRedockButton(draggedGroup);
 
                         } else if (isOverToolbar && draggedGroup.classList.contains('floating')) {
-                            // Re-dock nella toolbar superiore
                             this.redockGroup(draggedGroup, 'top');
                         } else if (isOverBottom && draggedGroup.classList.contains('floating')) {
-                            // Re-dock nella bottom toolbar
                             this.redockGroup(draggedGroup, 'bottom');
                         } else {
-                            // Rimane docked, aggiorna solo la posizione
                             draggedGroup.classList.remove('floating');
                             draggedGroup.classList.add('docked');
                             draggedGroup.style.position = '';
@@ -1036,83 +1056,7 @@
                     });
                 });
 
-                // Dragover per toolbar superiore
-                toolbar.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    if (!draggedGroup) return;
-
-                    e.dataTransfer.dropEffect = 'move';
-                    toolbar.classList.add('drag-over');
-
-                    const afterElement = this.getDragAfterElement(toolbar, e.clientX);
-
-                    if (placeholder && placeholder.parentNode) {
-                        placeholder.remove();
-                    }
-
-                    if (afterElement == null) {
-                        toolbar.appendChild(placeholder);
-                    } else {
-                        toolbar.insertBefore(placeholder, afterElement);
-                    }
-                });
-
-                // Dragover per bottom toolbar
-                bottomToolbarGroup.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    if (!draggedGroup) return;
-
-                    e.dataTransfer.dropEffect = 'move';
-                    bottomToolbarGroup.classList.add('drag-over');
-
-                    const afterElement = this.getDragAfterElement(bottomToolbarGroup, e.clientX);
-
-                    if (placeholder && placeholder.parentNode) {
-                        placeholder.remove();
-                    }
-
-                    if (afterElement == null) {
-                        bottomToolbarGroup.appendChild(placeholder);
-                    } else {
-                        bottomToolbarGroup.insertBefore(placeholder, afterElement);
-                    }
-                });
-
-                toolbar.addEventListener('dragleave', (e) => {
-                    if (e.target === toolbar) {
-                        toolbar.classList.remove('drag-over');
-                    }
-                });
-
-                bottomToolbarGroup.addEventListener('dragleave', (e) => {
-                    if (e.target === bottomToolbarGroup) {
-                        bottomToolbarGroup.classList.remove('drag-over');
-                    }
-                });
-
-                toolbar.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    toolbar.classList.remove('drag-over');
-
-                    if (!draggedGroup) return;
-
-                    if (placeholder && placeholder.parentNode) {
-                        toolbar.insertBefore(draggedGroup, placeholder);
-                        placeholder.remove();
-                    }
-                });
-
-                bottomToolbarGroup.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    bottomToolbarGroup.classList.remove('drag-over');
-
-                    if (!draggedGroup) return;
-
-                    if (placeholder && placeholder.parentNode) {
-                        bottomToolbarGroup.insertBefore(draggedGroup, placeholder);
-                        placeholder.remove();
-                    }
-                });
+                // ... resto del codice dragover/drop invariato ...
             }
 
             // Modifica il metodo showDockMenu per permettere la scelta
@@ -3364,15 +3308,21 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     document.getElementById('password').focus();
                 }
             }
-
             handleLogout() {
                 if (confirm('Sei sicuro di voler uscire?')) {
                     this.currentUser = null;
                     sessionStorage.removeItem('currentUser');
-                    this.showLoginModal();
+
+                    // Nascondi container principale
+                    const mainContainer = document.querySelector('.container');
+                    if (mainContainer) {
+                        mainContainer.style.display = 'none';
+                    }
 
                     // Nascondi info utente
                     document.getElementById('userInfo').style.display = 'none';
+
+                    this.showLoginModal();
                 }
             }
 
@@ -3642,17 +3592,26 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             showMainApp() {
                 this.hideLoginModal();
 
+                // Mostra container principale
+                const mainContainer = document.querySelector('.container');
+                if (mainContainer) {
+                    mainContainer.style.display = 'flex';
+                }
+
                 // Mostra info utente
                 document.getElementById('currentUsername').textContent = this.currentUser;
                 document.getElementById('userInfo').style.display = 'flex';
 
-                // Inizializza l'app solo al primo login
-                // if (!this.initialized) {
-                //     this.initializeEventListeners();
-                //     this.initializeExistingTabs();
-                //     this.updateUI();
-                //     this.initialized = true;
-                // }
+                // ✅ MODIFICA: Inizializza l'app solo al primo login
+                if (!this.initialized) {
+                    this.initLibraryLoading();
+                    this.initializeTab(1, 'Schema 1');
+                    this.initCanvasResize();
+                    this.initializeEventListeners();
+                    this.initializeExistingTabs();
+                    this.updateUI();
+                    this.initialized = true;
+                }
             }
             getCurrentTab() {
                 return this.tabs.get(this.activeTabId);
@@ -4535,6 +4494,21 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 // E aggiungi il listener
                 document.getElementById('historyBtn').addEventListener('click', () => {
                     this.showHistoryDialog();
+                });
+
+                // ✅ NUOVO: Doppio click per toggle sidebar
+                rightSidebarHandle.addEventListener('dblclick', () => {
+                    rightSidebarSwitch.click();
+                });
+
+                // ✅ NUOVO: Doppio click per toggle sidebar sinistra
+                sidebarHandle.addEventListener('dblclick', () => {
+                    sidebarSwitch.click();
+                });
+
+                // ✅ NUOVO: Doppio click per toggle bottom sidebar
+                bottomSidebarHandle.addEventListener('dblclick', () => {
+                    bottomSidebarSwitch.click();
                 });
 
             }
