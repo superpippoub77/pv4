@@ -192,3 +192,7 @@
         min-width: 180px;
     }
 }
+
+.menu-item.right {
+    margin-left: auto; /* spinge tutto verso destra */
+}

@@ -35,7 +35,7 @@
 
 <body>
     <!-- MENU BAR - Nuova sezione -->
-    <div class="menu-bar">
+    <div class="menu-bar" style="display: none;">
         <div class="menu-item">
             <span class="menu-label">📁 File</span>
             <div class="menu-dropdown">
@@ -176,6 +176,12 @@
                 <div class="menu-dropdown-item" data-action="shortcuts">⌨️ Scorciatoie</div>
                 <div class="menu-dropdown-separator"></div>
                 <div class="menu-dropdown-item" data-action="about">ℹ️ Informazioni</div>
+            </div>
+        </div>
+        <div class="menu-item right">
+            <span class="menu-label">👤 User</span>
+            <div class="menu-dropdown">
+                <div class="menu-dropdown-item" data-action="logout">🚪 Logout</div>
             </div>
         </div>
     </div>
@@ -1040,6 +1046,10 @@
                 if (mainContainer) {
                     mainContainer.style.display = 'none';
                 }
+                const menuContainer = document.querySelector('.menu-bar');
+                if (menuContainer) {
+                    menuContainer.style.display = 'none';
+                }
 
                 this.initLogin();
                 //this.initializeEventListeners();
@@ -1197,7 +1207,10 @@
                     // Aiuto
                     'help': () => this.showHelpDialog(),
                     'shortcuts': () => this.showShortcutsDialog(),
-                    'about': () => this.showAboutDialog()
+                    'about': () => this.showAboutDialog(),
+
+                    // User
+                    'logout': () => this.handleLogout(),
                 };
 
                 if (actions[action]) {
@@ -3852,6 +3865,11 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                         mainContainer.style.display = 'none';
                     }
 
+                    const menuContainer = document.querySelector('.menu-bar');
+                    if (menuContainer) {
+                        menuContainer.style.display = 'none';
+                    }
+
                     // Nascondi info utente
                     document.getElementById('userInfo').style.display = 'none';
 
@@ -4130,7 +4148,10 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 if (mainContainer) {
                     mainContainer.style.display = 'flex';
                 }
-
+                const menuContainer = document.querySelector('.menu-bar');
+                if (menuContainer) {
+                    menuContainer.style.display = 'flex';
+                }
                 // Mostra info utente
                 document.getElementById('currentUsername').textContent = this.currentUser;
                 document.getElementById('userInfo').style.display = 'flex';
