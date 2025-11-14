@@ -954,10 +954,16 @@
                         e.dataTransfer.effectAllowed = 'move';
                         e.dataTransfer.setData('text/html', group.innerHTML);
 
-                        // ✅ NUOVO: Usa un'immagine trasparente per nascondere il ghost di default
-                        const img = new Image();
-                        img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-                        e.dataTransfer.setDragImage(img, 0, 0);
+                        // ✅ RIMUOVI QUESTE RIGHE CHE CAUSANO IL PROBLEMA:
+                        // const img = new Image();
+                        // img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+                        // e.dataTransfer.setDragImage(img, 0, 0);
+
+                        // ✅ AGGIUNGI INVECE:
+                        // Nascondi l'elemento originale durante il drag
+                        setTimeout(() => {
+                            group.style.opacity = '0.3';
+                        }, 0);
                     });
 
                     group.addEventListener('drag', (e) => {
@@ -974,6 +980,7 @@
                         if (!draggedGroup) return;
 
                         draggedGroup.classList.remove('dragging');
+                        draggedGroup.style.opacity = '1'; // ✅ AGGIUNGI: Ripristina opacità
                         toolbar.classList.remove('drag-over');
                         bottomToolbarGroup.classList.remove('drag-over');
 
