@@ -14,8 +14,22 @@
     right: 15px;
     font-size: 14px;
     font-weight: bold;
-    color: rgba(0,0,0,0.3); /* semitrasparente */
-    pointer-events: none;    /* non cliccabile */
+    color: rgba(0, 0, 0, 0.3);
+    /* semitrasparente */
     z-index: 9999;
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+#watermark a {
+    color: rgba(0, 0, 0, 0.3);
+    text-decoration: none;
+    transition: color 0.25s ease;
+}
+
+#watermark:hover {
+    transform: scale(1.05);
+}
+
+#watermark:hover a {
+    color: rgba(0, 0, 0, 0.6);
 }

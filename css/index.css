@@ -161,48 +161,6 @@ body {
     background: #e74c3c !important;
 }
 
-/* Tabs */
-.tabs-container {
-    background: #34495e;
-    padding: 5px 15px 0;
-    display: flex;
-    align-items: flex-end;
-    gap: 2px;
-}
-
-.tab {
-    background: #7f8c8d;
-    color: white;
-    padding: 8px 15px 5px;
-    border-radius: 8px 8px 0 0;
-    cursor: pointer;
-    font-size: 12px;
-    position: relative;
-    transition: all 0.2s;
-}
-
-.tab.active {
-    background: white;
-    color: #2c3e50;
-}
-
-.tab-close {
-    margin-left: 8px;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.add-tab {
-    background: #27ae60;
-    color: white;
-    border: none;
-    padding: 8px 12px 5px;
-    border-radius: 8px 8px 0 0;
-    cursor: pointer;
-    font-size: 12px;
-}
-
-
 /* Canvas container */
 /* CANVAS CONTAINER - Sezione Critica per il Posizionamento */
 .canvas-container {
@@ -212,7 +170,7 @@ body {
     justify-content: center;
     align-items: center;
     overflow: auto; /* Permette lo scroll se il canvas è zoomato/ridimensionato oltre la viewport */
-    padding: 20px; 
+    padding: 0; 
 }
 
 .canvas {
@@ -455,7 +413,7 @@ body.resizing-canvas .canvas-resize-handle-single {
     /* adattato */
     top: -7px;
     /* adattato */
-    opacity: 1;
+    opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s;
     z-index: 10;

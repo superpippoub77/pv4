@@ -1,3 +1,62 @@
+/* Tabs */
+.tabs-container {
+    display: flex;
+    flex-wrap: wrap;
+    /* ✅ AGGIUNTO: Permette ai tab di andare a capo */
+    background: #34495e;
+    padding: 5px 15px 0;
+    display: flex;
+    overflow-x: auto;
+    white-space: nowrap;
+    align-items: flex-start;
+    /* ✅ AGGIUNTO: Allinea i tab all'inizio */
+    gap: 2px;
+}
+
+
+.tab {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 15px;
+    background: #95a5a6;
+    color: white;
+    cursor: pointer;
+    border-radius: 5px 5px 0 0;
+    transition: background 0.2s;
+    user-select: none;
+    flex-shrink: 0;
+    /* ✅ AGGIUNTO: Impedisce ai tab di rimpicciolirsi */
+    /* white-space: nowrap; ❌ RIMUOVI QUESTA RIGA SE PRESENTE */
+}
+
+.tab.active {
+    background: white;
+    color: #2c3e50;
+}
+
+.tab:hover:not(.active) {
+    background: #7f8c8d;
+}
+
+.tab-close {
+    margin-left: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.add-tab {
+    cursor: pointer;
+    padding: 11px 10px;
+    background: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 5px 5px 0 0;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
+    flex-shrink: 0; 
+}
+
 .tab-title {
     background: transparent;
     border: none;
@@ -20,12 +79,11 @@
     background: transparent !important;
     cursor: move;
     pointer-events: none;
+        background: rgba(52, 152, 219, 0.3) !important;
+    border: 2px dashed #3498db !important;
 }
 
-.tab {
+.tab.dragging {
+    opacity: 0.4;
     cursor: move;
-}
-
-.tab.add-tab {
-    cursor: pointer;
 }

@@ -25,7 +25,10 @@
     <meta property="og:image" content="https://www.filippomorano.com/immagine_preview.png">
 
     <!-- Favicon -->
-    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" sizes="180x180" href="data/images/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="data/images/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="data/images/favicon/favicon-16x16.png">
+    <link rel="manifest" href="data/images/favicon/site.webmanifest">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <!-- <script src="https://cdn.tailwindcss.com"></script> -->
@@ -565,24 +568,18 @@
                             <span id="freehandOpacityValue">1.00</span>
                         </div>
                     </fieldset>
-
-                    <div class="arrow-marker-controls">
-                        <label>Terminali:</label>
-                        <label style="display: flex; align-items: center; gap: 5px;">
-                            <input type="checkbox" id="arrowMarkerStart"> Inizio
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 5px;">
-                            <input type="checkbox" id="arrowMarkerEnd" checked> Fine
-                        </label>
-                    </div>
-
-                    <div>
+                    <fieldset class="toolbar-group">
+                        <legend>Frecce</legend>
+                        <div class="arrow-marker-controls">
+                            <input type="checkbox" id="arrowMarkerStart"><label>Inizio</label>
+                            <input type="checkbox" id="arrowMarkerEnd" checked><label>Fine</label>
+                        </div>
+                    </fieldset>
+                    <fieldset class="toolbar-group">
+                        <legend>Opzioni</legend>
                         <button id="deleteBtn">🗑️ Elimina</button>
-                    </div>
-
-                    <div>
                         <span id="objectInfo">Nessun oggetto selezionato</span>
-                    </div>
+                    </fieldset>
                 </div>
             </div>
         </div>
@@ -776,7 +773,7 @@
     </div>
 
     <script>
-        const editor = new SchemaEditor();
+        //const editor = new SchemaEditor();
         // document.addEventListener('DOMContentLoaded', () => {
         //     window.editor = new SchemaEditor();
         // });
@@ -1002,6 +999,11 @@
 
     <team-management-dialog></team-management-dialog>
     <water-mark></water-mark>
+    <script defer src="components/schemaeditor.js"></script>
+    <script defer src="components/helper.js"></script>
+    <script defer src="components/components.js"></script>
+    <script defer src="components/menuitem.js"></script>
+
     <script>
         /* =========================
            Menu buttons - example windows
@@ -1034,10 +1036,6 @@
             }
         });
     </script>
-    <script defer src="components/schemaeditor.js"></script>
-    <script defer src="components/helper.js"></script>
-    <script defer src="components/components.js"></script>
-    <script defer src="components/menuitem.js"></script>
 </body>
 
 </html>
