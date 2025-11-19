@@ -380,7 +380,7 @@
                     </select>
                     <button id="zoomOut" data-i18n="btn_zoom_out">➖</button>
                     <div class="zoom-display" id="zoomDisplay">100%</div>
-                    <button id="zoomIn"data-i18n="btn_zoom_in">➕</button>
+                    <button id="zoomIn" data-i18n="btn_zoom_in">➕</button>
                     <button id="menu-notepad" data-i18n="btn_notepad">Apri Blocco Note</button>
 
                 </fieldset>
@@ -402,12 +402,16 @@
                     <button id="dashedToggle" data-i18n="btn_dashed">⚡ Tratteggio</button>
                     <button id="toggleLabels" data-i18n="btn_labels">🔢 Etichette</button>
                     <button id="renumberObjects" data-i18n="btn_renumber">🔄 Rinumera</button>
-                    <button id="exportPdfBtn" title="Esporta l'allenamento completo in un PDF strutturato." data-i18n="btn_export_pdf_full">📄 Esporta
+                    <button id="exportPdfBtn" title="Esporta l'allenamento completo in un PDF strutturato."
+                        data-i18n="btn_export_pdf_full">📄 Esporta
                         PDF</button>
-                    <button id="freehandModeBtn" title="Attiva modalità disegno a mano libera." data-i18n="btn_freehand_draw">✏️
+                    <button id="freehandModeBtn" title="Attiva modalità disegno a mano libera."
+                        data-i18n="btn_freehand_draw">✏️
                         Disegno</button>
-                    <button id="exportFormationsBtn" title="Genera foglio formazioni per partite con 5 set" data-i18n="btn_export_formations">📋 Foglio
+                    <button id="exportFormationsBtn" title="Genera foglio formazioni per partite con 5 set"
+                        data-i18n="btn_export_formations">📋 Foglio
                         Formazioni</button>
+                    <button id="showAnimationControls" data-i18n="btn_show_animation">🎬 Animazione</button>
                 </fieldset>
                 <fieldset class="toolbar-group">
                     <legend data-i18n="toolbar_edit">Modifica</legend>
@@ -417,20 +421,23 @@
                     <button id="groupRotateRight" data-i18n="btn_group_rotate_right">⟳ Ruota Gruppo +15°</button>
                     <button id="undoBtn" data-i18n="btn_undo">⏪ Undo</button>
                     <button id="redoBtn" data-i18n="btn_redo">⏩ Redo</button>
-                    <button id="historyBtn" title="Storico modifiche (Ctrl+H)" data-i18n="btn_history">📜 Storico</button>
+                    <button id="historyBtn" title="Storico modifiche (Ctrl+H)" data-i18n="btn_history">📜
+                        Storico</button>
                 </fieldset>
 
                 <fieldset class="toolbar-group">
                     <legend data-i18n="toolbar_file">File</legend>
-                    <input type="text" id="schemaTitle" placeholder="Titolo schema" data-i18n-placeholder="placeholder_schema_title">
+                    <input type="text" id="schemaTitle" placeholder="Titolo schema"
+                        data-i18n-placeholder="placeholder_schema_title">
                     <button id="saveBtn" data-i18n="btn_save_schema">💾 Salva</button>
                     <button id="saveWorkOutBtn" data-i18n="btn_save_workout">💾 Salva Allenamento</button>
                     <button id="loadBtn" data-i18n="btn_load_schema">📁 Carica</button>
                     <button id="loadWorkOutBtn" data-i18n="btn_load_workout">📁 Carica Allenamento</button>
                     <input type="file" id="fileInput" accept=".json" style="display: none;">
                     <input type="file" id="workoutFileInput" accept=".json" style="display: none;">
-                    <button id="exportBtn"  data-i18n="btn_export_schema">📤 Esporta</button>
-                    <button id="exportWorkOutBtn" data-i18n="btn_export_workout_sheet">📤 Genera la scheda di allenamento</button>
+                    <button id="exportBtn" data-i18n="btn_export_schema">📤 Esporta</button>
+                    <button id="exportWorkOutBtn" data-i18n="btn_export_workout_sheet">📤 Genera la scheda di
+                        allenamento</button>
                     <button id="loadFromLibrary" data-i18n="btn_load_library">📁 Libreria</button>
                 </fieldset>
                 <fieldset class="toolbar-group">
@@ -493,7 +500,8 @@
                         <label data-i18n="local_object_number_label">Numero etichetta:</label>
                         <input type="number" id="objectNumber" min="1" placeholder="Numero" class="small-input">
 
-                        <button id="dashedObjectToggle" class="toolbar-button" data-i18n="local_dashed_object_toggle">Tratteggiato</button>
+                        <button id="dashedObjectToggle" class="toolbar-button"
+                            data-i18n="local_dashed_object_toggle">Tratteggiato</button>
                     </fieldset>
 
                     <fieldset id="arrowControls" class="toolbar-group" style="display: none">
@@ -514,11 +522,15 @@
                         </div>
                         <div class="arrow-type-controls">
                             <label data-i18n="local_arrow_type_label">Tipo:</label>
-                            <button id="arrowTypeLinear" class="arrow-type-btn" data-i18n="local_arrow_type_linear">Lineare</button>
-                            <button id="arrowTypeCurved" class="arrow-type-btn" data-i18n="local_arrow_type_curved">Curva</button>
-                            <button id="arrowTypeZigzag" class="arrow-type-btn" data-i18n="local_arrow_type_zigzag">Zigzag</button>
+                            <button id="arrowTypeLinear" class="arrow-type-btn"
+                                data-i18n="local_arrow_type_linear">Lineare</button>
+                            <button id="arrowTypeCurved" class="arrow-type-btn"
+                                data-i18n="local_arrow_type_curved">Curva</button>
+                            <button id="arrowTypeZigzag" class="arrow-type-btn"
+                                data-i18n="local_arrow_type_zigzag">Zigzag</button>
                         </div>
-                        <button id="dashedArrowToggle" class="toolbar-button" data-i18n="local_dashed_arrow_toggle">Freccia Tratteggiata</button>
+                        <button id="dashedArrowToggle" class="toolbar-button"
+                            data-i18n="local_dashed_arrow_toggle">Freccia Tratteggiata</button>
                     </fieldset>
 
                     <fieldset id="spriteControls" class="toolbar-group" style="display: none">
@@ -552,10 +564,6 @@
                         </div>
                     </fieldset>
 
-                    <fieldset class="toolbar-group">
-                        <legend data-i18n="local_animation_legend">Animazione</legend>
-                        <button id="showAnimationControls">🎬 Animazione</button>
-                    </fieldset>
                     <fieldset id="freehandControls" class="toolbar-group" style="display: none">
                         <legend data-i18n="local_freehand_legend">Disegno a mano libera</legend>
                         <div class="color-picker-container">
@@ -576,14 +584,16 @@
                     <fieldset class="toolbar-group">
                         <legend data-i18n="local_arrows_legend">Frecce</legend>
                         <div class="arrow-marker-controls">
-                            <input type="checkbox" id="arrowMarkerStart"><label data-i18n="local_arrow_marker_start_label">Inizio</label>
-                            <input type="checkbox" id="arrowMarkerEnd" checked><label data-i18n="local_arrow_marker_end_label">Fine</label>
+                            <input type="checkbox" id="arrowMarkerStart"><label
+                                data-i18n="local_arrow_marker_start_label">Inizio</label>
+                            <input type="checkbox" id="arrowMarkerEnd" checked><label
+                                data-i18n="local_arrow_marker_end_label">Fine</label>
                         </div>
                     </fieldset>
                     <fieldset class="toolbar-group">
                         <legend data-i18n="local_options_legend">Opzioni</legend>
-                        <button id="deleteBtn"  data-i18n="local_delete_button">🗑️ Elimina</button>
-                        <span id="objectInfo"   data-i18n="local_no_object_selected">Nessun oggetto selezionato</span>
+                        <button id="deleteBtn" data-i18n="local_delete_button">🗑️ Elimina</button>
+                        <span id="objectInfo" data-i18n="local_no_object_selected">Nessun oggetto selezionato</span>
                     </fieldset>
                 </div>
             </div>
@@ -599,7 +609,7 @@
                     <button id="addStepBtn" data-i18n="local_add_step_button">➕ Aggiungi</button>
                 </div>
                 <button id="generateAISteps" data-i18n="local_generate_ai_steps_button"
-                    style="width: 100%; margin: 10px 0; padding: 8px; background: #9b59b6; color: white; border: none; border-radius: 4px; cursor: pointer;"    >
+                    style="width: 100%; margin: 10px 0; padding: 8px; background: #9b59b6; color: white; border: none; border-radius: 4px; cursor: pointer;">
                     ✨ Genera Step con AI
                 </button>
                 <div id="stepsList" class="steps-list">
@@ -700,7 +710,7 @@
 
                     <!-- ✅ NUOVI CAMPI AGGIUNTI -->
                     <div class="detail-field">
-                        <label for="workoutGenere"  data-i18n="local_workout_gender_label">Genere:</label>
+                        <label for="workoutGenere" data-i18n="local_workout_gender_label">Genere:</label>
                         <select id="workoutGenere">
                             <option value="GEN">Generico</option>
                             <option value="MIS">Misto</option>
@@ -709,7 +719,7 @@
                         </select>
                     </div>
                     <div class="detail-field">
-                        <label for="workoutCategoria"   data-i18n="local_workout_category_label">Categoria:</label>
+                        <label for="workoutCategoria" data-i18n="local_workout_category_label">Categoria:</label>
                         <select id="workoutCategoria">
                             <optgroup label="🎯 Generica">
                                 <option value="GEN">Generico</option>
@@ -804,7 +814,7 @@
             <h2 data-i18n="local_load_workout_from_library_title">Carica Allenamento da Libreria</h2>
 
             <div class="filters">
-                <label for="filterPeriodo"  data-i18n="local_workout_period_label">Periodo:</label>
+                <label for="filterPeriodo" data-i18n="local_workout_period_label">Periodo:</label>
                 <select id="filterPeriodo"></select>
 
                 <label for="filterTipologia" data-i18n="local_workout_typology_label">Tipologia:</label>
@@ -818,7 +828,8 @@
                 <ul id="workoutList">
                 </ul>
             </div>
-            <button id="loadSelectedWorkout" disabled data-i18n="local_load_selected_workout_button">Carica Allenamento</button>
+            <button id="loadSelectedWorkout" disabled data-i18n="local_load_selected_workout_button">Carica
+                Allenamento</button>
         </div>
     </div>
 
@@ -832,21 +843,24 @@
             <div id="workOutListName"></div>
 
             <div style="padding: 20px 0;">
-                <label for="workoutFileName" style="display: block; margin-bottom: 10px; font-weight: bold;" data-i18n="local_workout_file_name_label">
+                <label for="workoutFileName" style="display: block; margin-bottom: 10px; font-weight: bold;"
+                    data-i18n="local_workout_file_name_label">
                     Nome del file:
                 </label>
                 <input type="text" id="workoutFileName"
                     style="width: 100%; padding: 8px; border: 1px solid #bdc3c7; border-radius: 4px; margin-bottom: 15px;"
                     placeholder="es: Allenamento_Settimana1">
 
-                <label for="workoutGlobalObjective" style="display: block; margin-bottom: 10px; font-weight: bold;" data-i18n="local_workout_global_objective_label">
+                <label for="workoutGlobalObjective" style="display: block; margin-bottom: 10px; font-weight: bold;"
+                    data-i18n="local_workout_global_objective_label">
                     Obiettivo dell'allenamento:
                 </label>
                 <textarea id="workoutGlobalObjective"
                     style="width: 100%; padding: 8px; border: 1px solid #bdc3c7; border-radius: 4px; margin-bottom: 15px; resize: vertical; min-height: 80px; font-family: inherit;"
                     placeholder="Descrivi l'obiettivo generale di questo allenamento..."></textarea>
 
-                <label for="workoutGlobalObservations" style="display: block; margin-bottom: 10px; font-weight: bold;" data-i18n="local_workout_global_observations_label">
+                <label for="workoutGlobalObservations" style="display: block; margin-bottom: 10px; font-weight: bold;"
+                    data-i18n="local_workout_global_observations_label">
                     Osservazioni:
                 </label>
                 <textarea id="workoutGlobalObservations"
@@ -856,11 +870,13 @@
 
             <div style="display: flex; gap: 10px; justify-content: flex-end;">
                 <button id="cancelSaveWorkout"
-                    style="padding: 8px 16px; background: #95a5a6; color: white; border: none; border-radius: 4px; cursor: pointer;"    data-i18n="local_cancel_button">
+                    style="padding: 8px 16px; background: #95a5a6; color: white; border: none; border-radius: 4px; cursor: pointer;"
+                    data-i18n="local_cancel_button">
                     Annulla
                 </button>
                 <button id="confirmSaveWorkout"
-                    style="padding: 8px 16px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer;" data-i18n="local_save_button">
+                    style="padding: 8px 16px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer;"
+                    data-i18n="local_save_button">
                     Salva
                 </button>
             </div>
@@ -874,9 +890,11 @@
         <div class="volley-ball"></div>
 
         <div class="login-content">
-            <h2 class="login-title" data-i18n="local_login_title">Benvenuto in <span class="highlight">VolleyPro<span class="w4">W4</span></span>
+            <h2 class="login-title" data-i18n="local_login_title">Benvenuto in <span class="highlight">VolleyPro<span
+                        class="w4">W4</span></span>
             </h2>
-            <h3 class="login-subtitle" data-i18n="local_login_subtitle">Editor Professionale per Allenatori di Pallavolo</h3>
+            <h3 class="login-subtitle" data-i18n="local_login_subtitle">Editor Professionale per Allenatori di Pallavolo
+            </h3>
 
             <form id="loginForm">
                 <div class="login-field">
@@ -941,7 +959,8 @@
 
             <!-- Proprietà Frame Selezionato -->
             <div id="frameProperties" style="display: none;">
-                <h5 data-i18n="local_animation_frame_properties_title">🎨 Proprietà Frame <span id="frameNumber"></span></h5>
+                <h5 data-i18n="local_animation_frame_properties_title">🎨 Proprietà Frame <span id="frameNumber"></span>
+                </h5>
                 <div style="margin-bottom: 10px;">
                     <label style="font-weight: bold;">⏱️ Timestamp (ms): <input type="number" id="frameTimestamp"
                             min="0" step="100" style="width: 100px;"></label>
@@ -982,7 +1001,8 @@
             </div>
             <div class="history-preview-panel">
                 <div class="history-preview-header">
-                    <strong id="historyPreviewTitle" data-i18n="local_history_preview_title">Seleziona una modifica per visualizzare l'anteprima</strong>
+                    <strong id="historyPreviewTitle" data-i18n="local_history_preview_title">Seleziona una modifica per
+                        visualizzare l'anteprima</strong>
                 </div>
                 <div class="history-preview-content">
                     <div class="history-preview-canvas" id="historyPreviewCanvas">
@@ -993,9 +1013,12 @@
                     </div>
                 </div>
                 <div class="history-actions">
-                    <button class="btn-delete-history" id="deleteHistoryBtn" disabled data-i18n="local_delete_history_button">🗑️ Elimina</button>
-                    <button class="btn-compare" id="compareHistoryBtn" disabled data-i18n="local_compare_history_button">🔄 Confronta</button>
-                    <button class="btn-restore" id="restoreHistoryBtn" disabled data-i18n="local_restore_history_button">✅ Ripristina</button>
+                    <button class="btn-delete-history" id="deleteHistoryBtn" disabled
+                        data-i18n="local_delete_history_button">🗑️ Elimina</button>
+                    <button class="btn-compare" id="compareHistoryBtn" disabled
+                        data-i18n="local_compare_history_button">🔄 Confronta</button>
+                    <button class="btn-restore" id="restoreHistoryBtn" disabled
+                        data-i18n="local_restore_history_button">✅ Ripristina</button>
                 </div>
             </div>
         </div>
@@ -1084,8 +1107,8 @@
         });
 
         document.addEventListener("DOMContentLoaded", () => {
-			const langSelector = document.getElementById('languageSelector');
-            const defaultLang = 'it'; 
+            const langSelector = document.getElementById('languageSelector');
+            const defaultLang = 'it';
             langSelector.value = defaultLang;
             setLanguage(defaultLang);
 
@@ -1103,7 +1126,7 @@
                     }
                 });
             }
-			// Listener per il cambio di selezione
+            // Listener per il cambio di selezione
             langSelector.addEventListener('change', (event) => {
                 setLanguage(event.target.value);
             });
