@@ -46,6 +46,7 @@ class SchemaEditor {
         this.showCanvasBorder = false;
         this.historyMetadata = new Map();
         this.floatingToolbarGroups = new Map(); // Traccia gruppi floating
+        this._tags = ""; // Initialize finalSentence property
         this.initToolbarDragDrop();
         this.initLibraryLoading();
         this.initializeTab(1, 'Schema 1');
@@ -63,6 +64,141 @@ class SchemaEditor {
         //this.initializeEventListeners();
         this.initializeExistingTabs();
         this.updateUI();
+    }
+
+    // ==================== METODO MODIFICATO: addStep ====================
+    addStep() {
+        const input = document.getElementById('newStepInput');
+        const stepText = input.value.trim();
+
+        if (!stepText) {
+            alert('Inserisci il testo dello step');
+            return;
+        }
+
+        // Ricerca nelle azioni preimpostate
+        const matchedAction = this.searchPresetAction(stepText);
+        const finalStepText = matchedAction || stepText;
+
+        const tab = this.getCurrentTab();
+        tab.exerciseSteps.push(finalStepText);
+        input.value = '';
+
+        this.renderStepsList();
+        this.saveState(`Aggiunto step: ${finalStepText}`);
+    }
+
+    // ==================== NUOVO METODO: searchPresetAction ====================
+    searchPresetAction(searchText) {
+        if (!this._tags) this._tags = [];   // array tag
+
+        const lower = searchText.toLowerCase().trim();
+        if (!lower) return null;
+
+        // ====== CANCELLAZIONE TAG ======
+        if (lower.startsWith("del:")) {
+            const toDelete = lower.replace("del:", "").trim();
+            const index = this._tags.findIndex(t => t.toLowerCase() === toDelete);
+
+            if (index !== -1) {
+                this._tags.splice(index, 1);
+                return `rimosso: ${toDelete}`;
+            }
+            return `tag non trovato: ${toDelete}`;
+        }
+
+        // ====== SALVA → restituisce CSV ======
+        if (lower === "salva") {
+            const result = this._tags.join(", ");
+            this._tags = [];
+            return result;
+        }
+
+        // ====== CERCA TAG ======
+        let found = null;
+
+        // 1. match esatto
+        found = PRESET_ACTIONS.find(a => a.toLowerCase() === lower);
+
+        // 2. match parziale
+        if (!found) {
+            found = PRESET_ACTIONS.find(a =>
+                a.toLowerCase().includes(lower)
+            );
+        }
+
+        // 3. similarità
+        if (!found) {
+            let bestScore = 0;
+            const threshold = 0.6;
+
+            PRESET_ACTIONS.forEach(action => {
+                const score = this.calculateSimilarity(lower, action.toLowerCase());
+                if (score > bestScore && score >= threshold) {
+                    bestScore = score;
+                    found = action;
+                }
+            });
+        }
+
+        // ====== GESTIONE TAG ======
+        if (found) {
+            // aggiungi tag SOLO se trovato
+            if (!this._tags.includes(found)) {
+                this._tags.push(found);
+            }
+            return found;
+        }
+
+        // ====== NESSUN MATCH → NON CREARE TAG ======
+        // restituisce esattamente il testo che l'utente ha digitato
+        return searchText;
+    }
+
+
+
+
+    saveFinalSentence() {
+        const result = this._tags.join(", ");  // SERIALIZZAZIONE A VIRGOLA
+        this._tags = []; // reset
+        return result;
+    }
+
+    // ==================== NUOVO METODO: calculateSimilarity ====================
+    calculateSimilarity(str1, str2) {
+        const longer = str1.length > str2.length ? str1 : str2;
+        const shorter = str1.length > str2.length ? str2 : str1;
+
+        if (longer.length === 0) {
+            return 1.0;
+        }
+
+        const editDistance = this.getEditDistance(longer, shorter);
+        return (longer.length - editDistance) / longer.length;
+    }
+
+    // ==================== NUOVO METODO: getEditDistance ====================
+    getEditDistance(s1, s2) {
+        const costs = [];
+        for (let i = 0; i <= s1.length; i++) {
+            let lastValue = i;
+            for (let j = 0; j <= s2.length; j++) {
+                if (i === 0) {
+                    costs[j] = j;
+                } else if (j > 0) {
+                    let newValue = costs[j - 1];
+                    if (s1.charAt(i - 1) !== s2.charAt(j - 1)) {
+                        newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+                    }
+                    costs[j - 1] = lastValue;
+                    lastValue = newValue;
+                }
+            }
+            if (i > 0) {
+                costs[s2.length] = lastValue;
+            }
+        }
+        return costs[s2.length];
     }
 
     initMenuBar() {
@@ -1158,7 +1294,7 @@ class SchemaEditor {
 
         tab.objects.forEach((obj, id) => {
             if (obj.text) {
-                steps.push(`${obj.objectNumber}. ${obj.text} (${obj.type})`);
+                steps.push(`(${obj.label}). (${obj.text}) (${obj.type})`);
             }
         });
 
@@ -1312,6 +1448,14 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             stepText.className = 'step-text';
             stepText.textContent = step;
 
+            // 🆕 Aggiungi indicatore se è un'azione preimpostata
+            const isPreset = PRESET_ACTIONS.includes(step);
+            if (isPreset) {
+                stepText.style.fontWeight = 'bold';
+                stepText.style.color = '#27ae60';
+                stepText.title = '✓ Azione preimpostata';
+            }
+
             const stepActions = document.createElement('div');
             stepActions.className = 'step-actions';
 
@@ -1389,22 +1533,22 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         });
     }
 
-    addStep() {
-        const input = document.getElementById('newStepInput');
-        const stepText = input.value.trim();
+    // addStep() {
+    //     const input = document.getElementById('newStepInput');
+    //     const stepText = input.value.trim();
 
-        if (!stepText) {
-            alert('Inserisci il testo dello step');
-            return;
-        }
+    //     if (!stepText) {
+    //         alert('Inserisci il testo dello step');
+    //         return;
+    //     }
 
-        const tab = this.getCurrentTab();
-        tab.exerciseSteps.push(stepText);
-        input.value = '';
+    //     const tab = this.getCurrentTab();
+    //     tab.exerciseSteps.push(stepText);
+    //     input.value = '';
 
-        this.renderStepsList();
-        this.saveState(`Aggiunto step: ${stepText}`);
-    }
+    //     this.renderStepsList();
+    //     this.saveState(`Aggiunto step: ${stepText}`);
+    // }
 
     moveStep(index, direction) {
         const tab = this.getCurrentTab();
@@ -1432,13 +1576,249 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     editStep(index) {
         const tab = this.getCurrentTab();
         const currentText = tab.exerciseSteps[index];
-        const newText = prompt('Modifica step:', currentText);
 
-        if (newText !== null && newText.trim() !== '') {
-            tab.exerciseSteps[index] = newText.trim();
+        // 🆕 Crea un dialog con suggerimenti
+        this.showStepEditDialog(index, currentText);
+    }
+    showStepEditDialog(index, currentText) {
+        const tab = this.getCurrentTab();
+
+        // Crea un dialog HTML
+        const dialog = document.createElement('div');
+        dialog.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        border: 2px solid #3498db;
+        border-radius: 8px;
+        padding: 20px;
+        z-index: 10000;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        min-width: 400px;
+    `;
+
+        const title = document.createElement('h3');
+        title.textContent = 'Modifica Step';
+        title.style.marginTop = '0';
+
+        const inputContainer = document.createElement('div');
+        inputContainer.style.marginBottom = '10px';
+
+        const label = document.createElement('label');
+        label.textContent = 'Inserisci o seleziona un\'azione:';
+        label.style.display = 'block';
+        label.style.marginBottom = '5px';
+        label.style.fontWeight = 'bold';
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = currentText;
+        input.style.cssText = `
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #bdc3c7;
+        border-radius: 4px;
+        box-sizing: border-box;
+        font-size: 14px;
+    `;
+
+        inputContainer.appendChild(label);
+        inputContainer.appendChild(input);
+
+        // Container per i suggerimenti
+        const suggestionsContainer = document.createElement('div');
+        suggestionsContainer.style.cssText = `
+        max-height: 200px;
+        overflow-y: auto;
+        margin-bottom: 10px;
+        border: 1px solid #ecf0f1;
+        border-radius: 4px;
+        display: none;
+    `;
+
+        // Aggiorna suggerimenti al digitare
+        input.addEventListener('input', () => {
+            const query = input.value.toLowerCase().trim();
+
+            if (query.length === 0) {
+                suggestionsContainer.style.display = 'none';
+                return;
+            }
+
+            const matches = PRESET_ACTIONS.filter(action =>
+                action.toLowerCase().includes(query)
+            );
+
+            suggestionsContainer.innerHTML = '';
+            suggestionsContainer.style.display = matches.length > 0 ? 'block' : 'none';
+
+            matches.forEach(match => {
+                const suggestion = document.createElement('div');
+                suggestion.style.cssText = `
+                padding: 8px;
+                cursor: pointer;
+                border-bottom: 1px solid #ecf0f1;
+                transition: background 0.2s;
+                font-weight: ${match === currentText ? 'bold' : 'normal'};
+                color: ${match === currentText ? '#27ae60' : '#000'};
+            `;
+                suggestion.textContent = match;
+
+                suggestion.addEventListener('mouseover', () => {
+                    suggestion.style.background = '#f0f0f0';
+                });
+
+                suggestion.addEventListener('mouseout', () => {
+                    suggestion.style.background = 'transparent';
+                });
+
+                suggestion.addEventListener('click', () => {
+                    input.value = match;
+                    suggestionsContainer.style.display = 'none';
+                    input.focus();
+                });
+
+                suggestionsContainer.appendChild(suggestion);
+            });
+        });
+
+        // Mostra azioni disponibili al focus
+        input.addEventListener('focus', () => {
+            if (input.value.length === 0) {
+                suggestionsContainer.innerHTML = '';
+                suggestionsContainer.style.display = 'block';
+
+                PRESET_ACTIONS.forEach(action => {
+                    const suggestion = document.createElement('div');
+                    suggestion.style.cssText = `
+                    padding: 8px;
+                    cursor: pointer;
+                    border-bottom: 1px solid #ecf0f1;
+                    transition: background 0.2s;
+                `;
+                    suggestion.textContent = action;
+
+                    suggestion.addEventListener('mouseover', () => {
+                        suggestion.style.background = '#f0f0f0';
+                    });
+
+                    suggestion.addEventListener('mouseout', () => {
+                        suggestion.style.background = 'transparent';
+                    });
+
+                    suggestion.addEventListener('click', () => {
+                        input.value = action;
+                        suggestionsContainer.style.display = 'none';
+                        input.focus();
+                    });
+
+                    suggestionsContainer.appendChild(suggestion);
+                });
+            }
+        });
+
+        // Bottoni
+        const buttonsContainer = document.createElement('div');
+        buttonsContainer.style.cssText = `
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    `;
+
+        const btnSave = document.createElement('button');
+        btnSave.textContent = 'Salva';
+        btnSave.style.cssText = `
+        padding: 8px 16px;
+        background: #27ae60;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+    `;
+
+        const btnCancel = document.createElement('button');
+        btnCancel.textContent = 'Annulla';
+        btnCancel.style.cssText = `
+        padding: 8px 16px;
+        background: #95a5a6;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    `;
+
+        buttonsContainer.appendChild(btnCancel);
+        buttonsContainer.appendChild(btnSave);
+
+        // Assembla il dialog
+        dialog.appendChild(title);
+        dialog.appendChild(inputContainer);
+        dialog.appendChild(suggestionsContainer);
+        dialog.appendChild(buttonsContainer);
+
+        document.body.appendChild(dialog);
+
+        // Crea overlay
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.3);
+        z-index: 9999;
+    `;
+        document.body.appendChild(overlay);
+
+        // Focus sull'input
+        input.focus();
+        input.select();
+
+        // Gestore chiusura
+        const closeDialog = () => {
+            dialog.remove();
+            overlay.remove();
+        };
+
+        // Salva
+        btnSave.addEventListener('click', () => {
+            const newText = input.value.trim() || this.saveFinalSentence();
+
+            if (newText === '') {
+                alert('Inserisci almeno un carattere');
+                return;
+            }
+
+            // Ricerca azione preimpostata
+            const matchedAction = this.searchPresetAction(newText);
+            const finalText = matchedAction || newText;
+
+            tab.exerciseSteps[index] = finalText;
             this.renderStepsList();
-            this.saveState(`Modificato step ${index}: ${newText.trim()}`);
-        }
+            this.saveState(`Modificato step ${index}: ${finalText}`);
+            closeDialog();
+        });
+
+        // Annulla
+        btnCancel.addEventListener('click', closeDialog);
+
+        // Chiudi con Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeDialog();
+            }
+        }, { once: true });
+
+        // Invio per salvare
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                btnSave.click();
+            }
+        });
     }
 
     deleteStep(index) {
