@@ -180,7 +180,7 @@ body {
     transition: all 0.3s ease;
     transform-origin: center center; /* Per un corretto zoom al centro */
     min-width: 800px;
-    min-height: 600px;
+    min-height: 400px;
     resize: none;
 }
 
@@ -861,7 +861,7 @@ body.dragging-endpoint .canvas-object .connection-point {
     box-sizing: border-box;
     cursor: grab;
     overflow: hidden;
-    background-color: white;
+    background-color: transparent;
     /* Campo trasparente o bianco */
     border: 2px solid black;
     /* Perimetro visibile */
@@ -1034,4 +1034,39 @@ body.dragging-endpoint .canvas-object .connection-point {
 /* Nascondi container all'avvio */
 .container.hidden-on-load {
     display: none !important;
+}
+
+
+
+/* Stili per la toolbar sottostante il canvas */
+.form-grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 8px 12px;
+    align-items: center;
+    padding: 10px;
+}
+
+.form-grid label {
+    font-weight: bold;
+}
+
+.form-grid input[type="range"] {
+    width: 100%;
+}
+
+.form-grid input[type="number"],
+.form-grid input[type="text"],
+.form-grid input[type="color"] {
+    width: 100%;
+    max-width: 180px;
+}
+
+.form-grid .small-input {
+    width: 70px;
+}
+
+.form-grid button {
+    grid-column: span 2; /* Bottoni a larghezza piena */
+    padding: 6px 10px;
 }

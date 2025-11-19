@@ -389,6 +389,11 @@ class SchemaEditor {
             group.setAttribute('draggable', 'true');
 
             group.addEventListener('dragstart', (e) => {
+                // ✅ Se la toolbar è fixed, blocca il drag
+                if (group.classList.contains('fixed')) {
+                    e.preventDefault();  // blocca il drag
+                    return;
+                }
                 draggedGroup = group;
                 isDraggingToolbar = true;
                 initialParent = group.parentElement;
@@ -4632,11 +4637,16 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             this.isDraggingControlPoint = true;
             this.selectedArrow = arrowControlPoint.closest('.arrow-svg').id;
         } else if (target) {
+            // ✅ MODIFICA: Gestisci la selezione e il drag in modo corretto
             if (e.ctrlKey || e.metaKey) {
                 this.toggleMultiSelection(target);
-            } else if (!this.selectedObjects.has(target.id)) {
-                this.selectObject(target);
+            } else {
+                // Se non era selezionato, selezionalo
+                if (!this.selectedObjects.has(target.id)) {
+                    this.selectObject(target);
+                }
             }
+            // ✅ Sempre inizia il drag, indipendentemente dalla selezione precedente
             this.startDrag(e);
         } else if (arrowPath) {
             this.selectArrow(arrowPath.closest('.arrow-svg').id);
@@ -4920,14 +4930,19 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         this.isDragging = true;
         this.dragStart = { x: e.clientX, y: e.clientY };
 
-        if (!e.ctrlKey && !e.metaKey && this.selectedObject) {
-            this.selectedObjects.clear();
-            const objData = this.getCurrentTab().objects.get(this.selectedObject.id);
-            if (objData) {
-                this.selectedObjects.set(this.selectedObject.id, { x: objData.x, y: objData.y });
-            }
-        }
+        // ✅ MODIFICA: Salva la posizione iniziale di TUTTI gli oggetti selezionati
+        const tab = this.getCurrentTab();
+        const dragStartPositions = new Map();
 
+        this.selectedObjects.forEach((pos, id) => {
+            const objData = tab.objects.get(id);
+            if (objData) {
+                dragStartPositions.set(id, { x: objData.x, y: objData.y });
+            }
+        });
+
+        // Sostituisci selectedObjects con le nuove posizioni salvate
+        this.selectedObjects = dragStartPositions;
         this.updateObjectControls();
     }
 
@@ -5174,9 +5189,12 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     selectObject(element) {
         this.deselectAll();
         this.selectedObject = element;
-        this.selectedObjects.set(element.id, { x: this.getCurrentTab().objects.get(element.id).x, y: this.getCurrentTab().objects.get(element.id).y });
-        element.classList.add('selected');
-        this.updateObjectControls();
+        const objectData = this.getCurrentTab().objects.get(element.id);
+        if (objectData) {
+            this.selectedObjects.set(element.id, { x: objectData.x, y: objectData.y });
+            element.classList.add('selected');
+            this.updateObjectControls();
+        }
     }
 
     toggleMultiSelection(element) {
@@ -5240,12 +5258,14 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
                 // Resto della logica esistente per altri oggetti
                 const iconControls = document.getElementById('iconControls');
-                if (objectData.type === 'icon') {
-                    iconControls.style.display = 'flex';
-                    document.getElementById('iconSelect').value = objectData.icon;
-                } else {
+                if (iconControls) {
                     iconControls.style.display = 'none';
+                    if (objectData.type === 'icon') {
+                        iconControls.style.display = 'flex';
+                        document.getElementById('iconSelect').value = objectData.icon;
+                    }
                 }
+
 
                 document.getElementById('objectColor').value = objectData.color;
                 document.getElementById('objectText').value = objectData.text;
@@ -6515,6 +6535,10 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         });
 
         tabsContainer.addEventListener('dragover', (e) => {
+
+            // Blocca tutto se NON stai trascinando una TAB
+            if (!draggedTab) return;
+
             e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
 
@@ -6524,14 +6548,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             const rect = tab.getBoundingClientRect();
             const midpoint = rect.left + rect.width / 2;
 
-            if (placeholder && placeholder.parentNode) {
-                placeholder.parentNode.removeChild(placeholder);
-            }
-
-            if (!(placeholder instanceof Node) || !(tab instanceof Node) || !(tabsContainer instanceof Node)) {
-                console.warn('Nodo non valido in insertBefore');
-                return;
-            }
+            if (!placeholder) return; // Non c’è placeholder? Stop.
 
             if (e.clientX < midpoint) {
                 tabsContainer.insertBefore(placeholder, tab);

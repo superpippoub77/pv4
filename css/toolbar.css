@@ -150,3 +150,20 @@
     border: 2px dashed #3498db !important;
     transition: none !important;
 }
+
+/* Toolbar non draggabile */
+.toolbar-group.fixed {
+    cursor: default;       /* Non mostra il grab */
+    pointer-events: auto;  /* Permette interazione interna normale */
+}
+
+/* Disattiva lo scaling e l'active feedback */
+.toolbar-group.fixed:active {
+    transform: none;
+}
+
+/* Optional: colore diverso per distinguerla */
+.toolbar-group.fixed {
+    background-color: #f5f5f5;
+    border-color: #95a5a6;
+}
