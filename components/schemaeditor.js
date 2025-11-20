@@ -66,7 +66,6 @@ class SchemaEditor {
         this.updateUI();
     }
 
-    // ==================== METODO MODIFICATO: addStep ====================
     addStep() {
         const input = document.getElementById('newStepInput');
         const stepText = input.value.trim();
@@ -81,7 +80,17 @@ class SchemaEditor {
         const finalStepText = matchedAction || stepText;
 
         const tab = this.getCurrentTab();
-        tab.exerciseSteps.push(finalStepText);
+
+        // ✅ MODIFICA: Salva come oggetto
+        const stepObject = {
+            id: `step-${Date.now()}`,
+            text: finalStepText,
+            name: stepText, // Nome originale inserito
+            timestamp: new Date(),
+            tags: this._tags ? [...this._tags] : [] // Copia i tag correnti
+        };
+
+        tab.exerciseSteps.push(stepObject);
         input.value = '';
 
         this.renderStepsList();
@@ -1434,11 +1443,15 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             return;
         }
 
-        tab.exerciseSteps.forEach((step, index) => {
-            const stepItem = document.createElement('div');
-            stepItem.className = 'step-item';
-            stepItem.draggable = true;
-            stepItem.dataset.index = index;
+        tab.exerciseSteps.forEach((stepItem, index) => {
+            // ✅ Gestisci sia oggetti che stringhe legacy
+            const stepObject = typeof stepItem === 'string' ? { text: stepItem, name: '' } : stepItem;
+            const step = stepObject.text || stepObject;
+
+            const stepElement = document.createElement('div');
+            stepElement.className = 'step-item';
+            stepElement.draggable = true;
+            stepElement.dataset.index = index;
 
             const stepNumber = document.createElement('div');
             stepNumber.className = 'step-number';
@@ -1448,7 +1461,19 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             stepText.className = 'step-text';
             stepText.textContent = step;
 
-            // 🆕 Aggiungi indicatore se è un'azione preimpostata
+            // ✅ Mostra il nome dello step come sottotitolo se disponibile
+            if (stepObject.name) {
+                const stepName = document.createElement('div');
+                stepName.style.cssText = `
+                font-size: 11px;
+                color: #7f8c8d;
+                font-style: italic;
+                margin-top: 2px;
+            `;
+                stepName.textContent = `"${stepObject.name}"`;
+                stepText.appendChild(stepName);
+            }
+
             const isPreset = PRESET_ACTIONS.includes(step);
             if (isPreset) {
                 stepText.style.fontWeight = 'bold';
@@ -1459,7 +1484,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             const stepActions = document.createElement('div');
             stepActions.className = 'step-actions';
 
-            // Bottone su
             const btnUp = document.createElement('button');
             btnUp.className = 'step-btn step-btn-up';
             btnUp.innerHTML = '↑';
@@ -1467,7 +1491,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             btnUp.disabled = index === 0;
             btnUp.addEventListener('click', () => this.moveStep(index, -1));
 
-            // Bottone giù
             const btnDown = document.createElement('button');
             btnDown.className = 'step-btn step-btn-down';
             btnDown.innerHTML = '↓';
@@ -1475,14 +1498,12 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             btnDown.disabled = index === tab.exerciseSteps.length - 1;
             btnDown.addEventListener('click', () => this.moveStep(index, 1));
 
-            // Bottone modifica
             const btnEdit = document.createElement('button');
             btnEdit.className = 'step-btn step-btn-edit';
             btnEdit.innerHTML = '✏️';
             btnEdit.title = 'Modifica';
             btnEdit.addEventListener('click', () => this.editStep(index));
 
-            // Bottone elimina
             const btnDelete = document.createElement('button');
             btnDelete.className = 'step-btn step-btn-delete';
             btnDelete.innerHTML = '🗑️';
@@ -1494,42 +1515,42 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             stepActions.appendChild(btnEdit);
             stepActions.appendChild(btnDelete);
 
-            stepItem.appendChild(stepNumber);
-            stepItem.appendChild(stepText);
-            stepItem.appendChild(stepActions);
+            stepElement.appendChild(stepNumber);
+            stepElement.appendChild(stepText);
+            stepElement.appendChild(stepActions);
 
             // Drag & Drop events
-            stepItem.addEventListener('dragstart', (e) => {
+            stepElement.addEventListener('dragstart', (e) => {
                 this.draggedStepIndex = index;
-                stepItem.classList.add('dragging');
+                stepElement.classList.add('dragging');
             });
 
-            stepItem.addEventListener('dragend', (e) => {
-                stepItem.classList.remove('dragging');
+            stepElement.addEventListener('dragend', (e) => {
+                stepElement.classList.remove('dragging');
                 this.draggedStepIndex = null;
             });
 
-            stepItem.addEventListener('dragover', (e) => {
+            stepElement.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 if (this.draggedStepIndex !== null && this.draggedStepIndex !== index) {
-                    stepItem.style.borderTop = '2px solid #3498db';
+                    stepElement.style.borderTop = '2px solid #3498db';
                 }
             });
 
-            stepItem.addEventListener('dragleave', (e) => {
-                stepItem.style.borderTop = '';
+            stepElement.addEventListener('dragleave', (e) => {
+                stepElement.style.borderTop = '';
             });
 
-            stepItem.addEventListener('drop', (e) => {
+            stepElement.addEventListener('drop', (e) => {
                 e.preventDefault();
-                stepItem.style.borderTop = '';
+                stepElement.style.borderTop = '';
 
                 if (this.draggedStepIndex !== null && this.draggedStepIndex !== index) {
                     this.reorderSteps(this.draggedStepIndex, index);
                 }
             });
 
-            container.appendChild(stepItem);
+            container.appendChild(stepElement);
         });
     }
 
@@ -1575,15 +1596,29 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
     editStep(index) {
         const tab = this.getCurrentTab();
-        const currentText = tab.exerciseSteps[index];
+        const currentStepObject = tab.exerciseSteps[index];
 
-        // 🆕 Crea un dialog con suggerimenti
-        this.showStepEditDialog(index, currentText);
+        // ✅ Estrai il testo dall'oggetto step
+        const currentText = currentStepObject?.text || currentStepObject || '';
+        const stepName = currentStepObject?.name || ''; // Nome dell'oggetto
+
+        // ✅ Crea un dialog con suggerimenti
+        this.showStepEditDialog(index, currentText, stepName);
     }
-    showStepEditDialog(index, currentText) {
+    showStepEditDialog(index, currentText, stepName = '') {
         const tab = this.getCurrentTab();
 
-        // Crea un dialog HTML
+        // --- parsing iniziale: stringa con virgole -> array di tag puliti
+        const parseTagsFromString = (str) => {
+            if (!str) return [];
+            return str.split(',')
+                .map(s => s.trim())
+                .filter(s => s.length > 0);
+        };
+
+        let tags = parseTagsFromString(currentText);
+
+        // --- crea dialog
         const dialog = document.createElement('div');
         dialog.style.cssText = `
         position: fixed;
@@ -1596,25 +1631,42 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         padding: 20px;
         z-index: 10000;
         box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-        min-width: 400px;
+        min-width: 420px;
+        max-width: 90%;
+        max-height: 80vh;
+        overflow: auto;
     `;
 
         const title = document.createElement('h3');
-        title.textContent = 'Modifica Step';
+        title.textContent = 'Modifica Step (tag)';
         title.style.marginTop = '0';
 
+        // ✅ NUOVO: Mostra il nome dello step
+        const nameDisplay = document.createElement('div');
+        nameDisplay.style.cssText = `
+        background: #ecf0f1;
+        padding: 8px;
+        border-radius: 4px;
+        margin-bottom: 10px;
+        font-size: 12px;
+        color: #7f8c8d;
+    `;
+        nameDisplay.innerHTML = `<strong>Nome Step:</strong> ${stepName || '(non impostato)'}`;
+
+        // input container
         const inputContainer = document.createElement('div');
         inputContainer.style.marginBottom = '10px';
 
         const label = document.createElement('label');
-        label.textContent = 'Inserisci o seleziona un\'azione:';
+        label.textContent = 'Inserisci o seleziona un tag:';
         label.style.display = 'block';
-        label.style.marginBottom = '5px';
+        label.style.marginBottom = '6px';
         label.style.fontWeight = 'bold';
 
         const input = document.createElement('input');
         input.type = 'text';
-        input.value = currentText;
+        input.value = '';
+        input.placeholder = 'scrivi e premi invio per aggiungere...';
         input.style.cssText = `
         width: 100%;
         padding: 8px;
@@ -1627,10 +1679,10 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         inputContainer.appendChild(label);
         inputContainer.appendChild(input);
 
-        // Container per i suggerimenti
+        // suggestions
         const suggestionsContainer = document.createElement('div');
         suggestionsContainer.style.cssText = `
-        max-height: 200px;
+        max-height: 160px;
         overflow-y: auto;
         margin-bottom: 10px;
         border: 1px solid #ecf0f1;
@@ -1638,93 +1690,237 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         display: none;
     `;
 
-        // Aggiorna suggerimenti al digitare
-        input.addEventListener('input', () => {
-            const query = input.value.toLowerCase().trim();
+        // chips (tags list)
+        const chipsContainer = document.createElement('div');
+        chipsContainer.style.cssText = `
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 12px;
+        padding-left: 10px;
+        border-left: 3px solid #3498db;
+    `;
 
-            if (query.length === 0) {
+        // funzione per creare un singolo chip DOM
+        const createChip = (tagText, i) => {
+            const chip = document.createElement('div');
+            chip.className = 'tag-chip';
+            chip.draggable = true;
+            chip.dataset.index = i;
+            chip.style.cssText = `
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            border-radius: 20px;
+            background: #f1f1f1;
+            border: 1px solid #e0e0e0;
+            font-size: 13px;
+            cursor: grab;
+        `;
+
+            const text = document.createElement('span');
+            text.textContent = tagText;
+
+            const controls = document.createElement('span');
+            controls.style.display = 'inline-flex';
+            controls.style.gap = '6px';
+            controls.style.marginLeft = '6px';
+            controls.style.alignItems = 'center';
+
+            // freccia su
+            const upBtn = document.createElement('button');
+            upBtn.type = 'button';
+            upBtn.title = 'Sposta su';
+            upBtn.textContent = '↑';
+            upBtn.style.cssText = `
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-weight: bold;
+            padding: 2px 6px;
+        `;
+
+            // freccia giù
+            const downBtn = document.createElement('button');
+            downBtn.type = 'button';
+            downBtn.title = 'Sposta giù';
+            downBtn.textContent = '↓';
+            downBtn.style.cssText = upBtn.style.cssText;
+
+            // elimina
+            const delBtn = document.createElement('button');
+            delBtn.type = 'button';
+            delBtn.title = 'Elimina tag';
+            delBtn.textContent = '✕';
+            delBtn.style.cssText = `
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            padding: 2px 6px;
+            color: #c0392b;
+            font-weight: bold;
+        `;
+
+            controls.appendChild(upBtn);
+            controls.appendChild(downBtn);
+            controls.appendChild(delBtn);
+
+            chip.appendChild(controls);
+            chip.appendChild(text);
+
+            // eventi di controllo
+            upBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const idx = Number(chip.dataset.index);
+                if (idx > 0) {
+                    [tags[idx - 1], tags[idx]] = [tags[idx], tags[idx - 1]];
+                    renderChips();
+                }
+            });
+
+            downBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const idx = Number(chip.dataset.index);
+                if (idx < tags.length - 1) {
+                    [tags[idx + 1], tags[idx]] = [tags[idx], tags[idx + 1]];
+                    renderChips();
+                }
+            });
+
+            delBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const idx = Number(chip.dataset.index);
+                tags.splice(idx, 1);
+                renderChips();
+            });
+
+            // drag & drop handlers
+            chip.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', chip.dataset.index);
+                chip.style.opacity = '0.4';
+            });
+
+            chip.addEventListener('dragend', () => {
+                chip.style.opacity = '1';
+            });
+
+            chip.addEventListener('dragover', (e) => {
+                e.preventDefault();
+            });
+
+            chip.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const fromIndex = Number(e.dataTransfer.getData('text/plain'));
+                const toIndex = Number(chip.dataset.index);
+                if (!Number.isNaN(fromIndex) && !Number.isNaN(toIndex) && fromIndex !== toIndex) {
+                    const [moved] = tags.splice(fromIndex, 1);
+                    tags.splice(toIndex, 0, moved);
+                    renderChips();
+                }
+            });
+
+            return chip;
+        };
+
+        // render dei chips
+        const renderChips = () => {
+            chipsContainer.innerHTML = '';
+            tags.forEach((t, i) => {
+                const c = createChip(t, i);
+                chipsContainer.appendChild(c);
+            });
+        };
+
+        // --- suggerimenti dinamici
+        const showSuggestionsFor = (query) => {
+            const q = (query || '').toLowerCase().trim();
+            suggestionsContainer.innerHTML = '';
+            let matches = [];
+
+            if (q.length === 0) {
+                matches = PRESET_ACTIONS.slice();
+            } else {
+                matches = PRESET_ACTIONS.filter(a => a.toLowerCase().includes(q));
+            }
+
+            if (matches.length === 0) {
                 suggestionsContainer.style.display = 'none';
                 return;
             }
 
-            const matches = PRESET_ACTIONS.filter(action =>
-                action.toLowerCase().includes(query)
-            );
-
-            suggestionsContainer.innerHTML = '';
-            suggestionsContainer.style.display = matches.length > 0 ? 'block' : 'none';
-
-            matches.forEach(match => {
+            suggestionsContainer.style.display = 'block';
+            matches.forEach(m => {
                 const suggestion = document.createElement('div');
                 suggestion.style.cssText = `
                 padding: 8px;
                 cursor: pointer;
                 border-bottom: 1px solid #ecf0f1;
-                transition: background 0.2s;
-                font-weight: ${match === currentText ? 'bold' : 'normal'};
-                color: ${match === currentText ? '#27ae60' : '#000'};
+                transition: background 0.16s;
+                font-size: 14px;
             `;
-                suggestion.textContent = match;
+                suggestion.textContent = m;
 
-                suggestion.addEventListener('mouseover', () => {
-                    suggestion.style.background = '#f0f0f0';
-                });
-
-                suggestion.addEventListener('mouseout', () => {
-                    suggestion.style.background = 'transparent';
-                });
+                suggestion.addEventListener('mouseover', () => suggestion.style.background = '#f0f0f0');
+                suggestion.addEventListener('mouseout', () => suggestion.style.background = 'transparent');
 
                 suggestion.addEventListener('click', () => {
-                    input.value = match;
+                    addTag(m);
                     suggestionsContainer.style.display = 'none';
                     input.focus();
                 });
 
                 suggestionsContainer.appendChild(suggestion);
             });
-        });
+        };
 
-        // Mostra azioni disponibili al focus
-        input.addEventListener('focus', () => {
-            if (input.value.length === 0) {
-                suggestionsContainer.innerHTML = '';
-                suggestionsContainer.style.display = 'block';
+        // aggiungi tag
+        const addTag = (t) => {
+            const nt = (t || '').trim();
+            if (nt === '') return;
+            tags.push(nt);
+            renderChips();
+            input.value = '';
+        };
 
-                PRESET_ACTIONS.forEach(action => {
-                    const suggestion = document.createElement('div');
-                    suggestion.style.cssText = `
-                    padding: 8px;
-                    cursor: pointer;
-                    border-bottom: 1px solid #ecf0f1;
-                    transition: background 0.2s;
-                `;
-                    suggestion.textContent = action;
-
-                    suggestion.addEventListener('mouseover', () => {
-                        suggestion.style.background = '#f0f0f0';
-                    });
-
-                    suggestion.addEventListener('mouseout', () => {
-                        suggestion.style.background = 'transparent';
-                    });
-
-                    suggestion.addEventListener('click', () => {
-                        input.value = action;
-                        suggestionsContainer.style.display = 'none';
-                        input.focus();
-                    });
-
-                    suggestionsContainer.appendChild(suggestion);
-                });
+        // se scrive e preme Enter: aggiungi tag
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const text = input.value.trim();
+                if (text.length > 0) {
+                    addTag(text);
+                }
             }
         });
 
-        // Bottoni
+        // input events per suggerimenti
+        input.addEventListener('input', () => {
+            const q = input.value;
+            if (q.trim().length === 0) {
+                showSuggestionsFor('');
+            } else {
+                showSuggestionsFor(q);
+            }
+        });
+
+        input.addEventListener('focus', () => {
+            showSuggestionsFor(input.value);
+        });
+
+        input.addEventListener('blur', () => {
+            setTimeout(() => {
+                suggestionsContainer.style.display = 'none';
+            }, 150);
+        });
+
+        // --- bottoni
         const buttonsContainer = document.createElement('div');
         buttonsContainer.style.cssText = `
         display: flex;
         gap: 10px;
         justify-content: flex-end;
+        margin-top: 8px;
     `;
 
         const btnSave = document.createElement('button');
@@ -1753,15 +1949,17 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         buttonsContainer.appendChild(btnCancel);
         buttonsContainer.appendChild(btnSave);
 
-        // Assembla il dialog
+        // assemble
         dialog.appendChild(title);
+        dialog.appendChild(nameDisplay); // ✅ NUOVO
         dialog.appendChild(inputContainer);
         dialog.appendChild(suggestionsContainer);
+        dialog.appendChild(chipsContainer);
         dialog.appendChild(buttonsContainer);
 
         document.body.appendChild(dialog);
 
-        // Crea overlay
+        // overlay
         const overlay = document.createElement('div');
         overlay.style.cssText = `
         position: fixed;
@@ -1774,51 +1972,81 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     `;
         document.body.appendChild(overlay);
 
-        // Focus sull'input
+        // initial render
+        renderChips();
         input.focus();
-        input.select();
 
-        // Gestore chiusura
+        // close dialog cleanup
+        const cleanupEvents = [];
         const closeDialog = () => {
             dialog.remove();
             overlay.remove();
+            cleanupEvents.forEach(fn => {
+                try { fn(); } catch (e) { /* safe */ }
+            });
         };
 
-        // Salva
+        // salva
         btnSave.addEventListener('click', () => {
-            const newText = input.value.trim() || this.saveFinalSentence();
-
-            if (newText === '') {
-                alert('Inserisci almeno un carattere');
-                return;
+            const pending = input.value.trim();
+            if (pending.length > 0) {
+                addTag(pending);
             }
 
-            // Ricerca azione preimpostata
-            const matchedAction = this.searchPresetAction(newText);
-            const finalText = matchedAction || newText;
+            if (tags.length === 0 && typeof this.saveFinalSentence === 'function') {
+                const fallback = (this.saveFinalSentence() || '').trim();
+                tags = parseTagsFromString(fallback);
+            }
 
-            tab.exerciseSteps[index] = finalText;
-            this.renderStepsList();
-            this.saveState(`Modificato step ${index}: ${finalText}`);
+            const finalTags = tags.map(t => {
+                const matched = (typeof this.searchPresetAction === 'function') ? this.searchPresetAction(t) : null;
+                return matched || t;
+            });
+
+            const finalText = finalTags.join(', ');
+
+            // ✅ MODIFICA: Salva come oggetto con nome
+            tab.exerciseSteps[index] = {
+                id: tab.exerciseSteps[index]?.id || `step-${Date.now()}`,
+                text: finalText,
+                name: stepName, // Mantieni il nome originale
+                timestamp: tab.exerciseSteps[index]?.timestamp || new Date(),
+                tags: finalTags
+            };
+
+            if (typeof this.renderStepsList === 'function') this.renderStepsList();
+            if (typeof this.saveState === 'function') this.saveState(`Modificato step ${index}: ${finalText}`);
             closeDialog();
         });
 
-        // Annulla
         btnCancel.addEventListener('click', closeDialog);
 
-        // Chiudi con Escape
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                closeDialog();
-            }
-        }, { once: true });
+        const escHandler = (e) => {
+            if (e.key === 'Escape') closeDialog();
+        };
+        document.addEventListener('keydown', escHandler);
+        cleanupEvents.push(() => document.removeEventListener('keydown', escHandler));
 
-        // Invio per salvare
-        input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                btnSave.click();
+        overlay.addEventListener('click', closeDialog);
+        cleanupEvents.push(() => overlay.removeEventListener('click', closeDialog));
+
+        chipsContainer.addEventListener('dragover', (e) => e.preventDefault());
+        chipsContainer.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const fromIndex = Number(e.dataTransfer.getData('text/plain'));
+            if (!Number.isNaN(fromIndex)) {
+                const [moved] = tags.splice(fromIndex, 1);
+                tags.push(moved);
+                renderChips();
             }
         });
+
+        cleanupEvents.push(() => {
+            chipsContainer.removeEventListener('dragover', () => { });
+            chipsContainer.removeEventListener('drop', () => { });
+        });
+
+        showSuggestionsFor('');
     }
 
     deleteStep(index) {
@@ -4340,11 +4568,18 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             this.showAnimationControls();
         });
 
-        document.getElementById('addStepBtn').addEventListener('click', () => this.addStep());
+        //document.getElementById('addStepBtn').addEventListener('click', () => this.addStep());
+        document.getElementById('addStepBtn').addEventListener('click', () => {
+            const i = this.getCurrentTab().exerciseSteps.length;
+            this.editStep(i)
+        });
 
         document.getElementById('newStepInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                this.addStep();
+                const i = this.getCurrentTab().exerciseSteps.length;
+                this.editStep(i)
+                //this.saveFinalSentence();
+                //this.addStep();
             }
         });
 
