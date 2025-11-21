@@ -2,6 +2,7 @@
 .tabs-container {
     display: flex;
     flex-wrap: wrap;
+    flex-shrink: 0;
     /* ✅ AGGIUNTO: Permette ai tab di andare a capo */
     background: #34495e;
     padding: 5px 15px 0;
@@ -12,7 +13,6 @@
     /* ✅ AGGIUNTO: Allinea i tab all'inizio */
     gap: 2px;
 }
-
 
 .tab {
     display: inline-flex;

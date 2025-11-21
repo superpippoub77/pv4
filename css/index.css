@@ -3,6 +3,12 @@
     padding: 0;
     box-sizing: border-box;
 }
+html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
 
 .no-style {
     border: none;
@@ -14,15 +20,18 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    height: 100vh;
-    overflow: hidden;
-    background: #f0f0f0;
-}
-
-.container {
     display: flex;
-    height: 100vh;
+    flex-direction: column;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden;
+  }
+
+/* MAIN CONTAINER - Flex per occupare lo spazio disponibile */
+.container {
+    display: flex !important;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
 }
 
 .component-grid {
@@ -33,7 +42,8 @@ body {
 }
 
 .component-item {
-    background: #3498db; /* default blue */
+    background: #3498db;
+    /* default blue */
     border: 2px solid #2980b9;
     border-radius: 6px;
     padding: 2px;
@@ -63,6 +73,7 @@ body {
     background: #f1c40f;
     border-color: #d4ac0d;
 }
+
 .component-item.yellow:hover {
     background: #d4ac0d;
     border-color: #f1c40f;
@@ -72,6 +83,7 @@ body {
     background: #2ecc71;
     border-color: #27ae60;
 }
+
 .component-item.green:hover {
     background: #27ae60;
     border-color: #2ecc71;
@@ -81,6 +93,7 @@ body {
     background: #e67e22;
     border-color: #ca6e17;
 }
+
 .component-item.orange:hover {
     background: #ca6e17;
     border-color: #e67e22;
@@ -90,6 +103,7 @@ body {
     background: #e74c3c;
     border-color: #c0392b;
 }
+
 .component-item.red:hover {
     background: #c0392b;
     border-color: #e74c3c;
@@ -106,7 +120,9 @@ body {
     display: flex;
     flex-direction: column;
     background: transparent;
-    overflow: hidden;
+    /* overflow: hidden; */
+    min-width: 0;
+    min-height: 0;
 }
 
 /* New section for schema details */
@@ -164,21 +180,27 @@ body {
 /* Canvas container */
 /* CANVAS CONTAINER - Sezione Critica per il Posizionamento */
 .canvas-container {
-    flex: 1; /* Occupa lo spazio rimanente in verticale */
-    position: relative; /* **CRUCIALE**: Stabilisce il contesto di posizionamento per gli handle di ridimensionamento (i quadratini) e l'SVG delle frecce. */
-    display: flex; /* Per centrare il canvas */
+    flex: 1;
+    /* Occupa lo spazio rimanente in verticale */
+    position: relative;
+    /* **CRUCIALE**: Stabilisce il contesto di posizionamento per gli handle di ridimensionamento (i quadratini) e l'SVG delle frecce. */
+    display: flex;
+    /* Per centrare il canvas */
     justify-content: center;
     align-items: center;
-    overflow: auto; /* Permette lo scroll se il canvas è zoomato/ridimensionato oltre la viewport */
-    padding: 0; 
+    overflow: auto;
+    /* Permette lo scroll se il canvas è zoomato/ridimensionato oltre la viewport */
+    padding: 0;
+        min-height: 0;
 }
 
 .canvas {
     position: relative;
     background: white;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     transition: all 0.3s ease;
-    transform-origin: center center; /* Per un corretto zoom al centro */
+    transform-origin: center center;
+    /* Per un corretto zoom al centro */
     min-width: 800px;
     min-height: 400px;
     resize: none;
@@ -186,7 +208,7 @@ body {
 
 .canvas.show-border {
     border: 2px dashed #95a5a6;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.25), inset 0 0 0 10px rgba(52, 152, 219, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25), inset 0 0 0 10px rgba(52, 152, 219, 0.1);
 }
 
 .canvas.grid-visible {
@@ -214,7 +236,7 @@ body {
     font-size: 14px;
     z-index: 1001;
     user-select: none;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     transition: background 0.2s, transform 0.2s;
     cursor: nwse-resize;
     pointer-events: auto;
@@ -1009,7 +1031,7 @@ body.dragging-endpoint .canvas-object .connection-point {
     background: white;
     border: 1px solid #bdc3c7;
     border-radius: 4px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     padding: 5px 0;
     min-width: 180px;
 }
@@ -1067,6 +1089,11 @@ body.dragging-endpoint .canvas-object .connection-point {
 }
 
 .form-grid button {
-    grid-column: span 2; /* Bottoni a larghezza piena */
+    grid-column: span 2;
+    /* Bottoni a larghezza piena */
     padding: 6px 10px;
+}
+
+.hidden {
+    display: none !important;
 }

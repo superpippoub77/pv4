@@ -1,7 +1,7 @@
 /* Bottom Sidebar (Object Controls) */
-.bottom-sidebar {
+/* .bottom-sidebar {
     width: 100%;
-    height: 200px;
+    max-height: 10px;
     background: #2c3e50;
     color: white;
     overflow-y: auto;
@@ -9,13 +9,29 @@
     position: relative;
     transition: transform 0.3s ease, height 0.1s ease;
     transform: translateY(0);
+} */
+
+/* FOOTER/BOTTOM SIDEBAR */
+.bottom-sidebar {
+    background: #ecf0f1;
+    border-top: 2px solid #bdc3c7;
+    padding: 8px 12px;
+    max-height: 50px;
+    overflow-y: auto;
+    flex-shrink: 0;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    z-index: 100;
 }
 
 .bottom-sidebar.hidden {
     display: none;
 }
 
+
 .bottom-sidebar-handle {
+    display: none !important;
     height: 5px;
     cursor: ns-resize;
     background: #4a6a8a;

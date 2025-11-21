@@ -4370,68 +4370,68 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
 
         // ========== BOTTOM SIDEBAR (Object Controls) ==========
-        const bottomSidebar = document.getElementById('bottomSidebar');
-        const bottomSidebarHandle = document.getElementById('bottomSidebarHandle');
-        const bottomSidebarSwitch = document.getElementById('bottomSidebarSwitch');
+        //const bottomSidebar = document.getElementById('bottomSidebar');
+        // const bottomSidebarHandle = document.getElementById('bottomSidebarHandle');
+        // const bottomSidebarSwitch = document.getElementById('bottomSidebarSwitch');
 
-        // Toggle
-        bottomSidebarSwitch.onclick = function (e) {
-            e.stopPropagation();
-            e.preventDefault();
+        // // Toggle
+        // bottomSidebarSwitch.onclick = function (e) {
+        //     e.stopPropagation();
+        //     e.preventDefault();
 
-            const isHidden = bottomSidebar.classList.contains('hidden');
+        //     const isHidden = bottomSidebar.classList.contains('hidden');
 
-            if (isHidden) {
-                bottomSidebar.classList.remove('hidden');
-                this.textContent = '▼';
-            } else {
-                bottomSidebar.classList.add('hidden');
-                this.textContent = '▲';
-            }
+        //     if (isHidden) {
+        //         bottomSidebar.classList.remove('hidden');
+        //         this.textContent = '▼';
+        //     } else {
+        //         bottomSidebar.classList.add('hidden');
+        //         this.textContent = '▲';
+        //     }
 
-            return false;
-        };
+        //     return false;
+        // };
 
         // Resize
-        let isResizingBottomSidebar = false;
-        let bottomSidebarOriginalHeight = null;
+        // let isResizingBottomSidebar = false;
+        // let bottomSidebarOriginalHeight = null;
 
-        bottomSidebarHandle.onmousedown = function (e) {
-            if (e.target === bottomSidebarSwitch) return;
+        // bottomSidebarHandle.onmousedown = function (e) {
+        //     if (e.target === bottomSidebarSwitch) return;
 
-            e.preventDefault();
+        //     e.preventDefault();
 
-            if (!bottomSidebar.classList.contains('hidden')) {
-                bottomSidebarOriginalHeight = bottomSidebar.offsetHeight;
-            }
+        //     if (!bottomSidebar.classList.contains('hidden')) {
+        //         bottomSidebarOriginalHeight = bottomSidebar.offsetHeight;
+        //     }
 
-            isResizingBottomSidebar = true;
-            document.body.classList.add('resizing-bottom-sidebar');
+        //     isResizingBottomSidebar = true;
+        //     document.body.classList.add('resizing-bottom-sidebar');
 
-            const startY = e.clientY;
-            const startHeight = bottomSidebar.offsetHeight;
+        //     const startY = e.clientY;
+        //     const startHeight = bottomSidebar.offsetHeight;
 
-            function onMouseMove(e) {
-                if (!isResizingBottomSidebar) return;
-                const newHeight = startHeight - (e.clientY - startY);
-                const minHeight = 100;
-                const maxHeight = window.innerHeight / 2;
-                if (newHeight >= minHeight && newHeight <= maxHeight) {
-                    bottomSidebar.style.height = newHeight + 'px';
-                    bottomSidebarOriginalHeight = newHeight;
-                }
-            }
+        //     function onMouseMove(e) {
+        //         if (!isResizingBottomSidebar) return;
+        //         const newHeight = startHeight - (e.clientY - startY);
+        //         const minHeight = 100;
+        //         const maxHeight = window.innerHeight / 2;
+        //         if (newHeight >= minHeight && newHeight <= maxHeight) {
+        //             bottomSidebar.style.height = newHeight + 'px';
+        //             bottomSidebarOriginalHeight = newHeight;
+        //         }
+        //     }
 
-            function onMouseUp() {
-                isResizingBottomSidebar = false;
-                document.body.classList.remove('resizing-bottom-sidebar');
-                document.removeEventListener('mousemove', onMouseMove);
-                document.removeEventListener('mouseup', onMouseUp);
-            }
+        //     function onMouseUp() {
+        //         isResizingBottomSidebar = false;
+        //         document.body.classList.remove('resizing-bottom-sidebar');
+        //         document.removeEventListener('mousemove', onMouseMove);
+        //         document.removeEventListener('mouseup', onMouseUp);
+        //     }
 
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
-        };
+        //     document.addEventListener('mousemove', onMouseMove);
+        //     document.addEventListener('mouseup', onMouseUp);
+        // };
 
 
 
@@ -4688,10 +4688,10 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             sidebarSwitch.click();
         });
 
-        // ✅ NUOVO: Doppio click per toggle bottom sidebar
-        bottomSidebarHandle.addEventListener('dblclick', () => {
-            bottomSidebarSwitch.click();
-        });
+        // // ✅ NUOVO: Doppio click per toggle bottom sidebar
+        // bottomSidebarHandle.addEventListener('dblclick', () => {
+        //     bottomSidebarSwitch.click();
+        // });
 
 
         this.initMenuBar();
