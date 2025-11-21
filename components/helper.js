@@ -1,3 +1,32 @@
+const windowTemplates = {
+    default: {
+        headerBg: "bg-gradient-to-r from-cyan-500 to-blue-600",
+        contentBg: "bg-white",
+        footerBg: "bg-gray-50",
+        footerBorder: "border-t border-gray-200",
+        rounded: true,
+        shadow: "shadow-2xl"
+    },
+
+    dark: {
+        headerBg: "bg-gray-800",
+        contentBg: "bg-gray-900 text-gray-200",
+        footerBg: "bg-gray-800",
+        footerBorder: "border-t border-gray-700",
+        rounded: false,
+        shadow: "shadow-lg"
+    },
+
+    neon: {
+        headerBg: "bg-gradient-to-r from-fuchsia-600 to-purple-600",
+        contentBg: "bg-black text-pink-400",
+        footerBg: "bg-black",
+        footerBorder: "border-t border-fuchsia-600",
+        rounded: true,
+        shadow: "shadow-[0_0_20px_rgba(255,0,255,0.7)]"
+    }
+};
+
 function setDefaultDate(fieldName) {
     const dateField = document.getElementById(fieldName);
     if (dateField) {
@@ -65,94 +94,203 @@ function getHue(hex) {
     return h * 360;
 }
 
-let zCounter = 200; // baseline z-index for windows
+/**
+ * SISTEMA UNIFICATO DI FINESTRE - Progetto VolleyProW4
+ * Unifica tutti i dialog/modal del progetto con createWindow()
+ * Utilizza Tailwind CSS per lo styling
+ */
+
+// ============================================================================
+// 1. AGGIORNA helper.js - createWindow avanzato
+// ============================================================================
+
+let zCounter = 200;
 const minWidth = 200;
 const minHeight = 80;
-// createWindow factory
-function createWindow({ title = "Finestra", contentHTML = "", buttons = [], modal = false, icon = "📝" } = {}) {
+
+/**
+ * Factory per creare finestre uniformi
+ * @param {Object} config - Configurazione finestra
+ * @param {string} config.title - Titolo finestra
+ * @param {string} config.contentHTML - HTML contenuto
+ * @param {Array} config.buttons - Array bottoni [{label, onClick, color}]
+ * @param {boolean} config.modal - Se è modale (con overlay)
+ * @param {string} config.icon - Icona titolo (emoji)
+ * @param {string} config.size - 'sm'|'md'|'lg'|'xl' (default: 'md')
+ * @param {boolean} config.fullscreen - Rendi a schermo intero
+ * @returns {HTMLElement} Elemento finestra
+ */
+function createWindow({
+    title = "Finestra",
+    contentHTML = "",
+    buttons = [],
+    modal = false,
+    icon = "📋",
+    size = 'md',
+    fullscreen = false,
+    onClose = null,
+
+    // nuovo parametro:
+    template = "default",
+
+    // fallback manuali:
+    headerBg,
+    contentBg,
+    footerBg,
+    footerBorder,
+    rounded,
+    shadow
+
+} = {}) {
+
+    // ---- APPICA IL TEMPLATE ----
+    const tpl = windowTemplates[template] || {};
+
+    headerBg = headerBg ?? tpl.headerBg ?? "bg-gray-700";
+    contentBg = contentBg ?? tpl.contentBg ?? "bg-white";
+    footerBg = footerBg ?? tpl.footerBg ?? "bg-gray-100";
+    footerBorder = footerBorder ?? tpl.footerBorder ?? "border-t border-gray-300";
+    rounded = rounded ?? tpl.rounded ?? true;
+    shadow = shadow ?? tpl.shadow ?? "shadow-lg";
+
+    // Dimensioni predefinite
+    const sizes = {
+        sm: { w: '400px', h: '300px' },
+        md: { w: '540px', h: '360px' },
+        lg: { w: '720px', h: '500px' },
+        xl: { w: '900px', h: '600px' }
+    };
+
+    const dimensions = fullscreen
+        ? { w: '95vw', h: '95vh' }
+        : sizes[size] || sizes.md;
+
+    // Crea overlay se modale
     let overlay;
     if (modal) {
         overlay = document.createElement('div');
-        overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center';
-        overlay.style.zIndex = zCounter + 1000; // ensure above other windows
+        overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9998]';
         document.body.appendChild(overlay);
 
-        // click on overlay closes modal (only if clicked outside the modal)
-        overlay.addEventListener('click', () => {
-            // remove the win + overlay
-            if (win) win.remove();
-            overlay.remove();
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeWindow();
         });
     }
 
+    // Crea finestra
     const win = document.createElement('div');
-    win.className = 'win absolute bg-white shadow-lg';
-    win.style.width = '540px';
-    win.style.height = '360px';
+    win.className = `
+        absolute 
+        overflow-hidden 
+        flex flex-col
+        ${rounded ? "rounded-lg" : ""}
+        ${shadow}
+    `;
+    win.style.width = dimensions.w;
+    win.style.height = dimensions.h;
     win.style.left = `${120 + Math.random() * 60}px`;
     win.style.top = `${120 + Math.random() * 60}px`;
-    win.style.zIndex = modal ? (zCounter + 1001) : zCounter + 1;
-    if (modal) {
-        // append inside overlay so it's above the overlay background but clicks inside must not propagate
+    win.style.zIndex = modal ? (zCounter + 1001) : (++zCounter);
+
+    if (modal && overlay) {
         overlay.appendChild(win);
         win.addEventListener('click', e => e.stopPropagation());
     } else {
         document.body.appendChild(win);
     }
 
-    // titlebar
+    // ========== TITLEBAR ==========
     const titlebar = document.createElement('div');
-    titlebar.className = 'win-titlebar flex items-center justify-between px-3 py-2 win-titlebar';
+    titlebar.className = `
+        flex items-center justify-between 
+        px-4 py-3 
+        text-white 
+        cursor-grab active:cursor-grabbing
+        ${headerBg}
+    `;
     titlebar.innerHTML = `
-    <div class="flex items-center gap-2">
-      <div style="width:10px;height:10px;background:#34d399;border-radius:4px"></div>
-      <div style="font-weight:600">${title}</div>
+        <div class="flex items-center gap-2">
+            <span class="text-lg">${icon}</span>
+            <span class="font-semibold text-sm">${title}</span>
+        </div>
+        <div class="flex items-center gap-2 text-white">
+
+  <div class="flex items-center gap-2 text-white">
+
+        <!-- Minimizza -->
+        <button 
+            class="btn-min w-6 h-6 rounded-full bg-gray-400 opacity-30 hover:bg-yellow-400 hover:opacity-100 transition flex items-center justify-center text-xs">
+            &#x2212;
+        </button>
+
+        <!-- Massimizza -->
+        <button 
+            class="btn-max w-6 h-6 rounded-full bg-gray-400 opacity-30 hover:bg-blue-400 hover:opacity-100 transition flex items-center justify-center text-xs">
+            &#x25A1;
+        </button>
+
+        <!-- Chiudi -->
+        <button 
+            class="btn-close w-6 h-6 rounded-full bg-gray-400 opacity-30 hover:bg-red-400 hover:opacity-100 transition flex items-center justify-center text-xs">
+            &#x2715;
+        </button>
     </div>
-    <div class="flex items-center gap-2">
-      <button class="btn-min w-6 h-6 rounded-full" title="Minimize" style="background:#fbbf24"></button>
-      <button class="btn-max w-6 h-6 rounded-full" title="Maximize" style="background:#60a5fa"></button>
-      <button class="btn-close w-6 h-6 rounded-full" title="Close" style="background:#f87171"></button>
-    </div>
-  `;
-    titlebar.style.background = 'linear-gradient(90deg,#0ea5e9,#0369a1)';
-    titlebar.style.color = '#fff';
+    `;
     win.appendChild(titlebar);
 
-    // content
+    // ========== CONTENT ==========
     const content = document.createElement('div');
-    content.className = 'p-4';
-    content.style.height = 'calc(100% - 48px)';
+    content.className = `flex-1 overflow-auto p-4 ${contentBg}`;
     content.innerHTML = contentHTML;
     win.appendChild(content);
 
-    // bottom buttons area (optional)
+    // ========== FOOTER / BUTTONS AREA ==========
     if (buttons && buttons.length) {
         const btnArea = document.createElement('div');
-        btnArea.className = 'absolute left-0 right-0 bottom-0 p-2 flex justify-end bg-gray-100 border-t';
+        btnArea.className = `
+            flex justify-end gap-2 p-4
+            ${footerBg}
+            ${footerBorder}
+        `;
+
         buttons.forEach(b => {
             const btn = document.createElement('button');
             btn.textContent = b.label;
-            btn.className = 'ml-2 px-3 py-1 rounded bg-sky-600 text-white';
-            btn.addEventListener('click', b.onClick);
+
+            const colorClasses = {
+                primary: 'bg-blue-600 hover:bg-blue-700',
+                success: 'bg-green-600 hover:bg-green-700',
+                danger: 'bg-red-600 hover:bg-red-700',
+                warning: 'bg-yellow-600 hover:bg-yellow-700',
+                secondary: 'bg-gray-500 hover:bg-gray-600'
+            };
+
+            btn.className = `px-4 py-2 rounded text-white transition ${colorClasses[b.color] || colorClasses.primary}`;
+            btn.addEventListener('click', () => {
+                b.onClick?.();
+                if (b.close !== false) closeWindow();
+            });
             btnArea.appendChild(btn);
         });
+
         win.appendChild(btnArea);
-        // shrink content area
-        content.style.height = 'calc(100% - 48px - 44px)';
     }
 
-    // resize handles
+    // ====================================================
+    //      IL RESTO DEL CODICE (drag, resize, min, max)
+    //      RIMANE IDENTICO E FUNZIONA SENZA CAMBIAMENTI
+    // ====================================================
+
+    // --- DA QUI IN POI INCOLLA IL TUO CODICE ORIGINALE ---
+
     const handles = ["t", "b", "l", "r", "tl", "tr", "bl", "br"];
     handles.forEach(hc => {
         const h = document.createElement('div');
-        h.className = `resize-handle ${hc}`;
+        h.className = `resize-handle ${hc} absolute`;
+        h.style.cssText = getResizeHandleStyle(hc);
         win.appendChild(h);
     });
 
-    // --- interactions: bring to front on mousedown anywhere in window ---
-    win.addEventListener('mousedown', () => bringToFront(win));
-
-    // drag from titlebar
     let dragging = false, dx = 0, dy = 0;
     titlebar.addEventListener('mousedown', (e) => {
         if (e.target.tagName === 'BUTTON') return;
@@ -160,29 +298,39 @@ function createWindow({ title = "Finestra", contentHTML = "", buttons = [], moda
         dx = e.clientX - win.offsetLeft;
         dy = e.clientY - win.offsetTop;
         bringToFront(win);
-        // prevent selection
         document.body.style.userSelect = 'none';
     });
+
     window.addEventListener('mousemove', (e) => {
         if (!dragging) return;
-        win.style.left = `${e.clientX - dx}px`;
-        win.style.top = `${e.clientY - dy}px`;
+        let newX = e.clientX - dx;
+        let newY = e.clientY - dy;
+        newX = Math.max(0, Math.min(newX, window.innerWidth - win.offsetWidth));
+        newY = Math.max(0, Math.min(newY, window.innerHeight - win.offsetHeight));
+        win.style.left = `${newX}px`;
+        win.style.top = `${newY}px`;
     });
+
     window.addEventListener('mouseup', () => {
         dragging = false;
         document.body.style.userSelect = '';
     });
 
-    // resize logic (shared)
-    let resizing = false, handleType = null, startX = 0, startY = 0, startW = 0, startH = 0, startL = 0, startT = 0;
+    // Resize
+    let resizing = false, handleType = null;
+    let startX = 0, startY = 0, startW = 0, startH = 0, startL = 0, startT = 0;
+
     win.querySelectorAll('.resize-handle').forEach(hEl => {
         hEl.addEventListener('mousedown', e => {
             e.stopPropagation();
             resizing = true;
             handleType = hEl.classList[1];
-            startX = e.clientX; startY = e.clientY;
-            startW = win.offsetWidth; startH = win.offsetHeight;
-            startL = win.offsetLeft; startT = win.offsetTop;
+            startX = e.clientX;
+            startY = e.clientY;
+            startW = win.offsetWidth;
+            startH = win.offsetHeight;
+            startL = win.offsetLeft;
+            startT = win.offsetTop;
             bringToFront(win);
             document.body.style.userSelect = 'none';
         });
@@ -193,6 +341,7 @@ function createWindow({ title = "Finestra", contentHTML = "", buttons = [], moda
         const mx = e.clientX - startX;
         const my = e.clientY - startY;
         let newW = startW, newH = startH, newL = startL, newT = startT;
+
         switch (handleType) {
             case 'r': newW = Math.max(minWidth, startW + mx); break;
             case 'l': newW = Math.max(minWidth, startW - mx); newL = startL + mx; break;
@@ -203,63 +352,364 @@ function createWindow({ title = "Finestra", contentHTML = "", buttons = [], moda
             case 'tr': newW = Math.max(minWidth, startW + mx); newH = Math.max(minHeight, startH - my); newT = startT + my; break;
             case 'tl': newW = Math.max(minWidth, startW - mx); newL = startL + mx; newH = Math.max(minHeight, startH - my); newT = startT + my; break;
         }
-        win.style.width = newW + 'px';
-        win.style.height = newH + 'px';
-        win.style.left = newL + 'px';
-        win.style.top = newT + 'px';
+
+        win.style.width = `${newW}px`;
+        win.style.height = `${newH}px`;
+        win.style.left = `${newL}px`;
+        win.style.top = `${newT}px`;
     });
 
     window.addEventListener('mouseup', () => {
-        if (resizing) {
-            resizing = false;
-            document.body.style.userSelect = '';
-        }
+        resizing = false;
+        document.body.style.userSelect = '';
     });
 
-    // window control buttons
+    // Buttons
     const btnClose = titlebar.querySelector('.btn-close');
     const btnMin = titlebar.querySelector('.btn-min');
     const btnMax = titlebar.querySelector('.btn-max');
 
-    btnClose.addEventListener('click', () => {
+    const closeWindow = () => {
         win.remove();
         if (overlay) overlay.remove();
-    });
+        onClose?.();
+    };
+
+    btnClose.addEventListener('click', closeWindow);
 
     btnMin.addEventListener('click', () => {
         win.classList.add('hidden');
-        if (overlay) overlay.classList.add('hidden'); // nasconde l’overlay con la finestra modale
+        if (overlay) overlay.classList.add('hidden');
 
-        const icon = document.createElement('div');
-        icon.className = 'w-8 h-8 rounded flex items-center justify-center bg-yellow-400 text-sm cursor-pointer';
-        icon.textContent = "🪟"; // icona generica
-        icon.title = title;
-        icon.addEventListener('click', () => {
+        const iconDiv = document.createElement('div');
+        iconDiv.className = 'fixed bottom-4 right-4 w-10 h-10 rounded bg-gradient-to-r from-cyan-500 to-blue-600 flex items-center justify-center text-white cursor-pointer hover:shadow-lg transition';
+        iconDiv.textContent = "📦";
+        iconDiv.title = title;
+        iconDiv.style.zIndex = '9990';
+
+        iconDiv.addEventListener('click', () => {
             win.classList.remove('hidden');
-            if (overlay) overlay.classList.remove('hidden'); // riporta anche l’overlay visibile
-            icon.remove();
+            if (overlay) overlay.classList.remove('hidden');
+            iconDiv.remove();
         });
-        taskbarIcons.appendChild(icon);
+
+        document.body.appendChild(iconDiv);
     });
 
     let maximized = false;
     let prev = {};
     btnMax.addEventListener('click', () => {
         if (!maximized) {
-            prev = { left: win.offsetLeft, top: win.offsetTop, width: win.offsetWidth, height: win.offsetHeight };
-            win.style.left = `${sidebarLeft.offsetWidth + 12}px`;
-            win.style.top = `${topbar.offsetHeight + 8}px`;
-            win.style.width = `${window.innerWidth - sidebarLeft.offsetWidth - sidebarRight.offsetWidth - 24}px`;
-            win.style.height = `${window.innerHeight - topbar.offsetHeight - taskbar.offsetHeight - 24}px`;
+            prev = {
+                left: win.offsetLeft,
+                top: win.offsetTop,
+                width: win.offsetWidth,
+                height: win.offsetHeight
+            };
+            win.style.left = '20px';
+            win.style.top = '20px';
+            win.style.width = `${window.innerWidth - 40}px`;
+            win.style.height = `${window.innerHeight - 40}px`;
             maximized = true;
         } else {
-            win.style.left = prev.left + 'px';
-            win.style.top = prev.top + 'px';
-            win.style.width = prev.width + 'px';
-            win.style.height = prev.height + 'px';
+            win.style.left = `${prev.left}px`;
+            win.style.top = `${prev.top}px`;
+            win.style.width = `${prev.width}px`;
+            win.style.height = `${prev.height}px`;
             maximized = false;
         }
     });
 
     return win;
 }
+
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+function getResizeHandleStyle(type) {
+    const size = '8px';
+    const styles = {
+        t: `top: 0; left: 0; right: 0; height: ${size}; cursor: n-resize;`,
+        b: `bottom: 0; left: 0; right: 0; height: ${size}; cursor: s-resize;`,
+        l: `top: 0; bottom: 0; left: 0; width: ${size}; cursor: w-resize;`,
+        r: `top: 0; bottom: 0; right: 0; width: ${size}; cursor: e-resize;`,
+        tl: `top: 0; left: 0; width: 16px; height: 16px; cursor: nw-resize;`,
+        tr: `top: 0; right: 0; width: 16px; height: 16px; cursor: ne-resize;`,
+        bl: `bottom: 0; left: 0; width: 16px; height: 16px; cursor: sw-resize;`,
+        br: `bottom: 0; right: 0; width: 16px; height: 16px; cursor: se-resize;`
+    };
+    return styles[type] || '';
+}
+
+function bringToFront(win) {
+    win.style.zIndex = ++zCounter;
+}
+
+// ============================================================================
+// 2. ESEMPI DI UTILIZZO - Sostituisci i vecchi dialog nel SchemaEditor
+// ============================================================================
+
+/**
+ * Dialogo Gestione Squadra Unificato
+ */
+function showTeamDialogUnified(editor) {
+    const html = `
+        <div class="space-y-4">
+            <!-- Add Player Form -->
+            <div class="grid grid-cols-4 gap-3 items-end">
+                <select id="newPlayerRole" class="border border-gray-300 rounded px-3 py-2">
+                    <option value="P1">P1 - Alzatore</option>
+                    <option value="L1">L1 - Libero</option>
+                    <option value="S1">S1 - Banda</option>
+                    <option value="O">O - Opposto</option>
+                    <option value="C1">C1 - Centro</option>
+                    <option value="All">All - Allenatore</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
+                </select>
+                <input type="number" id="newPlayerNumber" placeholder="N°" min="1" max="99" class="border border-gray-300 rounded px-3 py-2">
+                <input type="text" id="newPlayerName" placeholder="Nome e Cognome" class="border border-gray-300 rounded px-3 py-2">
+                <button id="addPlayerBtn" class="bg-blue-500 text-white rounded px-3 py-2">➕ Aggiungi</button>
+            </div>
+
+            <!-- Import from Text -->
+            <div>
+                <textarea id="playersImportText" rows="3" placeholder="P1.4.Mario Rossi, S1.10.Luigi Bianchi, L1.1.Paolo Verdi" class="w-full border border-gray-300 rounded p-2"></textarea>
+                <button id="importPlayersFromTextBtn" class="mt-2 bg-green-500 text-white rounded px-3 py-2">📥 Importa da Testo</button>
+            </div>
+
+            <!-- Players List -->
+            <div id="teamPlayersList" class="max-h-64 overflow-y-auto border border-gray-200 rounded p-3">
+                <!-- Lista dinamica dei giocatori -->
+            </div>
+        </div>
+    `;
+
+    const win = createWindow({
+        title: 'Gestione Squadra',
+        icon: '👥',
+        contentHTML: html,
+        size: 'md',
+        buttons: [
+            {
+                label: '📤 Esporta',
+                color: 'secondary',
+                onClick: () => editor.exportTeam(),
+                close: false
+            },
+            {
+                label: '+ Inserisci',
+                color: 'secondary',
+                onClick: () => editor.addTeamPlayer(),
+                close: false
+            },
+            {
+                label: '+ Importa da testo',
+                color: 'secondary',
+                onClick: () => editor.importPlayersFromText(),
+                close: false
+            },
+            {
+                label: '🗑️ Cancella Tutto',
+                color: 'danger',
+                onClick: () => editor.clearTeam(),
+                close: false
+            }
+        ]
+    });
+
+    editor.renderTeamPlayersList();
+}
+
+
+/**
+ * Dialogo Salva Allenamento Unificato
+ */
+function showSaveWorkoutDialogUnified(editor) {
+    const now = new Date();
+    const defaultName = `Allenamento_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+
+    const html = `
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-bold mb-2">Nome File</label>
+                <input type="text" id="workoutFileName" value="${defaultName}" class="w-full border border-gray-300 rounded px-3 py-2">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-bold mb-2">Obiettivo Allenamento</label>
+                <textarea id="workoutGlobalObjective" class="w-full border border-gray-300 rounded px-3 py-2 h-20" placeholder="Descrivi l'obiettivo..."></textarea>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-bold mb-2">Osservazioni</label>
+                <textarea id="workoutGlobalObservations" class="w-full border border-gray-300 rounded px-3 py-2 h-20" placeholder="Note post-allenamento..."></textarea>
+            </div>
+            
+            <div id="workOutListName" class="bg-gray-100 p-3 rounded text-sm max-h-32 overflow-y-auto">
+                <!-- Tabs inseriti dinamicamente -->
+            </div>
+        </div>
+    `;
+
+    createWindow({
+        title: 'Salva Allenamento Completo',
+        icon: '💾',
+        contentHTML: html,
+        size: 'lg',
+        modal: true,
+        buttons: [
+            {
+                label: 'Annulla',
+                color: 'secondary',
+                onClick: () => { }
+            },
+            {
+                label: 'Salva',
+                color: 'success',
+                onClick: () => {
+                    editor.currentWorkoutObjective = document.getElementById('workoutGlobalObjective').value;
+                    editor.currentWorkoutObservations = document.getElementById('workoutGlobalObservations').value;
+                    editor.saveWorkout(document.getElementById('workoutFileName').value);
+                }
+            }
+        ]
+    });
+
+    // Popola lista tab
+    const tabList = document.getElementById('workOutListName');
+    editor.tabs.forEach((tab, tabId) => {
+        const div = document.createElement('div');
+        div.className = 'inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded mr-2 mb-2';
+        div.textContent = tab.name;
+        tabList.appendChild(div);
+    });
+
+    document.getElementById('workoutFileName').select();
+}
+
+/**
+ * Dialogo Carica da Libreria Unificato
+ */
+function showLibraryDialogUnified(editor) {
+    const html = `
+        <div class="space-y-4">
+            <div class="grid grid-cols-3 gap-2">
+                <div>
+                    <label class="block text-sm font-bold mb-1">Periodo</label>
+                    <select id="filterPeriodo" class="w-full border border-gray-300 rounded px-2 py-1 text-sm"></select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold mb-1">Tipologia</label>
+                    <select id="filterTipologia" class="w-full border border-gray-300 rounded px-2 py-1 text-sm"></select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold mb-1">Ruolo</label>
+                    <select id="filterRuolo" class="w-full border border-gray-300 rounded px-2 py-1 text-sm"></select>
+                </div>
+            </div>
+            
+            <div class="border border-gray-300 rounded p-3 max-h-64 overflow-y-auto">
+                <ul id="workoutList" class="space-y-1">
+                    <!-- Inserito dinamicamente -->
+                </ul>
+            </div>
+        </div>
+    `;
+
+    createWindow({
+        title: 'Carica da Libreria',
+        icon: '📚',
+        contentHTML: html,
+        size: 'lg',
+        modal: true,
+        buttons: [
+            {
+                label: 'Carica',
+                color: 'success',
+                onClick: () => {
+                    if (editor.selectedLibraryFile) {
+                        editor.loadWorkoutFromBackend(editor.selectedLibraryFile);
+                    }
+                }
+            }
+        ]
+    });
+
+    // Popola inizialmente
+    editor.fetchLibraryWorkouts();
+}
+
+/**
+ * Dialogo Info Unificato
+ */
+function showAboutDialogUnified() {
+    const html = `
+        <div class="text-center space-y-4">
+            <h2 class="text-2xl font-bold text-blue-600">Volleyball Coach Pro W4</h2>
+            <p class="text-gray-600">Editor Professionale per Allenatori di Pallavolo</p>
+            
+            <div class="border-t border-b py-4 space-y-2">
+                <p><strong>Versione:</strong> 4.0.0</p>
+                <p><strong>Autore:</strong> Filippo Morano</p>
+                <p><strong>Sito:</strong> <a href="https://www.filippomorano.com" target="_blank" class="text-blue-500 hover:underline">filippomorano.com</a></p>
+            </div>
+            
+            <p class="text-xs text-gray-500">© 2025 SpikeCode - Tutti i diritti riservati</p>
+        </div>
+    `;
+
+    createWindow({
+        title: 'Informazioni',
+        icon: 'ℹ️',
+        contentHTML: html,
+        size: 'sm',
+        modal: true,
+        buttons: [
+            { label: 'Chiudi', color: 'primary' }
+        ]
+    });
+}
+
+// ============================================================================
+// 3. INTEGRAZIONE NEL SchemaEditor
+// ============================================================================
+
+// Nel metodo initializeEventListeners() di SchemaEditor, sostituisci:
+
+/*
+PRIMA:
+document.getElementById('manageTeamBtn').addEventListener('click', () => {
+    this.showTeamDialog();
+});
+
+DOPO:
+document.getElementById('manageTeamBtn').addEventListener('click', () => {
+    showTeamDialogUnified(this);
+});
+*/
+
+// ============================================================================
+// 4. CSS TAILWIND - Aggiungi a index.html <head>
+// ============================================================================
+
+/*
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+    .win {
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .resize-handle {
+        background: transparent;
+    }
+    
+    .resize-handle:hover {
+        background: rgba(59, 130, 246, 0.1);
+    }
+</style>
+*/

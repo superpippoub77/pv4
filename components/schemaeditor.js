@@ -4619,7 +4619,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
         // Gestione squadra
         document.getElementById('manageTeamBtn').addEventListener('click', () => {
-            this.showTeamDialog();
+            showTeamDialogUnified(this);
         });
 
         document.getElementById('closeTeamDialog').addEventListener('click', () => {
