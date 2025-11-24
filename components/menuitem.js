@@ -49,7 +49,7 @@ function buildMenu(menuData) {
         menuBar.appendChild(item);
     });
 
-    document.body.prepend(menuBar);
+    document.getElementById("menu").appendChild(menuBar);
 }
 
 const menuData = [

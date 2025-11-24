@@ -64,6 +64,7 @@ class SchemaEditor {
         //this.initializeEventListeners();
         this.initializeExistingTabs();
         this.updateUI();
+        this.macroRecorder = new MacroRecorder(this);
     }
 
     addStep() {
@@ -3444,13 +3445,12 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
     showLoginModal() {
         document.getElementById('loginModal').style.display = 'flex';
-        document.querySelector('.container').style.display = 'none';
         document.getElementById('username').focus();
     }
 
     hideLoginModal() {
         document.getElementById('loginModal').style.display = 'none';
-        document.querySelector('.container').style.display = 'flex';
+
     }
 
     handleLogin() {
@@ -4695,6 +4695,30 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
 
         this.initMenuBar();
+
+        // Aggiungi pulsanti per macro recorder
+        document.getElementById('recordMacroBtn').addEventListener('click', () => {
+            const macroName = prompt('Nome macro:', '');
+            if (macroName) {
+                this.macroRecorder.startRecording(macroName);
+            }
+        });
+
+        document.getElementById('stopRecordBtn').addEventListener('click', () => {
+            if (this.macroRecorder.stopRecording()) {
+                const description = prompt('Descrizione (opzionale):', '');
+                this.macroRecorder.saveMacro(description);
+            }
+        });
+
+        document.getElementById('playMacroBtn').addEventListener('click', () => {
+            const macro = prompt('Nome macro da riprodurre:', '');
+            if (macro) {
+                this.macroRecorder.playMacro(macro);
+            }
+        });
+
+
     }
 
     initTeamDialogDrag() {

@@ -37,752 +37,764 @@
 </head>
 
 <body>
-    <!-- MENU -->
-    <div class="menu-bar"></div>
-    <!-- TOOL -->
-    <div class="toolbar">
-        <fieldset class="toolbar-group">
-            <legend data-i18n="toolbar_size">Dimensione</legend>
-            <label data-i18n="toolbar_size">Dimensione:</label>
-            <select id="canvasSizeSelect">
-                <option value="custom" data-i18n="size_custom">Personalizzato</option>
-                <option value="a5-portrait" data-i18n="size_a5_portrait">A5 Verticale</option>
-                <option value="a5-landscape" data-i18n="size_a5_landscape">A5 Orizzontale</option>
-                <option value="a4-portrait" data-i18n="size_a4_portrait">A4 Verticale</option>
-                <option value="a4-landscape" data-i18n="size_a4_landscape">A4 Orizzontale</option>
-                <option value="a3-portrait" data-i18n="size_a3_portrait">A3 Verticale</option>
-                <option value="a3-landscape" data-i18n="size_a3_landscape">A3 Orizzontale</option>
-                <option value="a2-portrait" data-i18n="size_a2_portrait">A2 Verticale</option>
-                <option value="a2-landscape" data-i18n="size_a2_landscape">A2 Orizzontale</option>
-                <option value="business-card" data-i18n="size_business_card">Biglietto da Visita</option>
-            </select>
-            <button id="toggleCanvasBorder" data-i18n="btn_toggle_borders">🖼️ Bordi</button>
+        <!-- MENU -->
+        <div id="menu"></div>
+        
+        <!-- TOOL -->
+        <div id="toolbar" class="toolbar">
+            <fieldset class="toolbar-group">
+                <legend data-i18n="toolbar_size">Dimensione</legend>
+                <label data-i18n="toolbar_size">Dimensione:</label>
+                <select id="canvasSizeSelect">
+                    <option value="custom" data-i18n="size_custom">Personalizzato</option>
+                    <option value="a5-portrait" data-i18n="size_a5_portrait">A5 Verticale</option>
+                    <option value="a5-landscape" data-i18n="size_a5_landscape">A5 Orizzontale</option>
+                    <option value="a4-portrait" data-i18n="size_a4_portrait">A4 Verticale</option>
+                    <option value="a4-landscape" data-i18n="size_a4_landscape">A4 Orizzontale</option>
+                    <option value="a3-portrait" data-i18n="size_a3_portrait">A3 Verticale</option>
+                    <option value="a3-landscape" data-i18n="size_a3_landscape">A3 Orizzontale</option>
+                    <option value="a2-portrait" data-i18n="size_a2_portrait">A2 Verticale</option>
+                    <option value="a2-landscape" data-i18n="size_a2_landscape">A2 Orizzontale</option>
+                    <option value="business-card" data-i18n="size_business_card">Biglietto da Visita</option>
+                </select>
+                <button id="toggleCanvasBorder" data-i18n="btn_toggle_borders">🖼️ Bordi</button>
 
-            <label data-i18n="label_background">Background:</label>
-            <select id="backgroundSelect">
-                <option value="none" data-i18n="bg_none">Nessuno</option>
-                <option value="half-field" data-i18n="bg_half_field">Metà</option>
-                <option value="full-field" data-i18n="bg_full_field">Intero</option>
-                <option value="3d-field" data-i18n="bg_3d_field">Campo 3D</option>
-            </select>
-            <button id="zoomOut" data-i18n="btn_zoom_out">➖</button>
-            <div class="zoom-display" id="zoomDisplay">100%</div>
-            <button id="zoomIn" data-i18n="btn_zoom_in">➕</button>
-            <button id="menu-notepad" data-i18n="btn_notepad">Apri Blocco Note</button>
+                <label data-i18n="label_background">Background:</label>
+                <select id="backgroundSelect">
+                    <option value="none" data-i18n="bg_none">Nessuno</option>
+                    <option value="half-field" data-i18n="bg_half_field">Metà</option>
+                    <option value="full-field" data-i18n="bg_full_field">Intero</option>
+                    <option value="3d-field" data-i18n="bg_3d_field">Campo 3D</option>
+                </select>
+                <button id="zoomOut" data-i18n="btn_zoom_out">➖</button>
+                <div class="zoom-display" id="zoomDisplay">100%</div>
+                <button id="zoomIn" data-i18n="btn_zoom_in">➕</button>
+                <button id="menu-notepad" data-i18n="btn_notepad">Apri Blocco Note</button>
 
-        </fieldset>
-        <fieldset class="toolbar-group">
-            <legend data-i18n="toolbar_team">Squadra</legend>
-            <button id="manageTeamBtn" data-i18n="btn_manage_team">👥 Gestisci Squadra</button>
-            <button id="togglePlayerNames" data-i18n="btn_toggle_names">🏷️ Nomi Giocatori</button>
-        </fieldset>
-        <fieldset class="toolbar-group">
-            <legend data-i18n="toolbar_order">Ordina</legend>
-            <button id="bringToFront" data-i18n="btn_to_front">⬆️ In primo piano</button>
-            <button id="sendToBack" data-i18n="btn_to_back">⬇️ In background</button>
-        </fieldset>
-        <fieldset class="toolbar-group">
-            <legend data-i18n="toolbar_view">Visualizza</legend>
-            <button id="gridToggle" data-i18n="btn_grid">📐 Griglia</button>
-            <button id="snapToGridBtn" data-i18n="btn_snap_grid">🧲 Allinea alla Griglia</button>
-            <button id="bwToggle" data-i18n="btn_bw">⚫ B/N</button>
-            <button id="dashedToggle" data-i18n="btn_dashed">⚡ Tratteggio</button>
-            <button id="toggleLabels" data-i18n="btn_labels">🔢 Etichette</button>
-            <button id="renumberObjects" data-i18n="btn_renumber">🔄 Rinumera</button>
-            <button id="exportPdfBtn" title="Esporta l'allenamento completo in un PDF strutturato."
-                data-i18n="btn_export_pdf_full">📄 Esporta
-                PDF</button>
-            <button id="freehandModeBtn" title="Attiva modalità disegno a mano libera." data-i18n="btn_freehand_draw">✏️
-                Disegno</button>
-            <button id="exportFormationsBtn" title="Genera foglio formazioni per partite con 5 set"
-                data-i18n="btn_export_formations">📋 Foglio
-                Formazioni</button>
-            <button id="showAnimationControls" data-i18n="btn_show_animation">🎬 Animazione</button>
-        </fieldset>
-        <fieldset class="toolbar-group">
-            <legend data-i18n="toolbar_edit">Modifica</legend>
-            <button id="rotateLeft" data-i18n="btn_rotate_left">↺</button>
-            <button id="rotateRight" data-i18n="btn_rotate_right">↻</button>
-            <button id="groupRotateLeft" data-i18n="btn_group_rotate_left">⟲ Ruota Gruppo -15°</button>
-            <button id="groupRotateRight" data-i18n="btn_group_rotate_right">⟳ Ruota Gruppo +15°</button>
-            <button id="undoBtn" data-i18n="btn_undo">⏪ Undo</button>
-            <button id="redoBtn" data-i18n="btn_redo">⏩ Redo</button>
-            <button id="historyBtn" title="Storico modifiche (Ctrl+H)" data-i18n="btn_history">📜
-                Storico</button>
-        </fieldset>
+            </fieldset>
+            <fieldset class="toolbar-group">
+                <legend data-i18n="toolbar_team">Squadra</legend>
+                <button id="manageTeamBtn" data-i18n="btn_manage_team">👥 Gestisci Squadra</button>
+                <button id="togglePlayerNames" data-i18n="btn_toggle_names">🏷️ Nomi Giocatori</button>
+            </fieldset>
+            <fieldset class="toolbar-group">
+                <legend data-i18n="toolbar_order">Ordina</legend>
+                <button id="bringToFront" data-i18n="btn_to_front">⬆️ In primo piano</button>
+                <button id="sendToBack" data-i18n="btn_to_back">⬇️ In background</button>
+            </fieldset>
+            <fieldset class="toolbar-group">
+                <legend data-i18n="toolbar_view">Visualizza</legend>
+                <button id="gridToggle" data-i18n="btn_grid">📐 Griglia</button>
+                <button id="snapToGridBtn" data-i18n="btn_snap_grid">🧲 Allinea alla Griglia</button>
+                <button id="bwToggle" data-i18n="btn_bw">⚫ B/N</button>
+                <button id="dashedToggle" data-i18n="btn_dashed">⚡ Tratteggio</button>
+                <button id="toggleLabels" data-i18n="btn_labels">🔢 Etichette</button>
+                <button id="renumberObjects" data-i18n="btn_renumber">🔄 Rinumera</button>
+                <button id="exportPdfBtn" title="Esporta l'allenamento completo in un PDF strutturato."
+                    data-i18n="btn_export_pdf_full">📄 Esporta
+                    PDF</button>
+                <button id="freehandModeBtn" title="Attiva modalità disegno a mano libera."
+                    data-i18n="btn_freehand_draw">✏️
+                    Disegno</button>
+                <button id="exportFormationsBtn" title="Genera foglio formazioni per partite con 5 set"
+                    data-i18n="btn_export_formations">📋 Foglio
+                    Formazioni</button>
+                <button id="showAnimationControls" data-i18n="btn_show_animation">🎬 Animazione</button>
+                <button id="recordMacroBtn" data-i18n="btn_record_start">⏺️</button>
+                <button id="stopRecordBtn" data-i18n="btn_record_stop">⏹️</button>
+                <button id="playMacroBtn" data-i18n="btn_record_play">▶️</button>
+            </fieldset>
+            <fieldset class="toolbar-group">
+                <legend data-i18n="toolbar_edit">Modifica</legend>
+                <button id="rotateLeft" data-i18n="btn_rotate_left">↺</button>
+                <button id="rotateRight" data-i18n="btn_rotate_right">↻</button>
+                <button id="groupRotateLeft" data-i18n="btn_group_rotate_left">⟲ Ruota Gruppo -15°</button>
+                <button id="groupRotateRight" data-i18n="btn_group_rotate_right">⟳ Ruota Gruppo +15°</button>
+                <button id="undoBtn" data-i18n="btn_undo">⏪ Undo</button>
+                <button id="redoBtn" data-i18n="btn_redo">⏩ Redo</button>
+                <button id="historyBtn" title="Storico modifiche (Ctrl+H)" data-i18n="btn_history">📜
+                    Storico</button>
+            </fieldset>
 
-        <fieldset class="toolbar-group">
-            <legend data-i18n="toolbar_file">File</legend>
-            <input type="text" id="schemaTitle" placeholder="Titolo schema"
-                data-i18n-placeholder="placeholder_schema_title">
-            <button id="saveBtn" data-i18n="btn_save_schema">💾 Salva</button>
-            <button id="saveWorkOutBtn" data-i18n="btn_save_workout">💾 Salva Allenamento</button>
-            <button id="loadBtn" data-i18n="btn_load_schema">📁 Carica</button>
-            <button id="loadWorkOutBtn" data-i18n="btn_load_workout">📁 Carica Allenamento</button>
-            <input type="file" id="fileInput" accept=".json" style="display: none;">
-            <input type="file" id="workoutFileInput" accept=".json" style="display: none;">
-            <button id="exportBtn" data-i18n="btn_export_schema">📤 Esporta</button>
-            <button id="exportWorkOutBtn" data-i18n="btn_export_workout_sheet">📤 Genera la scheda di
-                allenamento</button>
-            <button id="loadFromLibrary" data-i18n="btn_load_library">📁 Libreria</button>
-        </fieldset>
-        <fieldset class="toolbar-group">
-            <legend data-i18n="toolbar_user">Utente</legend>
-            <div class="user-info" id="userInfo" style="display: none;">
-                <span>👤 <span id="currentUsername"></span></span>
-                <button class="logout-button" id="logoutButton" data-i18n="btn_logout">Esci</button>
-            </div>
-            <legend data-i18n="language_legend">Lingua</legend>
-            <select id="languageSelector">
-                <option value="it" data-i18n="language_italian">Italiano</option>
-                <option value="en" data-i18n="language_english">English</option>
-                <option value="fr" data-i18n="language_french">Francese</option>
-            </select>
-        </fieldset>
-    </div>
-
-    <!-- MAIN CONTENT -->
-    <div class="container">
-
-
-        <div class="sidebar" id="sidebar">
-            <div class="component-category">
-                <h3 class="accordion-header active">👥 Giocatori</h3>
-                <div class="accordion-content active">
-                    <div class="component-grid">
-                        <div class="component-item" data-type="player" data-text='P1' data-color="">
-                            <div class="component-icon">🏃</div>
-                            <div data-i18n="player_setter_1">Alzatore 1</div>
-                        </div>
-                        <div class="component-item" data-type="player" data-text='L1' data-color="">
-                            <div class="component-icon">🏃</div>
-                            <div data-i18n="player_libero_1">Libero 1</div>
-                        </div>
-                        <div class="component-item" data-type="player" data-text='S1' data-color="">
-                            <div class="component-icon">🏃</div>
-                            <div data-i18n="player_spiker_1">Banda 1</div>
-                        </div>
-                        <div class="component-item" data-type="player" data-text='O1' data-color="">
-                            <div class="component-icon">🏃</div>
-                            <div data-i18n="player_opposite_1">Opp 1</div>
-                        </div>
-                        <div class="component-item" data-type="player" data-text='C1' data-color="">
-                            <div class="component-icon">🏃</div>
-                            <div data-i18n="player_middle_1">Centro 1</div>
-                        </div>
-                        <div class="component-item" data-type="player" data-text='All' data-color="">
-                            <div class="component-icon">🏃</div>
-                            <div data-i18n="role_coach">Allenatore</div>
-                        </div>
-                        <div class="component-item" data-type="player" data-text='Dir' data-color="">
-                            <div class="component-icon">🏃</div>
-                            <div data-i18n="role_manager">Dirigente</div>
-                        </div>
-                        <div class="component-item green" data-type="player" data-text='P2' data-color="">
-                            <div class="component-icon">🏃</div>
-                            <div data-i18n="player_setter_2">Alzatore 2</div>
-                        </div>
-                        <div class="component-item green" data-type="player" data-text='L2' data-color="">
-                            <div class="component-icon">🏃</div>
-                            <div data-i18n="player_libero_2">Libero 2</div>
-                        </div>
-                        <div class="component-item green" data-type="player" data-text='S2' data-color="">
-                            <div class="component-icon">🏃</div>
-                            <div data-i18n="player_spiker_2">Banda 2</div>
-                        </div>
-                        <div class="component-item green" data-type="player" data-text='O2' data-color="">
-                            <div class="component-icon">🏃</div>
-                            <div data-i18n="player_opposite_2">Opp 2</div>
-                        </div>
-                        <div class="component-item green" data-type="player" data-text='C2' data-color="">
-                            <div class="component-icon">🏃</div>
-                            <div data-i18n="player_middle_2">Centro 2</div>
-                        </div>
-                        <div class="component-item orange" data-type="player" data-text='A' data-color="">
-                            <div class="component-icon">🏃‍♂️</div>
-                            <div data-i18n="player_a">A</div>
-                        </div>
-                        <div class="component-item orange" data-type="player" data-text='B' data-color="">
-                            <div class="component-icon">🏃‍♂️</div>
-                            <div data-i18n="player_b">B</div>
-                        </div>
-                        <div class="component-item orange" data-type="player" data-text='C' data-color="">
-                            <div class="component-icon">🏃‍♂️</div>
-                            <div data-i18n="player_c">C</div>
-                        </div>
-                        <div class="component-item orange" data-type="player" data-text='D' data-color="">
-                            <div class="component-icon">🏃‍♂️</div>
-                            <div data-i18n="player_d">D</div>
-                        </div>
-                        <div class="component-item orange" data-type="player" data-text='E' data-color="">
-                            <div class="component-icon">🏃‍♂️</div>
-                            <div data-i18n="player_e">E</div>
-                        </div>
-                        <div class="component-item orange" data-type="player" data-text='F' data-color="">
-                            <div class="component-icon">🏃‍♂️</div>
-                            <div data-i18n="player_f">F</div>
-                        </div>
-                    </div>
+            <fieldset class="toolbar-group">
+                <legend data-i18n="toolbar_file">File</legend>
+                <input type="text" id="schemaTitle" placeholder="Titolo schema"
+                    data-i18n-placeholder="placeholder_schema_title">
+                <button id="saveBtn" data-i18n="btn_save_schema">💾 Salva</button>
+                <button id="saveWorkOutBtn" data-i18n="btn_save_workout">💾 Salva Allenamento</button>
+                <button id="loadBtn" data-i18n="btn_load_schema">📁 Carica</button>
+                <button id="loadWorkOutBtn" data-i18n="btn_load_workout">📁 Carica Allenamento</button>
+                <input type="file" id="fileInput" accept=".json" style="display: none;">
+                <input type="file" id="workoutFileInput" accept=".json" style="display: none;">
+                <button id="exportBtn" data-i18n="btn_export_schema">📤 Esporta</button>
+                <button id="exportWorkOutBtn" data-i18n="btn_export_workout_sheet">📤 Genera la scheda di
+                    allenamento</button>
+                <button id="loadFromLibrary" data-i18n="btn_load_library">📁 Libreria</button>
+            </fieldset>
+            <fieldset class="toolbar-group">
+                <legend data-i18n="toolbar_user">Utente</legend>
+                <div class="user-info" id="userInfo" style="display: none;">
+                    <span>👤 <span id="currentUsername"></span></span>
+                    <button class="logout-button" id="logoutButton" data-i18n="btn_logout">Esci</button>
                 </div>
-            </div>
-            <div class="component-category">
-                <h3 class="accordion-header">🏟️ Player</h3>
-                <div class="accordion-content">
-                    <div class="component-grid">
-                        <div class="component-item" data-type="volleyball-player-bagher" data-text="">
-                            <div class="component-icon">🏟️</div>
-                            <div data-i18n="action_bagher">Bagher</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="component-category">
-                <h3 class="accordion-header">🏟️ Campi</h3>
-                <div class="accordion-content">
-                    <div class="component-grid">
-                        <div class="component-item" data-type="court" data-text="">
-                            <div class="component-icon">🏟️</div>
-                            <div data-i18n="court_full">Intero</div>
-                        </div>
-                        <div class="component-item" data-type="half-court" data-text="">
-                            <div class="component-icon">🏟️</div>
-                            <div data-i18n="court_half">Metà</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="component-category">
-                <h3 class="accordion-header">🏐 Materiale</h3>
-                <div class="accordion-content">
-                    <div class="component-grid">
-                        <div class="component-item" data-type="ball" data-text="">
-                            <div class="component-icon">🏐</div>
-                            <div data-i18n="material_ball">Pallone</div>
-                        </div>
-                        <div class="component-item" data-type="mat" data-text="">
-                            <div class="component-icon">🟦</div>
-                            <div data-i18n="material_mat">Materassino</div>
-                        </div>
-                        <div class="component-item" data-type="net" data-text="">
-                            <div class="component-icon">🥅</div>
-                            <div data-i18n="material_net">Rete</div>
-                        </div>
-                        <div class="component-item" data-type="brick" data-text="">
-                            <div class="component-icon">🧱</div>
-                            <div data-i18n="material_brick">Mattone</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                <legend data-i18n="language_legend">Lingua</legend>
+                <select id="languageSelector">
+                    <option value="it" data-i18n="language_italian">Italiano</option>
+                    <option value="en" data-i18n="language_english">English</option>
+                    <option value="fr" data-i18n="language_french">Francese</option>
+                </select>
+            </fieldset>
+        </div>
 
-            <div class="component-category">
-                <h3 class="accordion-header">🔧 Strumenti</h3>
-                <div class="accordion-content">
-                    <div class="component-grid">
-                        <div class="component-item" data-type="text" data-text="Testo">
-                            <div class="component-icon">📝</div>
-                            <div data-i18n="tool_text">Testo</div>
-                        </div>
-                        <div class="component-item" id="arrowModeBtn">
-                            <div class="component-icon">➡️</div>
-                            <div data-i18n="tool_arrows">Frecce</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="component-category">
-                <h3 class="accordion-header">🎨 Icone</h3>
-                <div class="accordion-content">
-                    <div class="component-grid">
-                        <div class="component-item" data-type="icon" data-icon="fa-thin fa-volleyball" data-text="">
-                            <div class="component-icon"><i class="fa-thin fa-volleyball"></i></div>
-                            <div data-i18n="icon_ball">Pallone</div>
-                        </div>
-                        <!-- Icone Sport -->
-                        <div class="component-item" data-type="icon" data-icon="fas fa-trophy" data-text="">
-                            <div class="component-icon"><i class="fas fa-trophy"></i></div>
-                            <div data-i18n="icon_trophy">Trofeo</div>
-                        </div>
-                        <div class="component-item" data-type="icon" data-icon="fas fa-medal" data-text="">
-                            <div class="component-icon"><i class="fas fa-medal"></i></div>
-                            <div data-i18n="icon_medal">Medaglia</div>
-                        </div>
-                        <div class="component-item" data-type="icon" data-icon="fas fa-stopwatch" data-text="">
-                            <div class="component-icon"><i class="fas fa-stopwatch"></i></div>
-                            <div data-i18n="icon_stopwatch">Timer</div>
-                        </div>
-                        <div class="component-item" data-type="icon" data-icon="fas fa-whistle" data-text="">
-                            <div class="component-icon"><i class="fas fa-bullhorn"></i></div>
-                            <div data-i18n="icon_whistle">Fischietto</div>
-                        </div>
-                        <!-- Frecce e Direzioni -->
-                        <div class="component-item" data-type="icon" data-icon="fas fa-arrow-up" data-text="">
-                            <div class="component-icon"><i class="fas fa-arrow-up"></i></div>
-                            <div data-i18n="icon_arrow_up">Su</div>
-                        </div>
-                        <div class="component-item" data-type="icon" data-icon="fas fa-arrow-down" data-text="">
-                            <div class="component-icon"><i class="fas fa-arrow-down"></i></div>
-                            <div data-i18n="icon_arrow_down">Giù</div>
-                        </div>
-                        <div class="component-item" data-type="icon" data-icon="fas fa-arrow-left" data-text="">
-                            <div class="component-icon"><i class="fas fa-arrow-left"></i></div>
-                            <div data-i18n="icon_arrow_left">Sinistra</div>
-                        </div>
-                        <div class="component-item" data-type="icon" data-icon="fas fa-arrow-right" data-text="">
-                            <div class="component-icon"><i class="fas fa-arrow-right"></i></div>
-                            <div data-i18n="icon_arrow_right">Destra</div>
-                        </div>
-                        <!-- Simboli -->
-                        <div class="component-item" data-type="icon" data-icon="fas fa-star" data-text="">
-                            <div class="component-icon"><i class="fas fa-star"></i></div>
-                            <div data-i18n="icon_star">Stella</div>
-                        </div>
-                        <div class="component-item" data-type="icon" data-icon="fas fa-heart" data-text="">
-                            <div class="component-icon"><i class="fas fa-heart"></i></div>
-                            <div data-i18n="icon_heart">Cuore</div>
-                        </div>
-                        <div class="component-item" data-type="icon" data-icon="fas fa-check" data-text="">
-                            <div class="component-icon"><i class="fas fa-check"></i></div>
-                            <div data-i18n="icon_check">Check</div>
-                        </div>
-                        <div class="component-item" data-type="icon" data-icon="fa-solid fa-cart-shopping" data-text="">
-                            <div class="component-icon"><i class="fa-solid fa-cart-shopping"></i></div>
-                            <div data-i18n="icon_cart">Cart</div>
-                        </div>
-                        <div class="component-item" data-type="icon" data-icon="fa-solid fa-hands-holding" data-text="">
-                            <div class="component-icon"><i class="fa-solid fa-hands-holding"></i></div>
-                            <div data-i18n="icon_hands_holding">palleggio</div>
-                        </div>
-                        <div class="component-item" data-type="icon" data-icon="fas fa-times" data-text="">
-                            <div class="component-icon"><i class="fas fa-times"></i></div>
-                            <div data-i18n="icon_times">X</div>
-                        </div>
-                        <div class="component-item" data-type="icon" data-icon="fa-solid fa-caret-up" data-text="">
-                            <div class="component-icon"><i class="fa-solid fa-caret-up"></i></div>
-                            <div data-i18n="icon_cone">Cono</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <!-- MAIN CONTENT -->
+        <div id="container" class="container">
 
-            <div class="component-category">
-                <h3 class="accordion-header">🖼️ Immagini SVG Locali</h3>
-                <div class="accordion-content">
-                    <div class="component-grid">
-                        <div class="component-item" data-type="local-svg" data-src="data/images/volleyball_ball.svg">
-                            <div class="component-icon">
-                                <img src="data/images/volleyball_ball.svg" alt="Palla Sport"
-                                    style="width: 20px; height: 20px;" />
+
+            <div class="sidebar" id="sidebar">
+                <div class="component-category">
+                    <h3 class="accordion-header active">👥 Giocatori</h3>
+                    <div class="accordion-content active">
+                        <div class="component-grid">
+                            <div class="component-item" data-type="player" data-text='P1' data-color="">
+                                <div class="component-icon">🏃</div>
+                                <div data-i18n="player_setter_1">Alzatore 1</div>
                             </div>
-                            <div data-i18n="local_svg_volleyball_ball">Palla Sport</div>
-                        </div>
-
-                        <div class="component-item" data-type="local-svg" data-src="data/images/player-bagher.png">
-                            <div class="component-icon">
-                                <img src="data/images/player-bagher.png" alt="Campo volleyball"
-                                    style="width: 20px; height: 20px;" />
+                            <div class="component-item" data-type="player" data-text='L1' data-color="">
+                                <div class="component-icon">🏃</div>
+                                <div data-i18n="player_libero_1">Libero 1</div>
                             </div>
-                            <div data-i18n="local_svg_player_bagher">Player bagher</div>
-                        </div>
-                        <div class="component-item" data-type="local-svg"
-                            data-src="data/images/player-bagher-front.png">
-                            <div class="component-icon">
-                                <img src="data/images/player-bagher-front.png" alt="Campo volleyball"
-                                    style="width: 20px; height: 20px;" />
+                            <div class="component-item" data-type="player" data-text='S1' data-color="">
+                                <div class="component-icon">🏃</div>
+                                <div data-i18n="player_spiker_1">Banda 1</div>
                             </div>
-                            <div data-i18n="local_svg_player_bagher_front">Player front</div>
-                        </div>
-                        <div class="component-item" data-type="local-svg" data-src="data/images/player-jump-spike.png">
-                            <div class="component-icon">
-                                <img src="data/images/player-jump-spike.png" alt="Campo volleyball"
-                                    style="width: 20px; height: 20px;" />
+                            <div class="component-item" data-type="player" data-text='O1' data-color="">
+                                <div class="component-icon">🏃</div>
+                                <div data-i18n="player_opposite_1">Opp 1</div>
                             </div>
-                            <div data-i18n="local_svg_player_spike">Player spike</div>
-                        </div>
-                        <div class="component-item" data-type="local-svg" data-src="data/images/player-upball.png">
-                            <div class="component-icon">
-                                <img src="data/images/player-upball.png" alt="Campo volleyball"
-                                    style="width: 20px; height: 20px;" />
+                            <div class="component-item" data-type="player" data-text='C1' data-color="">
+                                <div class="component-icon">🏃</div>
+                                <div data-i18n="player_middle_1">Centro 1</div>
                             </div>
-                            <div data-i18n="local_svg_player_upball">Player up ball</div>
+                            <div class="component-item" data-type="player" data-text='All' data-color="">
+                                <div class="component-icon">🏃</div>
+                                <div data-i18n="role_coach">Allenatore</div>
+                            </div>
+                            <div class="component-item" data-type="player" data-text='Dir' data-color="">
+                                <div class="component-icon">🏃</div>
+                                <div data-i18n="role_manager">Dirigente</div>
+                            </div>
+                            <div class="component-item green" data-type="player" data-text='P2' data-color="">
+                                <div class="component-icon">🏃</div>
+                                <div data-i18n="player_setter_2">Alzatore 2</div>
+                            </div>
+                            <div class="component-item green" data-type="player" data-text='L2' data-color="">
+                                <div class="component-icon">🏃</div>
+                                <div data-i18n="player_libero_2">Libero 2</div>
+                            </div>
+                            <div class="component-item green" data-type="player" data-text='S2' data-color="">
+                                <div class="component-icon">🏃</div>
+                                <div data-i18n="player_spiker_2">Banda 2</div>
+                            </div>
+                            <div class="component-item green" data-type="player" data-text='O2' data-color="">
+                                <div class="component-icon">🏃</div>
+                                <div data-i18n="player_opposite_2">Opp 2</div>
+                            </div>
+                            <div class="component-item green" data-type="player" data-text='C2' data-color="">
+                                <div class="component-icon">🏃</div>
+                                <div data-i18n="player_middle_2">Centro 2</div>
+                            </div>
+                            <div class="component-item orange" data-type="player" data-text='A' data-color="">
+                                <div class="component-icon">🏃‍♂️</div>
+                                <div data-i18n="player_a">A</div>
+                            </div>
+                            <div class="component-item orange" data-type="player" data-text='B' data-color="">
+                                <div class="component-icon">🏃‍♂️</div>
+                                <div data-i18n="player_b">B</div>
+                            </div>
+                            <div class="component-item orange" data-type="player" data-text='C' data-color="">
+                                <div class="component-icon">🏃‍♂️</div>
+                                <div data-i18n="player_c">C</div>
+                            </div>
+                            <div class="component-item orange" data-type="player" data-text='D' data-color="">
+                                <div class="component-icon">🏃‍♂️</div>
+                                <div data-i18n="player_d">D</div>
+                            </div>
+                            <div class="component-item orange" data-type="player" data-text='E' data-color="">
+                                <div class="component-icon">🏃‍♂️</div>
+                                <div data-i18n="player_e">E</div>
+                            </div>
+                            <div class="component-item orange" data-type="player" data-text='F' data-color="">
+                                <div class="component-icon">🏃‍♂️</div>
+                                <div data-i18n="player_f">F</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="component-category">
-                <h3 class="accordion-header">🎬 Sprite Pallavolo</h3>
-                <div class="accordion-content">
-                    <div class="component-grid">
-                        <!-- Esempio: Giocatore che schiaccia -->
-                        <div class="component-item" data-type="sprite"
-                            data-sprite-sheet="data/images/sprites/volleyball-actions.png" data-sprite-cols="4"
-                            data-sprite-rows="2" data-sprite-frame="0" data-sprite-width="64" data-sprite-height="64">
+                <div class="component-category">
+                    <h3 class="accordion-header">🏟️ Player</h3>
+                    <div class="accordion-content">
+                        <div class="component-grid">
+                            <div class="component-item" data-type="volleyball-player-bagher" data-text="">
+                                <div class="component-icon">🏟️</div>
+                                <div data-i18n="action_bagher">Bagher</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="component-category">
+                    <h3 class="accordion-header">🏟️ Campi</h3>
+                    <div class="accordion-content">
+                        <div class="component-grid">
+                            <div class="component-item" data-type="court" data-text="">
+                                <div class="component-icon">🏟️</div>
+                                <div data-i18n="court_full">Intero</div>
+                            </div>
+                            <div class="component-item" data-type="half-court" data-text="">
+                                <div class="component-icon">🏟️</div>
+                                <div data-i18n="court_half">Metà</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="component-category">
+                    <h3 class="accordion-header">🏐 Materiale</h3>
+                    <div class="accordion-content">
+                        <div class="component-grid">
+                            <div class="component-item" data-type="ball" data-text="">
+                                <div class="component-icon">🏐</div>
+                                <div data-i18n="material_ball">Pallone</div>
+                            </div>
+                            <div class="component-item" data-type="mat" data-text="">
+                                <div class="component-icon">🟦</div>
+                                <div data-i18n="material_mat">Materassino</div>
+                            </div>
+                            <div class="component-item" data-type="net" data-text="">
+                                <div class="component-icon">🥅</div>
+                                <div data-i18n="material_net">Rete</div>
+                            </div>
+                            <div class="component-item" data-type="brick" data-text="">
+                                <div class="component-icon">🧱</div>
+                                <div data-i18n="material_brick">Mattone</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-                            <div class="component-icon">
-                                <div class="sprite-preview" style="
+                <div class="component-category">
+                    <h3 class="accordion-header">🔧 Strumenti</h3>
+                    <div class="accordion-content">
+                        <div class="component-grid">
+                            <div class="component-item" data-type="text" data-text="Testo">
+                                <div class="component-icon">📝</div>
+                                <div data-i18n="tool_text">Testo</div>
+                            </div>
+                            <div class="component-item" id="arrowModeBtn">
+                                <div class="component-icon">➡️</div>
+                                <div data-i18n="tool_arrows">Frecce</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="component-category">
+                    <h3 class="accordion-header">🎨 Icone</h3>
+                    <div class="accordion-content">
+                        <div class="component-grid">
+                            <div class="component-item" data-type="icon" data-icon="fa-thin fa-volleyball" data-text="">
+                                <div class="component-icon"><i class="fa-thin fa-volleyball"></i></div>
+                                <div data-i18n="icon_ball">Pallone</div>
+                            </div>
+                            <!-- Icone Sport -->
+                            <div class="component-item" data-type="icon" data-icon="fas fa-trophy" data-text="">
+                                <div class="component-icon"><i class="fas fa-trophy"></i></div>
+                                <div data-i18n="icon_trophy">Trofeo</div>
+                            </div>
+                            <div class="component-item" data-type="icon" data-icon="fas fa-medal" data-text="">
+                                <div class="component-icon"><i class="fas fa-medal"></i></div>
+                                <div data-i18n="icon_medal">Medaglia</div>
+                            </div>
+                            <div class="component-item" data-type="icon" data-icon="fas fa-stopwatch" data-text="">
+                                <div class="component-icon"><i class="fas fa-stopwatch"></i></div>
+                                <div data-i18n="icon_stopwatch">Timer</div>
+                            </div>
+                            <div class="component-item" data-type="icon" data-icon="fas fa-whistle" data-text="">
+                                <div class="component-icon"><i class="fas fa-bullhorn"></i></div>
+                                <div data-i18n="icon_whistle">Fischietto</div>
+                            </div>
+                            <!-- Frecce e Direzioni -->
+                            <div class="component-item" data-type="icon" data-icon="fas fa-arrow-up" data-text="">
+                                <div class="component-icon"><i class="fas fa-arrow-up"></i></div>
+                                <div data-i18n="icon_arrow_up">Su</div>
+                            </div>
+                            <div class="component-item" data-type="icon" data-icon="fas fa-arrow-down" data-text="">
+                                <div class="component-icon"><i class="fas fa-arrow-down"></i></div>
+                                <div data-i18n="icon_arrow_down">Giù</div>
+                            </div>
+                            <div class="component-item" data-type="icon" data-icon="fas fa-arrow-left" data-text="">
+                                <div class="component-icon"><i class="fas fa-arrow-left"></i></div>
+                                <div data-i18n="icon_arrow_left">Sinistra</div>
+                            </div>
+                            <div class="component-item" data-type="icon" data-icon="fas fa-arrow-right" data-text="">
+                                <div class="component-icon"><i class="fas fa-arrow-right"></i></div>
+                                <div data-i18n="icon_arrow_right">Destra</div>
+                            </div>
+                            <!-- Simboli -->
+                            <div class="component-item" data-type="icon" data-icon="fas fa-star" data-text="">
+                                <div class="component-icon"><i class="fas fa-star"></i></div>
+                                <div data-i18n="icon_star">Stella</div>
+                            </div>
+                            <div class="component-item" data-type="icon" data-icon="fas fa-heart" data-text="">
+                                <div class="component-icon"><i class="fas fa-heart"></i></div>
+                                <div data-i18n="icon_heart">Cuore</div>
+                            </div>
+                            <div class="component-item" data-type="icon" data-icon="fas fa-check" data-text="">
+                                <div class="component-icon"><i class="fas fa-check"></i></div>
+                                <div data-i18n="icon_check">Check</div>
+                            </div>
+                            <div class="component-item" data-type="icon" data-icon="fa-solid fa-cart-shopping"
+                                data-text="">
+                                <div class="component-icon"><i class="fa-solid fa-cart-shopping"></i></div>
+                                <div data-i18n="icon_cart">Cart</div>
+                            </div>
+                            <div class="component-item" data-type="icon" data-icon="fa-solid fa-hands-holding"
+                                data-text="">
+                                <div class="component-icon"><i class="fa-solid fa-hands-holding"></i></div>
+                                <div data-i18n="icon_hands_holding">palleggio</div>
+                            </div>
+                            <div class="component-item" data-type="icon" data-icon="fas fa-times" data-text="">
+                                <div class="component-icon"><i class="fas fa-times"></i></div>
+                                <div data-i18n="icon_times">X</div>
+                            </div>
+                            <div class="component-item" data-type="icon" data-icon="fa-solid fa-caret-up" data-text="">
+                                <div class="component-icon"><i class="fa-solid fa-caret-up"></i></div>
+                                <div data-i18n="icon_cone">Cono</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="component-category">
+                    <h3 class="accordion-header">🖼️ Immagini SVG Locali</h3>
+                    <div class="accordion-content">
+                        <div class="component-grid">
+                            <div class="component-item" data-type="local-svg"
+                                data-src="data/images/volleyball_ball.svg">
+                                <div class="component-icon">
+                                    <img src="data/images/volleyball_ball.svg" alt="Palla Sport"
+                                        style="width: 20px; height: 20px;" />
+                                </div>
+                                <div data-i18n="local_svg_volleyball_ball">Palla Sport</div>
+                            </div>
+
+                            <div class="component-item" data-type="local-svg" data-src="data/images/player-bagher.png">
+                                <div class="component-icon">
+                                    <img src="data/images/player-bagher.png" alt="Campo volleyball"
+                                        style="width: 20px; height: 20px;" />
+                                </div>
+                                <div data-i18n="local_svg_player_bagher">Player bagher</div>
+                            </div>
+                            <div class="component-item" data-type="local-svg"
+                                data-src="data/images/player-bagher-front.png">
+                                <div class="component-icon">
+                                    <img src="data/images/player-bagher-front.png" alt="Campo volleyball"
+                                        style="width: 20px; height: 20px;" />
+                                </div>
+                                <div data-i18n="local_svg_player_bagher_front">Player front</div>
+                            </div>
+                            <div class="component-item" data-type="local-svg"
+                                data-src="data/images/player-jump-spike.png">
+                                <div class="component-icon">
+                                    <img src="data/images/player-jump-spike.png" alt="Campo volleyball"
+                                        style="width: 20px; height: 20px;" />
+                                </div>
+                                <div data-i18n="local_svg_player_spike">Player spike</div>
+                            </div>
+                            <div class="component-item" data-type="local-svg" data-src="data/images/player-upball.png">
+                                <div class="component-icon">
+                                    <img src="data/images/player-upball.png" alt="Campo volleyball"
+                                        style="width: 20px; height: 20px;" />
+                                </div>
+                                <div data-i18n="local_svg_player_upball">Player up ball</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="component-category">
+                    <h3 class="accordion-header">🎬 Sprite Pallavolo</h3>
+                    <div class="accordion-content">
+                        <div class="component-grid">
+                            <!-- Esempio: Giocatore che schiaccia -->
+                            <div class="component-item" data-type="sprite"
+                                data-sprite-sheet="data/images/sprites/volleyball-actions.png" data-sprite-cols="4"
+                                data-sprite-rows="2" data-sprite-frame="0" data-sprite-width="64"
+                                data-sprite-height="64">
+
+                                <div class="component-icon">
+                                    <div class="sprite-preview" style="
                 background-image: url('data/images/sprites/volleyball-actions.png');
                 background-position: 0px 0px;
                 background-size: 256px 128px;
                 width: 64px;
                 height: 64px;
             ">
+                                    </div>
                                 </div>
+
+                                <div data-i18n="local_sprite_spike">Schiacciata</div>
                             </div>
 
-                            <div data-i18n="local_sprite_spike">Schiacciata</div>
-                        </div>
-
-                        <!-- Esempio: Giocatore in bagher -->
-                        <div class="component-item" data-type="sprite"
-                            data-sprite-sheet="data/images/sprites/volleyball-actions.png" data-sprite-cols="4"
-                            data-sprite-rows="2" data-sprite-frame="1" data-sprite-width="64" data-sprite-height="64">
-                            <div class="component-icon">
-                                <div class="sprite-preview" style="background: url('data/images/sprites/volleyball-actions.png'); 
+                            <!-- Esempio: Giocatore in bagher -->
+                            <div class="component-item" data-type="sprite"
+                                data-sprite-sheet="data/images/sprites/volleyball-actions.png" data-sprite-cols="4"
+                                data-sprite-rows="2" data-sprite-frame="1" data-sprite-width="64"
+                                data-sprite-height="64">
+                                <div class="component-icon">
+                                    <div class="sprite-preview" style="background: url('data/images/sprites/volleyball-actions.png'); 
                                 background-position: -64px 0; 
                                 background-size: 256px 128px; 
                                 width: 32px; 
                                 height: 32px;"></div>
+                                </div>
+                                <div data-i18n="local_sprite_bagher">Bagher</div>
                             </div>
-                            <div data-i18n="local_sprite_bagher">Bagher</div>
+
+                            <!-- Aggiungi altri frame qui -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="sidebar-handle" id="sidebarHandle">
+                <button class="sidebar-switch" id="sidebarSwitch">◀</button>
+            </div>
+
+            <div class="main-content">
+
+
+                <div class="tabs-container">
+                    <div class="tab active" data-tab-id="1">
+                        <input class='no-style tab-title' value='Schema 1' />
+                        <span class="tab-close">×</span>
+                    </div>
+                    <button class="add-tab" data-i18n="local_add_tab_btn">+ Nuovo</button>
+                </div>
+
+                <div class="canvas-container">
+                    <div class="canvas" id="canvas"></div>
+                    <svg style="position: absolute; width: 0; height: 0;">
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" />
+                            </marker>
+                        </defs>
+                    </svg>
+                </div>
+
+
+            </div>
+            <div class="right-sidebar-handle" id="rightSidebarHandle"><button class="right-sidebar-switch"
+                    id="rightSidebarSwitch">▶</button>
+            </div>
+            <div class="right-sidebar" id="rightSidebar">
+                <div class="exercise-steps">
+                    <h3 data-i18n="local_exercise_steps_heading">📝 Step Esercizio</h3>
+                    <div class="steps-controls">
+                        <input type="text" id="newStepInput" placeholder="Inserisci nuovo step...">
+                        <button id="addStepBtn" data-i18n="local_add_step_button">➕ Aggiungi</button>
+                    </div>
+                    <button id="generateAISteps" data-i18n="local_generate_ai_steps_button"
+                        style="width: 100%; margin: 10px 0; padding: 8px; background: #9b59b6; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                        ✨ Genera Step con AI
+                    </button>
+                    <div id="stepsList" class="steps-list">
+                        <!-- Gli step verranno inseriti qui dinamicamente -->
+                    </div>
+                </div>
+                <div class="workout-details">
+                    <h3 data-i18n="local_workout_details_heading">📋 Dettagli Esercizio</h3>
+                    <div class="detail-row">
+                        <div class="detail-field">
+                            <label for="workoutDate">Data:</label>
+                            <input type="text" id="workoutDate" placeholder="AAAA-MM-GG" pattern="\d{4}-\d{2}-\d{2}"
+                                title="Inserisci la data nel formato AAAA-MM-GG (es: 2025-01-30)" required>
+                        </div>
+                        <div class="detail-field">
+                            <label for="workoutPlace" data-i18n="local_workout_place_label">Dove:</label>
+                            <input type="text" id="workoutPlace">
+                        </div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-field">
+                            <label for="workoutGroups" data-i18n="local_workout_groups_label">Gruppo:</label>
+                            <select id="workoutGroups">
+                                <option value="*">All</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="5">6</option>
+                            </select>
+                        </div>
+                        <div class="detail-field">
+                            <label for="workoutRuolo" data-i18n="local_workout_role_label">Ruolo:</label>
+                            <select id="workoutRuolo">
+                                <option value="GEN">Generico</option>
+                                <option value="L">Libero</option>
+                                <option value="L1">Libero 1</option>
+                                <option value="L2">Libero 2</option>
+                                <option value="L+S">Libero + Schiacciatore</option>
+                                <option value="L+A">Libero + Alzatore</option>
+                                <option value="A">Alzatore</option>
+                                <option value="S">Schiacciatore</option>
+                                <option value="S1">Schiacciatore 1</option>
+                                <option value="S2">Schiacciatore 2</option>
+                                <option value="C">Centrale</option>
+                                <option value="C1">Centrale 1</option>
+                                <option value="C2">Centrale 2</option>
+                                <option value="O">Opposto</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-field">
+                            <label for="workoutNr" data-i18n="local_workout_repetitions_label">Ripetizioni:</label>
+                            <input type="text" id="workoutNr">
+                        </div>
+                        <div class="detail-field">
+                            <label for="workoutSeries" data-i18n="local_workout_series_label">Serie:</label>
+                            <input type="text" id="workoutSeries">
+                        </div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-field">
+                            <label for="workoutTiming" data-i18n="local_workout_duration_label">Durata (sec):</label>
+                            <input type="number" id="workoutTiming" min="0" max="600" value="1">
+                        </div>
+                        <div class="detail-field">
+                            <label for="workoutRec" data-i18n="local_workout_recovery_label">Recupero (sec):</label>
+                            <input type="number" id="workoutRec" min="0" max="600" value="60">
+                        </div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-field">
+                            <label for="workoutPeriodo" data-i18n="local_workout_period_label">Periodo:</label>
+                            <select id="workoutPeriodo">
+                                <option value="GEN">Generico</option>
+                                <option value="FIS">Preparazione fisica</option>
+                                <option value="CAM">Campionato</option>
+                                <option value="PRE">Pre-Campionato</option>
+                                <option value="POS">Post-Campionato</option>
+                            </select>
                         </div>
 
-                        <!-- Aggiungi altri frame qui -->
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="sidebar-handle" id="sidebarHandle">
-            <button class="sidebar-switch" id="sidebarSwitch">◀</button>
-        </div>
-
-        <div class="main-content">
 
 
-            <div class="tabs-container">
-                <div class="tab active" data-tab-id="1">
-                    <input class='no-style tab-title' value='Schema 1' />
-                    <span class="tab-close">×</span>
-                </div>
-                <button class="add-tab" data-i18n="local_add_tab_btn">+ Nuovo</button>
-            </div>
-
-            <div class="canvas-container">
-                <div class="canvas" id="canvas"></div>
-                <svg style="position: absolute; width: 0; height: 0;">
-                    <defs>
-                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-                            <polygon points="0 0, 10 3.5, 0 7" />
-                        </marker>
-                    </defs>
-                </svg>
-            </div>
-
-
-        </div>
-        <div class="right-sidebar-handle" id="rightSidebarHandle"><button class="right-sidebar-switch"
-                id="rightSidebarSwitch">▶</button>
-        </div>
-        <div class="right-sidebar" id="rightSidebar">
-            <div class="exercise-steps">
-                <h3 data-i18n="local_exercise_steps_heading">📝 Step Esercizio</h3>
-                <div class="steps-controls">
-                    <input type="text" id="newStepInput" placeholder="Inserisci nuovo step...">
-                    <button id="addStepBtn" data-i18n="local_add_step_button">➕ Aggiungi</button>
-                </div>
-                <button id="generateAISteps" data-i18n="local_generate_ai_steps_button"
-                    style="width: 100%; margin: 10px 0; padding: 8px; background: #9b59b6; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                    ✨ Genera Step con AI
-                </button>
-                <div id="stepsList" class="steps-list">
-                    <!-- Gli step verranno inseriti qui dinamicamente -->
-                </div>
-            </div>
-            <div class="workout-details">
-                <h3 data-i18n="local_workout_details_heading">📋 Dettagli Esercizio</h3>
-                <div class="detail-row">
-                    <div class="detail-field">
-                        <label for="workoutDate">Data:</label>
-                        <input type="text" id="workoutDate" placeholder="AAAA-MM-GG" pattern="\d{4}-\d{2}-\d{2}"
-                            title="Inserisci la data nel formato AAAA-MM-GG (es: 2025-01-30)" required>
-                    </div>
-                    <div class="detail-field">
-                        <label for="workoutPlace" data-i18n="local_workout_place_label">Dove:</label>
-                        <input type="text" id="workoutPlace">
-                    </div>
-                </div>
-                <div class="detail-row">
-                    <div class="detail-field">
-                        <label for="workoutGroups" data-i18n="local_workout_groups_label">Gruppo:</label>
-                        <select id="workoutGroups">
-                            <option value="*">All</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5">5</option>
-                            <option value="5">6</option>
-                        </select>
-                    </div>
-                    <div class="detail-field">
-                        <label for="workoutRuolo" data-i18n="local_workout_role_label">Ruolo:</label>
-                        <select id="workoutRuolo">
-                            <option value="GEN">Generico</option>
-                            <option value="L">Libero</option>
-                            <option value="L1">Libero 1</option>
-                            <option value="L2">Libero 2</option>
-                            <option value="L+S">Libero + Schiacciatore</option>
-                            <option value="L+A">Libero + Alzatore</option>
-                            <option value="A">Alzatore</option>
-                            <option value="S">Schiacciatore</option>
-                            <option value="S1">Schiacciatore 1</option>
-                            <option value="S2">Schiacciatore 2</option>
-                            <option value="C">Centrale</option>
-                            <option value="C1">Centrale 1</option>
-                            <option value="C2">Centrale 2</option>
-                            <option value="O">Opposto</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="detail-row">
-                    <div class="detail-field">
-                        <label for="workoutNr" data-i18n="local_workout_repetitions_label">Ripetizioni:</label>
-                        <input type="text" id="workoutNr">
-                    </div>
-                    <div class="detail-field">
-                        <label for="workoutSeries" data-i18n="local_workout_series_label">Serie:</label>
-                        <input type="text" id="workoutSeries">
-                    </div>
-                </div>
-                <div class="detail-row">
-                    <div class="detail-field">
-                        <label for="workoutTiming" data-i18n="local_workout_duration_label">Durata (sec):</label>
-                        <input type="number" id="workoutTiming" min="0" max="600" value="1">
-                    </div>
-                    <div class="detail-field">
-                        <label for="workoutRec" data-i18n="local_workout_recovery_label">Recupero (sec):</label>
-                        <input type="number" id="workoutRec" min="0" max="600" value="60">
-                    </div>
-                </div>
-                <div class="detail-row">
-                    <div class="detail-field">
-                        <label for="workoutPeriodo" data-i18n="local_workout_period_label">Periodo:</label>
-                        <select id="workoutPeriodo">
-                            <option value="GEN">Generico</option>
-                            <option value="FIS">Preparazione fisica</option>
-                            <option value="CAM">Campionato</option>
-                            <option value="PRE">Pre-Campionato</option>
-                            <option value="POS">Post-Campionato</option>
-                        </select>
-                    </div>
-
-
-
-                    <div class="detail-field">
-                        <label for="workoutTipologia" data-i18n="local_workout_typology_label">Tipologia:</label>
-                        <select id="workoutTipologia">
-                            <option value="GEN">Generico</option>
-                            <option value="ANA">Analitico</option>
-                            <option value="SIN">Sintetico</option>
-                            <option value="GLO">Globale</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="detail-row">
-
-                    <!-- ✅ NUOVI CAMPI AGGIUNTI -->
-                    <div class="detail-field">
-                        <label for="workoutGenere" data-i18n="local_workout_gender_label">Genere:</label>
-                        <select id="workoutGenere">
-                            <option value="GEN">Generico</option>
-                            <option value="MIS">Misto</option>
-                            <option value="M">Maschile</option>
-                            <option value="F">Femminile</option>
-                        </select>
-                    </div>
-                    <div class="detail-field">
-                        <label for="workoutCategoria" data-i18n="local_workout_category_label">Categoria:</label>
-                        <select id="workoutCategoria">
-                            <optgroup label="🎯 Generica">
+                        <div class="detail-field">
+                            <label for="workoutTipologia" data-i18n="local_workout_typology_label">Tipologia:</label>
+                            <select id="workoutTipologia">
                                 <option value="GEN">Generico</option>
-                            </optgroup>
-                            <optgroup label="👶 Giovanili Maschili">
-                                <option value="U12M">Under 12 M</option>
-                                <option value="U13M">Under 13 M</option>
-                                <option value="U14M">Under 14 M</option>
-                                <option value="U15M">Under 15 M</option>
-                                <option value="U16M">Under 16 M</option>
-                                <option value="U17M">Under 17 M</option>
-                                <option value="U18M">Under 18 M</option>
-                                <option value="U19M">Under 19 M</option>
-                            </optgroup>
-                            <optgroup label="👧 Giovanili Femminili">
-                                <option value="U12F">Under 12 F</option>
-                                <option value="U13F">Under 13 F</option>
-                                <option value="U14F">Under 14 F</option>
-                                <option value="U16F">Under 16 F</option>
-                                <option value="U18F">Under 18 F</option>
-                            </optgroup>
-                            <optgroup label="🏆 Senior Maschili">
-                                <option value="A1M">Superlega (A1) M</option>
-                                <option value="A2M">Serie A2 M</option>
-                                <option value="A3M">Serie A3 M</option>
-                                <option value="BM">Serie B M</option>
-                                <option value="CM">Serie C M</option>
-                                <option value="DM">Serie D M</option>
-                                <option value="1DM">Prima Divisione M</option>
-                                <option value="2DM">Seconda Divisione M</option>
-                                <option value="3DM">Terza Divisione M</option>
-                            </optgroup>
-                            <optgroup label="🏐 Senior Femminili">
-                                <option value="A1F">Serie A1 F</option>
-                                <option value="A2F">Serie A2 F</option>
-                                <option value="A3F">Serie A3 F</option>
-                                <option value="B1F">Serie B1 F</option>
-                                <option value="B2F">Serie B2 F</option>
-                                <option value="CF">Serie C F</option>
-                                <option value="DF">Serie D F</option>
-                                <option value="1DF">Prima Divisione F</option>
-                                <option value="2DF">Seconda Divisione F</option>
-                                <option value="3DF">Terza Divisione F</option>
-                            </optgroup>
-                            <optgroup label="🌊 Altri">
-                                <option value="BEACH">Beach Volley</option>
-                                <option value="SNOW">Snow Volley</option>
-                                <option value="CSI">CSI/UISP</option>
-                                <option value="SCO">Scolastico</option>
-                            </optgroup>
-                        </select>
+                                <option value="ANA">Analitico</option>
+                                <option value="SIN">Sintetico</option>
+                                <option value="GLO">Globale</option>
+                            </select>
+                        </div>
                     </div>
-                </div>
-                <div class="detail-field">
-                    <label for="workoutDescrizione" data-i18n="local_workout_notes_label">Note:</label>
-                    <textarea id="workoutDescrizione" placeholder="Inserisci note sull'allenamento..."></textarea>
-                </div>
+                    <div class="detail-row">
 
-                <div class="detail-field">
-                    <label for="workoutAutore" data-i18n="local_workout_author_label">Autore:</label>
-                    <input type="text" id="workoutAutore" readonly
-                        style="background: #95a5a6; cursor: not-allowed; border:none; width:100%;">
+                        <!-- ✅ NUOVI CAMPI AGGIUNTI -->
+                        <div class="detail-field">
+                            <label for="workoutGenere" data-i18n="local_workout_gender_label">Genere:</label>
+                            <select id="workoutGenere">
+                                <option value="GEN">Generico</option>
+                                <option value="MIS">Misto</option>
+                                <option value="M">Maschile</option>
+                                <option value="F">Femminile</option>
+                            </select>
+                        </div>
+                        <div class="detail-field">
+                            <label for="workoutCategoria" data-i18n="local_workout_category_label">Categoria:</label>
+                            <select id="workoutCategoria">
+                                <optgroup label="🎯 Generica">
+                                    <option value="GEN">Generico</option>
+                                </optgroup>
+                                <optgroup label="👶 Giovanili Maschili">
+                                    <option value="U12M">Under 12 M</option>
+                                    <option value="U13M">Under 13 M</option>
+                                    <option value="U14M">Under 14 M</option>
+                                    <option value="U15M">Under 15 M</option>
+                                    <option value="U16M">Under 16 M</option>
+                                    <option value="U17M">Under 17 M</option>
+                                    <option value="U18M">Under 18 M</option>
+                                    <option value="U19M">Under 19 M</option>
+                                </optgroup>
+                                <optgroup label="👧 Giovanili Femminili">
+                                    <option value="U12F">Under 12 F</option>
+                                    <option value="U13F">Under 13 F</option>
+                                    <option value="U14F">Under 14 F</option>
+                                    <option value="U16F">Under 16 F</option>
+                                    <option value="U18F">Under 18 F</option>
+                                </optgroup>
+                                <optgroup label="🏆 Senior Maschili">
+                                    <option value="A1M">Superlega (A1) M</option>
+                                    <option value="A2M">Serie A2 M</option>
+                                    <option value="A3M">Serie A3 M</option>
+                                    <option value="BM">Serie B M</option>
+                                    <option value="CM">Serie C M</option>
+                                    <option value="DM">Serie D M</option>
+                                    <option value="1DM">Prima Divisione M</option>
+                                    <option value="2DM">Seconda Divisione M</option>
+                                    <option value="3DM">Terza Divisione M</option>
+                                </optgroup>
+                                <optgroup label="🏐 Senior Femminili">
+                                    <option value="A1F">Serie A1 F</option>
+                                    <option value="A2F">Serie A2 F</option>
+                                    <option value="A3F">Serie A3 F</option>
+                                    <option value="B1F">Serie B1 F</option>
+                                    <option value="B2F">Serie B2 F</option>
+                                    <option value="CF">Serie C F</option>
+                                    <option value="DF">Serie D F</option>
+                                    <option value="1DF">Prima Divisione F</option>
+                                    <option value="2DF">Seconda Divisione F</option>
+                                    <option value="3DF">Terza Divisione F</option>
+                                </optgroup>
+                                <optgroup label="🌊 Altri">
+                                    <option value="BEACH">Beach Volley</option>
+                                    <option value="SNOW">Snow Volley</option>
+                                    <option value="CSI">CSI/UISP</option>
+                                    <option value="SCO">Scolastico</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="detail-field">
+                        <label for="workoutDescrizione" data-i18n="local_workout_notes_label">Note:</label>
+                        <textarea id="workoutDescrizione" placeholder="Inserisci note sull'allenamento..."></textarea>
+                    </div>
+
+                    <div class="detail-field">
+                        <label for="workoutAutore" data-i18n="local_workout_author_label">Autore:</label>
+                        <input type="text" id="workoutAutore" readonly
+                            style="background: #95a5a6; cursor: not-allowed; border:none; width:100%;">
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- FOOTER HANDLE BUTTON -->
-    <!-- <div class="bottom-sidebar-handle" id="bottomSidebarHandle">
+        <!-- FOOTER HANDLE BUTTON -->
+        <!-- <div class="bottom-sidebar-handle" id="bottomSidebarHandle">
         <button class="bottom-sidebar-switch" id="bottomSidebarSwitch">▼</button>
     </div> -->
-    <!-- FOOTER -->
-    <div class="footer" id="footer">
-        <div class="bottom-toolbar-group">
-            <fieldset id="objectControls" class="toolbar-group fixed form-grid" style="display: none">
-                <legend data-i18n="local_object_legend">Oggetto</legend>
+        <!-- FOOTER -->
+        <div id="footer" class="footer">
+            <div class="bottom-toolbar-group">
+                <fieldset id="objectControls" class="toolbar-group fixed form-grid" style="display: none">
+                    <legend data-i18n="local_object_legend">Oggetto</legend>
 
-                <label data-i18n="local_object_color_label">Colore oggetto:</label>
-                <input type="color" class="color-picker" id="objectColor" value="#3498db">
+                    <label data-i18n="local_object_color_label">Colore oggetto:</label>
+                    <input type="color" class="color-picker" id="objectColor" value="#3498db">
 
-                <label data-i18n="local_object_opacity_label">Opacità:</label>
-                <input type="range" id="objectOpacity" min="0" max="1" value="1" step="0.01">
+                    <label data-i18n="local_object_opacity_label">Opacità:</label>
+                    <input type="range" id="objectOpacity" min="0" max="1" value="1" step="0.01">
 
-                <label data-i18n="local_object_opacity_value_label">Valore opacità:</label>
-                <input type="number" id="objectOpacityValue" class="small-input" min="0" max="1" step="0.01"
-                    value="1.00">
+                    <label data-i18n="local_object_opacity_value_label">Valore opacità:</label>
+                    <input type="number" id="objectOpacityValue" class="small-input" min="0" max="1" step="0.01"
+                        value="1.00">
 
-                <label data-i18n="local_object_text_label">Testo:</label>
-                <input type="text" id="objectText" placeholder="Modifica testo">
+                    <label data-i18n="local_object_text_label">Testo:</label>
+                    <input type="text" id="objectText" placeholder="Modifica testo">
 
-                <label data-i18n="local_object_number_label">Numero etichetta:</label>
-                <input type="number" id="objectNumber" min="1" placeholder="Numero" class="small-input">
+                    <label data-i18n="local_object_number_label">Numero etichetta:</label>
+                    <input type="number" id="objectNumber" min="1" placeholder="Numero" class="small-input">
 
-                <button id="dashedObjectToggle" class="toolbar-button"
-                    data-i18n="local_dashed_object_toggle">Tratteggiato</button>
-                <button id="deleteBtn" data-i18n="local_delete_button">🗑️ Elimina</button>
+                    <button id="dashedObjectToggle" class="toolbar-button"
+                        data-i18n="local_dashed_object_toggle">Tratteggiato</button>
+                    <button id="deleteBtn" data-i18n="local_delete_button">🗑️ Elimina</button>
 
-            </fieldset>
+                </fieldset>
 
-            <fieldset id="arrowControls" class="toolbar-group" style="display: none">
-                <legend data-i18n="local_arrow_legend">Freccia</legend>
-                <div class="color-picker-container">
-                    <label data-i18n="local_arrow_color_label">Colore freccia:</label>
-                    <input type="color" class="color-picker" id="arrowColor" value="#000000">
-                </div>
-                <div>
-                    <label data-i18n="local_arrow_opacity_label">Opacità:</label>
-                    <input type="range" id="arrowOpacity" min="0" max="1" value="1" step="0.01">
-                    <span id="arrowOpacityValue">1.00</span>
-                </div>
-                <div>
-                    <label data-i18n="local_arrow_thickness_label">Spessore:</label>
-                    <input type="range" id="arrowThickness" min="1" max="10" value="3">
-                    <span id="thicknessValue">3</span>
-                </div>
-                <div class="arrow-type-controls">
-                    <label data-i18n="local_arrow_type_label">Tipo:</label>
-                    <button id="arrowTypeLinear" class="arrow-type-btn"
-                        data-i18n="local_arrow_type_linear">Lineare</button>
-                    <button id="arrowTypeCurved" class="arrow-type-btn"
-                        data-i18n="local_arrow_type_curved">Curva</button>
-                    <button id="arrowTypeZigzag" class="arrow-type-btn"
-                        data-i18n="local_arrow_type_zigzag">Zigzag</button>
-                </div>
-                <button id="dashedArrowToggle" class="toolbar-button" data-i18n="local_dashed_arrow_toggle">Freccia
-                    Tratteggiata</button>
-                <div class="arrow-marker-controls">
-                    <input type="checkbox" id="arrowMarkerStart"><label
-                        data-i18n="local_arrow_marker_start_label">Inizio</label>
-                    <input type="checkbox" id="arrowMarkerEnd" checked><label
-                        data-i18n="local_arrow_marker_end_label">Fine</label>
-                </div>
-            </fieldset>
+                <fieldset id="arrowControls" class="toolbar-group" style="display: none">
+                    <legend data-i18n="local_arrow_legend">Freccia</legend>
+                    <div class="color-picker-container">
+                        <label data-i18n="local_arrow_color_label">Colore freccia:</label>
+                        <input type="color" class="color-picker" id="arrowColor" value="#000000">
+                    </div>
+                    <div>
+                        <label data-i18n="local_arrow_opacity_label">Opacità:</label>
+                        <input type="range" id="arrowOpacity" min="0" max="1" value="1" step="0.01">
+                        <span id="arrowOpacityValue">1.00</span>
+                    </div>
+                    <div>
+                        <label data-i18n="local_arrow_thickness_label">Spessore:</label>
+                        <input type="range" id="arrowThickness" min="1" max="10" value="3">
+                        <span id="thicknessValue">3</span>
+                    </div>
+                    <div class="arrow-type-controls">
+                        <label data-i18n="local_arrow_type_label">Tipo:</label>
+                        <button id="arrowTypeLinear" class="arrow-type-btn"
+                            data-i18n="local_arrow_type_linear">Lineare</button>
+                        <button id="arrowTypeCurved" class="arrow-type-btn"
+                            data-i18n="local_arrow_type_curved">Curva</button>
+                        <button id="arrowTypeZigzag" class="arrow-type-btn"
+                            data-i18n="local_arrow_type_zigzag">Zigzag</button>
+                    </div>
+                    <button id="dashedArrowToggle" class="toolbar-button" data-i18n="local_dashed_arrow_toggle">Freccia
+                        Tratteggiata</button>
+                    <div class="arrow-marker-controls">
+                        <input type="checkbox" id="arrowMarkerStart"><label
+                            data-i18n="local_arrow_marker_start_label">Inizio</label>
+                        <input type="checkbox" id="arrowMarkerEnd" checked><label
+                            data-i18n="local_arrow_marker_end_label">Fine</label>
+                    </div>
+                </fieldset>
 
-            <fieldset id="spriteControls" class="toolbar-group" style="display: none">
-                <legend data-i18n="local_sprite_legend">Sprite</legend>
-                <div>
-                    <label data-i18n="local_sprite_current_frame_label">Frame corrente:</label>
-                    <input type="number" id="spriteCurrentFrame" min="0" max="7" value="0" style="width: 60px;">
-                    <span id="spriteFrameInfo">(0-7)</span>
-                </div>
+                <fieldset id="spriteControls" class="toolbar-group" style="display: none">
+                    <legend data-i18n="local_sprite_legend">Sprite</legend>
+                    <div>
+                        <label data-i18n="local_sprite_current_frame_label">Frame corrente:</label>
+                        <input type="number" id="spriteCurrentFrame" min="0" max="7" value="0" style="width: 60px;">
+                        <span id="spriteFrameInfo">(0-7)</span>
+                    </div>
 
-                <div class="sprite-animation-controls">
-                    <label data-i18n="local_sprite_animation_label">Animazione:</label>
-                    <input type="text" id="spriteAnimationFrames" placeholder="es: 0,1,2,3" style="width: 120px;"
-                        title="Sequenza frame separati da virgola">
-                    <label data-i18n="local_sprite_animation_fps_label">FPS:</label>
-                    <input type="number" id="spriteAnimationFPS" min="1" max="60" value="10" style="width: 60px;">
-                    <button id="spritePlayAnimation" class="toolbar-button">▶ Play</button>
-                    <button id="spriteStopAnimation" class="toolbar-button" style="display: none;">⏸
-                        Stop</button>
-                </div>
+                    <div class="sprite-animation-controls">
+                        <label data-i18n="local_sprite_animation_label">Animazione:</label>
+                        <input type="text" id="spriteAnimationFrames" placeholder="es: 0,1,2,3" style="width: 120px;"
+                            title="Sequenza frame separati da virgola">
+                        <label data-i18n="local_sprite_animation_fps_label">FPS:</label>
+                        <input type="number" id="spriteAnimationFPS" min="1" max="60" value="10" style="width: 60px;">
+                        <button id="spritePlayAnimation" class="toolbar-button">▶ Play</button>
+                        <button id="spriteStopAnimation" class="toolbar-button" style="display: none;">⏸
+                            Stop</button>
+                    </div>
 
-                <div>
-                    <label data-i18n="local_sprite_frame_size_label">Dimensioni frame:</label>
-                    <input type="number" id="spriteFrameWidth" min="8" max="512" value="64" style="width: 60px;">
-                    <span>×</span>
-                    <input type="number" id="spriteFrameHeight" min="8" max="512" value="64" style="width: 60px;">
-                    <button id="spriteApplySize" class="toolbar-button">Applica</button>
-                </div>
-            </fieldset>
+                    <div>
+                        <label data-i18n="local_sprite_frame_size_label">Dimensioni frame:</label>
+                        <input type="number" id="spriteFrameWidth" min="8" max="512" value="64" style="width: 60px;">
+                        <span>×</span>
+                        <input type="number" id="spriteFrameHeight" min="8" max="512" value="64" style="width: 60px;">
+                        <button id="spriteApplySize" class="toolbar-button">Applica</button>
+                    </div>
+                </fieldset>
 
-            <fieldset id="freehandControls" class="toolbar-group" style="display: none">
-                <legend data-i18n="local_freehand_legend">Disegno a mano libera</legend>
-                <div class="color-picker-container">
-                    <label data-i18n="local_freehand_color_label">Colore traccia:</label>
-                    <input type="color" class="color-picker" id="freehandColor" value="#000000">
-                </div>
-                <div>
-                    <label data-i18n="local_freehand_thickness_label">Spessore:</label>
-                    <input type="range" id="freehandThickness" min="1" max="15" value="3">
-                    <span id="freehandThicknessValue">3</span>
-                </div>
-                <div>
-                    <label data-i18n="local_freehand_opacity_label">Opacità:</label>
-                    <input type="range" id="freehandOpacity" min="0" max="1" value="1" step="0.01">
-                    <span id="freehandOpacityValue">1.00</span>
-                </div>
-            </fieldset>
-            <fieldset id="objectInfo" class="toolbar-group" data-i18n="local_no_object_selected">Nessun oggetto selezionato</fieldset>
+                <fieldset id="freehandControls" class="toolbar-group" style="display: none">
+                    <legend data-i18n="local_freehand_legend">Disegno a mano libera</legend>
+                    <div class="color-picker-container">
+                        <label data-i18n="local_freehand_color_label">Colore traccia:</label>
+                        <input type="color" class="color-picker" id="freehandColor" value="#000000">
+                    </div>
+                    <div>
+                        <label data-i18n="local_freehand_thickness_label">Spessore:</label>
+                        <input type="range" id="freehandThickness" min="1" max="15" value="3">
+                        <span id="freehandThicknessValue">3</span>
+                    </div>
+                    <div>
+                        <label data-i18n="local_freehand_opacity_label">Opacità:</label>
+                        <input type="range" id="freehandOpacity" min="0" max="1" value="1" step="0.01">
+                        <span id="freehandOpacityValue">1.00</span>
+                    </div>
+                </fieldset>
+                <fieldset id="objectInfo" class="toolbar-group" data-i18n="local_no_object_selected">Nessun oggetto
+                    selezionato</fieldset>
+            </div>
         </div>
-    </div>
 
     <script>
         //const editor = new SchemaEditor();

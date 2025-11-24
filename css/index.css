@@ -3,12 +3,14 @@
     padding: 0;
     box-sizing: border-box;
 }
-html, body {
+
+html,
+body {
     height: 100%;
     width: 100%;
     margin: 0;
     padding: 0;
-  }
+}
 
 .no-style {
     border: none;
@@ -24,7 +26,7 @@ body {
     flex-direction: column;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     overflow: hidden;
-  }
+}
 
 /* MAIN CONTAINER - Flex per occupare lo spazio disponibile */
 .container {
@@ -191,7 +193,7 @@ body {
     overflow: auto;
     /* Permette lo scroll se il canvas è zoomato/ridimensionato oltre la viewport */
     padding: 0;
-        min-height: 0;
+    min-height: 0;
 }
 
 .canvas {
