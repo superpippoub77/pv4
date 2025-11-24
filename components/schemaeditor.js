@@ -51,14 +51,14 @@ class SchemaEditor {
         this.initLibraryLoading();
         this.initializeTab(1, 'Schema 1');
         this.initCanvasResize();
-        const mainContainer = document.querySelector('.container');
-        if (mainContainer) {
-            mainContainer.style.display = 'none';
-        }
-        const menuContainer = document.querySelector('.menu-bar');
-        if (menuContainer) {
-            menuContainer.style.display = 'none';
-        }
+        // const mainContainer = document.querySelector('.container');
+        // if (mainContainer) {
+        //     mainContainer.style.display = 'none';
+        // }
+        // const menuContainer = document.querySelector('.menu-bar');
+        // if (menuContainer) {
+        //     menuContainer.style.display = 'none';
+        // }
 
         this.initLogin();
         //this.initializeEventListeners();
@@ -518,8 +518,8 @@ class SchemaEditor {
     // Aggiungi questo nuovo metodo dopo initializeEventListeners()
     initToolbarDragDrop() {
         const toolbar = document.querySelector('.toolbar');
-        const bottomSidebar = document.getElementById('bottomSidebar');
-        const bottomToolbarGroup = bottomSidebar.querySelector('.bottom-toolbar-group');
+        const footer = document.getElementById('footer');
+        const bottomToolbarGroup = footer.querySelector('.bottom-toolbar-group');
         const toolbarGroups = document.querySelectorAll('.toolbar-group');
 
         let draggedGroup = null;
@@ -843,8 +843,8 @@ class SchemaEditor {
         let targetContainer;
 
         if (position === 'bottom') {
-            const bottomSidebar = document.getElementById('bottomSidebar');
-            targetContainer = bottomSidebar.querySelector('.bottom-toolbar-group');
+            const footer = document.getElementById('footer');
+            targetContainer = footer.querySelector('.bottom-toolbar-group');
         } else {
             targetContainer = document.querySelector('.toolbar');
         }
@@ -3481,15 +3481,15 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             sessionStorage.removeItem('currentUser');
 
             // Nascondi container principale
-            const mainContainer = document.querySelector('.container');
-            if (mainContainer) {
-                mainContainer.style.display = 'none';
-            }
+            // const mainContainer = document.querySelector('.container');
+            // if (mainContainer) {
+            //     mainContainer.style.display = 'none';
+            // }
 
-            const menuContainer = document.querySelector('.menu-bar');
-            if (menuContainer) {
-                menuContainer.style.display = 'none';
-            }
+            // const menuContainer = document.querySelector('.menu-bar');
+            // if (menuContainer) {
+            //     menuContainer.style.display = 'none';
+            // }
 
             // Nascondi info utente
             document.getElementById('userInfo').style.display = 'none';
@@ -3765,14 +3765,14 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         this.hideLoginModal();
 
         // Mostra container principale
-        const mainContainer = document.querySelector('.container');
-        if (mainContainer) {
-            mainContainer.style.display = 'flex';
-        }
-        const menuContainer = document.querySelector('.menu-bar');
-        if (menuContainer) {
-            menuContainer.style.display = 'flex';
-        }
+        // const mainContainer = document.querySelector('.container');
+        // if (mainContainer) {
+        //     mainContainer.style.display = 'flex';
+        // }
+        // const menuContainer = document.querySelector('.menu-bar');
+        // if (menuContainer) {
+        //     menuContainer.style.display = 'flex';
+        // }
         // Mostra info utente
         document.getElementById('currentUsername').textContent = this.currentUser;
         document.getElementById('userInfo').style.display = 'flex';
@@ -4370,22 +4370,22 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
 
         // ========== BOTTOM SIDEBAR (Object Controls) ==========
-        //const bottomSidebar = document.getElementById('bottomSidebar');
-        // const bottomSidebarHandle = document.getElementById('bottomSidebarHandle');
-        // const bottomSidebarSwitch = document.getElementById('bottomSidebarSwitch');
+        //const footer = document.getElementById('footer');
+        // const footerHandle = document.getElementById('footerHandle');
+        // const footerSwitch = document.getElementById('footerSwitch');
 
         // // Toggle
-        // bottomSidebarSwitch.onclick = function (e) {
+        // footerSwitch.onclick = function (e) {
         //     e.stopPropagation();
         //     e.preventDefault();
 
-        //     const isHidden = bottomSidebar.classList.contains('hidden');
+        //     const isHidden = footer.classList.contains('hidden');
 
         //     if (isHidden) {
-        //         bottomSidebar.classList.remove('hidden');
+        //         footer.classList.remove('hidden');
         //         this.textContent = '▼';
         //     } else {
-        //         bottomSidebar.classList.add('hidden');
+        //         footer.classList.add('hidden');
         //         this.textContent = '▲';
         //     }
 
@@ -4393,37 +4393,37 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         // };
 
         // Resize
-        // let isResizingBottomSidebar = false;
-        // let bottomSidebarOriginalHeight = null;
+        // let isResizingfooter = false;
+        // let footerOriginalHeight = null;
 
-        // bottomSidebarHandle.onmousedown = function (e) {
-        //     if (e.target === bottomSidebarSwitch) return;
+        // footerHandle.onmousedown = function (e) {
+        //     if (e.target === footerSwitch) return;
 
         //     e.preventDefault();
 
-        //     if (!bottomSidebar.classList.contains('hidden')) {
-        //         bottomSidebarOriginalHeight = bottomSidebar.offsetHeight;
+        //     if (!footer.classList.contains('hidden')) {
+        //         footerOriginalHeight = footer.offsetHeight;
         //     }
 
-        //     isResizingBottomSidebar = true;
+        //     isResizingfooter = true;
         //     document.body.classList.add('resizing-bottom-sidebar');
 
         //     const startY = e.clientY;
-        //     const startHeight = bottomSidebar.offsetHeight;
+        //     const startHeight = footer.offsetHeight;
 
         //     function onMouseMove(e) {
-        //         if (!isResizingBottomSidebar) return;
+        //         if (!isResizingfooter) return;
         //         const newHeight = startHeight - (e.clientY - startY);
         //         const minHeight = 100;
         //         const maxHeight = window.innerHeight / 2;
         //         if (newHeight >= minHeight && newHeight <= maxHeight) {
-        //             bottomSidebar.style.height = newHeight + 'px';
-        //             bottomSidebarOriginalHeight = newHeight;
+        //             footer.style.height = newHeight + 'px';
+        //             footerOriginalHeight = newHeight;
         //         }
         //     }
 
         //     function onMouseUp() {
-        //         isResizingBottomSidebar = false;
+        //         isResizingfooter = false;
         //         document.body.classList.remove('resizing-bottom-sidebar');
         //         document.removeEventListener('mousemove', onMouseMove);
         //         document.removeEventListener('mouseup', onMouseUp);
@@ -4689,8 +4689,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         });
 
         // // ✅ NUOVO: Doppio click per toggle bottom sidebar
-        // bottomSidebarHandle.addEventListener('dblclick', () => {
-        //     bottomSidebarSwitch.click();
+        // footerHandle.addEventListener('dblclick', () => {
+        //     footerSwitch.click();
         // });
 
 

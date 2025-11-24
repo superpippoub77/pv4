@@ -1,5 +1,5 @@
 /* Bottom Sidebar (Object Controls) */
-/* .bottom-sidebar {
+/* .footer {
     width: 100%;
     max-height: 10px;
     background: #2c3e50;
@@ -12,7 +12,7 @@
 } */
 
 /* FOOTER/BOTTOM SIDEBAR */
-.bottom-sidebar {
+.footer {
     background: #ecf0f1;
     border-top: 2px solid #bdc3c7;
     padding: 8px 12px;
@@ -25,12 +25,12 @@
     z-index: 100;
 }
 
-.bottom-sidebar.hidden {
+.footer.hidden {
     display: none;
 }
 
 
-.bottom-sidebar-handle {
+.footer-handle {
     display: none !important;
     height: 5px;
     cursor: ns-resize;
@@ -39,7 +39,7 @@
     width: 100%;
 }
 
-.bottom-sidebar-switch {
+.footer-switch {
     position: absolute;
     left: 50%;
     top: -25px;
@@ -63,24 +63,24 @@
     transition: opacity 0.2s, background 0.2s;
 }
 
-.bottom-sidebar-switch:hover {
+.footer-switch:hover {
     opacity: 1;
     background: #4a6a8a;
 }
 
-.bottom-sidebar::-webkit-scrollbar {
+.footer::-webkit-scrollbar {
     height: 8px;
     background-color: transparent;
 }
 
-.bottom-sidebar::-webkit-scrollbar-thumb {
+.footer::-webkit-scrollbar-thumb {
     background-color: #4a6a8a;
     border-radius: 10px;
     border: 2px solid #2c3e50;
 }
 
 /* Object Controls dentro la bottom sidebar */
-.bottom-sidebar .object-controls {
+.footer .object-controls {
     background: #ecf0f1;
     padding: 10px 15px;
     display: flex;
@@ -91,13 +91,13 @@
     height: 100%;
 }
 
-.bottom-sidebar .color-picker-container {
+.footer .color-picker-container {
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-.bottom-sidebar .color-picker {
+.footer .color-picker {
     width: 40px;
     height: 30px;
     border: 2px solid #bdc3c7;
@@ -106,10 +106,10 @@
 }
 
 /* Responsive adjustments */
-body.resizing-bottom-sidebar * {
+body.resizing-footer * {
     pointer-events: none !important;
 }
 
-body.resizing-bottom-sidebar .bottom-sidebar-handle {
+body.resizing-footer .footer-handle {
     pointer-events: auto !important;
 }

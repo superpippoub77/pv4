@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Demo Windows Style con Sidebar Corrette</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root{
+    --menu-h: 40px;    /* fallback */
+    --taskbar-h: 48px; /* fallback */
+  }
+
+  html,body { height:100%; margin:0; }
+
+  body { 
+    overflow: hidden; 
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; 
+    background: #0f172a; /* darker background for contrast */
+  }
+
+  /* top menu (non fixed in flow but misurabile) */
+  #topbar {
+    height: var(--menu-h);
+    min-height: 40px;
+  }
+
+  /* Sidebar base */
+  .sidebar {
+    position: fixed;
+    top: var(--menu-h);
+    bottom: var(--taskbar-h);
+    background-color: #e6eef8;
+    overflow:auto;
+    z-index: 40;
+    box-shadow: 0 2px 6px rgba(2,6,23,0.08);
+  }
+
+  /* default widths */
+  #sidebar-left { left: 0; width: 220px; }
+  #sidebar-right { right: 0; width: 220px; }
+
+  /* visual resize handle */
+  .sidebar-resize {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 8px;
+    background: transparent;
+    z-index: 50;
+  }
+  #sidebar-left .sidebar-resize { right: 0; cursor: e-resize; }
+  #sidebar-right .sidebar-resize { left: 0; cursor: w-resize; }
+
+  /* small adjustments for topbar & taskbar look */
+  .topbar-inner { background: #111827; color: #fff; display:flex; align-items:center; gap:8px; padding:0 8px; height:100%; }
+  .topbar-inner button { background: transparent; color:inherit; border:0; padding:6px 10px; border-radius:6px; }
+  .topbar-inner button:hover { background: rgba(255,255,255,0.04); }
+
+  /* taskbar */
+  #taskbar { height: var(--taskbar-h); min-height:48px; background:#111827; color:#fff; display:flex; align-items:center; gap:8px; padding:0 8px; box-sizing:border-box; position:fixed; left:0; right:0; bottom:0; z-index:60; }
+
+  /* window & handles (kept similar to previous implementation) */
+  .resize-handle { position: absolute; width: 10px; height: 10px; background: transparent; pointer-events:auto; }
+  .resize-handle.br { bottom: 0; right: 0; cursor: se-resize; }
+  .resize-handle.bl { bottom: 0; left: 0; cursor: sw-resize; }
+  .resize-handle.tr { top: 0; right: 0; cursor: ne-resize; }
+  .resize-handle.tl { top: 0; left: 0; cursor: nw-resize; }
+  .resize-handle.r { top: 0; right: 0; height: 100%; width: 8px; cursor: e-resize; }
+  .resize-handle.l { top: 0; left: 0; height: 100%; width: 8px; cursor: w-resize; }
+  .resize-handle.t { top: 0; left: 0; width: 100%; height: 8px; cursor: n-resize; }
+  .resize-handle.b { bottom: 0; left: 0; width: 100%; height: 8px; cursor: s-resize; }
+
+  /* small nice touches */
+  .win-titlebar { -webkit-user-select:none; user-select:none; }
+  .win { border-radius:8px; overflow:hidden; }
+</style>
+</head>
+<body>
+
+<!-- Top Menu (measurable element) -->
+<div id="topbar" class="w-full">
+  <div class="topbar-inner">
+    <button id="menu-notepad">Apri Blocco Note</button>
+    <button id="menu-browser">Apri Browser</button>
+    <button id="menu-modal">Apri Modale</button>
+    <div style="flex:1"></div>
+    <div style="font-size:12px; opacity:0.8">Demo Windows Style</div>
+  </div>
+</div>
+
+<!-- Sidebars -->
+<div id="sidebar-left" class="sidebar">
+  <div class="sidebar-resize" aria-hidden="true"></div>
+  <div class="p-3 font-semibold">Sidebar sinistra</div>
+  <div class="p-3 text-sm">Contenuti della sidebar sinistra</div>
+</div>
+
+<div id="sidebar-right" class="sidebar">
+  <div class="sidebar-resize" aria-hidden="true"></div>
+  <div class="p-3 font-semibold">Sidebar destra</div>
+  <div class="p-3 text-sm">Contenuti della sidebar destra</div>
+</div>
+
+<!-- Area principale: windows verranno create nel body (sopra il background, sotto topbar/taskbar/sidebars) -->
+
+
+
+
+
+
+<!-- Taskbar -->
+<div id="taskbar">
+  <!-- icone minimizzate appariranno qui -->
+  <div id="taskbar-icons" class="flex items-center gap-2"></div>
+</div>
+
+<script>
+/* =========================
+   Utility: gestione sidebars
+   ========================= */
+const topbar = document.getElementById('topbar');
+const taskbar = document.getElementById('taskbar');
+const sidebarLeft = document.getElementById('sidebar-left');
+const sidebarRight = document.getElementById('sidebar-right');
+const taskbarIcons = document.getElementById('taskbar-icons');
+
+function adjustSidebars(){
+  // misura altezza reali
+  const topH = topbar.getBoundingClientRect().height;
+  const taskH = taskbar.getBoundingClientRect().height;
+  // imposta CSS custom properties per fallback in CSS
+  document.documentElement.style.setProperty('--menu-h', `${topH}px`);
+  document.documentElement.style.setProperty('--taskbar-h', `${taskH}px`);
+  // set top/bottom direttamente anche sui sidebar (più robusto per fixed)
+  sidebarLeft.style.top = `${topH}px`;
+  sidebarLeft.style.bottom = `${taskH}px`;
+  sidebarRight.style.top = `${topH}px`;
+  sidebarRight.style.bottom = `${taskH}px`;
+}
+// call on load + resize
+window.addEventListener('load', adjustSidebars);
+window.addEventListener('resize', adjustSidebars);
+
+/* =========================
+   Sidebar resizable logic
+   ========================= */
+function makeSidebarResizable(sidebar, isLeft){
+  const handle = sidebar.querySelector('.sidebar-resize');
+  let isResizing=false, startX=0, startW=0;
+  handle.addEventListener('mousedown', e=>{
+    e.preventDefault();
+    isResizing = true;
+    startX = e.clientX;
+    startW = sidebar.offsetWidth;
+    // prevent text select while resizing
+    document.body.style.userSelect = 'none';
+  });
+  window.addEventListener('mousemove', e=>{
+    if(!isResizing) return;
+    let delta = e.clientX - startX;
+    let newW = isLeft ? startW + delta : startW - delta;
+    newW = Math.max(100, Math.min(newW, window.innerWidth - 150)); // sensible bounds
+    sidebar.style.width = newW + 'px';
+  });
+  window.addEventListener('mouseup', ()=> {
+    if(isResizing){
+      isResizing=false;
+      document.body.style.userSelect = '';
+      adjustSidebars(); // ensure bottom/top still OK
+    }
+  });
+}
+makeSidebarResizable(sidebarLeft, true);
+makeSidebarResizable(sidebarRight, false);
+
+/* =========================
+   Windows system (multi-window)
+   ========================= */
+let zCounter = 200; // baseline z-index for windows
+const minWidth = 200;
+const minHeight = 80;
+
+function bringToFront(el){
+  zCounter += 1;
+  el.style.zIndex = zCounter;
+}
+
+// createWindow factory
+function createWindow({ title="Finestra", contentHTML="", buttons=[], modal=false, icon="📝" } = {}) {
+  let overlay;
+  if(modal){
+    overlay = document.createElement('div');
+    overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center';
+    overlay.style.zIndex = zCounter + 1000; // ensure above other windows
+    document.body.appendChild(overlay);
+
+    // click on overlay closes modal (only if clicked outside the modal)
+    overlay.addEventListener('click', () => {
+      // remove the win + overlay
+      if(win) win.remove();
+      overlay.remove();
+    });
+  }
+
+  const win = document.createElement('div');
+  win.className = 'win absolute bg-white shadow-lg';
+  win.style.width = '540px';
+  win.style.height = '360px';
+  win.style.left = `${120 + Math.random()*60}px`;
+  win.style.top = `${120 + Math.random()*60}px`;
+  win.style.zIndex = modal ? (zCounter + 1001) : zCounter + 1;
+  if(modal){
+    // append inside overlay so it's above the overlay background but clicks inside must not propagate
+    overlay.appendChild(win);
+    win.addEventListener('click', e => e.stopPropagation());
+  } else {
+    document.body.appendChild(win);
+  }
+
+  // titlebar
+  const titlebar = document.createElement('div');
+  titlebar.className = 'win-titlebar flex items-center justify-between px-3 py-2 win-titlebar';
+  titlebar.innerHTML = `
+    <div class="flex items-center gap-2">
+      <div style="width:10px;height:10px;background:#34d399;border-radius:4px"></div>
+      <div style="font-weight:600">${title}</div>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn-min w-6 h-6 rounded-full" title="Minimize" style="background:#fbbf24"></button>
+      <button class="btn-max w-6 h-6 rounded-full" title="Maximize" style="background:#60a5fa"></button>
+      <button class="btn-close w-6 h-6 rounded-full" title="Close" style="background:#f87171"></button>
+    </div>
+  `;
+  titlebar.style.background = 'linear-gradient(90deg,#0ea5e9,#0369a1)';
+  titlebar.style.color = '#fff';
+  win.appendChild(titlebar);
+
+  // content
+  const content = document.createElement('div');
+  content.className = 'p-4';
+  content.style.height = 'calc(100% - 48px)';
+  content.innerHTML = contentHTML;
+  win.appendChild(content);
+
+  // bottom buttons area (optional)
+  if(buttons && buttons.length){
+    const btnArea = document.createElement('div');
+    btnArea.className = 'absolute left-0 right-0 bottom-0 p-2 flex justify-end bg-gray-100 border-t';
+    buttons.forEach(b => {
+      const btn = document.createElement('button');
+      btn.textContent = b.label;
+      btn.className = 'ml-2 px-3 py-1 rounded bg-sky-600 text-white';
+      btn.addEventListener('click', b.onClick);
+      btnArea.appendChild(btn);
+    });
+    win.appendChild(btnArea);
+    // shrink content area
+    content.style.height = 'calc(100% - 48px - 44px)';
+  }
+
+  // resize handles
+  const handles = ["t","b","l","r","tl","tr","bl","br"];
+  handles.forEach(hc => {
+    const h = document.createElement('div');
+    h.className = `resize-handle ${hc}`;
+    win.appendChild(h);
+  });
+
+  // --- interactions: bring to front on mousedown anywhere in window ---
+  win.addEventListener('mousedown', () => bringToFront(win));
+
+  // drag from titlebar
+  let dragging = false, dx=0, dy=0;
+  titlebar.addEventListener('mousedown', (e) => {
+    if(e.target.tagName === 'BUTTON') return;
+    dragging = true;
+    dx = e.clientX - win.offsetLeft;
+    dy = e.clientY - win.offsetTop;
+    bringToFront(win);
+    // prevent selection
+    document.body.style.userSelect = 'none';
+  });
+  window.addEventListener('mousemove', (e) => {
+    if(!dragging) return;
+    win.style.left = `${e.clientX - dx}px`;
+    win.style.top = `${e.clientY - dy}px`;
+  });
+  window.addEventListener('mouseup', () => {
+    dragging = false;
+    document.body.style.userSelect = '';
+  });
+
+  // resize logic (shared)
+  let resizing = false, handleType = null, startX=0, startY=0, startW=0, startH=0, startL=0, startT=0;
+  win.querySelectorAll('.resize-handle').forEach(hEl => {
+    hEl.addEventListener('mousedown', e => {
+      e.stopPropagation();
+      resizing = true;
+      handleType = hEl.classList[1];
+      startX = e.clientX; startY = e.clientY;
+      startW = win.offsetWidth; startH = win.offsetHeight;
+      startL = win.offsetLeft; startT = win.offsetTop;
+      bringToFront(win);
+      document.body.style.userSelect = 'none';
+    });
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if(!resizing) return;
+    const mx = e.clientX - startX;
+    const my = e.clientY - startY;
+    let newW = startW, newH = startH, newL = startL, newT = startT;
+    switch(handleType){
+      case 'r': newW = Math.max(minWidth, startW + mx); break;
+      case 'l': newW = Math.max(minWidth, startW - mx); newL = startL + mx; break;
+      case 'b': newH = Math.max(minHeight, startH + my); break;
+      case 't': newH = Math.max(minHeight, startH - my); newT = startT + my; break;
+      case 'br': newW = Math.max(minWidth, startW + mx); newH = Math.max(minHeight, startH + my); break;
+      case 'bl': newW = Math.max(minWidth, startW - mx); newL = startL + mx; newH = Math.max(minHeight, startH + my); break;
+      case 'tr': newW = Math.max(minWidth, startW + mx); newH = Math.max(minHeight, startH - my); newT = startT + my; break;
+      case 'tl': newW = Math.max(minWidth, startW - mx); newL = startL + mx; newH = Math.max(minHeight, startH - my); newT = startT + my; break;
+    }
+    win.style.width = newW + 'px';
+    win.style.height = newH + 'px';
+    win.style.left = newL + 'px';
+    win.style.top = newT + 'px';
+  });
+
+  window.addEventListener('mouseup', () => {
+    if(resizing){
+      resizing = false;
+      document.body.style.userSelect = '';
+    }
+  });
+
+  // window control buttons
+const btnClose = titlebar.querySelector('.btn-close');
+const btnMin = titlebar.querySelector('.btn-min');
+const btnMax = titlebar.querySelector('.btn-max');
+
+btnClose.addEventListener('click', () => {
+  win.remove();
+  if (overlay) overlay.remove();
+});
+
+btnMin.addEventListener('click', () => {
+  win.classList.add('hidden');
+  if (overlay) overlay.classList.add('hidden'); // nasconde l’overlay con la finestra modale
+
+  const icon = document.createElement('div');
+  icon.className = 'w-8 h-8 rounded flex items-center justify-center bg-yellow-400 text-sm cursor-pointer';
+  icon.textContent = "🪟"; // icona generica
+  icon.title = title;
+  icon.addEventListener('click', () => {
+    win.classList.remove('hidden');
+    if (overlay) overlay.classList.remove('hidden'); // riporta anche l’overlay visibile
+    icon.remove();
+  });
+  taskbarIcons.appendChild(icon);
+});
+
+let maximized = false;
+let prev = {};
+btnMax.addEventListener('click', () => {
+  if (!maximized) {
+    prev = { left: win.offsetLeft, top: win.offsetTop, width: win.offsetWidth, height: win.offsetHeight };
+    win.style.left = `${sidebarLeft.offsetWidth + 12}px`;
+    win.style.top = `${topbar.offsetHeight + 8}px`;
+    win.style.width = `${window.innerWidth - sidebarLeft.offsetWidth - sidebarRight.offsetWidth - 24}px`;
+    win.style.height = `${window.innerHeight - topbar.offsetHeight - taskbar.offsetHeight - 24}px`;
+    maximized = true;
+  } else {
+    win.style.left = prev.left + 'px';
+    win.style.top = prev.top + 'px';
+    win.style.width = prev.width + 'px';
+    win.style.height = prev.height + 'px';
+    maximized = false;
+  }
+});
+
+  return win;
+}
+
+/* =========================
+   Menu buttons - example windows
+   ========================= */
+document.getElementById('menu-notepad').addEventListener('click', () => {
+  createWindow({
+    title: 'Blocco Note',
+    contentHTML: `<textarea style="width:100%;height:100%;box-sizing:border-box">Qui puoi scrivere...</textarea>`,
+    buttons: [
+      { label: 'Conferma', onClick: ()=> alert('Confermato') },
+      { label: 'Annulla', onClick: ()=> alert('Annullato') }
+    ]
+  });
+});
+
+document.getElementById('menu-browser').addEventListener('click', () => {
+  createWindow({
+    title: 'Browser Simulato',
+    contentHTML: `<div>Contenuto del browser simulato</div>`,
+    buttons: [
+      { label: 'Aggiorna', onClick: ()=> alert('Aggiornato') }
+    ]
+  });
+});
+
+document.getElementById('menu-modal').addEventListener('click', () => {
+  createWindow({
+    title: 'Dialog Modale',
+    contentHTML: `<div style="padding:8px">Questo è un dialog modale. Clicca lo sfondo per chiudere.</div>`,
+    buttons: [
+      { label: 'OK', onClick: ()=> alert('OK premuto') }
+    ],
+    modal: true
+  });
+});
+
+/* Ensure sidebars positioned correctly on start */
+adjustSidebars();
+
+</script>
+</body>
+</html>
