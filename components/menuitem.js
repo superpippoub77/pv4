@@ -26,6 +26,13 @@ function buildMenu(menuData) {
 
             const row = document.createElement("div");
             row.className = "menu-dropdown-item";
+
+            if (entry.html) {
+                row.innerHTML = entry.html;
+                dropdown.appendChild(row);
+                return;
+            }
+
             row.dataset.action = entry.action;
 
             if (entry.checkbox) {
@@ -176,7 +183,22 @@ const menuData = [
             { icon: "ℹ️", label: "Informazioni", action: "about" }
         ]
     },
-
+    {
+        label: "🌐 Lingua",
+        meta: { align: "right" }, // allineata a destra
+        items: [
+            {
+                html: `
+                <legend data-i18n="language_legend">Lingua</legend>
+                <select id="languageSelector">
+                    <option value="it" data-i18n="language_italian">Italiano</option>
+                    <option value="en" data-i18n="language_english">English</option>
+                    <option value="fr" data-i18n="language_french">Francese</option>
+                </select>
+            `
+            }
+        ]
+    },
     // voce allineata a destra (puoi gestire la classe 'right' quando costruisci il DOM)
     {
         label: "👤 User",

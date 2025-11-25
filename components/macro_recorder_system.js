@@ -14,7 +14,7 @@ class MacroRecorder {
         this.startTime = null;
         this.playbackSpeed = 1;
         this.actionQueue = [];
-        
+
         this.loadMacros();
     }
 
@@ -86,7 +86,7 @@ class MacroRecorder {
 
         // Controlla se una macro con lo stesso nome esiste
         const existingIndex = this.macroList.findIndex(m => m.name === this.currentMacro.name);
-        
+
         if (existingIndex >= 0) {
             if (confirm(`La macro "${this.currentMacro.name}" esiste già. Sovrascrivere?`)) {
                 this.macroList[existingIndex] = this.currentMacro;
@@ -110,7 +110,7 @@ class MacroRecorder {
 
     hookInteractions() {
         const canvas = document.getElementById('canvas');
-        
+
         // Intercetta drag and drop
         this._originalAddObject = this.editor.addObject.bind(this.editor);
         this.editor.addObject = this.recordAddObject.bind(this);
@@ -156,7 +156,7 @@ class MacroRecorder {
 
     recordAddObject(type, x, y, color, text, rotation, dashed, icon, src, spriteData) {
         const timestamp = Date.now() - this.startTime;
-        
+
         const action = {
             type: 'addObject',
             timestamp,
@@ -172,11 +172,11 @@ class MacroRecorder {
 
     recordDelete() {
         const timestamp = Date.now() - this.startTime;
-        
+
         // Salva lo stato prima dell'eliminazione
         const deletedIds = Array.from(this.editor.selectedObjects.keys());
         const tab = this.editor.getCurrentTab();
-        
+
         const deletedObjects = deletedIds.map(id => ({
             id,
             data: tab.objects.get(id),
@@ -197,7 +197,7 @@ class MacroRecorder {
 
     recordCreateArrow(from, to, arrowType, dashed, color, thickness) {
         const timestamp = Date.now() - this.startTime;
-        
+
         const action = {
             type: 'createArrow',
             timestamp,
@@ -212,7 +212,7 @@ class MacroRecorder {
 
     recordChangeColor(color) {
         const timestamp = Date.now() - this.startTime;
-        
+
         const action = {
             type: 'changeColor',
             timestamp,
@@ -227,7 +227,7 @@ class MacroRecorder {
 
     recordChangeText(text) {
         const timestamp = Date.now() - this.startTime;
-        
+
         const action = {
             type: 'changeText',
             timestamp,
@@ -242,7 +242,7 @@ class MacroRecorder {
 
     recordRotate(degrees) {
         const timestamp = Date.now() - this.startTime;
-        
+
         const action = {
             type: 'rotate',
             timestamp,
@@ -316,7 +316,7 @@ class MacroRecorder {
                 // Seleziona gli oggetti e elimina
                 const { deletedObjects } = action.params;
                 this.editor.deselectAll();
-                
+
                 deletedObjects.forEach(del => {
                     if (tab.objects.has(del.id)) {
                         this.editor.selectedObjects.set(del.id, { x: del.data.x, y: del.data.y });
@@ -364,7 +364,7 @@ class MacroRecorder {
 
     showRecordingIndicator(isRecording) {
         let indicator = document.getElementById('macroRecordingIndicator');
-        
+
         if (!indicator) {
             indicator = document.createElement('div');
             indicator.id = 'macroRecordingIndicator';
@@ -387,7 +387,7 @@ class MacroRecorder {
                 animation: blink 1s infinite;
             `;
             indicator.innerHTML = '🔴 REGISTRAZIONE IN CORSO';
-            
+
             // Aggiungi animazione
             const style = document.createElement('style');
             style.textContent = `
@@ -471,7 +471,7 @@ class MacroRecorder {
         reader.onload = (e) => {
             try {
                 const macro = JSON.parse(e.target.result);
-                
+
                 // Valida la struttura
                 if (!macro.name || !macro.actions || !Array.isArray(macro.actions)) {
                     throw new Error('Formato macro non valido');
@@ -528,9 +528,411 @@ class MacroRecorder {
 }
 
 // ============================================================
-// ESPORTAZIONE
+// MACRO MANAGER - Gestione Macro Avanzata
 // ============================================================
 
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = MacroRecorder;
+class MacroManager {
+    constructor(editor) {
+        this.editor = editor;
+        this.macroRecorder = new MacroRecorder(editor);
+        this.macroList = [];
+        this.selectedMacro = null;
+        this.isPlaying = false;
+        this.playbackSpeed = 1;
+    }
+
+    // ============================================================
+    // INIZIALIZZAZIONE UI
+    // ============================================================
+    createMacroDialog() {
+        const html = `
+                <div style="padding: 15px; border-bottom: 1px solid #ddd; background: #f8f9fa;">
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button id="btnStartRecord" class="macro-btn primary" data-i18n="macro_record">
+                            🔴 Avvia Registrazione
+                        </button>
+                        <button id="btnStopRecord" class="macro-btn danger" style="display: none;" data-i18n="macro_stop">
+                            ⏹ Ferma Registrazione
+                        </button>
+                        <button id="btnPlayMacro" class="macro-btn success" disabled data-i18n="macro_play">
+                            ▶️ Riproduci
+                        </button>
+                        <button id="btnExportMacro" class="macro-btn" disabled data-i18n="macro_export">
+                            📤 Esporta
+                        </button>
+                        <button id="btnDeleteMacro" class="macro-btn danger" disabled data-i18n="macro_delete">
+                            🗑️ Elimina
+                        </button>
+                        <input type="file" id="importMacroFile" accept=".json" style="display: none;" data-i18n="macro_import">
+                        <button id="btnImportMacro" class="macro-btn">
+                            📥 Importa
+                        </button>
+                    </div>
+                    <div style="margin-top: 10px; padding: 10px; background: white; border-radius: 4px;">
+                        <input type="text" id="macroName" placeholder="Nome della macro..." data-i18n="macro_name"
+                               style="width: 100%; padding: 8px; border: 1px solid #bdc3c7; border-radius: 4px; margin-bottom: 5px;">
+                        <textarea id="macroDescription" placeholder="Descrizione (opzionale)..." data-i18n="macro_description"
+                                  style="width: 100%; padding: 8px; border: 1px solid #bdc3c7; border-radius: 4px; height: 50px; resize: vertical;"></textarea>
+                    </div>
+                </div>
+
+                <!-- Sezione Lista Macro -->
+                <div style="flex: 1; overflow-y: auto; padding: 10px;">
+                    <h4 style="margin: 0 0 10px 0; color: #333;" data-i18n="macro_list">📋 Macro Disponibili</h4>
+                    <div id="macroList" style="display: flex; flex-direction: column; gap: 8px;" data-i18n="macro_queue">
+                        <!-- Macro verranno inserite qui -->
+                    </div>
+                </div>
+
+                <!-- Sezione Dettagli Macro Selezionata -->
+                <div id="macroDetailsPanel" style="display: none; padding: 15px; border-top: 1px solid #ddd; background: #f8f9fa; max-height: 200px; overflow-y: auto;">
+                    <h4 style="margin-top: 0;" data-i18n="macro_detail">📊 Dettagli Macro</h4>
+                    <div id="macroDetails"></div>
+                </div>
+
+                <!-- Sezione Velocità -->
+                <div style="padding: 10px 15px; border-top: 1px solid #ddd; background: #f8f9fa;">
+                    <label style="display: flex; align-items: center; gap: 10px;" data-i18n="macro_speed">
+                        ⚡ Velocità riproduzione:
+                        <input type="range" id="playbackSpeedSlider" min="0.5" max="2" step="0.1" value="1" style="width: 150px;">
+                        <span id="speedValue" style="width: 40px; text-align: center;">1.0x</span>
+                    </label>
+                </div>
+        `;
+
+        createWindow({
+            title: 'dlg_title_macro',
+            icon: '🎬',
+            id: 'macroManagerDialog',
+            contentHTML: html,
+            effect: "windows",
+            size: 'lg',
+            buttons: [
+                { label: 'Annulla', color: 'secondary', onClick: () => { } }
+            ],
+            listeners: {
+                domReady: (win) => {
+                    win.querySelector('#btnStartRecord').addEventListener('click', () => {
+                        this.startRecording();
+                    });
+
+                    win.querySelector('#btnStopRecord').addEventListener('click', () => {
+                        this.stopRecording();
+                    });
+
+                    win.querySelector('#btnPlayMacro').addEventListener('click', () => {
+                        if (this.selectedMacro) {
+                            this.playMacro(this.selectedMacro.name);
+                        }
+                    });
+
+                    win.querySelector('#btnExportMacro').addEventListener('click', () => {
+                        if (this.selectedMacro) {
+                            this.exportMacro(this.selectedMacro.name);
+                        }
+                    });
+
+                    win.querySelector('#btnDeleteMacro').addEventListener('click', () => {
+                        if (this.selectedMacro && confirm(`Eliminare la macro "${this.selectedMacro.name}"?`)) {
+                            this.deleteMacro(this.selectedMacro.name);
+                        }
+                    });
+
+                    win.querySelector('#btnImportMacro').addEventListener('click', () => {
+                        win.querySelector('#importMacroFile').click();
+                    });
+
+                    win.querySelector('#importMacroFile').addEventListener('change', (e) => {
+                        if (e.target.files[0]) {
+                            app.macroRecorder.importMacro(e.target.files[0]);
+                            app.loadMacros();
+                            app.renderMacroList();
+                            e.target.value = '';
+                        }
+                    });
+
+                    // 🎚️ Velocità riproduzione
+                    win.querySelector('#playbackSpeedSlider').addEventListener('input', (e) => {
+                        app.playbackSpeed = parseFloat(e.target.value);
+                        app.macroRecorder.setPlaybackSpeed(app.playbackSpeed);
+                        win.querySelector('#speedValue').textContent = app.playbackSpeed.toFixed(1) + 'x';
+                    });
+                }
+            }
+        });
+    }
+
+    // attachEventListeners() {
+    //     document.getElementById('btnStartRecord').addEventListener('click', () => {
+    //         this.startRecording();
+    //     });
+
+    //     document.getElementById('btnStopRecord').addEventListener('click', () => {
+    //         this.stopRecording();
+    //     });
+
+    //     document.getElementById('btnPlayMacro').addEventListener('click', () => {
+    //         if (this.selectedMacro) {
+    //             this.playMacro(this.selectedMacro.name);
+    //         }
+    //     });
+
+    //     document.getElementById('btnExportMacro').addEventListener('click', () => {
+    //         if (this.selectedMacro) {
+    //             this.exportMacro(this.selectedMacro.name);
+    //         }
+    //     });
+
+    //     document.getElementById('btnDeleteMacro').addEventListener('click', () => {
+    //         if (this.selectedMacro && confirm(`Eliminare la macro "${this.selectedMacro.name}"?`)) {
+    //             this.deleteMacro(this.selectedMacro.name);
+    //         }
+    //     });
+
+    //     document.getElementById('btnImportMacro').addEventListener('click', () => {
+    //         document.getElementById('importMacroFile').click();
+    //     });
+
+    //     document.getElementById('importMacroFile').addEventListener('change', (e) => {
+    //         if (e.target.files[0]) {
+    //             this.macroRecorder.importMacro(e.target.files[0]);
+    //             this.loadMacros();
+    //             this.renderMacroList();
+    //             e.target.value = '';
+    //         }
+    //     });
+
+    //     // Velocità riproduzione
+    //     document.getElementById('playbackSpeedSlider').addEventListener('input', (e) => {
+    //         this.playbackSpeed = parseFloat(e.target.value);
+    //         this.macroRecorder.setPlaybackSpeed(this.playbackSpeed);
+    //         document.getElementById('speedValue').textContent = this.playbackSpeed.toFixed(1) + 'x';
+    //     });
+    // }
+
+    // ============================================================
+    // REGISTRAZIONE
+    // ============================================================
+
+    startRecording() {
+        const macroName = document.getElementById('macroName').value.trim();
+
+        if (!macroName) {
+            alert('Inserisci un nome per la macro');
+            return;
+        }
+
+        this.macroRecorder.startRecording(macroName);
+
+        // Aggiorna UI
+        document.getElementById('btnStartRecord').style.display = 'none';
+        document.getElementById('btnStopRecord').style.display = 'inline-block';
+        document.getElementById('macroName').disabled = true;
+
+        console.log(`🎬 Registrazione avviata: ${macroName}`);
+    }
+
+    stopRecording() {
+        const description = document.getElementById('macroDescription').value.trim();
+
+        if (this.macroRecorder.stopRecording()) {
+            this.macroRecorder.saveMacro(description);
+            this.loadMacros();
+            this.renderMacroList();
+
+            // Reset UI
+            document.getElementById('btnStartRecord').style.display = 'inline-block';
+            document.getElementById('btnStopRecord').style.display = 'none';
+            document.getElementById('macroName').disabled = false;
+            document.getElementById('macroName').value = '';
+            document.getElementById('macroDescription').value = '';
+
+            alert('✅ Macro salvata con successo!');
+        }
+    }
+
+    // ============================================================
+    // RIPRODUZIONE
+    // ============================================================
+
+    async playMacro(macroName) {
+        if (this.isPlaying) {
+            alert('Una riproduzione è già in corso');
+            return;
+        }
+
+        try {
+            this.isPlaying = true;
+            document.getElementById('btnPlayMacro').disabled = true;
+            document.getElementById('btnPlayMacro').textContent = '⏳ In riproduzione...';
+
+            await this.macroRecorder.playMacro(macroName);
+
+            alert('✅ Macro riprodotta con successo!');
+        } catch (error) {
+            console.error('Errore durante la riproduzione:', error);
+            alert('❌ Errore durante la riproduzione: ' + error.message);
+        } finally {
+            this.isPlaying = false;
+            document.getElementById('btnPlayMacro').disabled = false;
+            document.getElementById('btnPlayMacro').textContent = '▶️ Riproduci';
+        }
+    }
+
+    // ============================================================
+    // GESTIONE MACRO
+    // ============================================================
+
+    loadMacros() {
+        this.macroList = this.macroRecorder.getMacroList();
+    }
+
+    renderMacroList() {
+        const container = document.getElementById('macroList');
+        container.innerHTML = '';
+
+        if (this.macroList.length === 0) {
+            container.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">Nessuna macro disponibile</p>';
+            return;
+        }
+
+        this.macroList.forEach((macro, index) => {
+            const item = document.createElement('div');
+            item.className = 'macro-item';
+            item.style.cssText = `
+                padding: 12px;
+                border: 2px solid #ddd;
+                border-radius: 6px;
+                cursor: pointer;
+                transition: all 0.2s;
+                background: white;
+            `;
+
+            const info = this.macroRecorder.getMacroInfo(macro.name);
+            const duration = info.duration ? (info.duration / 1000).toFixed(2) : '0.00';
+
+            item.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-weight: bold; color: #333;">${macro.name}</div>
+                        <div style="font-size: 12px; color: #7f8c8d; margin-top: 4px;">
+                            📊 ${info.actionCount} azioni | ⏱️ ${duration}s
+                        </div>
+                        ${macro.description ? `<div style="font-size: 12px; color: #555; margin-top: 4px;">📝 ${macro.description}</div>` : ''}
+                    </div>
+                </div>
+            `;
+
+            item.addEventListener('click', () => {
+                this.selectMacro(macro, item, container);
+            });
+
+            item.addEventListener('mouseover', () => {
+                item.style.borderColor = '#3498db';
+                item.style.background = '#f0f8ff';
+            });
+
+            item.addEventListener('mouseout', () => {
+                item.style.borderColor = '#ddd';
+                item.style.background = 'white';
+            });
+
+            container.appendChild(item);
+        });
+    }
+
+    selectMacro(macro, element, container) {
+        // Deseleziona elemento precedente
+        container.querySelectorAll('.macro-item').forEach(item => {
+            item.style.borderColor = '#ddd';
+            item.style.background = 'white';
+        });
+
+        // Seleziona nuovo elemento
+        this.selectedMacro = macro;
+        element.style.borderColor = '#27ae60';
+        element.style.background = '#e8f8f5';
+
+        // Abilita pulsanti
+        document.getElementById('btnPlayMacro').disabled = false;
+        document.getElementById('btnExportMacro').disabled = false;
+        document.getElementById('btnDeleteMacro').disabled = false;
+
+        // Mostra dettagli
+        this.showMacroDetails(macro);
+    }
+
+    showMacroDetails(macro) {
+        const panel = document.getElementById('macroDetailsPanel');
+        const details = document.getElementById('macroDetails');
+
+        const info = this.macroRecorder.getMacroInfo(macro.name);
+        const duration = info.duration ? (info.duration / 1000).toFixed(2) : '0.00';
+        const createdAt = new Date(macro.createdAt).toLocaleString('it-IT');
+
+        details.innerHTML = `
+            <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                <tr>
+                    <td style="padding: 5px; font-weight: bold; width: 150px;">Nome:</td>
+                    <td style="padding: 5px; color: #333;">${macro.name}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 5px; font-weight: bold;">Descrizione:</td>
+                    <td style="padding: 5px; color: #333;">${macro.description || '-'}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 5px; font-weight: bold;">Azioni:</td>
+                    <td style="padding: 5px; color: #333;">${info.actionCount}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 5px; font-weight: bold;">Durata:</td>
+                    <td style="padding: 5px; color: #333;">${duration}s</td>
+                </tr>
+                <tr>
+                    <td style="padding: 5px; font-weight: bold;">Creata:</td>
+                    <td style="padding: 5px; color: #333;">${createdAt}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 5px; font-weight: bold;">Versione:</td>
+                    <td style="padding: 5px; color: #333;">${macro.version}</td>
+                </tr>
+            </table>
+        `;
+
+        panel.style.display = 'block';
+    }
+
+    deleteMacro(macroName) {
+        if (this.macroRecorder.deleteMacro(macroName)) {
+            this.loadMacros();
+            this.renderMacroList();
+
+            // Reset selezione
+            this.selectedMacro = null;
+            document.getElementById('macroDetailsPanel').style.display = 'none';
+            document.getElementById('btnPlayMacro').disabled = true;
+            document.getElementById('btnExportMacro').disabled = true;
+            document.getElementById('btnDeleteMacro').disabled = true;
+
+            console.log(`🗑️ Macro eliminata: ${macroName}`);
+        }
+    }
+
+    exportMacro(macroName) {
+        this.macroRecorder.exportMacro(macroName);
+    }
+
+    // ============================================================
+    // INTERFACCIA PUBBLICA
+    // ============================================================
+
+    showDialog() {
+        this.createMacroDialog();
+        //this.attachEventListeners();
+
+        this.loadMacros();
+        this.renderMacroList();
+    }
 }
+
+window.MacroManager = MacroManager;

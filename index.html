@@ -1037,6 +1037,8 @@
     <!-- <team-management-dialog></team-management-dialog> -->
     <water-mark></water-mark>
     <script defer src="components/preset-actions.js"></script>
+    <script defer src="components/macro_recorder_system.js"></script>
+    <script defer src="components/menuManager.js"></script>    
     <script defer src="components/schemaeditor.js"></script>
     <script defer src="components/helper.js"></script>
     <script defer src="components/components.js"></script>
@@ -1138,7 +1140,9 @@
             // Listener per il cambio di selezione
             langSelector.addEventListener('change', (event) => {
                 setLanguage(event.target.value);
+                translateElements(event.target.value);
             });
+
         });
     </script>
 </body>

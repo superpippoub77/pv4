@@ -51,6 +51,7 @@ class SchemaEditor {
         this.initLibraryLoading();
         this.initializeTab(1, 'Schema 1');
         this.initCanvasResize();
+        this.menuManager = new MenuManager(this);
         // const mainContainer = document.querySelector('.container');
         // if (mainContainer) {
         //     mainContainer.style.display = 'none';
@@ -64,7 +65,7 @@ class SchemaEditor {
         //this.initializeEventListeners();
         this.initializeExistingTabs();
         this.updateUI();
-        this.macroRecorder = new MacroRecorder(this);
+        this.macroManager = new MacroManager(this);
     }
 
     addStep() {
@@ -209,49 +210,6 @@ class SchemaEditor {
             }
         }
         return costs[s2.length];
-    }
-
-    initMenuBar() {
-        const menuItems = document.querySelectorAll('.menu-dropdown-item[data-action]');
-
-        menuItems.forEach(item => {
-            item.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const action = item.dataset.action;
-                const size = item.dataset.size;
-                const bg = item.dataset.bg;
-
-                // Chiudi tutti i menu
-                document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-
-                // Esegui l'azione
-                this.executeMenuAction(action, size, bg);
-            });
-        });
-
-        // Gestione apertura/chiusura menu
-        document.querySelectorAll('.menu-item').forEach(menuItem => {
-            menuItem.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const isActive = menuItem.classList.contains('active');
-
-                // Chiudi tutti i menu
-                document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-
-                // Apri/chiudi il menu corrente
-                if (!isActive) {
-                    menuItem.classList.add('active');
-                }
-            });
-        });
-
-        // Chiudi menu al click fuori
-        document.addEventListener('click', () => {
-            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-        });
-
-        // Sincronizza checkbox con stato corrente
-        this.syncMenuCheckboxes();
     }
 
     executeMenuAction(action, size, bg) {
@@ -4622,29 +4580,29 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             showTeamDialogUnified(this);
         });
 
-        document.getElementById('closeTeamDialog').addEventListener('click', () => {
-            this.hideTeamDialog();
-        });
+        // document.getElementById('closeTeamDialog').addEventListener('click', () => {
+        //     this.hideTeamDialog();
+        // });
 
-        document.getElementById('addPlayerBtn').addEventListener('click', () => {
-            this.addTeamPlayer();
-        });
+        // document.getElementById('addPlayerBtn').addEventListener('click', () => {
+        //     this.addTeamPlayer();
+        // });
 
-        document.getElementById('exportTeamBtn').addEventListener('click', () => {
-            this.exportTeam();
-        });
+        // document.getElementById('exportTeamBtn').addEventListener('click', () => {
+        //     this.exportTeam();
+        // });
 
-        document.getElementById('importTeamBtn').addEventListener('click', () => {
-            document.getElementById('importTeamFile').click();
-        });
+        // document.getElementById('importTeamBtn').addEventListener('click', () => {
+        //     document.getElementById('importTeamFile').click();
+        // });
 
-        document.getElementById('importTeamFile').addEventListener('change', (e) => {
-            this.importTeam(e);
-        });
+        // document.getElementById('importTeamFile').addEventListener('change', (e) => {
+        //     this.importTeam(e);
+        // });
 
-        document.getElementById('clearTeamBtn').addEventListener('click', () => {
-            this.clearTeam();
-        });
+        // document.getElementById('clearTeamBtn').addEventListener('click', () => {
+        //     this.clearTeam();
+        // });
 
         document.getElementById('togglePlayerNames').addEventListener('click', () => {
             this.togglePlayerNames();
@@ -4670,7 +4628,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         });
 
         // Rendi draggable il team dialog
-        this.initTeamDialogDrag();
+        //this.initTeamDialogDrag();
 
         this.initTabDragDrop();
         // E aggiungi il listener
@@ -4693,32 +4651,10 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         //     footerSwitch.click();
         // });
 
-
-        this.initMenuBar();
-
         // Aggiungi pulsanti per macro recorder
         document.getElementById('recordMacroBtn').addEventListener('click', () => {
-            const macroName = prompt('Nome macro:', '');
-            if (macroName) {
-                this.macroRecorder.startRecording(macroName);
-            }
+            this.macroManager.showDialog();
         });
-
-        document.getElementById('stopRecordBtn').addEventListener('click', () => {
-            if (this.macroRecorder.stopRecording()) {
-                const description = prompt('Descrizione (opzionale):', '');
-                this.macroRecorder.saveMacro(description);
-            }
-        });
-
-        document.getElementById('playMacroBtn').addEventListener('click', () => {
-            const macro = prompt('Nome macro da riprodurre:', '');
-            if (macro) {
-                this.macroRecorder.playMacro(macro);
-            }
-        });
-
-
     }
 
     initTeamDialogDrag() {
@@ -8894,8 +8830,4 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
         console.log('✅ Foglio formazioni generato con successo');
     }
-
-
-
-
 }

@@ -1099,3 +1099,54 @@ body.dragging-endpoint .canvas-object .connection-point {
 .hidden {
     display: none !important;
 }
+
+/* MACRO BUTTON */
+
+.macro-btn {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 13px;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.macro-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.macro-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.macro-btn.primary {
+    background: #3498db;
+    color: white;
+}
+
+.macro-btn.success {
+    background: #27ae60;
+    color: white;
+}
+
+.macro-btn.danger {
+    background: #e74c3c;
+    color: white;
+}
+
+.macro-btn.primary:hover:not(:disabled) { background: #2980b9; }
+.macro-btn.success:hover:not(:disabled) { background: #229954; }
+.macro-btn.danger:hover:not(:disabled) { background: #c0392b; }
+
+#macroManagerDialog {
+    position: fixed;
+    z-index: 10000;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}

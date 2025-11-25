@@ -1,0 +1,28 @@
+/* =====================================================
+   Windows‑Style Window Animations
+   ===================================================== */
+
+/* --- Minimize (fade + shrink) --- */
+.win-effect-minimize {
+    animation: winEffectMinimize 0.25s ease forwards;
+}
+
+@keyframes winEffectMinimize {
+    from { opacity: 1; transform: scale(1); }
+    to   { opacity: 0; transform: scale(0.92); }
+}
+
+/* --- Restore (fade + zoom in) --- */
+.win-effect-restore {
+    animation: winEffectRestore 0.25s ease forwards;
+}
+
+@keyframes winEffectRestore {
+    from { opacity: 0; transform: scale(0.92); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+/* --- Smooth resize for maximize/restore --- */
+.win-effect-resize {
+    transition: all 0.25s ease;
+}

@@ -73,12 +73,51 @@ const minHeight = 80;
 
 function bringToFront(win) { win.style.zIndex = ++zCounter; }
 
+
+function createTaskbarIcon(win, icon, title, overlay, effect) {
+    const iconDiv = document.createElement('div');
+
+    Object.assign(iconDiv.style, {
+        width: '32px',
+        height: '32px',
+        background: '#4b5563',
+        color: '#fff',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: '6px',
+        cursor: 'pointer',
+        marginRight: '6px',
+        boxShadow: '0 0 5px rgba(0,0,0,0.3)'
+    });
+
+    iconDiv.textContent = icon;
+    iconDiv.title = title;
+
+    // Click → Restore
+    iconDiv.onclick = () => {
+        win.style.display = 'flex';
+        if (overlay) overlay.style.display = 'flex';
+
+        if (effect === "windows") {
+            win.classList.add('win-effect-restore');
+            setTimeout(() => win.classList.remove('win-effect-restore'), 260);
+        }
+
+        iconDiv.remove();
+    };
+
+    document.querySelector('#footer')?.appendChild(iconDiv);
+}
+
+
 // ======================================================
 // 2. createWindow completamente indipendente da Tailwind
 // ======================================================
 
 function createWindow({
     title = "Finestra",
+    id = "",
     contentHTML = "",
     buttons = [],
     modal = false,
@@ -93,8 +132,17 @@ function createWindow({
     footerBg,
     footerBorder,
     rounded,
-    shadow
+    shadow,
+    visible = true,
+    effect = "none", // valori: "none", "windows"
+    listeners = {},   // es: { onMinimize(){}, onMaximize(){}, onRestore(){} }
+    lang = 'it' // Lingua per la traduzione
 } = {}) {
+
+    // Genera un id random se non è passato
+    if (!id) {
+        id = `win-${Math.floor(Math.random() * 1000000)}`;
+    }
 
     const tpl = windowTemplates[template] || {};
     headerBg = headerBg ?? tpl.headerBg ?? "#4b5563";
@@ -105,25 +153,35 @@ function createWindow({
     rounded = rounded ?? tpl.rounded ?? true;
     shadow = shadow ?? tpl.shadow ?? "0 10px 25px rgba(0,0,0,0.2)";
 
-    const sizes = {
-        sm: { w: 400, h: 300 },
-        md: { w: 540, h: 360 },
-        lg: { w: 720, h: 500 },
-        xl: { w: 900, h: 600 }
+    // Percentuali rispetto alla finestra
+    const percentSizes = {
+        sm: { w: 0.35, h: 0.35 },
+        md: { w: 0.45, h: 0.45 },
+        lg: { w: 0.60, h: 0.55 },
+        xl: { w: 0.75, h: 0.65 }
     };
 
     const dimensions = fullscreen
-        ? { w: window.innerWidth * 0.95, h: window.innerHeight * 0.95 }
-        : sizes[size] || sizes.md;
+        ? {
+            w: window.innerWidth * 0.95,
+            h: window.innerHeight * 0.95
+        }
+        : {
+            w: window.innerWidth * (percentSizes[size]?.w ?? percentSizes.md.w),
+            h: window.innerHeight * (percentSizes[size]?.h ?? percentSizes.md.h)
+        };
+
     const centerX = (window.innerWidth - dimensions.w) / 2;
     const centerY = (window.innerHeight - dimensions.h) / 2;
+
     let overlay;
     if (modal) {
         overlay = document.createElement('div');
         Object.assign(overlay.style, {
             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
             backgroundColor: 'rgba(0,0,0,0.5)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            display: visible ? 'flex' : 'none',
+            alignItems: 'center', justifyContent: 'center',
             zIndex: 9998
         });
         document.body.appendChild(overlay);
@@ -131,6 +189,10 @@ function createWindow({
     }
 
     const win = document.createElement('div');
+    if (effect === "windows") {
+        win.classList.add('win-effect-resize');
+    }
+    win.id = id;
     Object.assign(win.style, {
         position: 'absolute',
         width: dimensions.w + 'px',
@@ -138,7 +200,7 @@ function createWindow({
         left: `${centerX}px`,
         top: `${centerY}px`,
         zIndex: modal ? (zCounter + 1001) : ++zCounter,
-        display: 'flex',
+        display: visible ? 'flex' : 'none',
         flexDirection: 'column',
         overflow: 'hidden',
         borderRadius: rounded ? '10px' : '0px',
@@ -168,7 +230,11 @@ function createWindow({
     titleLeft.style.display = 'flex';
     titleLeft.style.gap = '8px';
     const iconSpan = document.createElement('span'); iconSpan.textContent = icon; iconSpan.style.fontSize = '16px';
-    const titleSpan = document.createElement('span'); titleSpan.textContent = title; titleSpan.style.fontWeight = '600'; titleSpan.style.fontSize = '14px';
+    const titleSpan = document.createElement('span');
+    titleSpan.textContent = title;
+    titleSpan.style.fontWeight = '600';
+    titleSpan.style.fontSize = '14px';
+    titleSpan.setAttribute('data-i18n', title); // Traduzione del titolo
     titleLeft.appendChild(iconSpan); titleLeft.appendChild(titleSpan);
 
     const titleRight = document.createElement('div');
@@ -207,6 +273,7 @@ function createWindow({
     // ========== Content ==========
     const content = document.createElement('div');
     content.innerHTML = contentHTML;
+    content.setAttribute('data-i18n', contentHTML); // Traduzione contenuto
     Object.assign(content.style, {
         flex: '1', overflow: 'auto', padding: '12px', backgroundColor: contentBg, color: contentColor
     });
@@ -223,6 +290,7 @@ function createWindow({
         buttons.forEach(b => {
             const btn = document.createElement('button');
             btn.textContent = b.label;
+            btn.setAttribute('data-i18n', b.label); // Traduzione pulsante
             Object.assign(btn.style, {
                 padding: '6px 12px',
                 borderRadius: '6px',
@@ -249,7 +317,7 @@ function createWindow({
         win.appendChild(footer);
     }
 
-    // Drag
+    // ================= Drag =================
     let dragging = false, dx = 0, dy = 0;
     titlebar.addEventListener('mousedown', e => {
         if (e.target.tagName === 'BUTTON') return;
@@ -265,41 +333,28 @@ function createWindow({
     });
     window.addEventListener('mouseup', () => { dragging = false; document.body.style.userSelect = ''; });
 
-    // Buttons actions
+    // ================= Buttons actions =================
     const closeWindow = () => { win.remove(); if (overlay) overlay.remove(); onClose?.(); };
     btnClose.addEventListener('click', closeWindow);
     btnMin.addEventListener('click', () => {
-        win.style.display = 'none';
-        if (overlay) overlay.style.display = 'none';
-        const iconDiv = document.createElement('div');
-        Object.assign(iconDiv.style, {
-            width: '32px',
-            height: '32px',
-            background: headerBg,
-            color: '#fff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            marginRight: '6px',
-            boxShadow: '0 0 5px rgba(0,0,0,0.3)'
-        });
+        if (effect === "windows") {
+            win.classList.add('win-effect-minimize');
+            setTimeout(() => {
+                win.style.display = 'none';
+                win.classList.remove('win-effect-minimize');
+                if (overlay) overlay.style.display = 'none';
 
-        iconDiv.textContent = icon;   // Usa la stessa icona della finestra
-        iconDiv.title = title;
+                createTaskbarIcon(win, icon, title, overlay, effect);
 
-        // Ripristina la finestra quando cliccata
-        iconDiv.onclick = () => {
-            win.style.display = 'flex';
-            if (overlay) overlay.style.display = 'flex';
-            iconDiv.remove();
-        };
+            }, 230);
+        } else {
+            win.style.display = 'none';
+            if (overlay) overlay.style.display = 'none';
 
-        // Monta l'icona nel footer
-        document.querySelector('#footer').appendChild(iconDiv);
-
+            createTaskbarIcon(win, icon, title, overlay, effect);
+        }
     });
+
     let maximized = false, prev = {};
     btnMax.addEventListener('click', () => {
         if (!maximized) {
@@ -314,8 +369,24 @@ function createWindow({
         }
     });
 
+    // ================= Traduzione =================
+    translateElements(lang);
+
+    win.showDialog = () => {
+        win.style.display = 'flex';
+        if (overlay) overlay.style.display = 'flex';
+        // Porta la finestra in primo piano
+        bringToFront(win);
+        // Aggiorna la traduzione se necessario
+        translateElements(lang);
+    };
+    
+    if (typeof listeners.domReady === "function") {
+        listeners.domReady(win);
+    }
     return win;
 }
+
 
 // ======================================================
 // 3. Dialog unificati (completamente senza Tailwind)
