@@ -146,7 +146,20 @@ const translations = {
     "btn_show_animation": "🎬 Animazione",
     "controls_freehand_legend": "Disegno a mano libera",
     "label_freehand_color": "Colore traccia:",
-    "label_freehand_thickness": "Spessore:"
+    "label_freehand_thickness": "Spessore:",
+    "macro_record": "Avvia Registrazione",
+    "macro_stop": "Ferma Registrazione",
+    "macro_play": "Riproduci",
+    "macro_export": "Esporta",
+    "macro_delete": "Elimina",
+    "macro_import": "Importa",
+    "macro_name": "Nome della macro...",
+    "macro_description": "Descrizione (opzionale)...",
+    "macro_list": "📋 Macro Disponibili",
+    "macro_queue": "Macro Disponibili",
+    "macro_detail": "📊 Dettagli Macro",
+    "macro_speed": "⚡ Velocità riproduzione:",
+    "dlg_title_macro": "Gestione Macro"
   },
   'en': {
     "app_title": "Volleyball Coach Pro W4 - Editor and Workout for Volleyball Coaches",
@@ -295,7 +308,21 @@ const translations = {
     "btn_show_animation": "🎬 Animation",
     "controls_freehand_legend": "Freehand Drawing",
     "label_freehand_color": "Stroke Color:",
-    "label_freehand_thickness": "Thickness:"
+    "label_freehand_thickness": "Thickness:",
+    "macro_record": "Start Recording",
+    "macro_stop": "Stop Recording",
+    "macro_play": "Play",
+    "macro_export": "Export",
+    "macro_delete": "Delete",
+    "macro_import": "Import",
+    "macro_name": "Macro name...",
+    "macro_description": "Description (optional)...",
+    "macro_list": "📋 Available Macros",
+    "macro_queue": "Available Macros",
+    "macro_detail": "📊 Macro Details",
+    "macro_speed": "⚡ Playback Speed:",
+    "dlg_title_macro": "Macro Manager"
+
   },
   'fr': {
     "app_title": "Volleyball Coach Pro W4 - Éditeur et Entraînement pour Entraîneurs de Volleyball",
@@ -444,6 +471,20 @@ const translations = {
     "btn_show_animation": "🎬 Animation",
     "controls_freehand_legend": "Dessin à main levée",
     "label_freehand_color": "Couleur trait:",
-    "label_freehand_thickness": "Épaisseur:"
+    "label_freehand_thickness": "Épaisseur:",
+    "macro_record": "Démarrer l’enregistrement",
+    "macro_stop": "Arrêter l’enregistrement",
+    "macro_play": "Lire",
+    "macro_export": "Exporter",
+    "macro_delete": "Supprimer",
+    "macro_import": "Importer",
+    "macro_name": "Nom de la macro...",
+    "macro_description": "Description (optionnelle)...",
+    "macro_list": "📋 Macros Disponibles",
+    "macro_queue": "Macros Disponibles",
+    "macro_detail": "📊 Détails de la Macro",
+    "macro_speed": "⚡ Vitesse de lecture :",
+    "dlg_title_macro": "Gestionnaire de Macros"
+
   }
 }

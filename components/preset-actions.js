@@ -23,6 +23,13 @@ const PRESET_ACTIONS = [
     'Palleggio su palla alta',
     'Palleggio preciso',
     'Palleggio in transizione',
+    // aggiunte
+    'Palleggio a una mano',
+    'Palleggio in salto rovesciato',
+    'Palleggio di prima intenzione',
+    'Palleggio cieco',
+    'Palleggio dietro la schiena',
+    'Palleggio a spinta laterale',
 
     // ============================
     // TECNICHE BASE – BAGHER
@@ -38,6 +45,11 @@ const PRESET_ACTIONS = [
     'Bagher di emergenza',
     'Bagher di contenimento',
     'Bagher di precisione',
+    // aggiunte
+    'Bagher in semituffo',
+    'Bagher con una mano',
+    'Bagher con pugno',
+    'Bagher in estensione',
 
     // ============================
     // ATTACCO
@@ -56,6 +68,21 @@ const PRESET_ACTIONS = [
     'Attacco dalla seconda linea',
     'Attacco pipe',
     'Attacco dopo copertura',
+    // aggiunte
+    'Attacco in pallonetto corto',
+    'Attacco in pallonetto lungo',
+    'Attacco mani-out',
+    'Attacco sulla mano esterna',
+    'Attacco contro il muro a tempo',
+    'Attacco su palla spinta',
+    'Attacco su palla staccata',
+    'Attacco di recupero',
+    'Attacco in controtempo',
+    'Attacco in slap-shot',
+    'Attacco dietro al muro avversario',
+    'Roll-shot lungo',
+    'Roll-shot corto',
+    'Pallonetto tattico',
 
     // ============================
     // ALZATA / SETTAGGIO
@@ -84,6 +111,20 @@ const PRESET_ACTIONS = [
     'Muro in parallela',
     'Muro in lettura',
     'Muro di contenimento',
+    // aggiunte
+    'Muro a tempo',
+    'Muro in ritardo',
+    'Muro in anticipo',
+    'Muro su fast',
+    'Muro su slide',
+    'Muro su pipe',
+    'Muro su attacco di seconda',
+    'Muro chiuso',
+    'Muro aperto',
+    'Muro a ombrello',
+    'Muro di mano esterna',
+    'Muro di mano interna',
+    'Muro di ricostruzione',
 
     // ============================
     // BATTUTA
@@ -96,6 +137,14 @@ const PRESET_ACTIONS = [
     'Battuta corta',
     'Battuta lunga',
     'Battuta su ricevitore specifico',
+    // aggiunte
+    'Battuta jump-float',
+    'Battuta flottante corta',
+    'Battuta flottante lunga',
+    'Battuta spin diagonale',
+    'Battuta spin parallela',
+    'Battuta di sicurezza',
+    'Battuta forzata',
 
     // ============================
     // RICEZIONE / DIFESA
@@ -114,6 +163,25 @@ const PRESET_ACTIONS = [
     'Difesa su attacco forte',
     'Difesa in rotazione',
     'Copertura dell’attacco',
+    // aggiunte
+    'Ricezione profonda',
+    'Ricezione corta',
+    'Ricezione in bagher laterale',
+    'Ricezione con scivolamento',
+    'Ricezione in emergenza',
+    'Ricezione con un braccio',
+    'Ricezione con cambio posizione',
+    'Difesa di recupero',
+    'Difesa in estensione',
+    'Difesa in semituffo',
+    'Difesa con una mano',
+    'Difesa con pugno',
+    'Difesa a muro',
+    'Difesa su pallonetto lungo',
+    'Difesa su tocco morbido',
+    'Difesa da zona 1',
+    'Difesa da zona 6',
+    'Difesa da zona 5',
 
     // ============================
     // MOVIMENTI
@@ -150,6 +218,14 @@ const PRESET_ACTIONS = [
     'Fine set',
     'Inizio set',
     'Rotazione posizioni',
+    // aggiunte
+    'Copertura della pipe',
+    'Copertura della fast',
+    'Organizzazione muro-difesa',
+    'Shift difensivo',
+    'Doppia difesa su attacco forte',
+    'Transizione rapida',
+    'Transizione complessa',
 
     // ============================
     // ESERCIZI SPECIFICI
@@ -182,6 +258,14 @@ const PRESET_ACTIONS = [
     'Coaching individuale',
     'Analisi video',
     'Correzione tecnica',
+    // aggiunte
+    'Chiamata palla',
+    'Chiamata muro',
+    'Chiamata diagonale',
+    'Chiamata parallela',
+    'Check posizione',
+    'Contestazione arbitrale (formale)',
+    'Richiesta videocheck',
 
     // ============================
     // RUOLI SPECIFICI
@@ -192,4 +276,5 @@ const PRESET_ACTIONS = [
     'Azione dell’opposto',
     'Azione dello schiacciatore',
     'Azione del mister',
+
 ];
