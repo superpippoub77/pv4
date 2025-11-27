@@ -1,5 +1,50 @@
 const PRESET_ACTIONS = [
+    // ============================
+    // ATTREZZI
+    // ============================
+    'Pallone',
+    'Rete',
+    'Segnapunti',
+    'Pali rete',
+    'Aste laterali',
+    'Tendirete',
+    'Cartellino rosso',
+    'Cartellino giallo',
+    'Panchina', 
+    'Sgabello allenatore',
+    'Tavolo segnapunti',
+    'Orologio da parete',
+    'Tabellone segnapunti',
+    'Plinto',
+    'Cinesino',
+    'Bandella di delimitazione',
+    'Cono',
+    'Ostacolo',
+    'Scale per allenamento',
+    'Quadro svedese',
+    'Trave per allenamento',
+    'Cerchio per allenamento',
+    'Spalliera',
+    'Tappetino ginnico',
+    'Tappetone per allenamento',
+    'Carrello porta palloni',
+    'Borsa porta attrezzi',
+    'Scaletta movimenti',
+    'Canestro basket',
+    'Seggiolone arbitro',
+    'Muro perimetrale',        
 
+    // ============================
+    // RUOLI IN CAMPO
+    // ============================
+    'Palleggiatore',
+    'Schiacciatore',
+    'Centrale',
+    'Opposto',
+    'Libero',
+    'Allenatore',
+
+    // ============================
     // ============================
     // TECNICHE BASE – PALLEGGIO
     // ============================
@@ -23,7 +68,6 @@ const PRESET_ACTIONS = [
     'Palleggio su palla alta',
     'Palleggio preciso',
     'Palleggio in transizione',
-    // aggiunte
     'Palleggio a una mano',
     'Palleggio in salto rovesciato',
     'Palleggio di prima intenzione',
@@ -45,7 +89,6 @@ const PRESET_ACTIONS = [
     'Bagher di emergenza',
     'Bagher di contenimento',
     'Bagher di precisione',
-    // aggiunte
     'Bagher in semituffo',
     'Bagher con una mano',
     'Bagher con pugno',
@@ -68,7 +111,6 @@ const PRESET_ACTIONS = [
     'Attacco dalla seconda linea',
     'Attacco pipe',
     'Attacco dopo copertura',
-    // aggiunte
     'Attacco in pallonetto corto',
     'Attacco in pallonetto lungo',
     'Attacco mani-out',
@@ -111,7 +153,6 @@ const PRESET_ACTIONS = [
     'Muro in parallela',
     'Muro in lettura',
     'Muro di contenimento',
-    // aggiunte
     'Muro a tempo',
     'Muro in ritardo',
     'Muro in anticipo',
@@ -137,7 +178,6 @@ const PRESET_ACTIONS = [
     'Battuta corta',
     'Battuta lunga',
     'Battuta su ricevitore specifico',
-    // aggiunte
     'Battuta jump-float',
     'Battuta flottante corta',
     'Battuta flottante lunga',
@@ -163,7 +203,6 @@ const PRESET_ACTIONS = [
     'Difesa su attacco forte',
     'Difesa in rotazione',
     'Copertura dell’attacco',
-    // aggiunte
     'Ricezione profonda',
     'Ricezione corta',
     'Ricezione in bagher laterale',
@@ -182,6 +221,13 @@ const PRESET_ACTIONS = [
     'Difesa da zona 1',
     'Difesa da zona 6',
     'Difesa da zona 5',
+    'Rullata',
+    'Rullata laterale',
+    'Rullata avanti',
+    'Rullata indietro',
+    'Tuffo frontale',
+    'Tuffo laterale',
+    'Tuffo in estensione',
 
     // ============================
     // MOVIMENTI
@@ -218,7 +264,6 @@ const PRESET_ACTIONS = [
     'Fine set',
     'Inizio set',
     'Rotazione posizioni',
-    // aggiunte
     'Copertura della pipe',
     'Copertura della fast',
     'Organizzazione muro-difesa',
@@ -258,7 +303,6 @@ const PRESET_ACTIONS = [
     'Coaching individuale',
     'Analisi video',
     'Correzione tecnica',
-    // aggiunte
     'Chiamata palla',
     'Chiamata muro',
     'Chiamata diagonale',
@@ -276,5 +320,6 @@ const PRESET_ACTIONS = [
     'Azione dell’opposto',
     'Azione dello schiacciatore',
     'Azione del mister',
-
+    'Free ball',
+    'Down ball '
 ];

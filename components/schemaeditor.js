@@ -476,7 +476,7 @@ class SchemaEditor {
 
     // Aggiungi questo nuovo metodo dopo initializeEventListeners()
     initToolbarDragDrop() {
-        const toolbar = document.querySelector('.toolbar');
+        const toolbar = document.getElementById('toolbar');
         const footer = document.getElementById('footer');
         const bottomToolbarGroup = footer.querySelector('.bottom-toolbar-group');
         const toolbarGroups = document.querySelectorAll('.toolbar-group');
@@ -3014,6 +3014,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 { separator: true },
                 { label: '↺ Ruota -15°', action: () => this.rotateSelected(-15) },
                 { label: '↻ Ruota +15°', action: () => this.rotateSelected(15) },
+                { label: '↺ Ruota -90°', action: () => this.rotateSelected(-90) },
+                { label: '↻ Ruota +90°', action: () => this.rotateSelected(90) },
                 { separator: true },
                 { label: obj?.dashed ? '━ Linea continua' : '╌ Linea tratteggiata', action: () => this.toggleDashedObject() },
                 { separator: true },
@@ -4051,6 +4053,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         document.getElementById('zoomOut').addEventListener('click', () => this.changeZoom(-0.1));
         document.getElementById('rotateLeft').addEventListener('click', () => this.rotateSelected(-15));
         document.getElementById('rotateRight').addEventListener('click', () => this.rotateSelected(15));
+        document.getElementById('rotateLeft90').addEventListener('click', () => this.rotateSelected(-90));
+        document.getElementById('rotateRight90').addEventListener('click', () => this.rotateSelected(90));
         document.getElementById('undoBtn').addEventListener('click', () => this.undo());
         document.getElementById('redoBtn').addEventListener('click', () => this.redo());
         document.getElementById('saveBtn').addEventListener('click', () => this.saveSchema());
@@ -4161,6 +4165,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         document.getElementById('groupRotateLeft').addEventListener('click', () => this.rotateGroup(-15));
         document.getElementById('groupRotateRight').addEventListener('click', () => this.rotateGroup(15));
 
+        document.getElementById('groupRotateLeft90').addEventListener('click', () => this.rotateGroup(-90));
+        document.getElementById('groupRotateRight90').addEventListener('click', () => this.rotateGroup(90));
 
         //Salvataggio Allenamenti
         document.getElementById('saveWorkOutBtn').addEventListener('click', () => this.showSaveWorkoutDialog());
@@ -7357,14 +7363,16 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
     saveState(description = 'Modifica') {
         const tab = this.getCurrentTab();
+
         const state = {
             objects: Array.from(tab.objects.entries()),
             arrows: Array.from(tab.arrows.entries()),
-            freehands: Array.from(tab.freehands.entries()),
+            freehands: Array.from(tab.freehands.entries()), // ✅ AGGIUNGI QUESTA LINEA
             timestamp: Date.now(),
             description: description
         };
 
+        // Tronca la history se siamo in mezzo
         if (tab.historyIndex < tab.history.length - 1) {
             tab.history = tab.history.slice(0, tab.historyIndex + 1);
         }
@@ -7372,7 +7380,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         tab.history.push(state);
         tab.historyIndex++;
 
-        // Salva metadati per questa modifica
+        // Salva metadati
         const historyKey = `${this.activeTabId}-${tab.historyIndex}`;
         this.historyMetadata.set(historyKey, {
             tabId: this.activeTabId,
@@ -7384,6 +7392,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             freehandCount: tab.freehands.size
         });
 
+        // Limita a 50 stati nella history
         if (tab.history.length > 50) {
             tab.history.shift();
             tab.historyIndex--;
@@ -7408,10 +7417,36 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
     restoreState(state) {
         const tab = this.getCurrentTab();
-        tab.objects = new Map(state.objects);
-        tab.arrows = new Map(state.arrows);
-        tab.freehands = new Map(state.freehands);
+
+        // Cancella tutto prima di ripristinare
+        tab.objects.clear();
+        tab.arrows.clear();
+        tab.freehands.clear();
+
+        // Ripristina gli oggetti
+        if (state.objects && Array.isArray(state.objects)) {
+            state.objects.forEach(([id, obj]) => {
+                tab.objects.set(id, obj);
+            });
+        }
+
+        // Ripristina le frecce
+        if (state.arrows && Array.isArray(state.arrows)) {
+            state.arrows.forEach(([id, arrow]) => {
+                tab.arrows.set(id, arrow);
+            });
+        }
+
+        // Ripristina i freehands
+        if (state.freehands && Array.isArray(state.freehands)) {
+            state.freehands.forEach(([id, freehand]) => {
+                tab.freehands.set(id, freehand);
+            });
+        }
+
+        // Ricaricare la visualizzazione del tab
         this.loadTabState();
+        this.deselectAll();
     }
 
     initHistoryDialog() {

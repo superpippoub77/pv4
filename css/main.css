@@ -14,6 +14,6 @@
 @import url("team-dialog.css");
 @import url("footer.css");
 @import url("windows-dialog.css");
-@import url("toolbar.css");
-@import url("menu-bar.css");
+@import url("../components/toolbar/toolbar.css");
+@import url("../components/menu/menu-bar.css");
 @import url("effects-dialog.css");

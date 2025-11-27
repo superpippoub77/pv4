@@ -1,37 +1,3 @@
-// ======================================================
-// 1. Templates e funzioni di base (già convertite)
-// ======================================================
-
-const windowTemplates = {
-    default: {
-        headerBg: "linear-gradient(to right, #06b6d4, #2c3e50)",
-        contentBg: "#ffffff",
-        contentColor: "#000000",
-        footerBg: "#f9fafb",
-        footerBorder: "1px solid #e5e7eb",
-        rounded: true,
-        shadow: "0 25px 50px rgba(0,0,0,0.25)"
-    },
-    dark: {
-        headerBg: "#1f2937",
-        contentBg: "#111827",
-        contentColor: "#e5e7eb",
-        footerBg: "#1f2937",
-        footerBorder: "1px solid #374151",
-        rounded: false,
-        shadow: "0 15px 30px rgba(0,0,0,0.25)"
-    },
-    neon: {
-        headerBg: "linear-gradient(to right, #a21caf, #7e22ce)",
-        contentBg: "#000000",
-        contentColor: "#f472b6",
-        footerBg: "#000000",
-        footerBorder: "1px solid #a21caf",
-        rounded: true,
-        shadow: "0 0 20px rgba(255,0,255,0.7)"
-    }
-};
-
 // setDefaultDate e getHue restano identiche
 function setDefaultDate(fieldName) {
     const dateField = document.getElementById(fieldName);
@@ -380,7 +346,7 @@ function createWindow({
         // Aggiorna la traduzione se necessario
         translateElements(lang);
     };
-    
+
     if (typeof listeners.domReady === "function") {
         listeners.domReady(win);
     }
@@ -474,3 +440,72 @@ function showSaveWorkoutDialogUnified(editor) {
 }
 
 // ---
+function getFormattedDate(date = new Date()) {
+    const now = new Date(date);
+
+    // Formatta la data e ora come vuoi, ad esempio: "2025-09-24 15:30"
+    const formattedDate = now.getFullYear() +
+        String(now.getMonth() + 1).padStart(2, '0') +
+        String(now.getDate()).padStart(2, '0') + "_ " +
+        String(now.getHours()).padStart(2, '0') +
+        String(now.getMinutes()).padStart(2, '0');
+    return formattedDate;
+}
+
+/**
+         * Funzione per la traduzione: cerca tutti gli elementi con 'data-i18n'
+         * e li aggiorna con la traduzione appropriata.
+         * @param {string} lang - La chiave della lingua ('it', 'en', 'fr').
+         */
+function translateElements(lang) {
+    const currentDictionary = translations[lang];
+
+    if (!currentDictionary) {
+        console.error(`Dizionario per la lingua '${lang}' non trovato.`);
+        return;
+    }
+
+    // 1. Traduce il contenuto di testo
+    document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        if (currentDictionary[key]) {
+            // Mantiene il contenuto originale (come l'emoji) se presente
+            const originalContent = element.innerHTML.match(/^(.*?)\s?/) ? element.innerHTML.match(/^(.*?)\s?/)[1] : '';
+
+            // Aggiorna solo il testo, cercando di preservare gli eventuali prefissi non testuali (come le emoji)
+            // Questa logica è semplificata e funziona se l'emoji è all'inizio.
+            if (originalContent && originalContent.length < 5) { // Assumiamo che l'emoji sia breve
+                element.innerHTML = originalContent + ' ' + currentDictionary[key];
+            } else {
+                element.textContent = currentDictionary[key];
+            }
+        }
+    });
+
+    // 2. Traduce gli attributi placeholder
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+        const key = element.getAttribute('data-i18n-placeholder');
+        if (currentDictionary[key]) {
+            element.setAttribute('placeholder', currentDictionary[key]);
+        }
+    });
+
+    // 3. Traduce gli attributi title (se presenti, non usati in questa demo)
+    document.querySelectorAll('[data-i18n-title]').forEach(element => {
+        const key = element.getAttribute('data-i18n-title');
+        if (currentDictionary[key]) {
+            element.setAttribute('title', currentDictionary[key]);
+        }
+    });
+
+    // 4. Aggiorna l'attributo lang della pagina
+    document.documentElement.lang = lang;
+}
+
+/**
+ * Imposta la lingua e avvia la traduzione.
+ * @param {string} lang - La lingua selezionata.
+ */
+function setLanguage(lang) {
+    translateElements(lang);
+}
