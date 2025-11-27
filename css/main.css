@@ -1,7 +1,6 @@
 @import url("index.css");
 @import url("accordion.css");
 @import url("sidebar.css");
-@import url("login.css");
 @import url("selection.css");
 @import url("tab.css");
 @import url("freehand.css");
@@ -16,4 +15,5 @@
 @import url("windows-dialog.css");
 @import url("../components/toolbar/toolbar.css");
 @import url("../components/menu/menu-bar.css");
+@import url("../components/login/login.css");
 @import url("effects-dialog.css");

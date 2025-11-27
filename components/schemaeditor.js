@@ -52,20 +52,39 @@ class SchemaEditor {
         this.initializeTab(1, 'Schema 1');
         this.initCanvasResize();
         this.menuManager = new MenuManager(this);
-        // const mainContainer = document.querySelector('.container');
-        // if (mainContainer) {
-        //     mainContainer.style.display = 'none';
-        // }
-        // const menuContainer = document.querySelector('.menu-bar');
-        // if (menuContainer) {
-        //     menuContainer.style.display = 'none';
-        // }
 
-        this.initLogin();
-        //this.initializeEventListeners();
+        this.loginManager = new LoginManager({
+            userDataUrl: 'data/users.json', // Percorso al file JSON degli utenti
+            onLoginSuccess: (username) => this.handleLoginSuccess(username),
+            onLogoutSuccess: () => this.handleLogoutSuccess()
+        });
         this.initializeExistingTabs();
         this.updateUI();
         this.macroManager = new MacroManager(this);
+    }
+    handleLoginSuccess(username) {
+        this.currentUser = username;
+        this.showMainApp();
+    }
+
+    /**
+     * ✅ NUOVO: Callback quando il logout ha successo
+     */
+    handleLogoutSuccess() {
+        // Pulisci lo stato dell'app
+        this.tabs.clear();
+        this.deselectAll();
+
+        // Nascondi container principale
+        const mainContainer = document.querySelector('.container');
+        if (mainContainer) {
+            mainContainer.style.display = 'none';
+        }
+
+        const menuContainer = document.querySelector('.menu-bar');
+        if (menuContainer) {
+            menuContainer.style.display = 'none';
+        }
     }
 
     addStep() {
@@ -322,7 +341,10 @@ class SchemaEditor {
             'about': () => this.showAboutDialog(),
 
             // User
-            'logout': () => this.handleLogout(),
+            'logout': () => {
+                // Usa il LoginManager per fare logout
+                this.loginManager.handleLogout();
+            }
         };
 
         if (actions[action]) {
@@ -3359,57 +3381,14 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         }
         // Per 'MIS' mostra tutto
     }
-    async initLogin() {
-        try {
-            // Carica gli utenti dal JSON
-            const response = await fetch('data/users.json');
-            if (!response.ok) {
-                // Fallback con utenti di default se il file non esiste
-                console.warn('File users.json non trovato, uso utenti di default');
-                this.users = [
-                    { username: 'admin', password: '1234' },
-                    { username: 'coach', password: '1234' }
-                ];
-            } else {
-                const data = await response.json();
-                this.users = data.users;
-            }
-        } catch (error) {
-            console.error('Errore nel caricamento utenti:', error);
-            // Fallback con utenti di default
-            this.users = [
-                { username: 'admin', password: '1234' },
-                { username: 'coach', password: '1234' }
-            ];
-        }
-
-        // Controlla se c'è una sessione salvata
-        const savedUser = sessionStorage.getItem('currentUser');
-        if (savedUser) {
-            this.currentUser = savedUser;
-            this.showMainApp();
-        } else {
-            this.showLoginModal();
-        }
-
-        // Event listeners per il login
-        document.getElementById('loginForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.handleLogin();
-        });
-
-        document.getElementById('logoutButton').addEventListener('click', () => {
-            this.handleLogout();
-        });
-    }
 
     showLoginModal() {
-        document.getElementById('loginModal').style.display = 'flex';
+        document.getElementById('login').style.display = 'flex';
         document.getElementById('username').focus();
     }
 
     hideLoginModal() {
-        document.getElementById('loginModal').style.display = 'none';
+        document.getElementById('login').style.display = 'none';
 
     }
 
@@ -3722,22 +3701,21 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         event.target.value = '';
     }
     showMainApp() {
-        this.hideLoginModal();
+        // LoginManager ha già nascosto il modal
+        // e mostrato le info utente
 
         // Mostra container principale
-        // const mainContainer = document.querySelector('.container');
-        // if (mainContainer) {
-        //     mainContainer.style.display = 'flex';
-        // }
-        // const menuContainer = document.querySelector('.menu-bar');
-        // if (menuContainer) {
-        //     menuContainer.style.display = 'flex';
-        // }
-        // Mostra info utente
-        document.getElementById('currentUsername').textContent = this.currentUser;
-        document.getElementById('userInfo').style.display = 'flex';
+        const mainContainer = document.querySelector('.container');
+        if (mainContainer) {
+            mainContainer.style.display = 'flex';
+        }
 
-        // ✅ MODIFICA: Inizializza l'app solo al primo login
+        const menuContainer = document.querySelector('.menu-bar');
+        if (menuContainer) {
+            menuContainer.style.display = 'flex';
+        }
+
+        // Inizializza l'app solo al primo login
         if (!this.initialized) {
             this.initLibraryLoading();
             this.initializeTab(1, 'Schema 1');

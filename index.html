@@ -764,37 +764,8 @@
 
 
     <!-- Login Modal - VolleyProW4 Edition -->
-    <div id="loginModal" class="login-modal">
-        <div class="volley-bg"></div>
-        <div class="volley-ball"></div>
-
-        <div class="login-content">
-            <h2 class="login-title" data-i18n="local_login_title">Benvenuto in <span class="highlight">VolleyPro<span
-                        class="w4">W4</span></span>
-            </h2>
-            <h3 class="login-subtitle" data-i18n="local_login_subtitle">Editor Professionale per Allenatori di Pallavolo
-            </h3>
-
-            <form id="loginForm">
-                <div class="login-field">
-                    <label for="username" data-i18n="local_username_label">Username</label>
-                    <input type="text" id="username" name="username" required placeholder="Inserisci username"
-                        value="admin">
-                </div>
-                <div class="login-field">
-                    <label for="password" data-i18n="local_password_label">Password</label>
-                    <input type="password" id="password" name="password" required placeholder="Inserisci password"
-                        value="1234">
-                </div>
-                <div class="login-error" id="loginError" data-i18n="local_login_error">Username o password errati</div>
-                <button type="submit" class="login-button" data-i18n="local_login_button">Accedi</button>
-            </form>
-        </div>
+    <div id="login" class="login-modal">
     </div>
-
-
-
-
 
     <div id="animationDialog">
         <div class="animation-dialog-header" id="animationDialogHeader">
@@ -914,22 +885,25 @@
 
     <!-- CLASS -->
     <script defer src="components/menu/menu.class.js"></script>
-
+    <script defer src="components/login/login.class.js"></script>
     <!-- COMPONENTS -->
+    <script defer src="components/login/login.js"></script>
     <script defer src="components/macro_recorder_system.js"></script>
     <script defer src="components/toolbar/toolbar.js"></script>
+    
     <script defer src="components/schemaeditor.js"></script>
     <script defer src="components/helper.js"></script>
     <script defer src="components/components.js"></script>
     <script defer src="components/menu/menu.js"></script>
-    <script defer src="components/main.js"></script>
 
     <script>
         const defaultLang = 'it';
 
         async function initializeEditor() {
-            await buildMenu(menuData);
+            await createLogin();
+            await createMenu(menuData);
             await createToolbar();
+
             setDefaultDate('workoutDate');
              const langSelector = document.getElementById('languageSelector');
             langSelector.value = defaultLang;

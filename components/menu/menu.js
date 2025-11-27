@@ -1,4 +1,4 @@
-function buildMenu(menuData) {
+function createMenu(menuData) {
     return new Promise(resolve => {
         const menu  = document.getElementById("menu");
         const menuBar = document.createElement("div");
