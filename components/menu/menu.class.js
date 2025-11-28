@@ -167,7 +167,7 @@ class MenuManager {
                     });
                 }
             },
-            'showHistory': () => this.editor.showHistoryDialog(),
+            'showHistory': () => this.editor.historyManager.show(),
             'settings': () => this.showSettingsDialog(),
 
             // ========== AIUTO ==========

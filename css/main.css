@@ -13,6 +13,7 @@
 @import url("team-dialog.css");
 @import url("footer.css");
 @import url("windows-dialog.css");
+@import url("../components/history/history.css");
 @import url("../components/toolbar/toolbar.css");
 @import url("../components/menu/menu-bar.css");
 @import url("../components/login/login.css");

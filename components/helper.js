@@ -347,6 +347,11 @@ function createWindow({
         translateElements(lang);
     };
 
+    win.hideDialog = () => {
+        closeWindow()
+    };
+
+
     if (typeof listeners.domReady === "function") {
         listeners.domReady(win);
     }

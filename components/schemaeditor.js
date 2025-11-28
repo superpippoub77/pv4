@@ -47,11 +47,15 @@ class SchemaEditor {
         this.historyMetadata = new Map();
         this.floatingToolbarGroups = new Map(); // Traccia gruppi floating
         this._tags = ""; // Initialize finalSentence property
+
         this.initToolbarDragDrop();
         this.initLibraryLoading();
         this.initializeTab(1, 'Schema 1');
         this.initCanvasResize();
         this.menuManager = new MenuManager(this);
+        this.historyManager = new HistoryDialogManager(this);
+        this.historyManager.init();
+
 
         this.loginManager = new LoginManager({
             userDataUrl: 'data/users.json', // Percorso al file JSON degli utenti
@@ -332,7 +336,7 @@ class SchemaEditor {
                     });
                 }
             },
-            'showHistory': () => this.showHistoryDialog(),
+            'showHistory': () => this.historyManager.show(),
             'settings': () => this.showSettingsDialog(),
 
             // Aiuto
@@ -4601,13 +4605,13 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         });
 
         // AGGIUNGI QUESTO BLOCCO
-        this.initHistoryDialog();
+        //this.initHistoryDialog();
 
         // Aggiungi listener per aprire lo storico (puoi usare Ctrl+H o un pulsante)
         document.addEventListener('keydown', (e) => {
             if ((e.ctrlKey || e.metaKey) && e.key === 'h') {
                 e.preventDefault();
-                this.showHistoryDialog();
+                this.historyManager.show();
             }
         });
 
@@ -4617,7 +4621,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         this.initTabDragDrop();
         // E aggiungi il listener
         document.getElementById('historyBtn').addEventListener('click', () => {
-            this.showHistoryDialog();
+            this.historyManager.show();
         });
 
         // ✅ NUOVO: Doppio click per toggle sidebar
@@ -7230,6 +7234,14 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         this.initExerciseSteps();
         this.renderStepsList();
 
+        this.deselectAll();
+        this.updateAllResizeHandles();
+
+        // ✅ NUOVO: Aggiorna il display dello storico se il manager è visibile
+        if (this.historyManager && this.historyManager.isVisible()) {
+            this.historyManager.render();
+        }
+
         this.loadTabState();
     }
 
@@ -7345,7 +7357,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         const state = {
             objects: Array.from(tab.objects.entries()),
             arrows: Array.from(tab.arrows.entries()),
-            freehands: Array.from(tab.freehands.entries()), // ✅ AGGIUNGI QUESTA LINEA
+            freehands: Array.from(tab.freehands.entries()),
             timestamp: Date.now(),
             description: description
         };
@@ -7374,6 +7386,11 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         if (tab.history.length > 50) {
             tab.history.shift();
             tab.historyIndex--;
+        }
+
+        // ✅ NUOVO: Aggiorna il display del manager se visibile
+        if (this.historyManager && this.historyManager.isVisible()) {
+            this.historyManager.render();
         }
     }
 
@@ -7425,68 +7442,73 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         // Ricaricare la visualizzazione del tab
         this.loadTabState();
         this.deselectAll();
+
+        // ✅ NUOVO: Aggiorna il display del manager se visibile
+        if (this.historyManager && this.historyManager.isVisible()) {
+            this.historyManager.render();
+        }
     }
 
-    initHistoryDialog() {
-        const dialog = document.getElementById('historyDialog');
-        const header = document.getElementById('historyDialogHeader');
-        const closeBtn = document.getElementById('closeHistoryDialog');
+    // initHistoryDialog() {
+    //     const dialog = document.getElementById('historyDialog');
+    //     const header = document.getElementById('historyDialogHeader');
+    //     const closeBtn = document.getElementById('closeHistoryDialog');
 
-        let isDragging = false;
-        let currentX = 0;
-        let currentY = 0;
-        let initialX = 0;
-        let initialY = 0;
+    //     let isDragging = false;
+    //     let currentX = 0;
+    //     let currentY = 0;
+    //     let initialX = 0;
+    //     let initialY = 0;
 
-        header.addEventListener('mousedown', (e) => {
-            const rect = dialog.getBoundingClientRect();
-            initialX = e.clientX - rect.left;
-            initialY = e.clientY - rect.top;
-            isDragging = true;
-            header.style.cursor = 'grabbing';
-            dialog.style.transform = 'none';
-            dialog.style.left = rect.left + 'px';
-            dialog.style.top = rect.top + 'px';
-        });
+    //     header.addEventListener('mousedown', (e) => {
+    //         const rect = dialog.getBoundingClientRect();
+    //         initialX = e.clientX - rect.left;
+    //         initialY = e.clientY - rect.top;
+    //         isDragging = true;
+    //         header.style.cursor = 'grabbing';
+    //         dialog.style.transform = 'none';
+    //         dialog.style.left = rect.left + 'px';
+    //         dialog.style.top = rect.top + 'px';
+    //     });
 
-        document.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            e.preventDefault();
-            currentX = e.clientX - initialX;
-            currentY = e.clientY - initialY;
-            dialog.style.left = currentX + 'px';
-            dialog.style.top = currentY + 'px';
-        });
+    //     document.addEventListener('mousemove', (e) => {
+    //         if (!isDragging) return;
+    //         e.preventDefault();
+    //         currentX = e.clientX - initialX;
+    //         currentY = e.clientY - initialY;
+    //         dialog.style.left = currentX + 'px';
+    //         dialog.style.top = currentY + 'px';
+    //     });
 
-        document.addEventListener('mouseup', () => {
-            if (isDragging) {
-                isDragging = false;
-                header.style.cursor = 'move';
-            }
-        });
+    //     document.addEventListener('mouseup', () => {
+    //         if (isDragging) {
+    //             isDragging = false;
+    //             header.style.cursor = 'move';
+    //         }
+    //     });
 
-        closeBtn.addEventListener('click', () => {
-            dialog.classList.remove('active');
-        });
+    //     closeBtn.addEventListener('click', () => {
+    //         dialog.classList.remove('active');
+    //     });
 
-        document.getElementById('restoreHistoryBtn').addEventListener('click', () => {
-            this.restoreSelectedHistory();
-        });
+    //     document.getElementById('restoreHistoryBtn').addEventListener('click', () => {
+    //         this.restoreSelectedHistory();
+    //     });
 
-        document.getElementById('deleteHistoryBtn').addEventListener('click', () => {
-            this.deleteSelectedHistory();
-        });
+    //     document.getElementById('deleteHistoryBtn').addEventListener('click', () => {
+    //         this.deleteSelectedHistory();
+    //     });
 
-        document.getElementById('compareHistoryBtn').addEventListener('click', () => {
-            this.compareWithCurrent();
-        });
-    }
+    //     document.getElementById('compareHistoryBtn').addEventListener('click', () => {
+    //         this.compareWithCurrent();
+    //     });
+    // }
 
-    showHistoryDialog() {
-        const dialog = document.getElementById('historyDialog');
-        dialog.classList.add('active');
-        this.renderHistoryList();
-    }
+    // showHistoryDialog() {
+    //     const dialog = document.getElementById('historyDialog');
+    //     dialog.classList.add('active');
+    //     this.renderHistoryList();
+    // }
 
     renderHistoryList() {
         const tab = this.getCurrentTab();

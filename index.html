@@ -838,41 +838,8 @@
     </div>
 
 
-    <div id="historyDialog" class="windows-dialog">
-        <div class="windows-dialog-header" id="historyDialogHeader">
-            <h3 data-i18n="local_history_title">📜 Storico Modifiche</h3>
-            <button class="windows-dialog-close" id="closeHistoryDialog">&times;</button>
-        </div>
-        <div class="windows-dialog-body">
-            <div class="history-list-panel">
-                <div id="historyList">
-                    <!-- Popolato dinamicamente -->
-                </div>
-            </div>
-            <div class="history-preview-panel">
-                <div class="history-preview-header">
-                    <strong id="historyPreviewTitle" data-i18n="local_history_preview_title">Seleziona una modifica per
-                        visualizzare l'anteprima</strong>
-                </div>
-                <div class="history-preview-content">
-                    <div class="history-preview-canvas" id="historyPreviewCanvas">
-                        <!-- Canvas di preview -->
-                    </div>
-                    <div class="history-preview-stats" id="historyPreviewStats">
-                        <!-- Statistiche della modifica -->
-                    </div>
-                </div>
-                <div class="history-actions">
-                    <button class="btn-delete-history" id="deleteHistoryBtn" disabled
-                        data-i18n="local_delete_history_button">🗑️ Elimina</button>
-                    <button class="btn-compare" id="compareHistoryBtn" disabled
-                        data-i18n="local_compare_history_button">🔄 Confronta</button>
-                    <button class="btn-restore" id="restoreHistoryBtn" disabled
-                        data-i18n="local_restore_history_button">✅ Ripristina</button>
-                </div>
-            </div>
-        </div>
-    </div>
+        <!-- Login Modal - VolleyProW4 Edition -->
+    <div id="history"></div>
 
 
     <water-mark></water-mark>
@@ -886,6 +853,8 @@
     <!-- CLASS -->
     <script defer src="components/menu/menu.class.js"></script>
     <script defer src="components/login/login.class.js"></script>
+    <script defer src="components/history/history.class.js"></script>
+
     <!-- COMPONENTS -->
     <script defer src="components/login/login.js"></script>
     <script defer src="components/macro_recorder_system.js"></script>

@@ -1,5 +1,6 @@
 function createLogin() {
     return new Promise(resolve => {
+         try {
         const login = document.getElementById("login");
         login.innerHTML = `
             <!-- Login Modal - VolleyProW4 Edition -->
@@ -29,5 +30,9 @@ function createLogin() {
             </div>
         `;
         resolve();
+        } catch (err) {
+            console.error("Errore nella creazione della login:", err);
+            reject(err);
+        }
     });
 }

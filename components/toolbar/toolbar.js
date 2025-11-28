@@ -3,6 +3,7 @@
 // =======================
 function createToolbar() {
     return new Promise(resolve => {
+         try {
         const toolbar = document.getElementById("toolbar");
 
         toolbarConfig.forEach(group => {
@@ -74,5 +75,9 @@ function createToolbar() {
             toolbar.appendChild(fs);
         });
         resolve();
+        } catch (err) {
+            console.error("Errore nella creazione della toolbar:", err);
+            reject(err);
+        }
     });
 }
