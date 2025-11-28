@@ -89,7 +89,7 @@ class HistoryDialogManager {
      * Cachea i riferimenti agli elementi DOM
      */
     cacheElements() {
-        this.elements.dialog = document.getElementById('#history');
+        this.elements.dialog = document.getElementById('historyManagerDialog');
         this.elements.overlay = document.getElementById('historyDialogOverlay');
         this.elements.header = document.getElementById('historyDialogHeader');
         this.elements.closeBtn = document.getElementById('closeHistoryDialog');

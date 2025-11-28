@@ -59,10 +59,10 @@
 
 
 /* Feedback visivo al drag */
-.toolbar-group:active {
+/* .toolbar-group:active {
     cursor: grabbing;
     transform: scale(0.98);
-}
+} */
 
 /* Zone di drop evidenziate */
 .toolbar.drag-over {
