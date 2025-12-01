@@ -1,5 +1,5 @@
 class SchemaEditor {
-    constructor() {
+    constructor(menuData) {
         this.tabs = new Map();
         this.activeTabId = 1;
         this.nextTabId = 2;
@@ -25,8 +25,8 @@ class SchemaEditor {
         this.isSelecting = false;
         this.selectionStart = { x: 0, y: 0 };
         this.canvasRect = null;
-        this.libraryWorkouts = []; // Array per i metadati degli allenamenti
-        this.selectedLibraryFile = null; // Nome file selezionato
+        this.libraryWorkouts = [];
+        this.selectedLibraryFile = null;
         this.librarySource = 'unknown';
         this.maxZIndex = 1;
         this.currentUser = null;
@@ -45,32 +45,40 @@ class SchemaEditor {
         this.canvasSize = 'custom';
         this.showCanvasBorder = false;
         this.historyMetadata = new Map();
-        this.floatingToolbarGroups = new Map(); // Traccia gruppi floating
-        this._tags = ""; // Initialize finalSentence property
+        this.floatingToolbarGroups = new Map();
+        this._tags = "";
 
-        this.initToolbarDragDrop();
-        this.initLibraryLoading();
-        this.initializeTab(1, 'Schema 1');
-        this.initCanvasResize();
         this.menuManager = new MenuManager(this);
         this.historyManager = new HistoryDialogManager(this);
-        this.historyManager.init();
+        this.teamManagementManager = new TeamManagementDialog(this);
+        this.saveWorkoutManager = new SaveWorkoutDialogManager(this);
+        this.libraryManager = new LibraryWorkoutDialogManager(this);
+
+        this.init(menuData);
 
 
-        this.loginManager = new LoginManager({
-            userDataUrl: 'data/users.json', // Percorso al file JSON degli utenti
-            onLoginSuccess: (username) => this.handleLoginSuccess(username),
-            onLogoutSuccess: () => this.handleLogoutSuccess()
-        });
+        this.initToolbarDragDrop();
+        //this.initLibraryLoading();
+        this.initializeTab(1, 'Schema 1');
+        this.initCanvasResize();
+
+
+
         this.initializeExistingTabs();
         this.updateUI();
         this.macroManager = new MacroManager(this);
-    }
-    handleLoginSuccess(username) {
         this.currentUser = username;
         this.showMainApp();
     }
 
+    //
+    init(menuData) {
+        this.menuManager.init(menuData);
+        this.historyManager.init();
+        this.teamManagementManager.init();
+        this.saveWorkoutManager.init();
+        this.libraryManager.init();
+    }
     /**
      * ✅ NUOVO: Callback quando il logout ha successo
      */
@@ -241,9 +249,9 @@ class SchemaEditor {
             'newSchema': () => this.addNewTab(),
             'saveSchema': () => this.saveSchema(),
             'loadSchema': () => document.getElementById('fileInput').click(),
-            'saveWorkout': () => this.showSaveWorkoutDialog(),
+            'saveWorkout': () => this.saveWorkoutManager.show(),
             'loadWorkout': () => document.getElementById('workoutFileInput').click(),
-            'loadFromLibrary': () => document.getElementById('loadFromLibrary').click(),
+            'loadFromLibrary': () => this.libraryManager.show(),
             'exportSchema': () => this.exportSchema(),
             'exportPDF': () => this.exportWorkoutToPDF(),
             'exportWorkout': () => this.exportWorkoutToPDF(),
@@ -980,13 +988,11 @@ class SchemaEditor {
     }
 
     showTeamDialog() {
-        const dialog = document.getElementById('teamDialog');
-        dialog.classList.add('active');
-        this.renderTeamPlayersList();
+        this.teamManagementManager.show();
     }
 
     hideTeamDialog() {
-        document.getElementById('teamDialog').classList.remove('active');
+        this.teamManagementManager.hide();
     }
 
     addTeamPlayer() {
@@ -3442,28 +3448,28 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     }
 
 
-    showSaveWorkoutDialog() {
-        // Genera un nome predefinito con data e ora
-        const now = new Date();
-        const defaultName = `Allenamento_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
-        document.getElementById('workOutListName').innerHTML = '';
-        this.tabs.forEach((tab, tabId) => {
-            const tabName = tab.name || `Tab_${tabId + 1}`;
-            const tabDiv = document.createElement('div');
-            tabDiv.classList.add('tab');
-            tabDiv.textContent = tabName;
-            document.getElementById('workOutListName').appendChild(tabDiv);
-        });
-        document.getElementById('workoutFileName').value = defaultName;
-        document.getElementById('saveWorkoutModal').style.display = 'block';
+    // showSaveWorkoutDialog() {
+    //     // Genera un nome predefinito con data e ora
+    //     const now = new Date();
+    //     const defaultName = `Allenamento_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+    //     document.getElementById('workOutListName').innerHTML = '';
+    //     this.tabs.forEach((tab, tabId) => {
+    //         const tabName = tab.name || `Tab_${tabId + 1}`;
+    //         const tabDiv = document.createElement('div');
+    //         tabDiv.classList.add('tab');
+    //         tabDiv.textContent = tabName;
+    //         document.getElementById('workOutListName').appendChild(tabDiv);
+    //     });
+    //     document.getElementById('workoutFileName').value = defaultName;
+    //     document.getElementById('saveWorkoutModal').style.display = 'block';
 
-        // Focus sull'input e seleziona il testo
-        setTimeout(() => {
-            const input = document.getElementById('workoutFileName');
-            input.focus();
-            input.select();
-        }, 100);
-    }
+    //     // Focus sull'input e seleziona il testo
+    //     setTimeout(() => {
+    //         const input = document.getElementById('workoutFileName');
+    //         input.focus();
+    //         input.select();
+    //     }, 100);
+    // }
 
     confirmSaveWorkout() {
         const fileName = document.getElementById('workoutFileName').value.trim();
@@ -3480,35 +3486,35 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         this.saveWorkout(fileName);
     }
 
-    showSaveWorkoutDialog() {
-        // Genera un nome predefinito con data e ora
-        const now = new Date();
-        const defaultName = `Allenamento_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+    // showSaveWorkoutDialog() {
+    //     // Genera un nome predefinito con data e ora
+    //     const now = new Date();
+    //     const defaultName = `Allenamento_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
 
-        document.getElementById('workOutListName').innerHTML = '';
-        this.tabs.forEach((tab, tabId) => {
-            const tabName = tab.name || `Tab_${tabId + 1}`;
-            const tabDiv = document.createElement('div');
-            tabDiv.classList.add('tab');
-            tabDiv.textContent = tabName;
-            document.getElementById('workOutListName').appendChild(tabDiv);
-        });
+    //     document.getElementById('workOutListName').innerHTML = '';
+    //     this.tabs.forEach((tab, tabId) => {
+    //         const tabName = tab.name || `Tab_${tabId + 1}`;
+    //         const tabDiv = document.createElement('div');
+    //         tabDiv.classList.add('tab');
+    //         tabDiv.textContent = tabName;
+    //         document.getElementById('workOutListName').appendChild(tabDiv);
+    //     });
 
-        document.getElementById('workoutFileName').value = defaultName;
+    //     document.getElementById('workoutFileName').value = defaultName;
 
-        // ✅ Ripristina i valori salvati in precedenza (se esistono)
-        document.getElementById('workoutGlobalObjective').value = this.currentWorkoutObjective || '';
-        document.getElementById('workoutGlobalObservations').value = this.currentWorkoutObservations || '';
+    //     // ✅ Ripristina i valori salvati in precedenza (se esistono)
+    //     document.getElementById('workoutGlobalObjective').value = this.currentWorkoutObjective || '';
+    //     document.getElementById('workoutGlobalObservations').value = this.currentWorkoutObservations || '';
 
-        document.getElementById('saveWorkoutModal').style.display = 'block';
+    //     document.getElementById('saveWorkoutModal').style.display = 'block';
 
-        // Focus sull'input e seleziona il testo
-        setTimeout(() => {
-            const input = document.getElementById('workoutFileName');
-            input.focus();
-            input.select();
-        }, 100);
-    }
+    //     // Focus sull'input e seleziona il testo
+    //     setTimeout(() => {
+    //         const input = document.getElementById('workoutFileName');
+    //         input.focus();
+    //         input.select();
+    //     }, 100);
+    // }
 
     saveWorkout(fileName) {
         // Salva lo stato corrente del tab attivo
@@ -3721,7 +3727,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
         // Inizializza l'app solo al primo login
         if (!this.initialized) {
-            this.initLibraryLoading();
+            //this.initLibraryLoading();
             this.initializeTab(1, 'Schema 1');
             this.initCanvasResize();
             this.initializeEventListeners();
@@ -3752,41 +3758,41 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         };
     }
 
-    initLibraryLoading() {
-        const loadButton = document.getElementById('loadFromLibrary');
-        const dialog = document.getElementById('libraryDialog');
-        const closeButton = document.getElementById('closeLibraryDialog');
-        const loadSelectedBtn = document.getElementById('loadSelectedWorkout');
-        const filterPeriodo = document.getElementById('filterPeriodo');
-        const filterTipologia = document.getElementById('filterTipologia');
-        const filterRuolo = document.getElementById('filterRuolo');
+    // initLibraryLoading() {
+    //     const loadButton = document.getElementById('loadFromLibrary');
+    //     const dialog = document.getElementById('libraryDialog');
+    //     const closeButton = document.getElementById('closeLibraryDialog');
+    //     const loadSelectedBtn = document.getElementById('loadSelectedWorkout');
+    //     const filterPeriodo = document.getElementById('filterPeriodo');
+    //     const filterTipologia = document.getElementById('filterTipologia');
+    //     const filterRuolo = document.getElementById('filterRuolo');
 
-        loadButton.addEventListener('click', () => {
-            dialog.style.display = 'block';
-            this.fetchLibraryWorkouts(); // Chiama il backend per la lista
-        });
+    //     loadButton.addEventListener('click', () => {
+    //         dialog.style.display = 'block';
+    //         this.fetchLibraryWorkouts(); // Chiama il backend per la lista
+    //     });
 
-        closeButton.addEventListener('click', () => {
-            dialog.style.display = 'none';
-        });
+    //     closeButton.addEventListener('click', () => {
+    //         dialog.style.display = 'none';
+    //     });
 
-        window.addEventListener('click', (event) => {
-            if (event.target === dialog) {
-                dialog.style.display = 'none';
-            }
-        });
+    //     window.addEventListener('click', (event) => {
+    //         if (event.target === dialog) {
+    //             dialog.style.display = 'none';
+    //         }
+    //     });
 
-        filterPeriodo.addEventListener('change', () => this.filterWorkouts());
-        filterTipologia.addEventListener('change', () => this.filterWorkouts());
-        filterRuolo.addEventListener('change', () => this.filterWorkouts());
+    //     filterPeriodo.addEventListener('change', () => this.filterWorkouts());
+    //     filterTipologia.addEventListener('change', () => this.filterWorkouts());
+    //     filterRuolo.addEventListener('change', () => this.filterWorkouts());
 
-        loadSelectedBtn.addEventListener('click', () => {
-            if (this.selectedLibraryFile) {
-                const fileWorkOut = this.loadWorkoutFromBackend(this.selectedLibraryFile);
-                this.loadSchema(fileWorkOut)
-            }
-        });
-    }
+    //     loadSelectedBtn.addEventListener('click', () => {
+    //         if (this.selectedLibraryFile) {
+    //             const fileWorkOut = this.loadWorkoutFromBackend(this.selectedLibraryFile);
+    //             this.loadSchema(fileWorkOut)
+    //         }
+    //     });
+    // }
 
     // Carica la lista dei file dal backend PHP con FALLBACK
     async fetchLibraryWorkouts() {
@@ -4151,7 +4157,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         document.getElementById('groupRotateRight90').addEventListener('click', () => this.rotateGroup(90));
 
         //Salvataggio Allenamenti
-        document.getElementById('saveWorkOutBtn').addEventListener('click', () => this.showSaveWorkoutDialog());
+        document.getElementById('saveWorkOutBtn').addEventListener('click', () => this.saveWorkoutManager.show());
         document.getElementById('loadWorkOutBtn').addEventListener('click', () => {
             document.getElementById('workoutFileInput').click();
         });
@@ -4383,35 +4389,35 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
 
         // Event listeners per il popup di salvataggio workout
-        document.getElementById('closeSaveWorkout').addEventListener('click', () => {
-            document.getElementById('saveWorkoutModal').style.display = 'none';
-        });
+        // document.getElementById('closeSaveWorkout').addEventListener('click', () => {
+        //     document.getElementById('saveWorkoutModal').style.display = 'none';
+        // });
 
-        document.getElementById('cancelSaveWorkout').addEventListener('click', () => {
-            document.getElementById('saveWorkoutModal').style.display = 'none';
-        });
+        // document.getElementById('cancelSaveWorkout').addEventListener('click', () => {
+        //     document.getElementById('saveWorkoutModal').style.display = 'none';
+        // });
 
-        document.getElementById('confirmSaveWorkout').addEventListener('click', () => {
-            this.confirmSaveWorkout();
-        });
+        // document.getElementById('confirmSaveWorkout').addEventListener('click', () => {
+        //     this.confirmSaveWorkout();
+        // });
 
-        // Chiudi il modal cliccando fuori
-        window.addEventListener('click', (event) => {
-            const modal = document.getElementById('saveWorkoutModal');
-            if (event.target === modal) {
-                modal.style.display = 'none';
-            }
-        });
+        // // Chiudi il modal cliccando fuori
+        // window.addEventListener('click', (event) => {
+        //     const modal = document.getElementById('saveWorkoutModal');
+        //     if (event.target === modal) {
+        //         modal.style.display = 'none';
+        //     }
+        // });
 
-        // Permetti di salvare premendo Enter
-        document.getElementById('workoutFileName').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                this.confirmSaveWorkout();
-            }
-        });
+        // // Permetti di salvare premendo Enter
+        // document.getElementById('workoutFileName').addEventListener('keypress', (e) => {
+        //     if (e.key === 'Enter') {
+        //         this.confirmSaveWorkout();
+        //     }
+        // });
 
-        // Event listener per il caricamento workout
-        document.getElementById('workoutFileInput').addEventListener('change', (e) => this.loadWorkout(e));
+        // // Event listener per il caricamento workout
+        // document.getElementById('workoutFileInput').addEventListener('change', (e) => this.loadWorkout(e));
 
         document.getElementById('freehandModeBtn').addEventListener('click', (e) => {
             this.freehandMode = !this.freehandMode;
@@ -4565,7 +4571,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
         // Gestione squadra
         document.getElementById('manageTeamBtn').addEventListener('click', () => {
-            showTeamDialogUnified(this);
+            this.teamManagementManager.show();
         });
 
         // document.getElementById('closeTeamDialog').addEventListener('click', () => {
@@ -4645,43 +4651,43 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         });
     }
 
-    initTeamDialogDrag() {
-        const dialog = document.getElementById('teamDialog');
-        const header = document.getElementById('teamDialogHeader');
+    // initTeamDialogDrag() {
+    //     const dialog = document.getElementById('teamDialog');
+    //     const header = document.getElementById('teamDialogHeader');
 
-        let isDragging = false;
-        let currentX = 0;
-        let currentY = 0;
-        let initialX = 0;
-        let initialY = 0;
+    //     let isDragging = false;
+    //     let currentX = 0;
+    //     let currentY = 0;
+    //     let initialX = 0;
+    //     let initialY = 0;
 
-        header.addEventListener('mousedown', (e) => {
-            const rect = dialog.getBoundingClientRect();
-            initialX = e.clientX - rect.left;
-            initialY = e.clientY - rect.top;
-            isDragging = true;
-            header.style.cursor = 'grabbing';
-            dialog.style.transform = 'none';
-            dialog.style.left = rect.left + 'px';
-            dialog.style.top = rect.top + 'px';
-        });
+    //     header.addEventListener('mousedown', (e) => {
+    //         const rect = dialog.getBoundingClientRect();
+    //         initialX = e.clientX - rect.left;
+    //         initialY = e.clientY - rect.top;
+    //         isDragging = true;
+    //         header.style.cursor = 'grabbing';
+    //         dialog.style.transform = 'none';
+    //         dialog.style.left = rect.left + 'px';
+    //         dialog.style.top = rect.top + 'px';
+    //     });
 
-        document.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            e.preventDefault();
-            currentX = e.clientX - initialX;
-            currentY = e.clientY - initialY;
-            dialog.style.left = currentX + 'px';
-            dialog.style.top = currentY + 'px';
-        });
+    //     document.addEventListener('mousemove', (e) => {
+    //         if (!isDragging) return;
+    //         e.preventDefault();
+    //         currentX = e.clientX - initialX;
+    //         currentY = e.clientY - initialY;
+    //         dialog.style.left = currentX + 'px';
+    //         dialog.style.top = currentY + 'px';
+    //     });
 
-        document.addEventListener('mouseup', () => {
-            if (isDragging) {
-                isDragging = false;
-                header.style.cursor = 'move';
-            }
-        });
-    }
+    //     document.addEventListener('mouseup', () => {
+    //         if (isDragging) {
+    //             isDragging = false;
+    //             header.style.cursor = 'move';
+    //         }
+    //     });
+    // }
 
     showCanvasContextMenu(e) {
         this.hideContextMenu();
@@ -7209,7 +7215,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             document.getElementById('toggleCanvasBorder').classList.remove('active');
         }
 
-        // AGGIUNGI RIPRISTINO maxZIndex
         if (tab.maxZIndex) {
             this.maxZIndex = tab.maxZIndex;
         }
@@ -7226,8 +7231,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         document.getElementById('workoutNr').value = tab.nr || 1;
         document.getElementById('workoutSeries').value = tab.series || 1;
         document.getElementById('workoutGroups').value = tab.groups || 1;
-        document.getElementById('workoutTiming').value = tab.timing || 10;    // ✅ AGGIUNTO
-        document.getElementById('workoutRec').value = tab.rec || 60;          // ✅ AGGIUNTO
+        document.getElementById('workoutTiming').value = tab.timing || 10;
+        document.getElementById('workoutRec').value = tab.rec || 60;
 
         this.filterCategoriesByGenere(tab.genere || 'GEN');
 

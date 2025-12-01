@@ -10,9 +10,9 @@
 @import url("arrow.css");
 @import url("exercise-steps.css");
 @import url("butttons.css");
-@import url("team-dialog.css");
 @import url("footer.css");
 @import url("windows-dialog.css");
+@import url("../components/teammanagement/team-dialog.css");
 @import url("../components/history/history.css");
 @import url("../components/toolbar/toolbar.css");
 @import url("../components/menu/menu-bar.css");

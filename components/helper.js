@@ -100,9 +100,9 @@ function createWindow({
     rounded,
     shadow,
     visible = true,
-    effect = "none", // valori: "none", "windows"
-    listeners = {},   // es: { onMinimize(){}, onMaximize(){}, onRestore(){} }
-    lang = 'it' // Lingua per la traduzione
+    effect = "none",
+    listeners = {},
+    lang = 'it'
 } = {}) {
 
     // Genera un id random se non è passato
@@ -119,7 +119,6 @@ function createWindow({
     rounded = rounded ?? tpl.rounded ?? true;
     shadow = shadow ?? tpl.shadow ?? "0 10px 25px rgba(0,0,0,0.2)";
 
-    // Percentuali rispetto alla finestra
     const percentSizes = {
         sm: { w: 0.35, h: 0.35 },
         md: { w: 0.45, h: 0.45 },
@@ -128,14 +127,9 @@ function createWindow({
     };
 
     const dimensions = fullscreen
-        ? {
-            w: window.innerWidth * 0.95,
-            h: window.innerHeight * 0.95
-        }
-        : {
-            w: window.innerWidth * (percentSizes[size]?.w ?? percentSizes.md.w),
-            h: window.innerHeight * (percentSizes[size]?.h ?? percentSizes.md.h)
-        };
+        ? { w: window.innerWidth * 0.95, h: window.innerHeight * 0.95 }
+        : { w: window.innerWidth * (percentSizes[size]?.w ?? percentSizes.md.w),
+            h: window.innerHeight * (percentSizes[size]?.h ?? percentSizes.md.h) };
 
     const centerX = (window.innerWidth - dimensions.w) / 2;
     const centerY = (window.innerHeight - dimensions.h) / 2;
@@ -151,13 +145,14 @@ function createWindow({
             zIndex: 9998
         });
         document.body.appendChild(overlay);
-        overlay.addEventListener('click', (e) => { if (e.target === overlay) closeWindow(); });
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeWindow();
+        });
     }
 
     const win = document.createElement('div');
-    if (effect === "windows") {
-        win.classList.add('win-effect-resize');
-    }
+    if (effect === "windows") win.classList.add('win-effect-resize');
+
     win.id = id;
     Object.assign(win.style, {
         position: 'absolute',
@@ -176,10 +171,12 @@ function createWindow({
         fontFamily: 'Arial, sans-serif'
     });
 
-    if (modal && overlay) { overlay.appendChild(win); win.addEventListener('click', e => e.stopPropagation()); }
-    else document.body.appendChild(win);
+    if (modal && overlay) {
+        overlay.appendChild(win);
+        win.addEventListener('click', e => e.stopPropagation());
+    } else document.body.appendChild(win);
 
-    // ========== Titlebar ==========
+    // ================== Titlebar ==================
     const titlebar = document.createElement('div');
     Object.assign(titlebar.style, {
         display: 'flex',
@@ -195,16 +192,23 @@ function createWindow({
     const titleLeft = document.createElement('div');
     titleLeft.style.display = 'flex';
     titleLeft.style.gap = '8px';
-    const iconSpan = document.createElement('span'); iconSpan.textContent = icon; iconSpan.style.fontSize = '16px';
+
+    const iconSpan = document.createElement('span');
+    iconSpan.textContent = icon;
+    iconSpan.style.fontSize = '16px';
+
     const titleSpan = document.createElement('span');
     titleSpan.textContent = title;
     titleSpan.style.fontWeight = '600';
     titleSpan.style.fontSize = '14px';
-    titleSpan.setAttribute('data-i18n', title); // Traduzione del titolo
-    titleLeft.appendChild(iconSpan); titleLeft.appendChild(titleSpan);
+    titleSpan.setAttribute('data-i18n', title);
+
+    titleLeft.appendChild(iconSpan);
+    titleLeft.appendChild(titleSpan);
 
     const titleRight = document.createElement('div');
-    titleRight.style.display = 'flex'; titleRight.style.gap = '4px';
+    titleRight.style.display = 'flex';
+    titleRight.style.gap = '4px';
 
     const createBtn = (symbol, bgHover, bgNormal = '#9ca3af') => {
         const btn = document.createElement('button');
@@ -232,31 +236,43 @@ function createWindow({
     const btnMax = createBtn('□', '#3b82f6');
     const btnClose = createBtn('✕', '#ef4444');
 
-    titleRight.appendChild(btnMin); titleRight.appendChild(btnMax); titleRight.appendChild(btnClose);
-    titlebar.appendChild(titleLeft); titlebar.appendChild(titleRight);
+    titleRight.appendChild(btnMin);
+    titleRight.appendChild(btnMax);
+    titleRight.appendChild(btnClose);
+
+    titlebar.appendChild(titleLeft);
+    titlebar.appendChild(titleRight);
     win.appendChild(titlebar);
 
-    // ========== Content ==========
+    // ================== Content ==================
     const content = document.createElement('div');
     content.innerHTML = contentHTML;
-    content.setAttribute('data-i18n', contentHTML); // Traduzione contenuto
+    content.setAttribute('data-i18n', contentHTML);
     Object.assign(content.style, {
-        flex: '1', overflow: 'auto', padding: '12px', backgroundColor: contentBg, color: contentColor
+        flex: '1',
+        overflow: 'auto',
+        padding: '12px',
+        backgroundColor: contentBg,
+        color: contentColor
     });
     win.appendChild(content);
 
-    // ========== Footer / Buttons ==========
+    // ================== Footer ==================
     if (buttons.length) {
         const footer = document.createElement('div');
         Object.assign(footer.style, {
-            display: 'flex', justifyContent: 'flex-end', gap: '8px', padding: '12px',
-            backgroundColor: footerBg, borderTop: footerBorder
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: '8px',
+            padding: '12px',
+            backgroundColor: footerBg,
+            borderTop: footerBorder
         });
 
         buttons.forEach(b => {
             const btn = document.createElement('button');
             btn.textContent = b.label;
-            btn.setAttribute('data-i18n', b.label); // Traduzione pulsante
+            btn.setAttribute('data-i18n', b.label);
             Object.assign(btn.style, {
                 padding: '6px 12px',
                 borderRadius: '6px',
@@ -264,7 +280,7 @@ function createWindow({
                 border: 'none',
                 cursor: 'pointer',
                 transition: '0.2s',
-                backgroundColor: '#2563eb'
+                backgroundColor: b.class === null ? '#2563eb' : undefined
             });
             switch (b.color) {
                 case 'success': btn.style.backgroundColor = '#16a34a'; break;
@@ -272,36 +288,57 @@ function createWindow({
                 case 'warning': btn.style.backgroundColor = '#eab308'; break;
                 case 'secondary': btn.style.backgroundColor = '#6b7280'; break;
             }
+            if (b.class) btn.className = b.class;
+
             btn.onmouseenter = () => btn.style.opacity = '0.8';
             btn.onmouseleave = () => btn.style.opacity = '1';
+
             btn.addEventListener('click', () => {
                 b.onClick?.();
                 if (b.close !== false) closeWindow();
             });
+
             footer.appendChild(btn);
         });
+
         win.appendChild(footer);
     }
 
-    // ================= Drag =================
+    // ================== Drag ==================
     let dragging = false, dx = 0, dy = 0;
     titlebar.addEventListener('mousedown', e => {
         if (e.target.tagName === 'BUTTON') return;
-        dragging = true; dx = e.clientX - win.offsetLeft; dy = e.clientY - win.offsetTop;
-        bringToFront(win); document.body.style.userSelect = 'none';
+        dragging = true;
+        dx = e.clientX - win.offsetLeft;
+        dy = e.clientY - win.offsetTop;
+        bringToFront(win);
+        document.body.style.userSelect = 'none';
     });
+
     window.addEventListener('mousemove', e => {
         if (!dragging) return;
         let nx = e.clientX - dx, ny = e.clientY - dy;
         nx = Math.max(0, Math.min(nx, window.innerWidth - win.offsetWidth));
         ny = Math.max(0, Math.min(ny, window.innerHeight - win.offsetHeight));
-        win.style.left = nx + 'px'; win.style.top = ny + 'px';
+        win.style.left = nx + 'px';
+        win.style.top = ny + 'px';
     });
-    window.addEventListener('mouseup', () => { dragging = false; document.body.style.userSelect = ''; });
 
-    // ================= Buttons actions =================
-    const closeWindow = () => { win.remove(); if (overlay) overlay.remove(); onClose?.(); };
+    window.addEventListener('mouseup', () => {
+        dragging = false;
+        document.body.style.userSelect = '';
+    });
+
+    // ==================== Pulsanti ====================
+    const closeWindowOriginal = () => {
+        win.remove();
+        if (overlay) overlay.remove();
+        onClose?.();
+    };
+
+    let closeWindow = closeWindowOriginal;
     btnClose.addEventListener('click', closeWindow);
+
     btnMin.addEventListener('click', () => {
         if (effect === "windows") {
             win.classList.add('win-effect-minimize');
@@ -316,47 +353,103 @@ function createWindow({
         } else {
             win.style.display = 'none';
             if (overlay) overlay.style.display = 'none';
-
             createTaskbarIcon(win, icon, title, overlay, effect);
         }
     });
 
-    let maximized = false, prev = {};
+    let maximized = false;
+    let prev = {};
+
     btnMax.addEventListener('click', () => {
         if (!maximized) {
-            prev = { left: win.offsetLeft, top: win.offsetTop, width: win.offsetWidth, height: win.offsetHeight };
-            win.style.left = '20px'; win.style.top = '20px';
-            win.style.width = (window.innerWidth - 40) + 'px'; win.style.height = (window.innerHeight - 40) + 'px';
+            prev = {
+                left: win.offsetLeft,
+                top: win.offsetTop,
+                width: win.offsetWidth,
+                height: win.offsetHeight
+            };
+            win.style.left = '20px';
+            win.style.top = '20px';
+            win.style.width = (window.innerWidth - 40) + 'px';
+            win.style.height = (window.innerHeight - 40) + 'px';
             maximized = true;
         } else {
-            win.style.left = prev.left + 'px'; win.style.top = prev.top + 'px';
-            win.style.width = prev.width + 'px'; win.style.height = prev.height + 'px';
+            win.style.left = prev.left + 'px';
+            win.style.top = prev.top + 'px';
+            win.style.width = prev.width + 'px';
+            win.style.height = prev.height + 'px';
             maximized = false;
         }
     });
 
-    // ================= Traduzione =================
+    // ==================== Traduzione ====================
     translateElements(lang);
 
     win.showDialog = () => {
         win.style.display = 'flex';
         if (overlay) overlay.style.display = 'flex';
-        // Porta la finestra in primo piano
         bringToFront(win);
-        // Aggiorna la traduzione se necessario
         translateElements(lang);
     };
 
-    win.hideDialog = () => {
-        closeWindow()
+    win.hideDialog = () => closeWindow();
+
+    if (typeof listeners.domReady === "function") listeners.domReady(win);
+
+    // ===================================================================
+    // ====================== RESIZE AUTOMATICO ==========================
+    // ===================================================================
+
+    const resizeHandler = () => {
+
+        const ps = percentSizes[size] ?? percentSizes.md;
+
+        // Fullscreen
+        if (fullscreen && !maximized) {
+            const w = window.innerWidth * 0.95;
+            const h = window.innerHeight * 0.95;
+            win.style.width = w + "px";
+            win.style.height = h + "px";
+            win.style.left = (window.innerWidth - w) / 2 + "px";
+            win.style.top = (window.innerHeight - h) / 2 + "px";
+            return;
+        }
+
+        // Massimizzata
+        if (maximized) {
+            win.style.left = "20px";
+            win.style.top = "20px";
+            win.style.width = (window.innerWidth - 40) + "px";
+            win.style.height = (window.innerHeight - 40) + "px";
+            return;
+        }
+
+        // Normale percentuale
+        const newW = window.innerWidth * ps.w;
+        const newH = window.innerHeight * ps.h;
+
+        win.style.width = newW + "px";
+        win.style.height = newH + "px";
+
+        win.style.left = (window.innerWidth - newW) / 2 + "px";
+        win.style.top = (window.innerHeight - newH) / 2 + "px";
     };
 
+    window.addEventListener("resize", resizeHandler);
 
-    if (typeof listeners.domReady === "function") {
-        listeners.domReady(win);
-    }
+    // Pulizia automatica quando chiudo
+    const oldClose = closeWindow;
+    closeWindow = () => {
+        window.removeEventListener("resize", resizeHandler);
+        oldClose();
+    };
+    btnClose.addEventListener("click", closeWindow);
+
+    // ===================================================================
+
     return win;
 }
+
 
 
 // ======================================================

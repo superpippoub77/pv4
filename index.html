@@ -38,7 +38,7 @@
 
 <body>
     <!-- MENU -->
-    <div id="menu"></div>
+    <!-- <div id="menu"></div> -->
 
     <!-- TOOL -->
     <div id="toolbar" class="toolbar"></div>
@@ -687,85 +687,9 @@
         </div>
     </div>
 
-    <div id="libraryDialog" class="modal">
-        <div class="modal-content">
-            <span class="close-button" id="closeLibraryDialog">&times;</span>
-            <h2 data-i18n="local_load_workout_from_library_title">Carica Allenamento da Libreria</h2>
-
-            <div class="filters">
-                <label for="filterPeriodo" data-i18n="local_workout_period_label">Periodo:</label>
-                <select id="filterPeriodo"></select>
-
-                <label for="filterTipologia" data-i18n="local_workout_typology_label">Tipologia:</label>
-                <select id="filterTipologia"></select>
-
-                <label for="filterRuolo" data-i18n="local_workout_role_label">Ruolo:</label>
-                <select id="filterRuolo"></select>
-            </div>
-
-            <div class="workout-list-container">
-                <ul id="workoutList">
-                </ul>
-            </div>
-            <button id="loadSelectedWorkout" disabled data-i18n="local_load_selected_workout_button">Carica
-                Allenamento</button>
-        </div>
-    </div>
-
-
-    <!-- Popup per nome allenamento -->
-    <div id="saveWorkoutModal" class="modal">
-        <div class="modal-content" style="max-width: 600px;">
-            <span class="close-button" id="closeSaveWorkout">&times;</span>
-            <h2 data-i18n="local_save_complete_workout_title">Salva Allenamento Completo</h2>
-
-            <div id="workOutListName"></div>
-
-            <div style="padding: 20px 0;">
-                <label for="workoutFileName" style="display: block; margin-bottom: 10px; font-weight: bold;"
-                    data-i18n="local_workout_file_name_label">
-                    Nome del file:
-                </label>
-                <input type="text" id="workoutFileName"
-                    style="width: 100%; padding: 8px; border: 1px solid #bdc3c7; border-radius: 4px; margin-bottom: 15px;"
-                    placeholder="es: Allenamento_Settimana1">
-
-                <label for="workoutGlobalObjective" style="display: block; margin-bottom: 10px; font-weight: bold;"
-                    data-i18n="local_workout_global_objective_label">
-                    Obiettivo dell'allenamento:
-                </label>
-                <textarea id="workoutGlobalObjective"
-                    style="width: 100%; padding: 8px; border: 1px solid #bdc3c7; border-radius: 4px; margin-bottom: 15px; resize: vertical; min-height: 80px; font-family: inherit;"
-                    placeholder="Descrivi l'obiettivo generale di questo allenamento..."></textarea>
-
-                <label for="workoutGlobalObservations" style="display: block; margin-bottom: 10px; font-weight: bold;"
-                    data-i18n="local_workout_global_observations_label">
-                    Osservazioni:
-                </label>
-                <textarea id="workoutGlobalObservations"
-                    style="width: 100%; padding: 8px; border: 1px solid #bdc3c7; border-radius: 4px; resize: vertical; min-height: 100px; font-family: inherit;"
-                    placeholder="Aggiungi eventuali osservazioni o note post-allenamento..."></textarea>
-            </div>
-
-            <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                <button id="cancelSaveWorkout"
-                    style="padding: 8px 16px; background: #95a5a6; color: white; border: none; border-radius: 4px; cursor: pointer;"
-                    data-i18n="local_cancel_button">
-                    Annulla
-                </button>
-                <button id="confirmSaveWorkout"
-                    style="padding: 8px 16px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer;"
-                    data-i18n="local_save_button">
-                    Salva
-                </button>
-            </div>
-        </div>
-    </div>
-
-
     <!-- Login Modal - VolleyProW4 Edition -->
-    <div id="login" class="login-modal">
-    </div>
+    <!-- <div id="login" class="login-modal">
+    </div> -->
 
     <div id="animationDialog">
         <div class="animation-dialog-header" id="animationDialogHeader">
@@ -838,6 +762,7 @@
     </div>
 
     <water-mark></water-mark>
+
     <!-- CONSTANTS -->
     <script defer src="constants/dic.js"></script>
     <script defer src="constants/preset-actions.js"></script>
@@ -849,31 +774,49 @@
     <script defer src="components/menu/menu.class.js"></script>
     <script defer src="components/login/login.class.js"></script>
     <script defer src="components/history/history.class.js"></script>
+    <script defer src="components/teammanagement/teammanagement.class.js"></script>
+    <script defer src="components/workout/libraryworkout.class.js"></script>
+    <script defer src="components/workout/saveworkout.class.js"></script>
 
     <!-- COMPONENTS -->
-    <script defer src="components/login/login.js"></script>
     <script defer src="components/macro_recorder_system.js"></script>
     <script defer src="components/toolbar/toolbar.js"></script>
-    
+
+    <!-- Extension -->
     <script defer src="components/schemaeditor.js"></script>
     <script defer src="components/helper.js"></script>
     <script defer src="components/components.js"></script>
-    <script defer src="components/menu/menu.js"></script>
+    <!-- <script defer src="components/menu/menu.js"></script> -->
 
     <script>
         const defaultLang = 'it';
 
         async function initializeEditor() {
-            await createLogin();
-            await createMenu(menuData);
-            await createToolbar();
+            loginManager = new LoginManager({
+                userDataUrl: 'data/users.json', // Percorso al file JSON degli utenti
+                onLoginSuccess: async (username) => {
+                    setDefaultDate('workoutDate');
+                    await createToolbar();
 
-            setDefaultDate('workoutDate');
-             const langSelector = document.getElementById('languageSelector');
-            langSelector.value = defaultLang;
-            setLanguage(defaultLang);
+                    window.editor = new SchemaEditor(menuData, username);
 
-            window.editor = new SchemaEditor();
+                    const langSelector = document.getElementById('languageSelector');
+                    langSelector.value = defaultLang;
+                    setLanguage(defaultLang);
+
+                    
+                    // Listener per il cambio di selezione
+                    langSelector.addEventListener('change', (event) => {
+                        setLanguage(event.target.value);
+                        translateElements(event.target.value);
+                    });
+                },
+                onLogoutSuccess: () => {
+                    window.editor.handleLogoutSuccess();
+                }
+            });
+
+
             // Associa la funzione al pulsante 'Esporta PDF'
             const exportBtn = document.getElementById('exportPdfBtn');
             if (exportBtn) {
@@ -885,17 +828,11 @@
                     }
                 });
             }
-            // Listener per il cambio di selezione
-            langSelector.addEventListener('change', (event) => {
-                setLanguage(event.target.value);
-                translateElements(event.target.value);
-            });
+
         }
 
         document.addEventListener("DOMContentLoaded", () => {
-
             initializeEditor();
-
         });
     </script>
 </body>
