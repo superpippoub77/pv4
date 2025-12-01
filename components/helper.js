@@ -110,6 +110,20 @@ function createWindow({
         id = `win-${Math.floor(Math.random() * 1000000)}`;
     }
 
+    // ============================
+    //  SE LA FINESTRA ESISTE GIÀ
+    // ============================
+    const existing = document.getElementById(id);
+    if (existing) {
+        existing.style.display = 'flex';
+        bringToFront(existing);
+
+        const existingOverlay = document.querySelector(`.overlay-for-${id}`);
+        if (existingOverlay) existingOverlay.style.display = 'flex';
+
+        return existing;
+    }
+
     const tpl = windowTemplates[template] || {};
     headerBg = headerBg ?? tpl.headerBg ?? "#4b5563";
     contentBg = contentBg ?? tpl.contentBg ?? "#ffffff";
@@ -128,8 +142,10 @@ function createWindow({
 
     const dimensions = fullscreen
         ? { w: window.innerWidth * 0.95, h: window.innerHeight * 0.95 }
-        : { w: window.innerWidth * (percentSizes[size]?.w ?? percentSizes.md.w),
-            h: window.innerHeight * (percentSizes[size]?.h ?? percentSizes.md.h) };
+        : {
+            w: window.innerWidth * (percentSizes[size]?.w ?? percentSizes.md.w),
+            h: window.innerHeight * (percentSizes[size]?.h ?? percentSizes.md.h)
+        };
 
     const centerX = (window.innerWidth - dimensions.w) / 2;
     const centerY = (window.innerHeight - dimensions.h) / 2;
@@ -137,14 +153,20 @@ function createWindow({
     let overlay;
     if (modal) {
         overlay = document.createElement('div');
+        overlay.classList.add(`overlay-for-${id}`);
+
         Object.assign(overlay.style, {
-            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            position: 'fixed',
+            top: 0, left: 0, right: 0, bottom: 0,
             backgroundColor: 'rgba(0,0,0,0.5)',
             display: visible ? 'flex' : 'none',
-            alignItems: 'center', justifyContent: 'center',
+            alignItems: 'center',
+            justifyContent: 'center',
             zIndex: 9998
         });
+
         document.body.appendChild(overlay);
+
         overlay.addEventListener('click', (e) => {
             if (e.target === overlay) closeWindow();
         });
@@ -174,7 +196,9 @@ function createWindow({
     if (modal && overlay) {
         overlay.appendChild(win);
         win.addEventListener('click', e => e.stopPropagation());
-    } else document.body.appendChild(win);
+    } else {
+        document.body.appendChild(win);
+    }
 
     // ================== Titlebar ==================
     const titlebar = document.createElement('div');
@@ -273,6 +297,7 @@ function createWindow({
             const btn = document.createElement('button');
             btn.textContent = b.label;
             btn.setAttribute('data-i18n', b.label);
+
             Object.assign(btn.style, {
                 padding: '6px 12px',
                 borderRadius: '6px',
@@ -282,12 +307,14 @@ function createWindow({
                 transition: '0.2s',
                 backgroundColor: b.class === null ? '#2563eb' : undefined
             });
+
             switch (b.color) {
                 case 'success': btn.style.backgroundColor = '#16a34a'; break;
                 case 'danger': btn.style.backgroundColor = '#dc2626'; break;
                 case 'warning': btn.style.backgroundColor = '#eab308'; break;
                 case 'secondary': btn.style.backgroundColor = '#6b7280'; break;
             }
+
             if (b.class) btn.className = b.class;
 
             btn.onmouseenter = () => btn.style.opacity = '0.8';
@@ -329,37 +356,26 @@ function createWindow({
         document.body.style.userSelect = '';
     });
 
-    // ==================== Pulsanti ====================
+    // ==================== NUOVA CHIUSURA (NASCONDI) ====================
     const closeWindowOriginal = () => {
-        win.remove();
-        if (overlay) overlay.remove();
+        win.style.display = 'none';
+        if (overlay) overlay.style.display = 'none';
         onClose?.();
     };
 
     let closeWindow = closeWindowOriginal;
     btnClose.addEventListener('click', closeWindow);
 
+    // Minimize
     btnMin.addEventListener('click', () => {
-        if (effect === "windows") {
-            win.classList.add('win-effect-minimize');
-            setTimeout(() => {
-                win.style.display = 'none';
-                win.classList.remove('win-effect-minimize');
-                if (overlay) overlay.style.display = 'none';
-
-                createTaskbarIcon(win, icon, title, overlay, effect);
-
-            }, 230);
-        } else {
-            win.style.display = 'none';
-            if (overlay) overlay.style.display = 'none';
-            createTaskbarIcon(win, icon, title, overlay, effect);
-        }
+        win.style.display = 'none';
+        if (overlay) overlay.style.display = 'none';
+        createTaskbarIcon(win, icon, title, overlay, effect);
     });
 
+    // Maximize
     let maximized = false;
     let prev = {};
-
     btnMax.addEventListener('click', () => {
         if (!maximized) {
             prev = {
@@ -382,7 +398,6 @@ function createWindow({
         }
     });
 
-    // ==================== Traduzione ====================
     translateElements(lang);
 
     win.showDialog = () => {
@@ -396,15 +411,10 @@ function createWindow({
 
     if (typeof listeners.domReady === "function") listeners.domReady(win);
 
-    // ===================================================================
-    // ====================== RESIZE AUTOMATICO ==========================
-    // ===================================================================
-
+    // =============== Resize Handler ===============
     const resizeHandler = () => {
-
         const ps = percentSizes[size] ?? percentSizes.md;
 
-        // Fullscreen
         if (fullscreen && !maximized) {
             const w = window.innerWidth * 0.95;
             const h = window.innerHeight * 0.95;
@@ -415,7 +425,6 @@ function createWindow({
             return;
         }
 
-        // Massimizzata
         if (maximized) {
             win.style.left = "20px";
             win.style.top = "20px";
@@ -424,20 +433,17 @@ function createWindow({
             return;
         }
 
-        // Normale percentuale
         const newW = window.innerWidth * ps.w;
         const newH = window.innerHeight * ps.h;
 
         win.style.width = newW + "px";
         win.style.height = newH + "px";
-
         win.style.left = (window.innerWidth - newW) / 2 + "px";
         win.style.top = (window.innerHeight - newH) / 2 + "px";
     };
 
     window.addEventListener("resize", resizeHandler);
 
-    // Pulizia automatica quando chiudo
     const oldClose = closeWindow;
     closeWindow = () => {
         window.removeEventListener("resize", resizeHandler);
@@ -445,10 +451,9 @@ function createWindow({
     };
     btnClose.addEventListener("click", closeWindow);
 
-    // ===================================================================
-
     return win;
 }
+
 
 
 
