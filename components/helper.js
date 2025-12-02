@@ -76,6 +76,20 @@ function createTaskbarIcon(win, icon, title, overlay, effect) {
     document.querySelector('#footer')?.appendChild(iconDiv);
 }
 
+function setButtonState(btn, disabled) {
+    btn.disabled = disabled;
+    if (disabled) {
+        btn.style.opacity = '0.5';
+        btn.style.cursor = 'not-allowed';
+        btn.onmouseenter = null;
+        btn.onmouseleave = null;
+    } else {
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
+        btn.onmouseenter = () => btn.style.opacity = '0.8';
+        btn.onmouseleave = () => btn.style.opacity = '1';
+    }
+}
 
 // ======================================================
 // 2. createWindow completamente indipendente da Tailwind
@@ -286,17 +300,38 @@ function createWindow({
         const footer = document.createElement('div');
         Object.assign(footer.style, {
             display: 'flex',
-            justifyContent: 'flex-end',
-            gap: '8px',
+            justifyContent: 'space-between',
+            alignItems: 'center',
             padding: '12px',
             backgroundColor: footerBg,
-            borderTop: footerBorder
+            borderTop: footerBorder,
+            gap: '20px',
         });
 
+        // Creiamo tre contenitori
+        const footerLeft = document.createElement('div');
+        const footerCenter = document.createElement('div');
+        const footerRight = document.createElement('div');
+
+        footerLeft.style.display =
+            footerCenter.style.display =
+            footerRight.style.display = "flex";
+
+        footerLeft.style.gap =
+            footerCenter.style.gap =
+            footerRight.style.gap = "8px";
+
+        footer.appendChild(footerLeft);
+        footer.appendChild(footerCenter);
+        footer.appendChild(footerRight);
+
+        // Processiamo ogni pulsante
         buttons.forEach(b => {
             const btn = document.createElement('button');
             btn.textContent = b.label;
             btn.setAttribute('data-i18n', b.label);
+
+            btn.id = (!b.id) ? `btn-${Math.floor(Math.random() * 1000000)}` : b.id;
 
             Object.assign(btn.style, {
                 padding: '6px 12px',
@@ -308,25 +343,40 @@ function createWindow({
                 backgroundColor: b.class === null ? '#2563eb' : undefined
             });
 
+            // Colori predefiniti
             switch (b.color) {
                 case 'success': btn.style.backgroundColor = '#16a34a'; break;
                 case 'danger': btn.style.backgroundColor = '#dc2626'; break;
                 case 'warning': btn.style.backgroundColor = '#eab308'; break;
                 case 'secondary': btn.style.backgroundColor = '#6b7280'; break;
+                case 'primary': btn.style.backgroundColor = '#2563eb'; break;
             }
 
             if (b.class) btn.className = b.class;
 
-            btn.onmouseenter = () => btn.style.opacity = '0.8';
-            btn.onmouseleave = () => btn.style.opacity = '1';
+            // ✅ Abilitazione / disabilitazione
+            if (b.disabled) {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+            } else {
+                btn.onmouseenter = () => btn.style.opacity = '0.8';
+                btn.onmouseleave = () => btn.style.opacity = '1';
+            }
 
             btn.addEventListener('click', () => {
-                b.onClick?.();
-                if (b.close !== false) closeWindow();
+                if (!btn.disabled) {
+                    b.onClick?.();
+                    if (b.close !== false) closeWindow();
+                }
             });
 
-            footer.appendChild(btn);
+            // Inserimento nei gruppi
+            if (b.align === "left") footerLeft.appendChild(btn);
+            else if (b.align === "center") footerCenter.appendChild(btn);
+            else footerRight.appendChild(btn);
         });
+
 
         win.appendChild(footer);
     }

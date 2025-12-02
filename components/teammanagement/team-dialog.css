@@ -1,204 +1,228 @@
-/* Team Management Dialog */
-
-.team-form-section {
-    flex: 0 0 50%;          /* occupa esattamente il 50% */
-    max-width: 50%;
+/* ---------- Container principale (wrap delle sezioni) ---------- */
+.team-dialog-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: flex-start;
+    width: 100%;
     box-sizing: border-box;
-    padding: 10px;
-    margin-bottom: 20px;
+    padding: 12px;
 }
 
-/* Fai sì che l’ultima sezione (la lista) occupi tutta la riga */
+/* Sezione: prende il 50% ciascuna su larghezze ampie */
+.team-form-section {
+    flex: 0 1 calc(50% - 16px); /* due colonne con gap considerato */
+    max-width: calc(50% - 16px);
+    box-sizing: border-box;
+    padding: 12px;
+    background: #ffffff;
+    border-radius: 6px;
+    border: 1px solid #ececec;
+    margin-bottom: 0;
+    min-width: 260px;
+}
+
+/* L'ultima sezione (lista) o full-width occupa tutta la riga */
+.team-form-section.full-width,
 .team-form-section:last-of-type {
-    flex: 0 0 100%;
+    flex: 0 1 100%;
     max-width: 100%;
 }
 
+/* Titoli */
 .team-form-section h4 {
-    margin: 0 0 15px 0;
+    margin: 0 0 12px 0;
     color: #2c3e50;
-    font-size: 14px;
+    font-size: 15px;
+    font-weight: 700;
 }
 
-.team-form-section:nth-of-type(1) {
-    margin-right: 10px;
-}
-
+/* Riga form: grid con colonne proporzionate su tutta la larghezza */
 .team-form-row {
     display: grid;
-    grid-template-columns: 100px 80px 1fr 80px;
-    gap: 10px;
+    grid-template-columns: 120px 100px 1fr 120px; /* Ruolo, Numero, Nome, Bottone */
+    gap: 16px; /* più spazio orizzontale */
     margin-bottom: 10px;
     align-items: center;
+    width: 100%;
 }
 
+/* Label */
 .team-form-row label {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
     color: #34495e;
 }
 
+/* Input / select / textarea */
 .team-form-row input,
-.team-form-row select {
-    padding: 6px 8px;
-    border: 1px solid #bdc3c7;
-    border-radius: 4px;
-    font-size: 12px;
+.team-form-row select,
+.import-text-area {
+    padding: 8px 10px;
+    border: 1px solid #d0d6d9;
+    border-radius: 6px;
+    font-size: 14px;
+    background: #fff;
+    box-sizing: border-box;
+    width: 100%;
 }
 
+/* Pulsanti inline */
 .team-form-row button {
-    padding: 6px 12px;
+    padding: 8px 12px;
     background: #27ae60;
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 12px;
+    font-size: 13px;
+    align-self: center;
+    width: 100%; /* bottone occupa intera colonna */
 }
 
-/* Import from Text Styles */
+/* Import text */
 .import-text-help {
-    font-size: 0.9em;
+    font-size: 0.92em;
     color: #666;
-    margin: 5px 0;
+    margin: 8px 0;
 }
 
 .import-text-container {
+    width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    margin-bottom: 20px;
+    gap: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #eee;
+    padding: 10px;
+    border-radius: 6px;
+    background: #fafafa;
 }
 
 .import-text-area {
     width: 100%;
-    padding: 8px;
-    border: 1px solid #bdc3c7;
-    border-radius: 4px;
-    font-size: 14px;
+    min-height: 80px;
+    max-height: 200px;
     resize: vertical;
-    background: white;
 }
 
-.team-form-row button:hover {
-    background: #229954;
-}
+/* Buttons hover */
+.team-form-row button:hover { transform: translateY(-1px); }
+.team-form-row button:active { transform: translateY(0); }
 
+/* Lista giocatori */
 .team-list {
-    max-height: 300px;
+    max-height: 340px;
     overflow-y: auto;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    border: 1px solid #e8e8e8;
+    border-radius: 6px;
+    background: #fff;
+    padding: 6px;
+    box-sizing: border-box;
 }
 
+/* Item lista: layout a griglia con colonne responsiva */
 .team-player-item {
     display: grid;
-    grid-template-columns: 80px 60px 1fr 100px 80px;
-    gap: 10px;
+    grid-template-columns: 84px 56px 1fr 120px 88px;
+    gap: 8px;
     padding: 10px;
-    border-bottom: 1px solid #ecf0f1;
+    border-bottom: 1px solid #f1f3f5;
     align-items: center;
-    font-size: 12px;
+    font-size: 13px;
+    position: relative;
 }
 
-.team-player-item:hover {
-    background: #f8f9fa;
+/* Riduci la complessità delle colonne su schermi piccoli */
+@media (max-width: 520px) {
+    .team-player-item {
+        grid-template-columns: 56px 1fr auto;
+    }
+    .team-player-role { order: 1; }
+    .team-player-number { order: 2; }
+    .team-player-name { order: 3; }
+    .team-player-actions { order: 4; justify-self: end; }
 }
 
-.team-player-role {
-    font-weight: bold;
-    color: #3498db;
-}
+/* Hover */
+.team-player-item:hover { background: #fbfcfd; }
 
-.team-player-number {
-    text-align: center;
-    font-weight: bold;
-    background: #ecf0f1;
-    padding: 4px;
-    border-radius: 4px;
-}
+/* Ruolo, numero, nome */
+.team-player-role { font-weight: 700; color: #2d9cdb; text-align: left; }
+.team-player-number { text-align: center; font-weight: 700; background: #f3f6f8; padding: 6px 8px; border-radius: 6px; }
+.team-player-name { color: #2c3e50; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-.team-player-name {
-    color: #2c3e50;
-}
+/* Azioni */
+.team-player-actions { display: flex; gap: 8px; justify-self: end; }
+.team-player-actions button { padding: 6px 10px; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.btn-edit { background: #f39c12; color: white; }
+.btn-delete { background: #e74c3c; color: white; }
 
-.team-player-actions {
-    display: flex;
-    gap: 5px;
-}
-
-.team-player-actions button {
-    padding: 4px 8px;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 11px;
-}
-
-.btn-edit {
-    background: #f39c12;
-    color: white;
-}
-
-.btn-delete {
-    background: #e74c3c;
-    color: white;
-}
-
+/* Barra dei comandi */
 .team-actions {
     display: flex;
     gap: 10px;
     justify-content: flex-end;
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 2px solid #ecf0f1;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px dashed #eef2f4;
 }
 
-.team-actions button {
-    padding: 8px 16px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
-}
+/* Varie classi bottoni */
+.btn-import { background: #9b59b6; color: #fff; }
+.btn-export { background: #3498db; color: #fff; }
+.btn-clear  { background: #95a5a6; color: #fff; }
 
-.btn-import {
-    background: #9b59b6;
-    color: white;
-}
-
-.btn-export {
-    background: #3498db;
-    color: white;
-}
-
-.btn-clear {
-    background: #95a5a6;
-    color: white;
-}
-
-/* Player name badge */
+/* Badge nome giocatore */
 .player-name-badge {
     position: absolute;
     bottom: -20px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(52, 152, 219, 0.9);
+    background: rgba(52, 152, 219, 0.95);
     color: white;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-size: 9px;
-    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
     white-space: nowrap;
     pointer-events: none;
     z-index: 100;
     display: none;
 }
 
-.canvas-object.show-player-names .player-name-badge {
-    display: block;
-}
-
+.canvas-object.show-player-names .player-name-badge,
 body.show-all-player-names .canvas-object .player-name-badge {
     display: block;
 }
+
+/* ---------- Small tweaks for better visual balance ---------- */
+.team-form-section .team-form-row input[type="number"] { text-align: center; }
+.team-form-section .team-form-row select { min-width: 120px; }
+
+/* Responsive generale: una colonna sotto i 760px */
+@media (max-width: 760px) {
+    .team-form-section { flex: 0 1 100%; max-width: 100%; }
+    .team-form-row { grid-template-columns: 90px 1fr; gap: 12px; }
+    .team-form-row input[type="number"] { justify-self: start; }
+}
+
+/* Drag & drop JSON */
+.json-dropzone {
+    width: 100%;
+    padding: 25px;
+    border: 2px dashed #7f8c8d;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    background: #fafafa;
+    transition: all 0.25s ease;
+    margin-bottom: 20px;
+    color: #555;
+    font-size: 14px;
+    position: relative;
+}
+
+.json-dropzone:hover { background: #f2f2f2; }
+.json-dropzone.dragover { background: #e0f7ff; border-color: #3498db; color: #3498db; }
+.json-dropzone input[type="file"] { opacity: 0; position: absolute; inset: 0; cursor: pointer; }

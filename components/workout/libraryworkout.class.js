@@ -76,7 +76,7 @@ class LibraryWorkoutDialogManager {
         `;
 
         this.dialog = createWindow({
-            title: 'Carica Allenamento da Libreria',
+            title: 'dlg_title_load_workout_library',
             icon: '📚',
             id: 'libraryWorkoutDialog',
             contentHTML: html,
@@ -85,12 +85,12 @@ class LibraryWorkoutDialogManager {
             visible: false,
             buttons: [
                 { 
-                    label: 'Annulla', 
+                    label: 'bt_cancel', 
                     color: 'secondary', 
                     onClick: () => { this.hide() } 
                 },
                 { 
-                    label: 'Carica', 
+                    label: 'bt_load', 
                     color: 'primary', 
                     id: 'loadSelectedWorkout',
                     onClick: () => { this.loadSelected() },
@@ -244,7 +244,7 @@ class LibraryWorkoutDialogManager {
      */
     filterWorkouts() {
         this.selectedLibraryFile = null;
-        this.elements.loadBtn.disabled = true;
+        setButtonState(this.elements.loadBtn, true);
 
         const periodo = this.elements.filterPeriodo.value;
         const tipologia = this.elements.filterTipologia.value;
@@ -305,7 +305,7 @@ class LibraryWorkoutDialogManager {
         element.style.background = '#d1e7fd';
 
         this.selectedLibraryFile = filename;
-        this.elements.loadBtn.disabled = false;
+        setButtonState(this.elements.loadBtn, false);
     }
 
     /**

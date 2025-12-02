@@ -1,4 +1,4 @@
-/* Sidebar */
+/* Sidebar base */
 .sidebar {
     width: 280px;
     flex-shrink: 0;
@@ -6,45 +6,55 @@
     color: white;
     overflow-y: auto;
     border-right: 3px solid #34495e;
-    position: relative;
+    position: relative; /* mantiene l'handle dentro il flusso */
     transition: transform 0.3s ease, width 0.1s ease;
-    transform: translateX(0);
 }
 
 .sidebar.hidden {
     display: none;
 }
 
+/* Pulsante toggle */
 .sidebar-switch {
+    position: absolute;
     top: 50%;
-    right: -25px;
+    right: -15px; /* sempre fuori dalla sidebar */
+    width: 20px;
+    height: 50px;
+    cursor: pointer;
+    background: #34495e;
+    border: 2px solid #2c3e50;
     transform: translateY(-50%);
-    border-left: none;
-    border-radius: 0 8px 8px 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.8;
+    transition: background 0.2s ease, opacity 0.2s ease;
 }
 
+.sidebar-switch:hover {
+    opacity: 1;
+    background: #2ecc71; /* evidenziato al passaggio del mouse */
+}
+
+/* Handle per il resize */
 .sidebar-handle {
-    width: 10px;
+    width: 10px; /* più largo per essere visibile */
     cursor: ew-resize;
     background: #4a6a8a;
     position: relative;
+    z-index: 100;
+    transition: background 0.2s ease;
 }
 
-/* WebKit browsers (Chrome, Safari, Edge) */
-.sidebar::-webkit-scrollbar {
-    width: 8px;
-    background-color: transparent;
+.sidebar-handle:hover {
+    background: #2ecc71; /* verde acceso al passaggio del mouse */
 }
 
-.sidebar::-webkit-scrollbar-thumb {
-    background-color: #4a6a8a;
-    border-radius: 10px;
-    border: 2px solid #2c3e50;
-}
-
-/* Right sidebar for workout details */
+/* Right sidebar separata */
 .right-sidebar {
-    width: 300px;
+    width: 280px;
     flex-shrink: 0;
     background: #2c3e50;
     color: white;
@@ -52,171 +62,71 @@
     border-left: 3px solid #34495e;
     position: relative;
     transition: transform 0.3s ease, width 0.1s ease;
-    display: flex;
-    flex-direction: column;
-    transform: translateX(0);
 }
 
 .right-sidebar.hidden {
     display: none;
 }
 
+/* Pulsante toggle right sidebar */
 .right-sidebar-switch {
+    position: absolute;
     top: 50%;
-    left: -25px;
+    left: -15px; /* sempre fuori dalla sidebar */
+    width: 20px;
+    height: 50px;
+    cursor: pointer;
+    background: #34495e;
+    border: 2px solid #2c3e50;
     transform: translateY(-50%);
-    border-right: none;
-    border-radius: 8px 0 0 8px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.8;
+    transition: background 0.2s ease, opacity 0.2s ease;
 }
 
+.right-sidebar-switch:hover {
+    opacity: 1;
+    background: #2ecc71;
+}
+
+/* Handle per right sidebar */
 .right-sidebar-handle {
-    width: 5px;
+    width: 10px;
     cursor: ew-resize;
     background: #4a6a8a;
     position: relative;
+    z-index: 100;
 }
 
-.sidebar-handle::before,
-.right-sidebar-handle::before {
-    content: none;
+.right-sidebar-handle:hover {
+    background: #2ecc71;
 }
 
+/* Scrollbar */
+.sidebar::-webkit-scrollbar,
 .right-sidebar::-webkit-scrollbar {
     width: 8px;
     background-color: transparent;
 }
 
+.sidebar::-webkit-scrollbar-thumb,
 .right-sidebar::-webkit-scrollbar-thumb {
     background-color: #4a6a8a;
     border-radius: 10px;
     border: 2px solid #2c3e50;
 }
 
-.workout-details {
-    padding: 20px;
-    flex: 1;
-}
-
-.workout-details h3 {
-    margin-bottom: 10px;
-    font-size: 18px;
-    padding-bottom: 10px;
-}
-
-.detail-field {
-    margin-bottom: 4px;
-}
-
-.detail-field label {
-    display: block;
-    font-size: 12px;
-    font-weight: 600;
-    margin-bottom: 5px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: #ecf0f1;
-}
-
-.detail-field select,
-.detail-field textarea,
-.detail-field input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]) {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #34495e;
-    border-radius: 4px;
-    font-size: 13px;
-    background: #ecf0f1;
-    color: #2c3e50;
-    box-sizing: border-box;
-}
-
-.detail-field textarea {
-    min-height: 100px;
-    resize: vertical;
-    font-family: inherit;
-}
-
-.detail-row {
-    display: flex;
-    gap: 5px;
-}
-
-.detail-row .detail-field {
-    flex: 1;
-}
-
-@media (max-width: 600px) {
-    .detail-row {
-        flex-direction: column;
-    }
-}
-
-.sidebar-switch,
-.right-sidebar-switch {
-    position: absolute;
-    width: 10px;
-    opacity: 0.2;
-    min-width: 10px; /* 🔒 impedisce che cambi */
-    max-width: 10px; /* 🔒 blocca la larghezza */
-    height: 50px;
-    background: #34495e;
-    border: 2px solid #2c3e50;
-    cursor: pointer !important;
-    color: white;
-    font-size: 14px;
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    pointer-events: auto !important;
-    user-select: none;
-    flex-shrink: 0;
-
-    /* Mantieni transizione SOLO sul colore */
-    transition: background 0.2s ease;
-}
-
-.sidebar-switch:active,
-.right-sidebar-switch:active {
-    background: #2c3e50;
-}
-
-.sidebar-switch:hover,
-.right-sidebar-switch:hover {
-    opacity: 1;
-}
-
-
-.sidebar-switch {
-    top: 50%;
-    right: -10px; /* metà della width + metà del border */
-    transform: translateY(-50%);
-    border-left: none;
-    border-radius: 0 8px 8px 0;
-}
-
-.right-sidebar-switch {
-    top: 50%;
-    left: -10px; /* idem */
-    transform: translateY(-50%);
-    border-right: none;
-    border-radius: 8px 0 0 8px;
-}
-
-.sidebar-handle,
-.right-sidebar-handle {
-    width: 5px;
-    cursor: ew-resize;
-    background: #4a6a8a;
-    position: relative;
-    pointer-events: auto;
-}
-
+/* Durante il resize disabilita pointer-events sugli altri elementi */
 body.resizing-sidebar * {
     pointer-events: none !important;
 }
 
 body.resizing-sidebar .sidebar-handle,
-body.resizing-sidebar .right-sidebar-handle {
+body.resizing-sidebar .right-sidebar-handle,
+body.resizing-sidebar .sidebar-switch,
+body.resizing-sidebar .right-sidebar-switch {
     pointer-events: auto !important;
 }

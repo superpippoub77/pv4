@@ -36,326 +36,23 @@
     <link rel="stylesheet" href="./css/main.css">
 </head>
 
-<body>
+<body style="display: flex; flex-direction: column;">
     <!-- MENU -->
     <!-- <div id="menu"></div> -->
 
     <!-- TOOL -->
-    <div id="toolbar" class="toolbar"></div>
+    <!-- <div id="toolbar" class="toolbar"></div> -->
 
     <!-- MAIN CONTENT -->
     <div id="container" class="container">
 
 
         <div class="sidebar" id="sidebar">
-            <div class="component-category">
-                <h3 class="accordion-header active">👥 Giocatori</h3>
-                <div class="accordion-content active">
-                    <div class="component-grid">
-                        <div class="component-item" data-type="player" data-text='P1' data-color="">
-                            <div class="component-icon">🏃</div>
-                            <div data-i18n="player_setter_1">Alzatore 1</div>
-                        </div>
-                        <div class="component-item" data-type="player" data-text='L1' data-color="">
-                            <div class="component-icon">🏃</div>
-                            <div data-i18n="player_libero_1">Libero 1</div>
-                        </div>
-                        <div class="component-item" data-type="player" data-text='S1' data-color="">
-                            <div class="component-icon">🏃</div>
-                            <div data-i18n="player_spiker_1">Banda 1</div>
-                        </div>
-                        <div class="component-item" data-type="player" data-text='O1' data-color="">
-                            <div class="component-icon">🏃</div>
-                            <div data-i18n="player_opposite_1">Opp 1</div>
-                        </div>
-                        <div class="component-item" data-type="player" data-text='C1' data-color="">
-                            <div class="component-icon">🏃</div>
-                            <div data-i18n="player_middle_1">Centro 1</div>
-                        </div>
-                        <div class="component-item" data-type="player" data-text='All' data-color="">
-                            <div class="component-icon">🏃</div>
-                            <div data-i18n="role_coach">Allenatore</div>
-                        </div>
-                        <div class="component-item" data-type="player" data-text='Dir' data-color="">
-                            <div class="component-icon">🏃</div>
-                            <div data-i18n="role_manager">Dirigente</div>
-                        </div>
-                        <div class="component-item green" data-type="player" data-text='P2' data-color="">
-                            <div class="component-icon">🏃</div>
-                            <div data-i18n="player_setter_2">Alzatore 2</div>
-                        </div>
-                        <div class="component-item green" data-type="player" data-text='L2' data-color="">
-                            <div class="component-icon">🏃</div>
-                            <div data-i18n="player_libero_2">Libero 2</div>
-                        </div>
-                        <div class="component-item green" data-type="player" data-text='S2' data-color="">
-                            <div class="component-icon">🏃</div>
-                            <div data-i18n="player_spiker_2">Banda 2</div>
-                        </div>
-                        <div class="component-item green" data-type="player" data-text='O2' data-color="">
-                            <div class="component-icon">🏃</div>
-                            <div data-i18n="player_opposite_2">Opp 2</div>
-                        </div>
-                        <div class="component-item green" data-type="player" data-text='C2' data-color="">
-                            <div class="component-icon">🏃</div>
-                            <div data-i18n="player_middle_2">Centro 2</div>
-                        </div>
-                        <div class="component-item orange" data-type="player" data-text='A' data-color="">
-                            <div class="component-icon">🏃‍♂️</div>
-                            <div data-i18n="player_a">A</div>
-                        </div>
-                        <div class="component-item orange" data-type="player" data-text='B' data-color="">
-                            <div class="component-icon">🏃‍♂️</div>
-                            <div data-i18n="player_b">B</div>
-                        </div>
-                        <div class="component-item orange" data-type="player" data-text='C' data-color="">
-                            <div class="component-icon">🏃‍♂️</div>
-                            <div data-i18n="player_c">C</div>
-                        </div>
-                        <div class="component-item orange" data-type="player" data-text='D' data-color="">
-                            <div class="component-icon">🏃‍♂️</div>
-                            <div data-i18n="player_d">D</div>
-                        </div>
-                        <div class="component-item orange" data-type="player" data-text='E' data-color="">
-                            <div class="component-icon">🏃‍♂️</div>
-                            <div data-i18n="player_e">E</div>
-                        </div>
-                        <div class="component-item orange" data-type="player" data-text='F' data-color="">
-                            <div class="component-icon">🏃‍♂️</div>
-                            <div data-i18n="player_f">F</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="component-category">
-                <h3 class="accordion-header">🏟️ Player</h3>
-                <div class="accordion-content">
-                    <div class="component-grid">
-                        <div class="component-item" data-type="volleyball-player-bagher" data-text="">
-                            <div class="component-icon">🏟️</div>
-                            <div data-i18n="action_bagher">Bagher</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="component-category">
-                <h3 class="accordion-header">🏟️ Campi</h3>
-                <div class="accordion-content">
-                    <div class="component-grid">
-                        <div class="component-item" data-type="court" data-text="">
-                            <div class="component-icon">🏟️</div>
-                            <div data-i18n="court_full">Intero</div>
-                        </div>
-                        <div class="component-item" data-type="half-court" data-text="">
-                            <div class="component-icon">🏟️</div>
-                            <div data-i18n="court_half">Metà</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="component-category">
-                <h3 class="accordion-header">🏐 Materiale</h3>
-                <div class="accordion-content">
-                    <div class="component-grid">
-                        <div class="component-item" data-type="ball" data-text="">
-                            <div class="component-icon">🏐</div>
-                            <div data-i18n="material_ball">Pallone</div>
-                        </div>
-                        <div class="component-item" data-type="mat" data-text="">
-                            <div class="component-icon">🟦</div>
-                            <div data-i18n="material_mat">Materassino</div>
-                        </div>
-                        <div class="component-item" data-type="net" data-text="">
-                            <div class="component-icon">🥅</div>
-                            <div data-i18n="material_net">Rete</div>
-                        </div>
-                        <div class="component-item" data-type="brick" data-text="">
-                            <div class="component-icon">🧱</div>
-                            <div data-i18n="material_brick">Mattone</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="component-category">
-                <h3 class="accordion-header">🔧 Strumenti</h3>
-                <div class="accordion-content">
-                    <div class="component-grid">
-                        <div class="component-item" data-type="text" data-text="Testo">
-                            <div class="component-icon">📝</div>
-                            <div data-i18n="tool_text">Testo</div>
-                        </div>
-                        <div class="component-item" id="arrowModeBtn">
-                            <div class="component-icon">➡️</div>
-                            <div data-i18n="tool_arrows">Frecce</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="component-category">
-                <h3 class="accordion-header">🎨 Icone</h3>
-                <div class="accordion-content">
-                    <div class="component-grid">
-                        <div class="component-item" data-type="icon" data-icon="fa-thin fa-volleyball" data-text="">
-                            <div class="component-icon"><i class="fa-thin fa-volleyball"></i></div>
-                            <div data-i18n="icon_ball">Pallone</div>
-                        </div>
-                        <!-- Icone Sport -->
-                        <div class="component-item" data-type="icon" data-icon="fas fa-trophy" data-text="">
-                            <div class="component-icon"><i class="fas fa-trophy"></i></div>
-                            <div data-i18n="icon_trophy">Trofeo</div>
-                        </div>
-                        <div class="component-item" data-type="icon" data-icon="fas fa-medal" data-text="">
-                            <div class="component-icon"><i class="fas fa-medal"></i></div>
-                            <div data-i18n="icon_medal">Medaglia</div>
-                        </div>
-                        <div class="component-item" data-type="icon" data-icon="fas fa-stopwatch" data-text="">
-                            <div class="component-icon"><i class="fas fa-stopwatch"></i></div>
-                            <div data-i18n="icon_stopwatch">Timer</div>
-                        </div>
-                        <div class="component-item" data-type="icon" data-icon="fas fa-whistle" data-text="">
-                            <div class="component-icon"><i class="fas fa-bullhorn"></i></div>
-                            <div data-i18n="icon_whistle">Fischietto</div>
-                        </div>
-                        <!-- Frecce e Direzioni -->
-                        <div class="component-item" data-type="icon" data-icon="fas fa-arrow-up" data-text="">
-                            <div class="component-icon"><i class="fas fa-arrow-up"></i></div>
-                            <div data-i18n="icon_arrow_up">Su</div>
-                        </div>
-                        <div class="component-item" data-type="icon" data-icon="fas fa-arrow-down" data-text="">
-                            <div class="component-icon"><i class="fas fa-arrow-down"></i></div>
-                            <div data-i18n="icon_arrow_down">Giù</div>
-                        </div>
-                        <div class="component-item" data-type="icon" data-icon="fas fa-arrow-left" data-text="">
-                            <div class="component-icon"><i class="fas fa-arrow-left"></i></div>
-                            <div data-i18n="icon_arrow_left">Sinistra</div>
-                        </div>
-                        <div class="component-item" data-type="icon" data-icon="fas fa-arrow-right" data-text="">
-                            <div class="component-icon"><i class="fas fa-arrow-right"></i></div>
-                            <div data-i18n="icon_arrow_right">Destra</div>
-                        </div>
-                        <!-- Simboli -->
-                        <div class="component-item" data-type="icon" data-icon="fas fa-star" data-text="">
-                            <div class="component-icon"><i class="fas fa-star"></i></div>
-                            <div data-i18n="icon_star">Stella</div>
-                        </div>
-                        <div class="component-item" data-type="icon" data-icon="fas fa-heart" data-text="">
-                            <div class="component-icon"><i class="fas fa-heart"></i></div>
-                            <div data-i18n="icon_heart">Cuore</div>
-                        </div>
-                        <div class="component-item" data-type="icon" data-icon="fas fa-check" data-text="">
-                            <div class="component-icon"><i class="fas fa-check"></i></div>
-                            <div data-i18n="icon_check">Check</div>
-                        </div>
-                        <div class="component-item" data-type="icon" data-icon="fa-solid fa-cart-shopping" data-text="">
-                            <div class="component-icon"><i class="fa-solid fa-cart-shopping"></i></div>
-                            <div data-i18n="icon_cart">Cart</div>
-                        </div>
-                        <div class="component-item" data-type="icon" data-icon="fa-solid fa-hands-holding" data-text="">
-                            <div class="component-icon"><i class="fa-solid fa-hands-holding"></i></div>
-                            <div data-i18n="icon_hands_holding">palleggio</div>
-                        </div>
-                        <div class="component-item" data-type="icon" data-icon="fas fa-times" data-text="">
-                            <div class="component-icon"><i class="fas fa-times"></i></div>
-                            <div data-i18n="icon_times">X</div>
-                        </div>
-                        <div class="component-item" data-type="icon" data-icon="fa-solid fa-caret-up" data-text="">
-                            <div class="component-icon"><i class="fa-solid fa-caret-up"></i></div>
-                            <div data-i18n="icon_cone">Cono</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="component-category">
-                <h3 class="accordion-header">🖼️ Immagini SVG Locali</h3>
-                <div class="accordion-content">
-                    <div class="component-grid">
-                        <div class="component-item" data-type="local-svg" data-src="data/images/volleyball_ball.svg">
-                            <div class="component-icon">
-                                <img src="data/images/volleyball_ball.svg" alt="Palla Sport"
-                                    style="width: 20px; height: 20px;" />
-                            </div>
-                            <div data-i18n="local_svg_volleyball_ball">Palla Sport</div>
-                        </div>
-
-                        <div class="component-item" data-type="local-svg" data-src="data/images/player-bagher.png">
-                            <div class="component-icon">
-                                <img src="data/images/player-bagher.png" alt="Campo volleyball"
-                                    style="width: 20px; height: 20px;" />
-                            </div>
-                            <div data-i18n="local_svg_player_bagher">Player bagher</div>
-                        </div>
-                        <div class="component-item" data-type="local-svg"
-                            data-src="data/images/player-bagher-front.png">
-                            <div class="component-icon">
-                                <img src="data/images/player-bagher-front.png" alt="Campo volleyball"
-                                    style="width: 20px; height: 20px;" />
-                            </div>
-                            <div data-i18n="local_svg_player_bagher_front">Player front</div>
-                        </div>
-                        <div class="component-item" data-type="local-svg" data-src="data/images/player-jump-spike.png">
-                            <div class="component-icon">
-                                <img src="data/images/player-jump-spike.png" alt="Campo volleyball"
-                                    style="width: 20px; height: 20px;" />
-                            </div>
-                            <div data-i18n="local_svg_player_spike">Player spike</div>
-                        </div>
-                        <div class="component-item" data-type="local-svg" data-src="data/images/player-upball.png">
-                            <div class="component-icon">
-                                <img src="data/images/player-upball.png" alt="Campo volleyball"
-                                    style="width: 20px; height: 20px;" />
-                            </div>
-                            <div data-i18n="local_svg_player_upball">Player up ball</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="component-category">
-                <h3 class="accordion-header">🎬 Sprite Pallavolo</h3>
-                <div class="accordion-content">
-                    <div class="component-grid">
-                        <!-- Esempio: Giocatore che schiaccia -->
-                        <div class="component-item" data-type="sprite"
-                            data-sprite-sheet="data/images/sprites/volleyball-actions.png" data-sprite-cols="4"
-                            data-sprite-rows="2" data-sprite-frame="0" data-sprite-width="64" data-sprite-height="64">
-
-                            <div class="component-icon">
-                                <div class="sprite-preview" style="
-                background-image: url('data/images/sprites/volleyball-actions.png');
-                background-position: 0px 0px;
-                background-size: 256px 128px;
-                width: 64px;
-                height: 64px;
-            ">
-                                </div>
-                            </div>
-
-                            <div data-i18n="local_sprite_spike">Schiacciata</div>
-                        </div>
-
-                        <!-- Esempio: Giocatore in bagher -->
-                        <div class="component-item" data-type="sprite"
-                            data-sprite-sheet="data/images/sprites/volleyball-actions.png" data-sprite-cols="4"
-                            data-sprite-rows="2" data-sprite-frame="1" data-sprite-width="64" data-sprite-height="64">
-                            <div class="component-icon">
-                                <div class="sprite-preview" style="background: url('data/images/sprites/volleyball-actions.png'); 
-                                background-position: -64px 0; 
-                                background-size: 256px 128px; 
-                                width: 32px; 
-                                height: 32px;"></div>
-                            </div>
-                            <div data-i18n="local_sprite_bagher">Bagher</div>
-                        </div>
-
-                        <!-- Aggiungi altri frame qui -->
-                    </div>
-                </div>
-            </div>
+            
         </div>
-        <div class="sidebar-handle" id="sidebarHandle">
+        <!-- <div class="sidebar-handle" id="sidebarHandle">
             <button class="sidebar-switch" id="sidebarSwitch">◀</button>
-        </div>
+        </div> -->
 
         <div class="main-content">
 
@@ -602,7 +299,7 @@
 
             </fieldset>
 
-            <fieldset id="arrowControls" class="toolbar-group" style="display: none">
+            <fieldset id="arrowControls" class="toolbar-group fixed" style="display: none">
                 <legend data-i18n="local_arrow_legend">Freccia</legend>
                 <div class="color-picker-container">
                     <label data-i18n="local_arrow_color_label">Colore freccia:</label>
@@ -637,7 +334,7 @@
                 </div>
             </fieldset>
 
-            <fieldset id="spriteControls" class="toolbar-group" style="display: none">
+            <fieldset id="spriteControls" class="toolbar-group fixed" style="display: none">
                 <legend data-i18n="local_sprite_legend">Sprite</legend>
                 <div>
                     <label data-i18n="local_sprite_current_frame_label">Frame corrente:</label>
@@ -665,7 +362,7 @@
                 </div>
             </fieldset>
 
-            <fieldset id="freehandControls" class="toolbar-group" style="display: none">
+            <fieldset id="freehandControls" class="toolbar-group fixed" style="display: none">
                 <legend data-i18n="local_freehand_legend">Disegno a mano libera</legend>
                 <div class="color-picker-container">
                     <label data-i18n="local_freehand_color_label">Colore traccia:</label>
@@ -769,9 +466,12 @@
     <script defer src="constants/template.js"></script>
     <script defer src="constants/menu.js"></script>
     <script defer src="constants/toolbar.js"></script>
+    <script defer src="constants/sidebar.js"></script>
 
     <!-- CLASS -->
     <script defer src="components/menu/menu.class.js"></script>
+    <script defer src="components/toolbar/toolbar.class.js"></script>
+    <script defer src="components/sidebar/sidebar.class.js"></script>
     <script defer src="components/login/login.class.js"></script>
     <script defer src="components/history/history.class.js"></script>
     <script defer src="components/teammanagement/teammanagement.class.js"></script>
@@ -780,7 +480,6 @@
 
     <!-- COMPONENTS -->
     <script defer src="components/macro_recorder_system.js"></script>
-    <script defer src="components/toolbar/toolbar.js"></script>
 
     <!-- Extension -->
     <script defer src="components/schemaeditor.js"></script>
@@ -792,34 +491,42 @@
         const defaultLang = 'it';
 
         async function initializeEditor() {
+            // Controlla se l'editor è già inizializzato
+            if (window.editor) {
+                console.log("Editor già inizializzato");
+                return; // Non ricreare nulla
+            }
+
+            // Inizializza loginManager
             loginManager = new LoginManager({
-                userDataUrl: 'data/users.json', // Percorso al file JSON degli utenti
+                userDataUrl: 'data/users.json',
                 onLoginSuccess: async (username) => {
-                    setDefaultDate('workoutDate');
-                    await createToolbar();
+                    // Controlla di nuovo se l'editor esiste
+                    if (!window.editor) {
+                        setDefaultDate('workoutDate');
+                        window.editor = new SchemaEditor(menuData, username);
 
-                    window.editor = new SchemaEditor(menuData, username);
+                        const langSelector = document.getElementById('languageSelector');
+                        langSelector.value = defaultLang;
+                        setLanguage(defaultLang);
 
-                    const langSelector = document.getElementById('languageSelector');
-                    langSelector.value = defaultLang;
-                    setLanguage(defaultLang);
-
-                    
-                    // Listener per il cambio di selezione
-                    langSelector.addEventListener('change', (event) => {
-                        setLanguage(event.target.value);
-                        translateElements(event.target.value);
-                    });
+                        langSelector.addEventListener('change', (event) => {
+                            setLanguage(event.target.value);
+                            translateElements(event.target.value);
+                        });
+                    }
                 },
                 onLogoutSuccess: () => {
-                    window.editor.handleLogoutSuccess();
+                    if (window.editor) {
+                        window.editor.handleLogoutSuccess();
+                        window.editor = null; // Permette di reinizializzare dopo il logout
+                    }
                 }
             });
 
-
-            // Associa la funzione al pulsante 'Esporta PDF'
+            // Listener per esportazione PDF
             const exportBtn = document.getElementById('exportPdfBtn');
-            if (exportBtn) {
+            if (exportBtn && !exportBtn.dataset.listenerAdded) {
                 exportBtn.addEventListener('click', () => {
                     if (window.editor && window.editor.exportWorkoutToPDF) {
                         window.editor.exportWorkoutToPDF();
@@ -827,14 +534,15 @@
                         alert('Errore: La funzione di esportazione non è stata caricata correttamente.');
                     }
                 });
+                exportBtn.dataset.listenerAdded = "true"; // evita di aggiungere listener duplicati
             }
-
         }
 
         document.addEventListener("DOMContentLoaded", () => {
             initializeEditor();
         });
     </script>
+
 </body>
 
 </html>

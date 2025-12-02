@@ -41,7 +41,11 @@ const toolbarConfig = [
     {
         legend: "toolbar_team",
         items: [
-            { type: "button", id: "manageTeamBtn", text: "👥 Gestisci Squadra", i18n: "btn_manage_team" },
+            {
+                type: "button", id: "manageTeamBtn", text: "👥 Gestisci Squadra", i18n: "btn_manage_team", onClick: (editor) => {
+                    editor.teamManagementManager.show();
+                }
+            },
             { type: "button", id: "togglePlayerNames", text: "🏷️ Nomi Giocatori", i18n: "btn_toggle_names" }
         ]
     },
@@ -86,7 +90,11 @@ const toolbarConfig = [
             { type: "button", id: "groupRotateRight90", text: "⟳ Ruota Gruppo +90°", i18n: "btn_group_rotate_right" },
             { type: "button", id: "undoBtn", text: "⏪ Undo", i18n: "btn_undo" },
             { type: "button", id: "redoBtn", text: "⏩ Redo", i18n: "btn_redo" },
-            { type: "button", id: "historyBtn", text: "📜 Storico", i18n: "btn_history" }
+            {
+                type: "button", id: "historyBtn", text: "📜 Storico", i18n: "btn_history", onClick: (editor) => {
+                    editor.historyManager.show();
+                }
+            }
         ]
     },
 
@@ -102,7 +110,11 @@ const toolbarConfig = [
             { type: "file", id: "workoutFileInput", accept: ".json", style: "display:none" },
             { type: "button", id: "exportBtn", text: "📤 Esporta", i18n: "btn_export_schema" },
             { type: "button", id: "exportWorkOutBtn", text: "📤 Genera la scheda", i18n: "btn_export_workout_sheet" },
-            { type: "button", id: "loadFromLibrary", text: "📁 Libreria", i18n: "btn_load_library" }
+            {
+                type: "button", id: "loadFromLibrary", text: "📁 Libreria", i18n: "btn_load_library", onClick: (editor) => {
+                    editor.libraryManager.show();
+                }
+            }
         ]
     },
 

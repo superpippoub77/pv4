@@ -49,6 +49,8 @@ class SchemaEditor {
         this._tags = "";
 
         this.menuManager = new MenuManager(this);
+        this.toolbarManager = new ToolbarDialogManager(this);
+        this.sidebarManager = new Sidebar(this, sidebarConfig, "#sidebar");
         this.historyManager = new HistoryDialogManager(this);
         this.teamManagementManager = new TeamManagementDialog(this);
         this.saveWorkoutManager = new SaveWorkoutDialogManager(this);
@@ -73,11 +75,13 @@ class SchemaEditor {
 
     //
     init(menuData) {
+        this.toolbarManager.init();
         this.menuManager.init(menuData);
         this.historyManager.init();
         this.teamManagementManager.init();
         this.saveWorkoutManager.init();
         this.libraryManager.init();
+
     }
     /**
      * ✅ NUOVO: Callback quando il logout ha successo
@@ -4142,13 +4146,13 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         document.getElementById('sendToBack').addEventListener('click', () => this.sendToBack());
 
         // Added accordion functionality
-        document.querySelectorAll('.accordion-header').forEach(header => {
-            header.addEventListener('click', () => {
-                const content = header.nextElementSibling;
-                header.classList.toggle('active');
-                content.classList.toggle('active');
-            });
-        });
+        // document.querySelectorAll('.accordion-header').forEach(header => {
+        //     header.addEventListener('click', () => {
+        //         const content = header.nextElementSibling;
+        //         header.classList.toggle('active');
+        //         content.classList.toggle('active');
+        //     });
+        // });
 
         document.getElementById('groupRotateLeft').addEventListener('click', () => this.rotateGroup(-15));
         document.getElementById('groupRotateRight').addEventListener('click', () => this.rotateGroup(15));
@@ -4252,72 +4256,72 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         document.getElementById('workoutDescrizione').addEventListener('input', (e) => {
             this.getCurrentTab().descrizione = e.target.value;
         });
-        // ========== LEFT SIDEBAR ==========
-        const sidebar = document.getElementById('sidebar');
-        const sidebarHandle = document.getElementById('sidebarHandle');
-        const sidebarSwitch = document.getElementById('sidebarSwitch');
+        // // ========== LEFT SIDEBAR ==========
+        // const sidebar = document.getElementById('sidebar');
+        // const sidebarHandle = document.getElementById('sidebarHandle');
+        // const sidebarSwitch = document.getElementById('sidebarSwitch');
 
-        // Toggle
-        sidebarSwitch.onclick = function (e) {
-            e.stopPropagation();
-            e.preventDefault();
+        // // Toggle
+        // sidebarSwitch.onclick = function (e) {
+        //     e.stopPropagation();
+        //     e.preventDefault();
 
-            const isHidden = sidebar.classList.contains('hidden');
+        //     const isHidden = sidebar.classList.contains('hidden');
 
-            if (isHidden) {
-                // Mostra sidebar
-                sidebar.classList.remove('hidden');
-                this.textContent = '◀';
-            } else {
-                // Nascondi sidebar
-                sidebar.classList.add('hidden');
-                this.textContent = '▶';
-            }
+        //     if (isHidden) {
+        //         // Mostra sidebar
+        //         sidebar.classList.remove('hidden');
+        //         this.textContent = '◀';
+        //     } else {
+        //         // Nascondi sidebar
+        //         sidebar.classList.add('hidden');
+        //         this.textContent = '▶';
+        //     }
 
-            return false;
-        };
+        //     return false;
+        // };
 
-        // Resize
-        let isResizingSidebar = false;
-        let sidebarOriginalWidth = null;
+        // // Resize
+        // let isResizingSidebar = false;
+        // let sidebarOriginalWidth = null;
 
-        sidebarHandle.onmousedown = function (e) {
-            if (e.target === sidebarSwitch) return;
+        // sidebarHandle.onmousedown = function (e) {
+        //     if (e.target === sidebarSwitch) return;
 
-            e.preventDefault();
+        //     e.preventDefault();
 
-            // Salva la larghezza corrente prima del resize
-            if (!sidebar.classList.contains('hidden')) {
-                sidebarOriginalWidth = sidebar.offsetWidth;
-            }
+        //     // Salva la larghezza corrente prima del resize
+        //     if (!sidebar.classList.contains('hidden')) {
+        //         sidebarOriginalWidth = sidebar.offsetWidth;
+        //     }
 
-            isResizingSidebar = true;
-            document.body.classList.add('resizing-sidebar');
+        //     isResizingSidebar = true;
+        //     document.body.classList.add('resizing-sidebar');
 
-            const startX = e.clientX;
-            const startWidth = sidebar.offsetWidth;
+        //     const startX = e.clientX;
+        //     const startWidth = sidebar.offsetWidth;
 
-            function onMouseMove(e) {
-                if (!isResizingSidebar) return;
-                const newWidth = startWidth + (e.clientX - startX);
-                const minWidth = 150;
-                const maxWidth = window.innerWidth / 2;
-                if (newWidth >= minWidth && newWidth <= maxWidth) {
-                    sidebar.style.width = newWidth + 'px';
-                    sidebarOriginalWidth = newWidth;
-                }
-            }
+        //     function onMouseMove(e) {
+        //         if (!isResizingSidebar) return;
+        //         const newWidth = startWidth + (e.clientX - startX);
+        //         const minWidth = 150;
+        //         const maxWidth = window.innerWidth / 2;
+        //         if (newWidth >= minWidth && newWidth <= maxWidth) {
+        //             sidebar.style.width = newWidth + 'px';
+        //             sidebarOriginalWidth = newWidth;
+        //         }
+        //     }
 
-            function onMouseUp() {
-                isResizingSidebar = false;
-                document.body.classList.remove('resizing-sidebar');
-                document.removeEventListener('mousemove', onMouseMove);
-                document.removeEventListener('mouseup', onMouseUp);
-            }
+        //     function onMouseUp() {
+        //         isResizingSidebar = false;
+        //         document.body.classList.remove('resizing-sidebar');
+        //         document.removeEventListener('mousemove', onMouseMove);
+        //         document.removeEventListener('mouseup', onMouseUp);
+        //     }
 
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
-        };
+        //     document.addEventListener('mousemove', onMouseMove);
+        //     document.addEventListener('mouseup', onMouseUp);
+        // };
 
 
 
@@ -4570,9 +4574,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         });
 
         // Gestione squadra
-        document.getElementById('manageTeamBtn').addEventListener('click', () => {
-            this.teamManagementManager.show();
-        });
+        // document.getElementById('manageTeamBtn').addEventListener('click', () => {
+        //     this.teamManagementManager.show();
+        // });
 
         // document.getElementById('closeTeamDialog').addEventListener('click', () => {
         //     this.hideTeamDialog();
@@ -4636,9 +4640,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         });
 
         // ✅ NUOVO: Doppio click per toggle sidebar sinistra
-        sidebarHandle.addEventListener('dblclick', () => {
-            sidebarSwitch.click();
-        });
+        // sidebarHandle.addEventListener('dblclick', () => {
+        //     sidebarSwitch.click();
+        // });
 
         // // ✅ NUOVO: Doppio click per toggle bottom sidebar
         // footerHandle.addEventListener('dblclick', () => {

@@ -48,57 +48,71 @@ class TeamManagementDialog {
      */
     createTeamDialog() {
         const html = `
-            <!-- Add Player Form -->
-            <div class="team-form-section">
-                <h4>➕ Aggiungi Giocatore</h4>
-                <div class="team-form-row">
-                    <label>Ruolo:</label>
-                    <label>Numero:</label>
-                    <label>Nome Completo:</label>
-                    <label></label>
-                </div>
+        <div class="team-dialog-content">
 
-                <div class="team-form-row">
-                    <select id="newPlayerRole">
-                        <option value="P1">P1 - Alzatore</option>
-                        <option value="L1">L1 - Libero</option>
-                        <option value="S1">S1 - Banda</option>
-                        <option value="O">O - Opposto</option>
-                        <option value="C1">C1 - Centro</option>
-                        <option value="All">All - Allenatore</option>
-                        <option value="A">A</option>
-                        <option value="B">B</option>
-                        <option value="C">C</option>
-                        <option value="D">D</option>
-                    </select>
+    <!-- Aggiungi Giocatore (riga 1) -->
+    <div class="team-form-section full-width">
+        <h4>➕ Aggiungi Giocatore</h4>
 
-                    <input type="number" id="newPlayerNumber" min="1" max="99" placeholder="N°">
-                    <input type="text" id="newPlayerName" placeholder="Nome e Cognome">
-                    <button id="addPlayerBtn">➕ Aggiungi</button>
-                </div>
-            </div>
+        <!-- Intestazioni colonne -->
+        <div class="team-form-row">
+            <label>Ruolo:</label>
+            <label>Numero:</label>
+            <label>Nome Completo:</label>
+            <label></label>
+        </div>
 
-            <!-- Import from Text -->
-            <div class="team-form-section">
-                <h4>📝 Importa da Testo</h4>
-                <p class="import-text-help">
-                    Formato: Ruolo.Numero.Nome, Ruolo.Numero.Nome, ...<br>
-                    <small>Esempio: P1.4.Mario Rossi, S1.10.Luigi Bianchi, L1.1.Paolo Verdi</small>
-                </p>
-                <div class="import-text-container">
-                    <textarea id="playersImportText" 
-                        rows="4" 
-                        class="import-text-area"
-                        placeholder="P1.4.Mario Rossi, S1.10.Luigi Bianchi, L1.1.Paolo Verdi"></textarea>
-                </div>
-            </div>
+        <!-- Input -->
+        <div class="team-form-row">
+            <select id="newPlayerRole">
+                <option value="P1">P1 - Alzatore</option>
+                <option value="L1">L1 - Libero</option>
+                <option value="S1">S1 - Banda</option>
+                <option value="O">O - Opposto</option>
+                <option value="C1">C1 - Centro</option>
+                <option value="All">All - Allenatore</option>
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+            </select>
 
-            <!-- Players List -->
-            <div class="team-form-section">
-                <h4>📋 Rosa Giocatori</h4>
-                <div class="team-list" id="teamPlayersList"></div>
-            </div>
-        `;
+            <input type="number" id="newPlayerNumber" min="1" max="99" placeholder="N°">
+            <input type="text" id="newPlayerName" placeholder="Nome e Cognome">
+        </div>
+    </div>
+
+    <div class="team-form-section full-width">
+        <h4>📝 Importa da Testo</h4>
+
+        <p class="import-text-help">
+            Formato: Ruolo.Numero.Nome, Ruolo.Numero.Nome, ...<br>
+            <small>Esempio: P1.4.Mario Rossi, S1.10.Luigi Bianchi, L1.1.Paolo Verdi</small>
+        </p>
+
+        <div class="import-text-container">
+            <textarea id="playersImportText"
+                rows="4"
+                class="import-text-area"
+                placeholder="P1.4.Mario Rossi, S1.10.Luigi Bianchi, L1.1.Paolo Verdi"></textarea>
+        </div>
+    </div>
+
+    <div id="jsonDropzone" class="json-dropzone">
+    Trascina qui il file JSON<br>
+    <small>(oppure clicca per selezionarlo)</small>
+    <input type="file" id="importTeamFile" accept="application/json">
+</div>
+
+    <!-- Lista Giocatori (riga 3) -->
+    <div class="team-form-section full-width">
+        <h4>📋 Rosa Giocatori</h4>
+        <div class="team-list" id="teamPlayersList"></div>
+    </div>
+
+</div>
+
+    `;
 
         this.dialog = createWindow({
             title: 'dlg_title_team',
@@ -106,17 +120,29 @@ class TeamManagementDialog {
             id: 'teamManagementDialog',
             contentHTML: html,
             effect: "windows",
-            size: 'l',
+            size: 'xl',
             modal: true,
             visible: false,
             buttons: [
-                { label: 'btn_close', color: 'secondary', onClick: () => { this.hide() } },
-                { label: 'btn_import', color: 'success', onClick: () => { this.importFromText() } },
-                { label: 'btn_import_file', color: 'success', onClick: () => { this.importTeam() } },
-                { label: 'btn_export', color: 'secondary', onClick: () => { this.exportTeam() } },
-                { label: 'btn_clear', color: 'danger', onClick: () => { this.clearTeam() } }
+                { label: 'btn_import', align: 'left', close: false, color: 'success', onClick: () => { this.importFromText() } },
+
+                // il bottone di import da file ora apre il file picker
+                {
+                    label: 'btn_import_file', close: false, color: 'success', onClick: () => {
+                        const input = document.getElementById('importTeamFile');
+                        if (input) input.click();
+                    }
+                },
+
+                { label: 'btn_export',  align: 'left', close: false, color: 'secondary', onClick: () => { this.exportTeam() } },
+                { label: 'btn_clear', close: false, color: 'danger', onClick: () => { this.clearTeam() } },
+                { label: 'btn_add',  align: 'center', close: false, color: 'success', onClick: () => { this.addPlayer() } },
+                { label: 'btn_close', color: 'secondary', onClick: () => { this.hide() } }
             ]
         });
+
+
+        
     }
 
     /**
@@ -128,10 +154,14 @@ class TeamManagementDialog {
         this.elements.newPlayerRole = document.getElementById('newPlayerRole');
         this.elements.newPlayerNumber = document.getElementById('newPlayerNumber');
         this.elements.newPlayerName = document.getElementById('newPlayerName');
-        this.elements.addPlayerBtn = document.getElementById('addPlayerBtn');
+
+        // questi id esistono ora nell'HTML (file input e textarea)
         this.elements.importTextArea = document.getElementById('playersImportText');
-        this.elements.importFromTextBtn = document.getElementById('importPlayersFromTextBtn');
         this.elements.importTeamFile = document.getElementById('importTeamFile');
+
+        // bottoni ausiliari (se vuoi usarli altrove)
+        this.elements.addPlayerBtn = document.getElementById('addPlayerBtn');
+        this.elements.importFromTextBtn = document.getElementById('importPlayersFromTextBtn');
         this.elements.importTeamBtn = document.getElementById('importTeamBtn');
         this.elements.exportTeamBtn = document.getElementById('exportTeamBtn');
         this.elements.clearTeamBtn = document.getElementById('clearTeamBtn');
@@ -139,6 +169,9 @@ class TeamManagementDialog {
         if (!this.elements.dialog) {
             console.error('TeamManagementDialog: HTML elements not found');
         }
+
+        // Attacca listener sul file input (quando scelgo il file, chiamami)
+        this.elements.importTeamFile?.addEventListener('change', (e) => this.importTeam(e));
     }
 
     /**
@@ -405,27 +438,48 @@ class TeamManagementDialog {
                 return;
             }
 
-            // Chiedi conferma se ci sono giocatori esistenti
-            if (this.teamPlayers.length > 0) {
-                if (!confirm(`Sostituire i ${this.teamPlayers.length} giocatori esistenti con ${imported.length} nuovi giocatori?`)) {
-                    return;
+            let added = 0;
+            let replaced = 0;
+
+            imported.forEach(player => {
+                const existing = this.teamPlayers.find(p =>
+                    p.role === player.role || p.number === player.number
+                );
+
+                if (existing) {
+                    const msg = `Il ruolo ${player.role} o il numero ${player.number} è già assegnato a:\n` +
+                        `→ ${existing.role}.${existing.number}.${existing.name}\n\n` +
+                        `Vuoi sostituirlo con:\n` +
+                        `→ ${player.role}.${player.number}.${player.name}?`;
+
+                    if (confirm(msg)) {
+                        // sostituisci eliminando il vecchio
+                        this.teamPlayers = this.teamPlayers.filter(p =>
+                            p.role !== player.role && p.number !== player.number
+                        );
+                        this.teamPlayers.push(player);
+                        replaced++;
+                    }
+                } else {
+                    // aggiungi nuovo
+                    this.teamPlayers.push(player);
+                    added++;
                 }
-            }
+            });
 
-            this.teamPlayers = imported;
             this.teamPlayers.sort((a, b) => a.number - b.number);
-
             this.saveTeamToStorage();
             this.renderPlayersList();
             this.elements.importTextArea.value = '';
 
-            alert(`✅ ${imported.length} giocatori importati con successo!`);
+            alert(`Importazione completata!\n\nAggiunti: ${added}\nSostituiti: ${replaced}`);
 
         } catch (error) {
             alert('Errore durante l\'importazione: ' + error.message);
             console.error('Errore importazione testo:', error);
         }
     }
+
 
     /**
      * Esporta la squadra in JSON
@@ -449,31 +503,53 @@ class TeamManagementDialog {
     /**
      * Importa squadra da file JSON
      */
+    // --- Sostituisci questa funzione ---
     importTeam(event) {
-        const file = event.target.files[0];
-        if (!file) return;
+        // supporta sia il caso "change" (event) sia il caso in cui venga chiamata senza event
+        try {
+            let file = null;
 
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const data = JSON.parse(e.target.result);
-
-                if (data.team && Array.isArray(data.team)) {
-                    this.teamPlayers = data.team;
-                    this.saveTeamToStorage();
-                    this.renderPlayersList();
-                    alert('✅ Squadra importata con successo!');
-                } else {
-                    alert('❌ File non valido: formato squadra non riconosciuto');
-                }
-            } catch (error) {
-                alert('❌ Errore nel caricamento del file: ' + error.message);
-                console.error('Errore importazione file:', error);
+            if (event && event.target && event.target.files) {
+                file = event.target.files[0];
+            } else if (this.elements.importTeamFile && this.elements.importTeamFile.files) {
+                file = this.elements.importTeamFile.files[0];
             }
-        };
 
-        reader.readAsText(file);
-        event.target.value = ''; // Reset input
+            if (!file) {
+                // nessun file selezionato: esci silenziosamente
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+
+                    if (data.team && Array.isArray(data.team)) {
+                        // qui potresti voler gestire merge vs replace: per ora sostituiamo interamente
+                        // (se vuoi comportamento diverso, lo modifichiamo)
+                        this.teamPlayers = data.team;
+                        this.saveTeamToStorage();
+                        this.renderPlayersList();
+                        alert('✅ Squadra importata con successo!');
+                    } else {
+                        alert('❌ File non valido: formato squadra non riconosciuto');
+                    }
+                } catch (error) {
+                    alert('❌ Errore nel caricamento del file: ' + error.message);
+                    console.error('Errore importazione file:', error);
+                } finally {
+                    // reset input per permettere lo stesso file in futuro
+                    if (event && event.target) event.target.value = '';
+                    if (this.elements.importTeamFile) this.elements.importTeamFile.value = '';
+                }
+            };
+
+            reader.readAsText(file);
+        } catch (err) {
+            console.error('importTeam error:', err);
+            alert('Errore durante l\'importazione del file: ' + (err.message || err));
+        }
     }
 
     /**
