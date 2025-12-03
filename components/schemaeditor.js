@@ -1,5 +1,5 @@
 class SchemaEditor {
-    constructor(menuData) {
+    constructor(menuData, username, storage) {
         this.tabs = new Map();
         this.activeTabId = 1;
         this.nextTabId = 2;
@@ -29,7 +29,6 @@ class SchemaEditor {
         this.selectedLibraryFile = null;
         this.librarySource = 'unknown';
         this.maxZIndex = 1;
-        this.currentUser = null;
         this.users = [];
         this.freehandMode = false;
         this.isDrawing = false;
@@ -49,7 +48,8 @@ class SchemaEditor {
         this._tags = "";
 
         this.menuManager = new MenuManager(this);
-        this.toolbarManager = new ToolbarDialogManager(this);
+        this.toolbarManager = new ToolbarDialogManager(this, storage);
+        this.footerbarManager = new ToolbarDialogManager(this, storage, "down");
         this.sidebarManager = new Sidebar(this, sidebarConfig, "#sidebar");
         this.historyManager = new HistoryDialogManager(this);
         this.teamManagementManager = new TeamManagementDialog(this);

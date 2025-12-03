@@ -1,17 +1,59 @@
 class ToolbarDialogManager {
-    constructor(schemaEditor) {
-        this.editor = schemaEditor;
-        this.toolbar = null; // riferimento alla div toolbar
+    constructor(editor, storage, align = "up") {
+        this.editor = editor;
+        this.storage = storage;
+		this.align = align;
+        this.toolbar = null;
     }
 
-    init() {
-        this.createToolbar();
+    async init() {
+        await this.createToolbar();
+        this.restoreHeight();
     }
 
-    createToolbar() {
+    restoreHeight() {
+        const savedHeight = this.storage.get("toolbarHeight");
+
+        if (savedHeight) {
+            this.toolbar.style.height = savedHeight + "px";
+        }
+    }
+
+    saveHeight(height) {
+        this.storage.set("toolbarHeight", height);
+    }
+
+    enableResize(resizer) {
+        let startY = 0;
+        let startHeight = 0;
+
+        const onMouseMove = (e) => {
+            const newHeight = startHeight + (e.clientY - startY);
+            const finalHeight = Math.max(40, newHeight);
+            this.toolbar.style.height = finalHeight + "px";
+        };
+
+        const onMouseUp = () => {
+            const height = parseInt(this.toolbar.style.height);
+            this.saveHeight(height);
+
+            document.documentElement.removeEventListener("mousemove", onMouseMove);
+            document.documentElement.removeEventListener("mouseup", onMouseUp);
+        };
+
+        resizer.addEventListener("mousedown", (e) => {
+            startY = e.clientY;
+            startHeight = parseInt(window.getComputedStyle(this.toolbar).height, 10);
+
+            document.documentElement.addEventListener("mousemove", onMouseMove);
+            document.documentElement.addEventListener("mouseup", onMouseUp);
+        });
+    }
+
+    async createToolbar() {
         return new Promise((resolve, reject) => {
             try {
-                // Se non esiste, creiamo la div toolbar e la appendiamo al body
+                // Se non esiste, creiamo la div toolbar
                 this.toolbar = document.getElementById("toolbar");
                 if (!this.toolbar) {
                     this.toolbar = document.createElement("div");
@@ -20,8 +62,17 @@ class ToolbarDialogManager {
                     document.body.prepend(this.toolbar);
                 }
 
-                // Creazione dei gruppi di toolbar
+                // ----- 🔧 MANIGLIA DI RESIZE -----
+                const resizer = document.createElement("div");
+                resizer.className = "toolbar-resizer";
+                this.toolbar.appendChild(resizer);
+                this.enableResize(resizer);
+                // ----------------------------------
+
+                // ----- 🔧 GRUPPI TOOLBAR -----
                 toolbarConfig.forEach(group => {
+					if( group.align !== this.align ) return;
+					
                     const fs = document.createElement("fieldset");
                     fs.className = "toolbar-group";
                     fs.style.margin = "0 10px";

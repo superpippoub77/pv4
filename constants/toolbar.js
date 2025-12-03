@@ -4,6 +4,7 @@
 const toolbarConfig = [
     {
         legend: "toolbar_size",
+		align:"up",
         items: [
             { type: "label", text: "toolbar_size" },
             {
@@ -40,6 +41,7 @@ const toolbarConfig = [
 
     {
         legend: "toolbar_team",
+		align:"up",
         items: [
             {
                 type: "button", id: "manageTeamBtn", text: "👥 Gestisci Squadra", i18n: "btn_manage_team", onClick: (editor) => {
@@ -60,6 +62,7 @@ const toolbarConfig = [
 
     {
         legend: "toolbar_view",
+		align:"up",
         items: [
             { type: "button", id: "gridToggle", text: "📐 Griglia", i18n: "btn_grid" },
             { type: "button", id: "snapToGridBtn", text: "🧲 Allinea alla Griglia", i18n: "btn_snap_grid" },
@@ -79,6 +82,7 @@ const toolbarConfig = [
 
     {
         legend: "toolbar_edit",
+		align:"up",
         items: [
             { type: "button", id: "rotateLeft", text: "↺", i18n: "btn_rotate_left" },
             { type: "button", id: "rotateRight", text: "↻", i18n: "btn_rotate_right" },
@@ -100,6 +104,7 @@ const toolbarConfig = [
 
     {
         legend: "toolbar_file",
+		align:"up",
         items: [
             { type: "input", id: "schemaTitle", placeholder: "Titolo schema", i18nPlaceholder: "placeholder_schema_title" },
             { type: "button", id: "saveBtn", text: "💾 Salva", i18n: "btn_save_schema" },
@@ -120,6 +125,7 @@ const toolbarConfig = [
 
     {
         legend: "toolbar_user",
+		align:"up",
         items: [
             {
                 type: "div",
@@ -138,5 +144,82 @@ const toolbarConfig = [
                 ]
             }
         ]
-    }
+    },
+	
+	// -----------------------
+	// BOTTOM TOOLBAR CONTROLS
+	// -----------------------
+	{
+		legend: "toolbar_object_controls",
+		align: "down",
+		fixed: true,
+		fieldsetId: "objectControls",
+		fieldsetClass: "toolbar-group fixed form-grid",
+		items: [
+			{ type: "player", text: "Colore", label: "object_color", iconHTML: "🎨", id: "objectColor", class: "color-picker", i18n: "local_object_color_label" },
+			{ type: "player", text: "Opacità", label: "object_opacity", iconHTML: "⚪", id: "objectOpacity", i18n: "local_object_opacity_label" },
+			{ type: "player", text: "Valore", label: "object_opacity_value", iconHTML: "🔢", id: "objectOpacityValue", class: "small-input", i18n: "local_object_opacity_value_label" },
+			{ type: "player", text: "Testo", label: "object_text", iconHTML: "✏️", id: "objectText", i18nPlaceholder: "local_object_text_label", i18n: "local_object_text_label" },
+			{ type: "player", text: "Numero", label: "object_number", iconHTML: "🔢", id: "objectNumber", class: "small-input", i18n: "local_object_number_label" },
+			{ type: "player", text: "Tratteggiato", label: "dashed_object_toggle", iconHTML: "⚡", id: "dashedObjectToggle", class: "toolbar-button", i18n: "local_dashed_object_toggle" },
+			{ type: "player", text: "Elimina", label: "delete_object", iconHTML: "🗑️", id: "deleteBtn", i18n: "local_delete_button" }
+		]
+	},
+	{
+		legend: "toolbar_arrow_controls",
+		align: "down",
+		fixed: true,
+		fieldsetId: "arrowControls",
+		fieldsetClass: "toolbar-group fixed",
+		items: [
+			{ type: "player", text: "Colore", label: "arrow_color", iconHTML: "🎨", id: "arrowColor", class: "color-picker", i18n: "local_arrow_color_label" },
+			{ type: "player", text: "Opacità", label: "arrow_opacity", iconHTML: "⚪", id: "arrowOpacity", i18n: "local_arrow_opacity_label" },
+			{ type: "player", text: "Spessore", label: "arrow_thickness", iconHTML: "📏", id: "arrowThickness", i18n: "local_arrow_thickness_label" },
+			{ type: "player", text: "Lineare", label: "arrow_type_linear", iconHTML: "➡️", id: "arrowTypeLinear", class: "arrow-type-btn", i18n: "local_arrow_type_linear" },
+			{ type: "player", text: "Curva", label: "arrow_type_curved", iconHTML: "➰", id: "arrowTypeCurved", class: "arrow-type-btn", i18n: "local_arrow_type_curved" },
+			{ type: "player", text: "Zigzag", label: "arrow_type_zigzag", iconHTML: "⚡", id: "arrowTypeZigzag", class: "arrow-type-btn", i18n: "local_arrow_type_zigzag" },
+			{ type: "player", text: "Tratteggiata", label: "dashed_arrow_toggle", iconHTML: "⚡", id: "dashedArrowToggle", class: "toolbar-button", i18n: "local_dashed_arrow_toggle" },
+			{ type: "player", text: "Marker Inizio", label: "arrow_marker_start", iconHTML: "🔹", id: "arrowMarkerStart", i18n: "local_arrow_marker_start_label" },
+			{ type: "player", text: "Marker Fine", label: "arrow_marker_end", iconHTML: "🔹", id: "arrowMarkerEnd", i18n: "local_arrow_marker_end_label" }
+		]
+	},
+	{
+		legend: "toolbar_sprite_controls",
+		align: "down",
+		fixed: true,
+		fieldsetId: "spriteControls",
+		fieldsetClass: "toolbar-group fixed",
+		items: [
+			{ type: "player", text: "Frame", label: "sprite_current_frame", iconHTML: "🎞️", id: "spriteCurrentFrame", i18n: "local_sprite_current_frame_label" },
+			{ type: "player", text: "Animazione", label: "sprite_animation_frames", iconHTML: "🎬", id: "spriteAnimationFrames", i18nPlaceholder: "local_sprite_animation_label" },
+			{ type: "player", text: "FPS", label: "sprite_fps", iconHTML: "⏱️", id: "spriteAnimationFPS", i18n: "local_sprite_animation_fps_label" },
+			{ type: "player", text: "Play", label: "sprite_play_animation", iconHTML: "▶️", id: "spritePlayAnimation", class: "toolbar-button" },
+			{ type: "player", text: "Stop", label: "sprite_stop_animation", iconHTML: "⏸️", id: "spriteStopAnimation", class: "toolbar-button" },
+			{ type: "player", text: "Larghezza", label: "sprite_frame_width", iconHTML: "📐", id: "spriteFrameWidth", i18n: "local_sprite_frame_size_label" },
+			{ type: "player", text: "Altezza", label: "sprite_frame_height", iconHTML: "📐", id: "spriteFrameHeight", i18n: "local_sprite_frame_size_label" },
+			{ type: "player", text: "Applica", label: "sprite_apply_size", iconHTML: "✅", id: "spriteApplySize", class: "toolbar-button" }
+		]
+	},
+	{
+		legend: "toolbar_freehand_controls",
+		align: "down",
+		fixed: true,
+		fieldsetId: "freehandControls",
+		fieldsetClass: "toolbar-group fixed",
+		items: [
+			{ type: "player", text: "Colore Traccia", label: "freehand_color", iconHTML: "🎨", id: "freehandColor", class: "color-picker", i18n: "local_freehand_color_label" },
+			{ type: "player", text: "Spessore", label: "freehand_thickness", iconHTML: "📏", id: "freehandThickness", i18n: "local_freehand_thickness_label" },
+			{ type: "player", text: "Opacità", label: "freehand_opacity", iconHTML: "⚪", id: "freehandOpacity", i18n: "local_freehand_opacity_label" }
+		]
+	},
+	{
+		legend: "toolbar_object_info",
+		align: "down",
+		fixed: true,
+		fieldsetId: "objectInfo",
+		fieldsetClass: "toolbar-group",
+		items: [
+			{ type: "player", text: "Nessun oggetto", label: "object_info", iconHTML: "❌", i18n: "local_no_object_selected" }
+		]
+	}
 ];

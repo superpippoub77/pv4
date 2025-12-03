@@ -460,7 +460,7 @@
 
     <water-mark></water-mark>
 
-    <!-- CONSTANTS -->
+    <!-- CONSTANTS AND OBJECTS -->
     <script defer src="constants/dic.js"></script>
     <script defer src="constants/preset-actions.js"></script>
     <script defer src="constants/template.js"></script>
@@ -469,6 +469,7 @@
     <script defer src="constants/sidebar.js"></script>
 
     <!-- CLASS -->
+    <script defer src="components/storage/storage.class.js"></script>
     <script defer src="components/menu/menu.class.js"></script>
     <script defer src="components/toolbar/toolbar.class.js"></script>
     <script defer src="components/sidebar/sidebar.class.js"></script>
@@ -481,11 +482,10 @@
     <!-- COMPONENTS -->
     <script defer src="components/macro_recorder_system.js"></script>
 
-    <!-- Extension -->
+    <!-- EXTENSION -->
     <script defer src="components/schemaeditor.js"></script>
     <script defer src="components/helper.js"></script>
     <script defer src="components/components.js"></script>
-    <!-- <script defer src="components/menu/menu.js"></script> -->
 
     <script>
         const defaultLang = 'it';
@@ -504,7 +504,8 @@
                     // Controlla di nuovo se l'editor esiste
                     if (!window.editor) {
                         setDefaultDate('workoutDate');
-                        window.editor = new SchemaEditor(menuData, username);
+                        storage = new Storage(username);
+                        window.editor = new SchemaEditor(menuData, username, storage);
 
                         const langSelector = document.getElementById('languageSelector');
                         langSelector.value = defaultLang;
