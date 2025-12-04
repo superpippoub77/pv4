@@ -1,18 +1,20 @@
 class ToolbarDialogManager {
-    constructor(editor, storage, align = "up") {
+    constructor(editor, storage, align = "up", id = "toolbar") {
         this.editor = editor;
         this.storage = storage;
-		this.align = align;
+        this.align = align;
         this.toolbar = null;
+        this.id = id;
+        this.key = "toolbarHeight_" + this.id;
     }
 
     async init() {
-        await this.createToolbar();
+        await this.createToolbar(this.id);
         this.restoreHeight();
     }
 
     restoreHeight() {
-        const savedHeight = this.storage.get("toolbarHeight");
+        const savedHeight = this.storage.get(this.key);
 
         if (savedHeight) {
             this.toolbar.style.height = savedHeight + "px";
@@ -20,7 +22,7 @@ class ToolbarDialogManager {
     }
 
     saveHeight(height) {
-        this.storage.set("toolbarHeight", height);
+        this.storage.set(this.key, height);
     }
 
     enableResize(resizer) {
@@ -54,25 +56,24 @@ class ToolbarDialogManager {
         return new Promise((resolve, reject) => {
             try {
                 // Se non esiste, creiamo la div toolbar
-                this.toolbar = document.getElementById("toolbar");
+                this.toolbar = document.getElementById(this.id);
                 if (!this.toolbar) {
                     this.toolbar = document.createElement("div");
-                    this.toolbar.id = "toolbar";
+                    this.toolbar.id = this.id;
                     this.toolbar.className = "toolbar";
                     document.body.prepend(this.toolbar);
                 }
 
-                // ----- 🔧 MANIGLIA DI RESIZE -----
+                // --- MANIGLIA DI RESIZE ---
                 const resizer = document.createElement("div");
                 resizer.className = "toolbar-resizer";
                 this.toolbar.appendChild(resizer);
                 this.enableResize(resizer);
-                // ----------------------------------
 
-                // ----- 🔧 GRUPPI TOOLBAR -----
+                // --- GRUPPI TOOLBAR ---
                 toolbarConfig.forEach(group => {
-					if( group.align !== this.align ) return;
-					
+                    if (group.align !== this.align) return;
+
                     const fs = document.createElement("fieldset");
                     fs.className = "toolbar-group";
                     fs.style.margin = "0 10px";
@@ -146,12 +147,14 @@ class ToolbarDialogManager {
                 });
 
                 resolve();
+
             } catch (err) {
                 console.error("Errore nella creazione della toolbar:", err);
                 reject(err);
             }
         });
     }
+
 
     show() {
         if (this.toolbar) this.toolbar.style.display = "flex";

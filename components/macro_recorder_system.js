@@ -411,14 +411,14 @@ class MacroRecorder {
             ...macro,
             tabObjects: Array.from(macro.tabObjects.entries())
         }));
-
-        localStorage.setItem('volleyMacros', JSON.stringify(data));
+        
+        this.editor.storage.set('volleyMacros', JSON.stringify(data));
         console.log('💾 Macros salvate');
     }
 
     loadMacros() {
         try {
-            const data = localStorage.getItem('volleyMacros');
+            const data = this.editor.storage.get('volleyMacros');
             if (data) {
                 this.macroList = JSON.parse(data).map(macro => ({
                     ...macro,

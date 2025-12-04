@@ -46,10 +46,17 @@ class SchemaEditor {
         this.historyMetadata = new Map();
         this.floatingToolbarGroups = new Map();
         this._tags = "";
+        this.storage = storage;
+
+        /* Campi di autosalvataggio */
+        this.autoSaveInterval = null;
+        this.autoSaveEnabled = true;
+        this.autoSaveFrequency = 15000; // 15 secondi
+        this.lastAutoSave = Date.now();
 
         this.menuManager = new MenuManager(this);
         this.toolbarManager = new ToolbarDialogManager(this, storage);
-        this.footerbarManager = new ToolbarDialogManager(this, storage, "down");
+        this.footerbarManager = new ToolbarDialogManager(this, storage, "down","footerbar");
         this.sidebarManager = new Sidebar(this, sidebarConfig, "#sidebar");
         this.historyManager = new HistoryDialogManager(this);
         this.teamManagementManager = new TeamManagementDialog(this);
@@ -71,6 +78,10 @@ class SchemaEditor {
         this.macroManager = new MacroManager(this);
         this.currentUser = username;
         this.showMainApp();
+
+        // Avvia autosave dopo l'inizializzazione
+        this.initAutoSave();
+
     }
 
     //
@@ -83,10 +94,383 @@ class SchemaEditor {
         this.libraryManager.init();
 
     }
+
+    /**
+         * Inizializza il sistema di salvataggio automatico
+         */
+    initAutoSave() {
+        // Carica le preferenze salvate
+        const savedFrequency = this.storage.get('autoSaveFrequency');
+         if (savedFrequency) {
+            this.autoSaveFrequency = parseInt(savedFrequency);
+        }
+
+        const savedEnabled = this.storage.get('autoSaveEnabled');
+        if (savedEnabled !== null) {
+            this.autoSaveEnabled = savedEnabled === 'true';
+        }
+
+        // Avvia l'intervallo se abilitato
+        if (this.autoSaveEnabled) {
+            this.startAutoSave();
+        }
+
+        // Aggiungi indicatore UI
+        this.createAutoSaveIndicator("footerbar");
+    }
+
+    /**
+     * Crea un indicatore visivo per l'autosave
+     */
+    createAutoSaveIndicator(containerId = "footerbar", indicatorId = "autoSaveIndicator") {
+        const container = document.getElementById(containerId);
+        if (!container) {
+            console.error("Footerbar non trovata:", containerId);
+            return;
+        }
+
+        const indicator = document.createElement('div');
+        indicator.id = indicatorId;
+        indicator.style.cssText = `
+        background: #27ae60;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+        margin-left: 10px;
+    `;
+
+        indicator.innerHTML = '<i class="fas fa-check"></i> Salvato automaticamente';
+
+        container.appendChild(indicator);
+    }
+
+
+    /**
+     * Mostra l'indicatore di salvataggio
+     */
+    showAutoSaveIndicator(message = 'Salvato automaticamente', color = '#27ae60') {
+        const indicator = document.getElementById('autoSaveIndicator');
+        if (indicator) {
+            indicator.style.background = color;
+            indicator.innerHTML = message;
+            indicator.style.opacity = '1';
+
+            setTimeout(() => {
+                indicator.style.opacity = '0';
+            }, 2000);
+        }
+    }
+
+    /**
+     * Avvia il salvataggio automatico
+     */
+    startAutoSave() {
+        // Pulisci eventuali intervalli esistenti
+        if (this.autoSaveInterval) {
+            clearInterval(this.autoSaveInterval);
+        }
+
+        this.autoSaveInterval = setInterval(() => {
+            this.performAutoSave();
+        }, this.autoSaveFrequency);
+
+        console.log(`✅ AutoSave avviato (ogni ${this.autoSaveFrequency / 1000} secondi)`);
+    }
+
+    /**
+     * Ferma il salvataggio automatico
+     */
+    stopAutoSave() {
+        if (this.autoSaveInterval) {
+            clearInterval(this.autoSaveInterval);
+            this.autoSaveInterval = null;
+            console.log('⏸️ AutoSave fermato');
+        }
+    }
+
+    /**
+     * Esegue il salvataggio automatico
+     */
+    performAutoSave() {
+        try {
+            const tab = this.getCurrentTab();
+            if (!tab) return;
+
+            // Crea una copia dello stato corrente
+            const autoSaveData = {
+                version: '1.0-autosave',
+                timestamp: Date.now(),
+                activeTabId: this.activeTabId,
+                tabs: []
+            };
+
+            // Salva tutti i tab
+            this.tabs.forEach((tabData, tabId) => {
+                const tabState = {
+                    id: tabId,
+                    name: tabData.name,
+                    objects: Array.from(tabData.objects.entries()),
+                    arrows: Array.from(tabData.arrows.entries()),
+                    freehands: Array.from(tabData.freehands?.entries() || []),
+                    background: tabData.background,
+                    gridVisible: tabData.gridVisible,
+                    bwMode: tabData.bwMode,
+                    zoom: tabData.zoom,
+                    periodo: tabData.periodo,
+                    ruolo: tabData.ruolo,
+                    tipologia: tabData.tipologia,
+                    genere: tabData.genere,
+                    categoria: tabData.categoria,
+                    descrizione: tabData.descrizione,
+                    autore: tabData.autore,
+                    place: tabData.place,
+                    groups: tabData.groups,
+                    nr: tabData.nr,
+                    date: tabData.date,
+                    series: tabData.series,
+                    timing: tabData.timing,
+                    rec: tabData.rec,
+                    exerciseSteps: tabData.exerciseSteps,
+                    frames: tabData.frames?.map(frame => ({
+                        id: frame.id,
+                        timestamp: frame.timestamp,
+                        objects: Array.from(frame.objects.entries())
+                    })) || [],
+                    canvasSize: tabData.canvasSize,
+                    showBorder: tabData.showBorder,
+                    maxZIndex: tabData.maxZIndex
+                };
+                autoSaveData.tabs.push(tabState);
+            });
+
+            // Salva in storage con chiave unica
+            const autoSaveKey = `autoSave_${this.currentUser || 'default'}`;
+            this.storage.set(autoSaveKey,  JSON.stringify(autoSaveData));
+
+            this.lastAutoSave = Date.now();
+            this.showAutoSaveIndicator('💾 Salvato automaticamente', '#27ae60');
+
+            console.log(`✅ AutoSave completato: ${autoSaveData.tabs.length} tab salvati`);
+
+        } catch (error) {
+            console.error('❌ Errore durante l\'autosave:', error);
+            this.showAutoSaveIndicator('❌ Errore salvataggio', '#e74c3c');
+        }
+    }
+
+    /**
+     * Ripristina l'ultimo salvataggio automatico
+     */
+    restoreAutoSave() {
+        try {
+            const autoSaveKey = `autoSave_${this.currentUser || 'default'}`;
+            const savedData = this.storage.get(autoSaveKey);
+
+            if (!savedData) {
+                alert('Nessun salvataggio automatico trovato');
+                return false;
+            }
+
+            const autoSaveData = JSON.parse(savedData);
+            const saveDate = new Date(autoSaveData.timestamp);
+            const timeAgo = Math.floor((Date.now() - autoSaveData.timestamp) / 1000 / 60);
+
+            if (!confirm(
+                `Trovato salvataggio automatico del ${saveDate.toLocaleString('it-IT')}\n` +
+                `(${timeAgo} minuti fa)\n\n` +
+                `Ripristinare? Questo sostituirà il lavoro corrente.`
+            )) {
+                return false;
+            }
+
+            // Pulisci i tab esistenti
+            this.tabs.clear();
+            document.querySelectorAll('.tab').forEach(tab => tab.remove());
+
+            // Ripristina i tab
+            let firstTabId = null;
+            autoSaveData.tabs.forEach((tabData, index) => {
+                const tabId = tabData.id || (this.nextTabId++);
+                if (index === 0) firstTabId = tabId;
+
+                this.initializeTab(tabId, tabData.name);
+                const tab = this.tabs.get(tabId);
+
+                // Ripristina gli oggetti
+                tabData.objects.forEach(([id, obj]) => tab.objects.set(id, obj));
+                tabData.arrows.forEach(([id, arrow]) => tab.arrows.set(id, arrow));
+                if (tabData.freehands) {
+                    tabData.freehands.forEach(([id, freehand]) => tab.freehands.set(id, freehand));
+                }
+
+                // Ripristina le proprietà
+                tab.background = tabData.background || 'none';
+                tab.gridVisible = tabData.gridVisible || false;
+                tab.bwMode = tabData.bwMode || false;
+                tab.zoom = tabData.zoom || 1;
+                tab.periodo = tabData.periodo;
+                tab.ruolo = tabData.ruolo;
+                tab.tipologia = tabData.tipologia;
+                tab.genere = tabData.genere;
+                tab.categoria = tabData.categoria;
+                tab.descrizione = tabData.descrizione;
+                tab.autore = tabData.autore;
+                tab.place = tabData.place;
+                tab.groups = tabData.groups;
+                tab.nr = tabData.nr;
+                tab.date = tabData.date;
+                tab.series = tabData.series;
+                tab.timing = tabData.timing;
+                tab.rec = tabData.rec;
+                tab.exerciseSteps = tabData.exerciseSteps || [];
+                tab.canvasSize = tabData.canvasSize;
+                tab.showBorder = tabData.showBorder;
+                tab.maxZIndex = tabData.maxZIndex;
+
+                if (tabData.frames) {
+                    tab.frames = tabData.frames.map(frameData => ({
+                        id: frameData.id,
+                        timestamp: frameData.timestamp,
+                        objects: new Map(frameData.objects)
+                    }));
+                }
+
+                this.createTabElement(tabId, tabData.name);
+            });
+
+            // Passa al tab corretto
+            if (autoSaveData.activeTabId && this.tabs.has(autoSaveData.activeTabId)) {
+                this.switchToTab(autoSaveData.activeTabId);
+            } else if (firstTabId) {
+                this.switchToTab(firstTabId);
+            }
+
+            alert('✅ Salvataggio automatico ripristinato con successo!');
+            return true;
+
+        } catch (error) {
+            console.error('❌ Errore nel ripristino dell\'autosave:', error);
+            alert('Errore nel ripristino del salvataggio automatico');
+            return false;
+        }
+    }
+
+    /**
+     * Elimina il salvataggio automatico
+     */
+    clearAutoSave() {
+        const autoSaveKey = `autoSave_${this.currentUser || 'default'}`;
+        this.storage.remove(autoSaveKey);
+        console.log('🗑️ AutoSave cancellato');
+    }
+
+    /**
+     * Mostra le impostazioni dell'autosave
+     */
+    showAutoSaveSettings() {
+        const currentFrequency = this.autoSaveFrequency / 1000;
+
+        const dialog = createWindow({
+            title: '⚙️ Impostazioni Salvataggio Automatico',
+            contentHTML: `
+                <div style="padding: 20px;">
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: flex; align-items: center; gap: 10px;">
+                            <input type="checkbox" id="autoSaveEnabledCheck" 
+                                   ${this.autoSaveEnabled ? 'checked' : ''}>
+                            <span>Abilita salvataggio automatico</span>
+                        </label>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px;">
+                            Frequenza (secondi):
+                        </label>
+                        <input type="number" id="autoSaveFrequencyInput" 
+                               value="${currentFrequency}" min="10" max="600"
+                               style="width: 100%; padding: 8px; border: 1px solid #bdc3c7; border-radius: 4px;">
+                        <small style="color: #7f8c8d;">Minimo: 10 secondi, Massimo: 600 secondi</small>
+                    </div>
+
+                    <div style="margin-top: 20px; padding: 15px; background: #ecf0f1; border-radius: 4px;">
+                        <div style="margin-bottom: 10px;">
+                            <strong>Ultimo salvataggio:</strong> 
+                            ${this.lastAutoSave ? new Date(this.lastAutoSave).toLocaleTimeString('it-IT') : 'Mai'}
+                        </div>
+                        <button id="restoreAutoSaveBtn" 
+                                style="padding: 8px 16px; background: #3498db; color: white; 
+                                       border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">
+                            📥 Ripristina Ultimo Salvataggio
+                        </button>
+                        <button id="clearAutoSaveBtn" 
+                                style="padding: 8px 16px; background: #e74c3c; color: white; 
+                                       border: none; border-radius: 4px; cursor: pointer;">
+                            🗑️ Cancella Salvataggio
+                        </button>
+                    </div>
+                </div>
+            `,
+            buttons: [
+                {
+                    label: 'Salva',
+                    onClick: () => {
+                        const enabled = document.getElementById('autoSaveEnabledCheck').checked;
+                        const frequency = parseInt(document.getElementById('autoSaveFrequencyInput').value);
+
+                        if (frequency < 10 || frequency > 600) {
+                            alert('La frequenza deve essere tra 10 e 600 secondi');
+                            return;
+                        }
+
+                        this.autoSaveEnabled = enabled;
+                        this.autoSaveFrequency = frequency * 1000;
+
+                        this.storage.set('autoSaveEnabled', enabled);
+                        this.storage.set('autoSaveFrequency', this.autoSaveFrequency);
+
+                        if (enabled) {
+                            this.startAutoSave();
+                        } else {
+                            this.stopAutoSave();
+                        }
+
+                        alert('✅ Impostazioni salvate');
+                    }
+                },
+                {
+                    label: 'Annulla',
+                    onClick: () => { }
+                }
+            ]
+        });
+
+        // Aggiungi event listeners per i pulsanti
+        setTimeout(() => {
+            document.getElementById('restoreAutoSaveBtn')?.addEventListener('click', () => {
+                this.restoreAutoSave();
+            });
+
+            document.getElementById('clearAutoSaveBtn')?.addEventListener('click', () => {
+                if (confirm('Sei sicuro di voler cancellare il salvataggio automatico?')) {
+                    this.clearAutoSave();
+                    alert('Salvataggio automatico cancellato');
+                }
+            });
+        }, 100);
+    }
+
+
+
     /**
      * ✅ NUOVO: Callback quando il logout ha successo
      */
     handleLogoutSuccess() {
+        this.stopAutoSave();
+        this.clearAutoSave();
         // Pulisci lo stato dell'app
         this.tabs.clear();
         this.deselectAll();
@@ -338,6 +722,7 @@ class SchemaEditor {
 
             // Squadra
             'manageTeam': () => this.showTeamDialog(),
+            'autoSaveSettings': () => this.showAutoSaveSettings(),
 
             // Strumenti
             'openNotepad': () => {
@@ -922,7 +1307,7 @@ class SchemaEditor {
     // Metodi per la gestione squadra
     loadTeamFromStorage() {
         try {
-            const saved = localStorage.getItem('volleyTeam');
+            const saved = this.storage.get('volleyTeam');
             return saved ? JSON.parse(saved) : [];
         } catch (error) {
             console.error('Errore nel caricamento della squadra:', error);
@@ -985,7 +1370,7 @@ class SchemaEditor {
     }
     saveTeamToStorage() {
         try {
-            localStorage.setItem('volleyTeam', JSON.stringify(this.teamPlayers));
+            this.storage.set('volleyTeam', JSON.stringify(this.teamPlayers));
         } catch (error) {
             console.error('Errore nel salvataggio della squadra:', error);
         }

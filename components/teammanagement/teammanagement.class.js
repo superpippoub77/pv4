@@ -230,11 +230,11 @@ class TeamManagementDialog {
     // ============================================================
 
     /**
-     * Carica la squadra dal localStorage
+     * Carica la squadra dallo storage
      */
     loadTeamFromStorage() {
         try {
-            const saved = localStorage.getItem('volleyTeam');
+            const saved = this.editor.storage.get('volleyTeam');
             return saved ? JSON.parse(saved) : [];
         } catch (error) {
             console.error('Errore nel caricamento della squadra:', error);
@@ -243,11 +243,11 @@ class TeamManagementDialog {
     }
 
     /**
-     * Salva la squadra nel localStorage
+     * Salva la squadra nello storage
      */
     saveTeamToStorage() {
         try {
-            localStorage.setItem('volleyTeam', JSON.stringify(this.teamPlayers));
+            this.editor.storage.set('volleyTeam', JSON.stringify(this.teamPlayers));
 
             // Aggiorna anche l'editor se presente
             if (this.editor) {

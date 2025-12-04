@@ -123,6 +123,13 @@ const menuData = [
         ]
     },
     {
+        label: '⚙️ Salvataggio Automatico',
+        //action: 'autoSaveSettings',
+        items: [
+              { icon: "👥", label: "Salvataggi Automatici", action: "autoSaveSettings" }
+        ]
+    },
+    {
         label: "🌐 Lingua",
         meta: { align: "right" }, // allineata a destra
         items: [
