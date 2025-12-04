@@ -57,10 +57,10 @@ const menuData = [
     {
         label: "📐 Oggetti",
         items: [
-            { icon: "⬆️", label: "In Primo Piano", action: "bringToFront", shortcut: "Ctrl+]" },
-            { icon: "⬇️", label: "In Background", action: "sendToBack", shortcut: "Ctrl+[" },
+            { icon: "⬆️", id: "bringToFront", label: "In Primo Piano", action: "bringToFront", shortcut: "Ctrl+]" },
+            { icon: "⬇️", id: "sendToBack", label: "In Background", action: "sendToBack", shortcut: "Ctrl+[" },
             { separator: true },
-            { icon: "➡️", label: "Modalità Frecce", action: "arrowMode" },
+            { icon: "➡️", idlabel: "Modalità Frecce", action: "arrowMode" },
             { icon: "✏️", label: "Modalità Disegno", action: "freehandMode" },
             { separator: true },
             { icon: "🎬", label: "Animazione", action: "showAnimation" }
