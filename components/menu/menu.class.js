@@ -12,6 +12,7 @@ class MenuManager {
         return new Promise((resolve, reject) => {
             try {
                 const menuBar = document.createElement("div");
+                menuBar.id = "menu";
                 menuBar.className = "menu-bar";
                 menuBar.style.display = "none";
 
@@ -82,8 +83,8 @@ class MenuManager {
     /**
      * Inizializza il manager del menu
      */
-    init(menuData) {
-        this.createMenu(menuData);
+    async init(menuData) {
+        await this.createMenu(menuData);
         this.initMenuBar();
         this.bindMenuActions();
     }

@@ -506,6 +506,7 @@
                         setDefaultDate('workoutDate');
                         storage = new Storage(username);
                         window.editor = new SchemaEditor(menuData, username, storage);
+                        await window.editor.initialize();
 
                         const langSelector = document.getElementById('languageSelector');
                         langSelector.value = defaultLang;

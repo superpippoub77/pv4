@@ -1,7 +1,6 @@
 /* Toolbar */
 .toolbar {
     background: #ecf0f1;
-    border-bottom: 4px solid #bdc3c7;
     padding: 10px 15px;
     display: flex;
     align-items: center;
@@ -9,23 +8,26 @@
     flex-wrap: wrap;
     gap: 8px;
     box-sizing: border-box;
-    max-height: 300px;   /* aumentato per il resize */
-    min-height: 40px;    /* limite minimo */
+    max-height: 300px;
+    min-height: 40px;
     position: relative;
     overflow-y: auto;
     flex-shrink: 0;
     z-index: 100;
+    width: 100%;          /* larghezza piena del contenitore */
 }
 
 /* Maniglia */
 .toolbar-resizer {
-    position: absolute;
+    position: relative;
+    justify-content: flex-start;
+    flex-wrap: wrap;
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 8px;
+    height: 3px;
     cursor: ns-resize;
-    background: transparent;
+    border: 2px solid #2c3e50;
     z-index: 200;
 }
 
@@ -168,8 +170,10 @@
 
 /* Toolbar non draggabile */
 .toolbar-group.fixed {
-    cursor: default;       /* Non mostra il grab */
-    pointer-events: auto;  /* Permette interazione interna normale */
+    cursor: default;
+    /* Non mostra il grab */
+    pointer-events: auto;
+    /* Permette interazione interna normale */
 }
 
 /* Disattiva lo scaling e l'active feedback */

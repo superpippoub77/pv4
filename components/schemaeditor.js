@@ -1,5 +1,6 @@
 class SchemaEditor {
     constructor(menuData, username, storage) {
+        this.menuData = menuData;
         this.tabs = new Map();
         this.activeTabId = 1;
         this.nextTabId = 2;
@@ -53,46 +54,43 @@ class SchemaEditor {
         this.autoSaveEnabled = true;
         this.autoSaveFrequency = 15000; // 15 secondi
         this.lastAutoSave = Date.now();
+        this.currentUser = username;
 
         this.menuManager = new MenuManager(this);
         this.toolbarManager = new ToolbarDialogManager(this, storage);
-        this.footerbarManager = new ToolbarDialogManager(this, storage, "down","footerbar");
+        this.footerbarManager = new ToolbarDialogManager(this, storage, "down", "footerbar");
         this.sidebarManager = new Sidebar(this, sidebarConfig, "#sidebar");
         this.historyManager = new HistoryDialogManager(this);
         this.teamManagementManager = new TeamManagementDialog(this);
         this.saveWorkoutManager = new SaveWorkoutDialogManager(this);
         this.libraryManager = new LibraryWorkoutDialogManager(this);
-
-        this.init(menuData);
-
-
-        this.initToolbarDragDrop();
-        //this.initLibraryLoading();
-        this.initializeTab(1, 'Schema 1');
-        this.initCanvasResize();
-
-
-
-        this.initializeExistingTabs();
-        this.updateUI();
         this.macroManager = new MacroManager(this);
-        this.currentUser = username;
-        this.showMainApp();
-
-        // Avvia autosave dopo l'inizializzazione
-        this.initAutoSave();
-
+        
     }
 
-    //
-    init(menuData) {
-        this.toolbarManager.init();
-        this.menuManager.init(menuData);
-        this.historyManager.init();
-        this.teamManagementManager.init();
-        this.saveWorkoutManager.init();
-        this.libraryManager.init();
+    async initialize() {
+        await this.init(this.menuData);  // aspetta che tutti gli init finiscano
+        this.beforeInit();                // chiama beforeInit subito dopo
+    }
 
+    beforeInit() {
+        this.initToolbarDragDrop();
+        // this.initLibraryLoading();
+        this.initializeTab(1, 'Schema 1');
+        this.initCanvasResize();
+        this.initializeExistingTabs();
+        this.updateUI();
+        this.showMainApp();
+        this.initAutoSave();
+    }
+
+    async init() {
+        await this.menuManager.init(this.menuData);
+        await this.toolbarManager.init();
+        await this.historyManager.init();
+        await this.teamManagementManager.init();
+        await this.saveWorkoutManager.init();
+        await this.libraryManager.init();
     }
 
     /**
@@ -101,7 +99,7 @@ class SchemaEditor {
     initAutoSave() {
         // Carica le preferenze salvate
         const savedFrequency = this.storage.get('autoSaveFrequency');
-         if (savedFrequency) {
+        if (savedFrequency) {
             this.autoSaveFrequency = parseInt(savedFrequency);
         }
 
@@ -249,7 +247,7 @@ class SchemaEditor {
 
             // Salva in storage con chiave unica
             const autoSaveKey = `autoSave_${this.currentUser || 'default'}`;
-            this.storage.set(autoSaveKey,  JSON.stringify(autoSaveData));
+            this.storage.set(autoSaveKey, JSON.stringify(autoSaveData));
 
             this.lastAutoSave = Date.now();
             this.showAutoSaveIndicator('💾 Salvato automaticamente', '#27ae60');

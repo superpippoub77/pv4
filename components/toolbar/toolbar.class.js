@@ -14,9 +14,9 @@ class ToolbarDialogManager {
         this.minSize = 40; // Dimensione minima (altezza o larghezza)
     }
 
-    async init() {
+    async init(beforeDivId = "menu") {
         this.restorePosition();
-        await this.createToolbar();
+        await this.createToolbar(beforeDivId);
         this.restoreSize();
         this.applyPosition();
     }
@@ -40,7 +40,7 @@ class ToolbarDialogManager {
             console.error("Invalid position:", newPosition);
             return;
         }
-        
+
         this.position = newPosition;
         this.savePosition();
         this.applyPosition();
@@ -50,14 +50,14 @@ class ToolbarDialogManager {
     applyPosition() {
         // Rimuovi tutte le classi di posizione
         this.toolbar.classList.remove("toolbar-top", "toolbar-bottom", "toolbar-left", "toolbar-right");
-        
+
         // Aggiungi la classe appropriata
         this.toolbar.classList.add(`toolbar-${this.position}`);
-        
+
         // Reset degli stili per evitare conflitti
         this.toolbar.style.width = "";
         this.toolbar.style.height = "";
-        
+
         // Ricrea la maniglia nella posizione corretta
         this.recreateResizer();
     }
@@ -97,7 +97,7 @@ class ToolbarDialogManager {
      ****************************************************/
     toggleMinimize() {
         const isHorizontal = this.isHorizontal();
-        const currentSize = isHorizontal 
+        const currentSize = isHorizontal
             ? (parseInt(this.toolbar.style.height, 10) || this.toolbar.getBoundingClientRect().height)
             : (parseInt(this.toolbar.style.width, 10) || this.toolbar.getBoundingClientRect().width);
 
@@ -138,14 +138,14 @@ class ToolbarDialogManager {
         const resizer = document.createElement("div");
         resizer.className = "toolbar-resizer";
         resizer.title = "Doppio click per minimizzare/ripristinare";
-        
+
         // Inserisci la maniglia nella posizione corretta
         if (this.position === "top" || this.position === "left") {
-            this.toolbar.appendChild(resizer); // Alla fine
+            this.toolbar.parentNode.insertBefore(resizer, this.toolbar.nextSibling);
         } else {
             this.toolbar.insertBefore(resizer, this.toolbar.firstChild); // All'inizio
         }
-        
+
         this.enableResize(resizer);
     }
 
@@ -173,13 +173,13 @@ class ToolbarDialogManager {
             }
 
             const newSize = Math.max(this.minSize, startSize + delta);
-            
+
             if (isHorizontal) {
                 this.toolbar.style.height = newSize + "px";
             } else {
                 this.toolbar.style.width = newSize + "px";
             }
-            
+
             this.isMinimized = (newSize <= this.minSize);
         };
 
@@ -192,9 +192,9 @@ class ToolbarDialogManager {
             const finalSize = isHorizontal
                 ? (parseInt(this.toolbar.style.height, 10) || this.toolbar.getBoundingClientRect().height)
                 : (parseInt(this.toolbar.style.width, 10) || this.toolbar.getBoundingClientRect().width);
-            
+
             this.saveSize(finalSize);
-            
+
             if (finalSize > this.minSize) {
                 this.savePreviousSize(finalSize);
                 this.isMinimized = false;
@@ -215,7 +215,7 @@ class ToolbarDialogManager {
 
             pointerId = e.pointerId;
             startPos = isHorizontal ? e.clientY : e.clientX;
-            
+
             if (isHorizontal) {
                 startSize = parseInt(getComputedStyle(this.toolbar).height, 10);
             } else {
@@ -235,7 +235,7 @@ class ToolbarDialogManager {
     /****************************************************
      * Creazione Toolbar + Gruppi + Maniglia
      ****************************************************/
-    async createToolbar() {
+    async createToolbar(beforeDivId = "menu") {
         return new Promise((resolve, reject) => {
             try {
                 // Toolbar
@@ -244,7 +244,10 @@ class ToolbarDialogManager {
                     this.toolbar = document.createElement("div");
                     this.toolbar.id = this.id;
                     this.toolbar.className = "toolbar";
-                    document.body.prepend(this.toolbar);
+                    document.body.append(this.toolbar);
+
+                    const beforeDiv = document.getElementById(beforeDivId);
+                    beforeDiv.after(this.toolbar);
                 }
 
                 // Gruppi
