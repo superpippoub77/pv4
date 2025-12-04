@@ -69,7 +69,8 @@ class SchemaEditor {
     }
 
     async initialize() {
-        await this.init(this.menuData);  // aspetta che tutti gli init finiscano
+        await this.createTemplate();  // aspetta che tutti gli init finiscano
+        await this.createWindows();
         this.beforeInit();                // chiama beforeInit subito dopo
     }
 
@@ -84,9 +85,12 @@ class SchemaEditor {
         this.initAutoSave();
     }
 
-    async init() {
+    async createTemplate() {
         await this.menuManager.init(this.menuData);
         await this.toolbarManager.init();
+    }
+
+    async createWindows() {
         await this.historyManager.init();
         await this.teamManagementManager.init();
         await this.saveWorkoutManager.init();
