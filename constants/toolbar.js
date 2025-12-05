@@ -55,8 +55,18 @@ const toolbarConfig = [
     {
         legend: "toolbar_order",
         items: [
-            { type: "button", id: "bringToFront", text: "⬆️ In primo piano", i18n: "btn_to_front", titleI18n: "btn_to_front" },
-            { type: "button", id: "sendToBack", text: "⬇️ In background", i18n: "btn_to_back", titleI18n: "btn_to_back" }
+            {
+                type: "button", id: "bringToFront", text: "⬆️ In primo piano", i18n: "btn_to_front", titleI18n: "btn_to_front",
+                onClick: (editor) => {
+                    editor.bringToFront();
+                }
+            },
+            {
+                type: "button", id: "sendToBack", text: "⬇️ In background", i18n: "btn_to_back", titleI18n: "btn_to_back",
+                onClick: (editor) => {
+                    editor.sendToBack();
+                }
+            }
         ]
     },
 
@@ -71,7 +81,17 @@ const toolbarConfig = [
             { type: "button", id: "toggleLabels", text: "🔢 Etichette", i18n: "btn_labels", titleI18n: "btn_labels" },
             { type: "button", id: "renumberObjects", text: "🔄 Rinumera", i18n: "btn_renumber", titleI18n: "btn_renumber" },
             { type: "button", id: "exportPdfBtn", text: "📄 Esporta PDF", i18n: "btn_export_pdf_full", titleI18n: "btn_export_pdf_full" },
-            { type: "button", id: "freehandModeBtn", text: "✏️ Disegno", i18n: "btn_freehand_draw", titleI18n: "btn_freehand_draw" },
+            {
+                type: "button", id: "freehandModeBtn", text: "✏️ Disegno", i18n: "btn_freehand_draw", titleI18n: "btn_freehand_draw",
+                onClick: (editor) => {
+                    return (e) => {
+                        editor.freehandMode = !editor.freehandMode;
+                        e.currentTarget.classList.toggle('active', editor.freehandMode);
+                        document.getElementById('canvas').style.cursor = editor.freehandMode ? 'crosshair' : 'default';
+                        editor.deselectAll();
+                    };
+                }
+            },
             { type: "button", id: "exportFormationsBtn", text: "📋 Foglio Formazioni", i18n: "btn_export_formations", titleI18n: "btn_export_formations" },
             { type: "button", id: "showAnimationControls", text: "🎬 Animazione", i18n: "btn_show_animation", titleI18n: "btn_show_animation" },
             { type: "button", id: "recordMacroBtn", text: "⏺️", i18n: "btn_record_start", titleI18n: "btn_record_start" },
@@ -88,10 +108,30 @@ const toolbarConfig = [
             { type: "button", id: "rotateRight", text: "↻", i18n: "btn_rotate_right", titleI18n: "btn_rotate_right" },
             { type: "button", id: "rotateLeft90", text: "↺90", i18n: "btn_rotate_left", titleI18n: "btn_rotate_left" },
             { type: "button", id: "rotateRight90", text: "↻90", i18n: "btn_rotate_right", titleI18n: "btn_rotate_right" },
-            { type: "button", id: "groupRotateLeft", text: "⟲ Ruota Gruppo -15°", i18n: "btn_group_rotate_left", titleI18n: "btn_group_rotate_left" },
-            { type: "button", id: "groupRotateRight", text: "⟳ Ruota Gruppo +15°", i18n: "btn_group_rotate_right", titleI18n: "btn_group_rotate_right" },
-            { type: "button", id: "groupRotateLeft90", text: "⟲ Ruota Gruppo -90°", i18n: "btn_group_rotate_left", titleI18n: "btn_group_rotate_left" },
-            { type: "button", id: "groupRotateRight90", text: "⟳ Ruota Gruppo +90°", i18n: "btn_group_rotate_right", titleI18n: "btn_group_rotate_right" },
+            {
+                type: "button", id: "groupRotateLeft", text: "⟲ Ruota Gruppo -15°", i18n: "btn_group_rotate_left", titleI18n: "btn_group_rotate_left",
+                onClick: (editor) => {
+                    editor.rotateGroup(-15);
+                }
+            },
+            {
+                type: "button", id: "groupRotateRight", text: "⟳ Ruota Gruppo +15°", i18n: "btn_group_rotate_right", titleI18n: "btn_group_rotate_right",
+                onClick: (editor) => {
+                    editor.rotateGroup(15);
+                }
+            },
+            {
+                type: "button", id: "groupRotateLeft90", text: "⟲ Ruota Gruppo -90°", i18n: "btn_group_rotate_left", titleI18n: "btn_group_rotate_left",
+                onClick: (editor) => {
+                    editor.rotateGroup(-90);
+                }
+            },
+            {
+                type: "button", id: "groupRotateRight90", text: "⟳ Ruota Gruppo +90°", i18n: "btn_group_rotate_right", titleI18n: "btn_group_rotate_right",
+                onClick: (editor) => {
+                    editor.rotateGroup(90);
+                }
+            },
             { type: "button", id: "undoBtn", text: "⏪ Undo", i18n: "btn_undo", titleI18n: "btn_undo" },
             { type: "button", id: "redoBtn", text: "⏩ Redo", i18n: "btn_redo", titleI18n: "btn_redo" },
             {

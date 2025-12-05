@@ -14,11 +14,21 @@ class ToolbarDialogManager {
         this.minSize = 40; // Dimensione minima (altezza o larghezza)
     }
 
+	/****************************************************
+     * INIT - Modificato per includere drag & drop
+     ****************************************************/
     async init(beforeDivId = "menu") {
         this.restorePosition();
         await this.createToolbar(beforeDivId);
         this.restoreSize();
         this.applyPosition();
+        
+        // ✅ ABILITA DRAG & DROP
+        this.enableGroupDragging();
+        this.restoreGroupOrder();
+
+		// Abilita evidenziazione per gruppi floating vicino alla toolbar
+		this.initFloatingGroupsDocking();		
     }
 
     /****************************************************
@@ -390,6 +400,605 @@ class ToolbarDialogManager {
         }
 
         return el;
+    }
+	
+	/* Vecchio metodo */
+initToolbarDragDrop() {
+        const toolbar = document.getElementById('toolbar');
+        const footer = document.getElementById('footer');
+        const bottomToolbarGroup = footer.querySelector('.bottom-toolbar-group');
+        const toolbarGroups = document.querySelectorAll('.toolbar-group');
+
+        let draggedGroup = null;
+        let placeholder = null;
+        let isDraggingToolbar = false;
+        let startX, startY;
+        let offsetX, offsetY;
+        let initialParent = null;
+        let dragClone = null;
+
+        toolbarGroups.forEach(group => {
+            group.setAttribute('draggable', 'true');
+
+            group.addEventListener('dragstart', (e) => {
+                // ✅ Se la toolbar è fixed, blocca il drag
+                if (group.classList.contains('fixed')) {
+                    e.preventDefault();  // blocca il drag
+                    return;
+                }
+                draggedGroup = group;
+                isDraggingToolbar = true;
+                initialParent = group.parentElement;
+
+                const rect = group.getBoundingClientRect();
+                offsetX = e.clientX - rect.left;
+                offsetY = e.clientY - rect.top;
+                startX = e.clientX;
+                startY = e.clientY;
+
+                group.classList.add('dragging');
+
+                // ✅ MODIFICA: Crea un clone visivo invece di nascondere l'originale
+                dragClone = group.cloneNode(true);
+                dragClone.style.position = 'fixed';
+                dragClone.style.pointerEvents = 'none';
+                dragClone.style.opacity = '0.8';
+                dragClone.style.zIndex = '10000';
+                dragClone.style.left = (e.clientX - offsetX) + 'px';
+                dragClone.style.top = (e.clientY - offsetY) + 'px';
+                document.body.appendChild(dragClone);
+
+                // Crea placeholder
+                placeholder = document.createElement('div');
+                placeholder.className = 'toolbar-group toolbar-placeholder';
+                placeholder.style.width = rect.width + 'px';
+                placeholder.style.height = rect.height + 'px';
+                placeholder.style.display = 'inline-flex';
+                placeholder.style.opacity = '0.5';
+                placeholder.style.border = '2px dashed #3498db';
+
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/html', group.innerHTML);
+
+                // ✅ RIMUOVI QUESTE RIGHE CHE CAUSANO IL PROBLEMA:
+                // const img = new Image();
+                // img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+                // e.dataTransfer.setDragImage(img, 0, 0);
+
+                // ✅ AGGIUNGI INVECE:
+                // Nascondi l'elemento originale durante il drag
+                setTimeout(() => {
+                    group.style.opacity = '0.3';
+                }, 0);
+            });
+
+            group.addEventListener('drag', (e) => {
+                if (!isDraggingToolbar || !draggedGroup) return;
+				//document.body.classList.add('is-dragging');
+
+                // ✅ MODIFICA: Aggiorna solo il clone, non l'elemento originale
+                if (dragClone && e.clientX !== 0 && e.clientY !== 0) {
+                    dragClone.style.left = (e.clientX - offsetX) + 'px';
+                    dragClone.style.top = (e.clientY - offsetY) + 'px';
+                }
+            });
+
+            group.addEventListener('dragend', (e) => {
+                if (!draggedGroup) return;
+				//document.body.classList.remove('is-dragging');
+				
+                draggedGroup.classList.remove('dragging');
+                draggedGroup.style.opacity = '1'; // ✅ AGGIUNGI: Ripristina opacità
+                toolbar.classList.remove('drag-over');
+                bottomToolbarGroup.classList.remove('drag-over');
+
+                // ✅ NUOVO: Rimuovi il clone
+                if (dragClone) {
+                    dragClone.remove();
+                    dragClone = null;
+                }
+
+                const toolbarRect = toolbar.getBoundingClientRect();
+                const bottomRect = bottomToolbarGroup.getBoundingClientRect();
+
+                const isOverToolbar = (
+                    e.clientX >= toolbarRect.left &&
+                    e.clientX <= toolbarRect.right &&
+                    e.clientY >= toolbarRect.top &&
+                    e.clientY <= toolbarRect.bottom
+                );
+
+                const isOverBottom = (
+                    e.clientX >= bottomRect.left &&
+                    e.clientX <= bottomRect.right &&
+                    e.clientY >= bottomRect.top &&
+                    e.clientY <= bottomRect.bottom
+                );
+
+                if (!isOverToolbar && !isOverBottom &&
+                    (initialParent === toolbar || initialParent === bottomToolbarGroup)) {
+                    // Diventa floating
+                    draggedGroup.classList.remove('docked');
+                    draggedGroup.classList.add('floating');
+                    draggedGroup.style.position = 'fixed';
+                    draggedGroup.style.left = (e.clientX - offsetX) + 'px';
+                    draggedGroup.style.top = (e.clientY - offsetY) + 'px';
+                    draggedGroup.style.zIndex = '9999';
+
+                    const floatingId = draggedGroup.id || `floating-${Date.now()}`;
+                    if (!draggedGroup.id) draggedGroup.id = floatingId;
+
+                    this.floatingToolbarGroups.set(floatingId, {
+                        element: draggedGroup,
+                        x: e.clientX - offsetX,
+                        y: e.clientY - offsetY
+                    });
+
+                    if (draggedGroup.parentNode === toolbar || draggedGroup.parentNode === bottomToolbarGroup) {
+                        draggedGroup.remove();
+                        document.body.appendChild(draggedGroup);
+                    }
+
+                    this.addRedockButton(draggedGroup);
+
+                } else if (isOverToolbar && draggedGroup.classList.contains('floating')) {
+                    this.redockGroup(draggedGroup, 'top');
+                } else if (isOverBottom && draggedGroup.classList.contains('floating')) {
+                    this.redockGroup(draggedGroup, 'bottom');
+                } else {
+                    draggedGroup.classList.remove('floating');
+                    draggedGroup.classList.add('docked');
+                    draggedGroup.style.position = '';
+                    draggedGroup.style.left = '';
+                    draggedGroup.style.top = '';
+                    draggedGroup.style.zIndex = '';
+                }
+
+                if (placeholder && placeholder.parentNode) {
+                    placeholder.parentNode.removeChild(placeholder);
+                }
+
+                draggedGroup = null;
+                placeholder = null;
+                isDraggingToolbar = false;
+                initialParent = null;
+            });
+
+            // Doppio click su floating group per re-dockare
+            group.addEventListener('dblclick', (e) => {
+                if (group.classList.contains('floating')) {
+                    e.preventDefault();
+                    this.showDockMenu(group, e.clientX, e.clientY);
+                }
+            });
+        });
+
+        // Dragover per toolbar superiore
+        toolbar.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            if (!draggedGroup) return;
+
+            e.dataTransfer.dropEffect = 'move';
+            toolbar.classList.add('drag-over');
+
+            const afterElement = this.getDragAfterElement(toolbar, e.clientX);
+
+            if (placeholder && placeholder.parentNode) {
+                placeholder.remove();
+            }
+
+            if (afterElement == null) {
+                toolbar.appendChild(placeholder);
+            } else {
+                toolbar.insertBefore(placeholder, afterElement);
+            }
+        });
+
+        // Dragover per bottom toolbar
+        bottomToolbarGroup.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            if (!draggedGroup) return;
+
+            e.dataTransfer.dropEffect = 'move';
+            bottomToolbarGroup.classList.add('drag-over');
+
+            const afterElement = this.getDragAfterElement(bottomToolbarGroup, e.clientX);
+
+            if (placeholder && placeholder.parentNode) {
+                placeholder.remove();
+            }
+
+            if (afterElement == null) {
+                bottomToolbarGroup.appendChild(placeholder);
+            } else {
+                bottomToolbarGroup.insertBefore(placeholder, afterElement);
+            }
+        });
+
+
+        toolbar.addEventListener('dragleave', (e) => {
+            if (e.target === toolbar) {
+                toolbar.classList.remove('drag-over');
+            }
+        });
+
+        bottomToolbarGroup.addEventListener('dragleave', (e) => {
+            if (e.target === bottomToolbarGroup) {
+                bottomToolbarGroup.classList.remove('drag-over');
+            }
+        });
+
+        toolbar.addEventListener('drop', (e) => {
+            e.preventDefault();
+            toolbar.classList.remove('drag-over');
+
+            if (!draggedGroup) return;
+
+            if (placeholder && placeholder.parentNode) {
+                toolbar.insertBefore(draggedGroup, placeholder);
+                placeholder.remove();
+            }
+        });
+
+        bottomToolbarGroup.addEventListener('drop', (e) => {
+            e.preventDefault();
+            bottomToolbarGroup.classList.remove('drag-over');
+
+            if (!draggedGroup) return;
+
+            if (placeholder && placeholder.parentNode) {
+                bottomToolbarGroup.insertBefore(draggedGroup, placeholder);
+                placeholder.remove();
+            }
+        });
+    }
+
+
+		getDragAfterElement(container, x) {
+			const draggableElements = [...container.querySelectorAll('.toolbar-group:not(.dragging):not(.toolbar-placeholder)')];
+
+			return draggableElements.reduce((closest, child) => {
+				const box = child.getBoundingClientRect();
+				const offset = x - box.left - box.width / 2;
+
+				if (offset < 0 && offset > closest.offset) {
+					return { offset: offset, element: child };
+				} else {
+					return closest;
+				}
+			}, { offset: Number.NEGATIVE_INFINITY }).element;
+		}
+	/****************************************************
+     * DRAG AND DROP - Gestione gruppi toolbar
+     ****************************************************/
+    enableGroupDragging() {
+		const groups = this.toolbar.querySelectorAll('.toolbar-group:not(.fixed)');
+		const isHorizontal = () => this.position === 'top' || this.position === 'bottom';
+
+		groups.forEach(group => {
+			let dragClone = null;
+			let isDragging = false;
+			let offsetX = 0, offsetY = 0;
+			let initialParent = null;
+
+			group.addEventListener('pointerdown', (e) => {
+				if (group.classList.contains('fixed')) return;
+				e.preventDefault();
+
+				isDragging = true;
+				initialParent = group.parentElement;
+
+				const rect = group.getBoundingClientRect();
+				offsetX = e.clientX - rect.left;
+				offsetY = e.clientY - rect.top;
+
+				// Clone visivo
+				dragClone = group.cloneNode(true);
+				dragClone.style.position = 'fixed';
+				dragClone.style.left = `${rect.left}px`;
+				dragClone.style.top = `${rect.top}px`;
+				dragClone.style.width = `${rect.width}px`;
+				dragClone.style.height = `${rect.height}px`;
+				dragClone.style.opacity = '0.8';
+				dragClone.style.pointerEvents = 'none';
+				dragClone.style.zIndex = '10000';
+				document.body.appendChild(dragClone);
+
+				group.style.opacity = '0.3';
+
+				const onPointerMove = (ev) => {
+					if (!isDragging) return;
+					dragClone.style.left = `${ev.clientX - offsetX}px`;
+					dragClone.style.top = `${ev.clientY - offsetY}px`;
+				};
+
+				const onPointerUp = (ev) => {
+					if (!isDragging) return;
+
+					dragClone.remove();
+					dragClone = null;
+					group.style.opacity = '';
+
+					const toolbarRect = this.toolbar.getBoundingClientRect();
+					const isOverToolbar = (
+						ev.clientX >= toolbarRect.left &&
+						ev.clientX <= toolbarRect.right &&
+						ev.clientY >= toolbarRect.top &&
+						ev.clientY <= toolbarRect.bottom
+					);
+
+					// Se rilasciato dentro la toolbar → riposiziona
+					if (isOverToolbar) {
+						const groupsInToolbar = [...this.toolbar.querySelectorAll('.toolbar-group:not(.dragging)')];
+						let inserted = false;
+						for (let g of groupsInToolbar) {
+							const gRect = g.getBoundingClientRect();
+							if (isHorizontal() ? ev.clientX < gRect.left + gRect.width/2 : ev.clientY < gRect.top + gRect.height/2) {
+								this.toolbar.insertBefore(group, g);
+								inserted = true;
+								break;
+							}
+						}
+						if (!inserted) this.toolbar.appendChild(group);
+
+						group.classList.remove('floating');
+						group.classList.add('docked');
+
+						// Rimuovi redock button se presente
+						const btn = group.querySelector('.redock-btn');
+						if (btn) btn.remove();
+
+					} else {
+						// Fuori dalla toolbar → diventa floating
+						group.classList.remove('docked');
+						group.classList.add('floating');
+						group.style.position = 'fixed';
+						group.style.left = `${ev.clientX - offsetX}px`;
+						group.style.top = `${ev.clientY - offsetY}px`;
+						group.style.zIndex = '9999';
+
+						document.body.appendChild(group);
+						this.addRedockButton(group);
+					}
+
+					isDragging = false;
+					this.saveGroupOrder();
+
+					document.removeEventListener('pointermove', onPointerMove);
+					document.removeEventListener('pointerup', onPointerUp);
+				};
+
+				document.addEventListener('pointermove', onPointerMove);
+				document.addEventListener('pointerup', onPointerUp);
+			});
+
+			// Doppio click su floating → mostra menu dock
+			group.addEventListener('dblclick', (e) => {
+				if (group.classList.contains('floating')) {
+					e.preventDefault();
+					this.showDockMenu(group, e.clientX, e.clientY);
+				}
+			});
+
+			group.style.touchAction = 'none';
+		});
+	}
+
+	// Modifica il metodo showDockMenu per permettere la scelta
+    showDockMenu(group, x, y) {
+        const menu = document.createElement('div');
+        menu.className = 'context-menu';
+        menu.id = 'dockMenu';
+        menu.style.position = 'fixed';
+        menu.style.left = x + 'px';
+        menu.style.top = y + 'px';
+        menu.style.zIndex = '10001';
+
+        menu.innerHTML = `
+        <div class="context-menu-item" data-dock="top">🔝 Ancora in alto</div>
+        <div class="context-menu-item" data-dock="bottom">🔽 Ancora in basso</div>
+        <div class="context-menu-separator"></div>
+        <div class="context-menu-item" data-dock="cancel">❌ Annulla</div>
+    `;
+
+        document.body.appendChild(menu);
+
+        // ---- Subito dopo ----
+        const removeMenu = (e) => {
+            if (!menu.contains(e.target)) {
+                menu.remove();
+                document.removeEventListener('click', removeMenu);
+            }
+        };
+        document.addEventListener('click', removeMenu);
+
+        menu.addEventListener('click', (e) => {
+            const item = e.target.closest('.context-menu-item');
+            if (!item) return;
+
+            const dockPosition = item.dataset.dock;
+
+            if (dockPosition === 'top') {
+                this.redockGroup(group, 'top');
+            } else if (dockPosition === 'bottom') {
+                this.redockGroup(group, 'bottom');
+            }
+
+            menu.remove();
+        });
+
+        // Chiudi menu al click fuori
+        setTimeout(() => {
+            document.addEventListener('click', () => menu.remove(), { once: true });
+        }, 0);
+    }
+
+    addRedockButton(group) {
+        // Rimuovi eventuali pulsanti esistenti
+        const existingBtn = group.querySelector('.redock-btn');
+        if (existingBtn) return;
+
+        const redockBtn = document.createElement('button');
+        redockBtn.className = 'redock-btn';
+        redockBtn.innerHTML = '📌';
+        redockBtn.title = 'Ancora toolbar (doppio click per scegliere posizione)';
+        redockBtn.style.cssText = `
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #27ae60;
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-size: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        z-index: 10001;
+    `;
+
+        redockBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.showDockMenu(group, e.clientX, e.clientY);
+        });
+
+        group.appendChild(redockBtn);
+    }
+
+    redockGroup(group, position = 'top') {
+        let targetContainer;
+
+        if (position === 'bottom') {
+            const footer = document.getElementById('footer');
+            targetContainer = footer.querySelector('.bottom-toolbar-group');
+        } else {
+            targetContainer = document.querySelector('.toolbar');
+        }
+
+        // Rimuovi stili floating
+        group.classList.remove('floating');
+        group.classList.add('docked');
+        group.style.position = '';
+        group.style.left = '';
+        group.style.top = '';
+        group.style.zIndex = '';
+
+        // Rimuovi pulsante redock
+        const redockBtn = group.querySelector('.redock-btn');
+        if (redockBtn) redockBtn.remove();
+
+        // Rimuovi dal body se necessario
+        if (group.parentElement === document.body) {
+            group.remove();
+        }
+
+        // Aggiungi al container target
+        if (position === 'bottom') {
+            targetContainer.appendChild(group);
+        } else {
+            const addButton = targetContainer.querySelector('.add-tab');
+            if (addButton) {
+                targetContainer.insertBefore(group, addButton.parentElement);
+            } else {
+                targetContainer.appendChild(group);
+            }
+        }
+
+        // Rimuovi dal tracking dei floating
+        if (group.id && this.floatingToolbarGroups.has(group.id)) {
+            this.floatingToolbarGroups.delete(group.id);
+        }
+    }
+	
+	initFloatingGroupsDocking() {
+        document.addEventListener('dragover', (e) => {
+            this.floatingToolbarGroups.forEach((data, id) => {
+                const group = data.element;
+                if (!group.classList.contains('dragging')) return;
+
+                const toolbar = document.querySelector('.toolbar');
+                const toolbarRect = toolbar.getBoundingClientRect();
+
+                const isNearToolbar = (
+                    Math.abs(e.clientY - toolbarRect.top) < 50 ||
+                    Math.abs(e.clientY - toolbarRect.bottom) < 50
+                );
+
+                if (isNearToolbar) {
+                    toolbar.style.background = '#d1e7fd'; // Evidenzia
+                } else {
+                    toolbar.style.background = '';
+                }
+            });
+        });
+    }
+
+
+
+    /****************************************************
+     * CLEANUP - Pulizia dopo drag
+     ****************************************************/
+    cleanupDrag() {
+        // ✅ RIMUOVI CLASSE GLOBALE per riabilitare transizioni
+        document.body.classList.remove('is-dragging');
+        
+        // Rimuovi placeholder
+        const placeholder = this.toolbar.querySelector('.toolbar-placeholder');
+        if (placeholder && placeholder.parentNode) {
+            placeholder.remove();
+        }
+        
+        // Rimuovi classi di feedback
+        const dragging = this.toolbar.querySelector('.dragging');
+        if (dragging) {
+            dragging.classList.remove('dragging');
+            dragging.style.opacity = '';
+        }
+        
+        this.toolbar.classList.remove('drag-over');
+        
+        // Salva nuovo ordine dei gruppi
+        this.saveGroupOrder();
+    }
+
+    /****************************************************
+     * SALVATAGGIO ORDINE GRUPPI
+     ****************************************************/
+    saveGroupOrder() {
+        const groups = Array.from(this.toolbar.querySelectorAll('.toolbar-group'));
+        const order = groups.map(group => group.id || group.querySelector('legend')?.textContent);
+        
+        this.storage.set(`${this.id}_groupOrder`, JSON.stringify(order));
+    }
+
+    /****************************************************
+     * RIPRISTINO ORDINE GRUPPI
+     ****************************************************/
+    restoreGroupOrder() {
+        const savedOrder = this.storage.get(`${this.id}_groupOrder`);
+        if (!savedOrder) return;
+        
+        try {
+            const order = JSON.parse(savedOrder);
+            const groups = Array.from(this.toolbar.querySelectorAll('.toolbar-group'));
+            
+            order.forEach((identifier, index) => {
+                const group = groups.find(g => 
+                    g.id === identifier || 
+                    g.querySelector('legend')?.textContent === identifier
+                );
+                
+                if (group) {
+                    this.toolbar.appendChild(group);
+                }
+            });
+        } catch (err) {
+            console.error('Error restoring group order:', err);
+        }
     }
 
     /****************************************************

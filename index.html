@@ -461,6 +461,7 @@
     <water-mark></water-mark>
 
     <!-- CONSTANTS AND OBJECTS -->
+    <script defer src="constants/configuration.js"></script>
     <script defer src="constants/dic.js"></script>
     <script defer src="constants/preset-actions.js"></script>
     <script defer src="constants/template.js"></script>
@@ -505,7 +506,7 @@
                     if (!window.editor) {
                         setDefaultDate('workoutDate');
                         storage = new Storage(username);
-                        window.editor = new SchemaEditor(menuData, username, storage);
+                        window.editor = new SchemaEditor(configuration, menuData, username, storage);
                         await window.editor.initialize();
 
                         const langSelector = document.getElementById('languageSelector');
