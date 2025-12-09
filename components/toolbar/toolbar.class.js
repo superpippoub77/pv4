@@ -682,8 +682,10 @@ initToolbarDragDrop() {
 			let initialParent = null;
 
 			group.addEventListener('pointerdown', (e) => {
-				if (group.classList.contains('fixed')) return;
-				e.preventDefault();
+                if (e.target.closest && e.target.closest('.redock-btn')) return;
+
+                if (group.classList.contains('fixed')) return;
+                e.preventDefault();
 
 				isDragging = true;
 				initialParent = group.parentElement;

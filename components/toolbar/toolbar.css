@@ -1,341 +1,138 @@
-/* ============================================
-   TOOLBAR - Stile Windows 11 / Excel 365
-   ============================================ */
-
-.toolbar {
-    background: #f3f4f6;
-    padding: 6px 12px;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-    gap: 0;
-    box-sizing: border-box;
-    max-height: 300px;
-    min-height: 48px;
-    position: relative;
-    overflow-y: auto;
-    overflow-x: auto;
-    flex-shrink: 0;
-    z-index: 100;
-    width: 100%;
-    border-bottom: 1px solid #e5e7eb;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+/* TOOLBAR super-compact */
+.toolbar{
+  background:#f3f4f6;
+  padding:2px 6px;
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:0;
+  min-height:32px;
+  border-bottom:1px solid #e5e7eb;
+  overflow:auto;
 }
 
-/* ============================================
-   MANIGLIA RESIZE
-   ============================================ */
-.toolbar-resizer {
-    position: relative;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 4px;
-    cursor: ns-resize;
-    background: #e5e7eb;
-    z-index: 200;
-    transition: background 0.2s;
+/* Resize */
+.toolbar-resizer{
+  height:3px;
 }
 
-.toolbar-resizer:hover {
-    background: #3b82f6;
+/* GROUP */
+.toolbar-group{
+  display:flex;
+  align-items:center;
+  gap:2px;
+  border:none;
+  padding:4px 6px;
 }
 
-.toolbar-resizer::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 40px;
-    height: 3px;
-    background: #9ca3af;
-    border-radius: 2px;
+.toolbar-group::after{
+  content:"⋮";
+  opacity:.35;
+  margin-left:6px;
 }
 
-/* ============================================
-   GRUPPI TOOLBAR - Stile Windows 11
-   ============================================ */
-.toolbar-group {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
-    
-    /* Separatore verticale stile Windows 11 */
-    border: none;
-    border-left: 1px solid #d1d5db;
-    border-radius: 0;
-    padding: 8px 12px;
-    background-color: transparent;
-    cursor: grab;
-    
-    flex: 0 0 auto;
-    white-space: nowrap;
-    position: relative;
-    z-index: 1;
-    
-    /* ✅ SOLO transizione per background, NO per transform/position */
-    transition: background-color 0.15s ease;
-}
-
-/* Rimuovi il bordo sinistro dal primo gruppo */
-.toolbar-group:first-child {
-    border-left: none;
-    padding-left: 0;
-}
-
-.toolbar-group:hover {
-    background: rgba(59, 130, 246, 0.08);
-    border-radius: 6px;
-}
-
-.toolbar-group:active {
+/* quando lo stai trascinando */
+.toolbar-group:active{
     cursor: grabbing;
 }
 
-/* ============================================
-   STATO FLOATING
-   ============================================ */
-.toolbar-group.floating {
-    position: fixed;
-    z-index: 9999;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1);
-    background: white;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    padding: 10px 14px;
-}
-
-.toolbar-group.floating:hover {
-    border-color: #3b82f6;
-}
-
-/* Pulsante per ri-dockare */
-.toolbar-group.floating::before {
-    content: '📌';
-    position: absolute;
-    top: -12px;
-    right: -12px;
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
-    transition: all 0.2s;
-}
-
-.toolbar-group.floating::before:hover {
-    transform: scale(1.15) rotate(15deg);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.6);
-}
-
-/* ============================================
-   DRAG FEEDBACK - ANTI-FLICKERING
-   ============================================ */
-
-/* ✅ Elemento trascinato: NESSUNA transizione */
-.toolbar-group.dragging {
-    opacity: 0.6;
+/* mentre è in drag (classe che tu metti via JS) */
+.toolbar-group.dragging{
     cursor: grabbing !important;
-    pointer-events: none;
-    /* ❌ NO transform, NO transition */
-    transition: none !important;
+    opacity: .7;
+    pointer-events:none;
 }
 
-/* ✅ Placeholder: posizione stabile, NESSUNA transizione */
-.toolbar-placeholder {
-    background: rgba(59, 130, 246, 0.12) !important;
-    border: 2px dashed #3b82f6 !important;
-    border-radius: 6px;
-    /* ❌ CRITICO: NO transition per evitare il traballamento */
-    transition: none !important;
-    pointer-events: none;
-    /* ✅ Dimensioni fisse per stabilità */
-    min-width: 80px;
-    min-height: 44px;
+.toolbar-group:first-child{
+  border-left:none;
+  padding-left:0;
 }
 
-/* ✅ Toolbar durante drag: transizione solo per background */
-.toolbar.drag-over {
-    background: #eef2ff;
-    transition: background-color 0.2s ease;
+/* Hover */
+.toolbar-group:hover{
+  background:rgba(59,130,246,.05);
 }
 
-/* ✅ DISABILITA tutte le transizioni durante il drag globale */
-body.is-dragging * {
-    transition: none !important;
+/* legend e label piccole */
+.toolbar-group legend{
+  all: unset;
+  display: inline-block;
+  font-size:10px;
+  font-weight:600;
+  color:#6b7280;
+  text-transform:uppercase;
+}
+.toolbar-group label{
+  font-size:11px;
+  margin:0;
 }
 
-/* ============================================
-   LEGENDA (Titolo sezione)
-   ============================================ */
-.toolbar-group legend {
-    font-size: 10px;
-    font-weight: 600;
-    color: #6b7280;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    background-color: transparent;
-    padding: 0 6px 0 0;
-    margin: 0;
-    position: static;
-    border: none;
-    display: block;
-    white-space: nowrap;
+/* BUTTON */
+.toolbar button{
+  padding:3px 6px;
+  min-height:24px;
+  font-size:11px;
+  border-radius:4px;
+  border:1px solid transparent;
+  background:transparent;
+  color:#374151;
+}
+.toolbar button:hover{
+  background:#f3f4f6;
+  border-color:#d1d5db;           /* bordo grigio chiaro */
+}
+.toolbar button:active{
+  background:#e5e7eb;
+}
+.toolbar button.active{
+  background:#dbeafe;
+  border-color:#93c5fd;
+  color:#1e40af;
 }
 
-/* ============================================
-   LABEL
-   ============================================ */
-.toolbar-group label {
-    font-size: 12px;
-    font-weight: 500;
-    color: #374151;
-    margin: 0;
-}
-
-/* ============================================
-   PULSANTI - Stile Windows 11 Fluent
-   ============================================ */
-.toolbar button {
-    padding: 6px 12px;
-    border: 1px solid transparent;
-    border-radius: 5px;
-    background: transparent;
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 500;
-    color: #374151;
-    transition: all 0.15s ease;
-    min-height: 32px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-}
-
-.toolbar button:hover {
-    background: #f3f4f6;
-    border-color: #e5e7eb;
-    color: #1f2937;
-}
-
-.toolbar button:active {
-    background: #e5e7eb;
-    transform: scale(0.97);
-}
-
-.toolbar button.active {
-    background: #dbeafe;
-    color: #1e40af;
-    border-color: #93c5fd;
-}
-
-/* ============================================
-   SELECT E INPUT
-   ============================================ */
+/* INPUT / SELECT */
 .toolbar select,
-.toolbar input[type="text"] {
-    padding: 6px 10px;
-    border: 1px solid #d1d5db;
-    border-radius: 5px;
-    background: white;
-    cursor: pointer;
-    font-size: 12px;
-    color: #374151;
-    transition: all 0.15s;
-    min-height: 32px;
+.toolbar input[type=text]{
+  padding:3px 6px;
+  min-height:24px;
+  font-size:11px;
 }
 
-.toolbar select:hover,
-.toolbar input[type="text"]:hover {
-    border-color: #9ca3af;
+/* file */
+.toolbar input[type=file]{
+  font-size:10px;
+  padding:2px;
 }
 
-.toolbar select:focus,
-.toolbar input[type="text"]:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+/* Placeholder più piccolo */
+.toolbar-placeholder{
+  min-width:60px;
+  min-height:30px;
 }
 
-/* ============================================
-   INPUT FILE
-   ============================================ */
-.toolbar input[type="file"] {
-    font-size: 11px;
-    padding: 4px;
+/* Responsive ancora più compatto */
+@media (max-width:768px){
+  .toolbar{
+    padding:2px 4px;
+    min-height:30px;
+  }
+  .toolbar-group{
+    padding:3px 4px;
+  }
+  .toolbar button{
+    padding:2px 5px;
+    min-height:22px;
+    font-size:10px;
+  }
 }
 
-/* ============================================
-   GRUPPI FISSI (Non draggabili)
-   ============================================ */
-.toolbar-group.fixed {
-    cursor: default;
-    pointer-events: auto;
-    background-color: transparent;
+.toolbar-group fieldset,
+.toolbar-group legend{
+    border: none !important;
+    padding: 0;
+    margin: 0;
 }
 
-.toolbar-group.fixed:active {
-    transform: none;
-}
-
-.toolbar-group.fixed:hover {
-    background: rgba(156, 163, 175, 0.08);
-}
-
-/* ============================================
-   SCROLLBAR PERSONALIZZATA
-   ============================================ */
-.toolbar::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-.toolbar::-webkit-scrollbar-track {
-    background: #f3f4f6;
-}
-
-.toolbar::-webkit-scrollbar-thumb {
-    background: #d1d5db;
-    border-radius: 4px;
-}
-
-.toolbar::-webkit-scrollbar-thumb:hover {
-    background: #9ca3af;
-}
-
-/* ============================================
-   RESPONSIVE
-   ============================================ */
-@media (max-width: 768px) {
-    .toolbar {
-        gap: 4px;
-        padding: 4px 8px;
-        min-height: 44px;
-    }
-    
-    .toolbar-group {
-        padding: 6px 8px;
-        gap: 1px;
-    }
-    
-    .toolbar button {
-        padding: 5px 10px;
-        font-size: 11px;
-        min-height: 28px;
-    }
-    
-    .toolbar-group legend {
-        font-size: 9px;
-    }
+.toolbar-group fieldset{
+    min-inline-size: unset;
 }
