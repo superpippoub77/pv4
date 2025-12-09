@@ -1,27 +1,32 @@
-/* Context Menu Styles */
+/* ============================
+   Context Menu Styles
+   ============================ */
 .context-menu {
     position: fixed;
     background: white;
-    border: 1px solid #bdc3c7;
-    border-radius: 4px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    border: 1px solid #bdc3c7;       /* bordo leggero */
+    border-radius: 6px;               /* leggermente arrotondato come toolbar */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15); /* ombra simile alla toolbar floating */
     padding: 4px 0;
-    z-index: 10000;
+    z-index: 10001;
     min-width: 180px;
+    font-family: sans-serif;
+    user-select: none;
 }
 
 .context-menu-item {
-    padding: 8px 16px;
+    padding: 8px 16px;                /* come il tuo menu originale */
     cursor: pointer;
     font-size: 13px;
     display: flex;
     align-items: center;
     gap: 8px;
-    transition: background 0.15s;
+    transition: background 0.15s ease;
+    color: #374151;                   /* testo simile toolbar */
 }
 
 .context-menu-item:hover {
-    background: #ecf0f1;
+    background: rgba(59, 130, 246, 0.08); /* colore hover coerente con toolbar */
 }
 
 .context-menu-item.disabled {

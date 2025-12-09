@@ -791,10 +791,10 @@ initToolbarDragDrop() {
         const menu = document.createElement('div');
         menu.className = 'context-menu';
         menu.id = 'dockMenu';
-        menu.style.position = 'fixed';
+        //menu.style.position = 'fixed';
         menu.style.left = x + 'px';
         menu.style.top = y + 'px';
-        menu.style.zIndex = '10001';
+        //menu.style.zIndex = '10001';
 
         menu.innerHTML = `
         <div class="context-menu-item" data-dock="top">🔝 Ancora in alto</div>
