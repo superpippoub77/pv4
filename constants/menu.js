@@ -99,7 +99,9 @@ const menuData = [
     {
         label: "👥 Squadra",
         items: [
-            { icon: "👥", label: "Gestisci Squadra", action: "manageTeam" }
+            { icon: "👥", label: "Gestisci Squadra", action: "manageTeam", onClick: (editor) => {
+                editor.teamManager.show();
+            } }
         ]
     },
 

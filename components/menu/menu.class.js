@@ -106,7 +106,8 @@ class MenuManager {
                 document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
 
                 // Esegui l'azione
-                this.executeMenuAction(action, size, bg);
+                //this.executeMenuAction(action, size, bg);
+                this.addEventListener("click", () => item.onClick?.(this.editor));
             });
         });
 
@@ -228,7 +229,7 @@ class MenuManager {
             },
 
             // ========== SQUADRA ==========
-            'manageTeam': () => this.editor.teamManagementManager.show(),
+            'manageTeam': () => this.editor.teamManager.show(),
 
             // ========== STRUMENTI ==========
             'openNotepad': () => {
