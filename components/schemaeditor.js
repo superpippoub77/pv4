@@ -66,7 +66,7 @@ class SchemaEditor {
         this.workoutManager = new SaveWorkoutDialogManager(this);
         this.libraryManager = new LibraryWorkoutDialogManager(this);
         this.macroManager = new MacroManager(this);
-        
+
     }
 
     async initialize() {
@@ -84,6 +84,7 @@ class SchemaEditor {
         this.updateUI();
         this.showMainApp();
         this.initAutoSave();
+        this.restoreStatusAutoSave();
     }
 
     async createTemplate() {
@@ -119,7 +120,7 @@ class SchemaEditor {
         }
 
         // Aggiungi indicatore UI
-        this.createAutoSaveIndicator("toolbar");
+        this.createAutoSaveIndicator(null);
         console.log(`✅ Indicatore AutoSave creato`);
     }
 
@@ -127,25 +128,31 @@ class SchemaEditor {
      * Crea un indicatore visivo per l'autosave
      */
     createAutoSaveIndicator(containerId = "footer", indicatorId = "autoSaveIndicator") {
-        const container = document.getElementById(containerId);
-        if (!container) {
-            console.error("Footerbar non trovata:", containerId);
-            return;
+        let container = document.body;
+        if (containerId) {
+            container = document.getElementById(containerId);
         }
 
         const indicator = document.createElement('div');
         indicator.id = indicatorId;
         indicator.style.cssText = `
-        background: #27ae60;
-        color: white;
-        padding: 8px 12px;
-        border-radius: 4px;
-        font-size: 12px;
-        opacity: 0;
-        transition: opacity 0.3s;
-        pointer-events: none;
-        margin-left: 10px;
-    `;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            margin-left: 10px;
+        `;
+
+        if (!containerId) {
+            indicator.style.position = 'fixed';
+            indicator.style.zIndex = '1001';
+            indicator.style.bottom = '0px';
+            indicator.style.left = '50%';
+            indicator.style.transform = 'translateX(-50%)';
+        }
 
         indicator.innerHTML = '<i class="fas fa-check"></i> Salvato automaticamente';
 
@@ -362,6 +369,86 @@ class SchemaEditor {
             return false;
         }
     }
+
+    restoreStatusAutoSave() {
+        try {
+            const autoSaveKey = `autoSave_${this.currentUser || 'default'}`;
+            const savedData = this.storage.get(autoSaveKey);
+
+            // Se la chiave non esiste → esci senza messaggi
+            if (!savedData) return false;
+
+            const autoSaveData = JSON.parse(savedData);
+
+            // pulisci i tab
+            this.tabs.clear();
+            document.querySelectorAll('.tab').forEach(tab => tab.remove());
+
+            let firstTabId = null;
+
+            autoSaveData.tabs.forEach((tabData, index) => {
+                const tabId = tabData.id || (this.nextTabId++);
+                if (index === 0) firstTabId = tabId;
+
+                this.initializeTab(tabId, tabData.name);
+                const tab = this.tabs.get(tabId);
+
+                tabData.objects?.forEach(([id, obj]) => tab.objects.set(id, obj));
+                tabData.arrows?.forEach(([id, arrow]) => tab.arrows.set(id, arrow));
+                tabData.freehands?.forEach(([id, fh]) => tab.freehands.set(id, fh));
+
+                // proprietà
+                Object.assign(tab, {
+                    background: tabData.background || 'none',
+                    gridVisible: tabData.gridVisible || false,
+                    bwMode: tabData.bwMode || false,
+                    zoom: tabData.zoom || 1,
+                    periodo: tabData.periodo,
+                    ruolo: tabData.ruolo,
+                    tipologia: tabData.tipologia,
+                    genere: tabData.genere,
+                    categoria: tabData.categoria,
+                    descrizione: tabData.descrizione,
+                    autore: tabData.autore,
+                    place: tabData.place,
+                    groups: tabData.groups,
+                    nr: tabData.nr,
+                    date: tabData.date,
+                    series: tabData.series,
+                    timing: tabData.timing,
+                    rec: tabData.rec,
+                    exerciseSteps: tabData.exerciseSteps || [],
+                    canvasSize: tabData.canvasSize,
+                    showBorder: tabData.showBorder,
+                    maxZIndex: tabData.maxZIndex
+                });
+
+                if (tabData.frames) {
+                    tab.frames = tabData.frames.map(f => ({
+                        id: f.id,
+                        timestamp: f.timestamp,
+                        objects: new Map(f.objects)
+                    }));
+                }
+
+                this.createTabElement(tabId, tabData.name);
+            });
+
+            // attiva il tab
+            if (autoSaveData.activeTabId && this.tabs.has(autoSaveData.activeTabId)) {
+                this.switchToTab(autoSaveData.activeTabId);
+            } else if (firstTabId) {
+                this.switchToTab(firstTabId);
+            }
+
+            return true;
+
+        } catch (error) {
+            console.error('Errore nel ripristino autosave:', error);
+            return false;
+        }
+    }
+
 
     /**
      * Elimina il salvataggio automatico
@@ -902,167 +989,167 @@ class SchemaEditor {
 
 
     // Aggiungi questo nuovo metodo dopo initializeEventListeners()
-    
+
 
     // // Modifica il metodo showDockMenu per permettere la scelta
     // showDockMenu(group, x, y) {
-        // const menu = document.createElement('div');
-        // menu.className = 'context-menu';
-        // menu.id = 'dockMenu';
-        // menu.style.position = 'fixed';
-        // menu.style.left = x + 'px';
-        // menu.style.top = y + 'px';
-        // menu.style.zIndex = '10001';
+    // const menu = document.createElement('div');
+    // menu.className = 'context-menu';
+    // menu.id = 'dockMenu';
+    // menu.style.position = 'fixed';
+    // menu.style.left = x + 'px';
+    // menu.style.top = y + 'px';
+    // menu.style.zIndex = '10001';
 
-        // menu.innerHTML = `
-        // <div class="context-menu-item" data-dock="top">🔝 Ancora in alto</div>
-        // <div class="context-menu-item" data-dock="bottom">🔽 Ancora in basso</div>
-        // <div class="context-menu-separator"></div>
-        // <div class="context-menu-item" data-dock="cancel">❌ Annulla</div>
+    // menu.innerHTML = `
+    // <div class="context-menu-item" data-dock="top">🔝 Ancora in alto</div>
+    // <div class="context-menu-item" data-dock="bottom">🔽 Ancora in basso</div>
+    // <div class="context-menu-separator"></div>
+    // <div class="context-menu-item" data-dock="cancel">❌ Annulla</div>
     // `;
 
-        // document.body.appendChild(menu);
+    // document.body.appendChild(menu);
 
-        // menu.addEventListener('click', (e) => {
-            // const item = e.target.closest('.context-menu-item');
-            // if (!item) return;
+    // menu.addEventListener('click', (e) => {
+    // const item = e.target.closest('.context-menu-item');
+    // if (!item) return;
 
-            // const dockPosition = item.dataset.dock;
+    // const dockPosition = item.dataset.dock;
 
-            // if (dockPosition === 'top') {
-                // this.redockGroup(group, 'top');
-            // } else if (dockPosition === 'bottom') {
-                // this.redockGroup(group, 'bottom');
-            // }
+    // if (dockPosition === 'top') {
+    // this.redockGroup(group, 'top');
+    // } else if (dockPosition === 'bottom') {
+    // this.redockGroup(group, 'bottom');
+    // }
 
-            // menu.remove();
-        // });
+    // menu.remove();
+    // });
 
-        // // Chiudi menu al click fuori
-        // setTimeout(() => {
-            // document.addEventListener('click', () => menu.remove(), { once: true });
-        // }, 0);
+    // // Chiudi menu al click fuori
+    // setTimeout(() => {
+    // document.addEventListener('click', () => menu.remove(), { once: true });
+    // }, 0);
     // }
 
     // addRedockButton(group) {
-        // // Rimuovi eventuali pulsanti esistenti
-        // const existingBtn = group.querySelector('.redock-btn');
-        // if (existingBtn) return;
+    // // Rimuovi eventuali pulsanti esistenti
+    // const existingBtn = group.querySelector('.redock-btn');
+    // if (existingBtn) return;
 
-        // const redockBtn = document.createElement('button');
-        // redockBtn.className = 'redock-btn';
-        // redockBtn.innerHTML = '📌';
-        // redockBtn.title = 'Ancora toolbar (doppio click per scegliere posizione)';
-        // redockBtn.style.cssText = `
-        // position: absolute;
-        // top: -10px;
-        // right: -10px;
-        // width: 20px;
-        // height: 20px;
-        // border-radius: 50%;
-        // background: #27ae60;
-        // color: white;
-        // border: none;
-        // cursor: pointer;
-        // font-size: 10px;
-        // display: flex;
-        // align-items: center;
-        // justify-content: center;
-        // box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        // z-index: 10001;
+    // const redockBtn = document.createElement('button');
+    // redockBtn.className = 'redock-btn';
+    // redockBtn.innerHTML = '📌';
+    // redockBtn.title = 'Ancora toolbar (doppio click per scegliere posizione)';
+    // redockBtn.style.cssText = `
+    // position: absolute;
+    // top: -10px;
+    // right: -10px;
+    // width: 20px;
+    // height: 20px;
+    // border-radius: 50%;
+    // background: #27ae60;
+    // color: white;
+    // border: none;
+    // cursor: pointer;
+    // font-size: 10px;
+    // display: flex;
+    // align-items: center;
+    // justify-content: center;
+    // box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    // z-index: 10001;
     // `;
 
-        // redockBtn.addEventListener('click', (e) => {
-            // e.stopPropagation();
-            // this.showDockMenu(group, e.clientX, e.clientY);
-        // });
+    // redockBtn.addEventListener('click', (e) => {
+    // e.stopPropagation();
+    // this.showDockMenu(group, e.clientX, e.clientY);
+    // });
 
-        // group.appendChild(redockBtn);
+    // group.appendChild(redockBtn);
     // }
 
     // redockGroup(group, position = 'top') {
-        // let targetContainer;
+    // let targetContainer;
 
-        // if (position === 'bottom') {
-            // const footer = document.getElementById('footer');
-            // targetContainer = footer.querySelector('.bottom-toolbar-group');
-        // } else {
-            // targetContainer = document.querySelector('.toolbar');
-        // }
+    // if (position === 'bottom') {
+    // const footer = document.getElementById('footer');
+    // targetContainer = footer.querySelector('.bottom-toolbar-group');
+    // } else {
+    // targetContainer = document.querySelector('.toolbar');
+    // }
 
-        // // Rimuovi stili floating
-        // group.classList.remove('floating');
-        // group.classList.add('docked');
-        // group.style.position = '';
-        // group.style.left = '';
-        // group.style.top = '';
-        // group.style.zIndex = '';
+    // // Rimuovi stili floating
+    // group.classList.remove('floating');
+    // group.classList.add('docked');
+    // group.style.position = '';
+    // group.style.left = '';
+    // group.style.top = '';
+    // group.style.zIndex = '';
 
-        // // Rimuovi pulsante redock
-        // const redockBtn = group.querySelector('.redock-btn');
-        // if (redockBtn) redockBtn.remove();
+    // // Rimuovi pulsante redock
+    // const redockBtn = group.querySelector('.redock-btn');
+    // if (redockBtn) redockBtn.remove();
 
-        // // Rimuovi dal body se necessario
-        // if (group.parentElement === document.body) {
-            // group.remove();
-        // }
+    // // Rimuovi dal body se necessario
+    // if (group.parentElement === document.body) {
+    // group.remove();
+    // }
 
-        // // Aggiungi al container target
-        // if (position === 'bottom') {
-            // targetContainer.appendChild(group);
-        // } else {
-            // const addButton = targetContainer.querySelector('.add-tab');
-            // if (addButton) {
-                // targetContainer.insertBefore(group, addButton.parentElement);
-            // } else {
-                // targetContainer.appendChild(group);
-            // }
-        // }
+    // // Aggiungi al container target
+    // if (position === 'bottom') {
+    // targetContainer.appendChild(group);
+    // } else {
+    // const addButton = targetContainer.querySelector('.add-tab');
+    // if (addButton) {
+    // targetContainer.insertBefore(group, addButton.parentElement);
+    // } else {
+    // targetContainer.appendChild(group);
+    // }
+    // }
 
-        // // Rimuovi dal tracking dei floating
-        // if (group.id && this.floatingToolbarGroups.has(group.id)) {
-            // this.floatingToolbarGroups.delete(group.id);
-        // }
+    // // Rimuovi dal tracking dei floating
+    // if (group.id && this.floatingToolbarGroups.has(group.id)) {
+    // this.floatingToolbarGroups.delete(group.id);
+    // }
     // }
 
     // initFloatingGroupsDocking() {
-        // document.addEventListener('dragover', (e) => {
-            // this.floatingToolbarGroups.forEach((data, id) => {
-                // const group = data.element;
-                // if (!group.classList.contains('dragging')) return;
+    // document.addEventListener('dragover', (e) => {
+    // this.floatingToolbarGroups.forEach((data, id) => {
+    // const group = data.element;
+    // if (!group.classList.contains('dragging')) return;
 
-                // const toolbar = document.querySelector('.toolbar');
-                // const toolbarRect = toolbar.getBoundingClientRect();
+    // const toolbar = document.querySelector('.toolbar');
+    // const toolbarRect = toolbar.getBoundingClientRect();
 
-                // const isNearToolbar = (
-                    // Math.abs(e.clientY - toolbarRect.top) < 50 ||
-                    // Math.abs(e.clientY - toolbarRect.bottom) < 50
-                // );
+    // const isNearToolbar = (
+    // Math.abs(e.clientY - toolbarRect.top) < 50 ||
+    // Math.abs(e.clientY - toolbarRect.bottom) < 50
+    // );
 
-                // if (isNearToolbar) {
-                    // toolbar.style.background = '#d1e7fd'; // Evidenzia
-                // } else {
-                    // toolbar.style.background = '';
-                // }
-            // });
-        // });
+    // if (isNearToolbar) {
+    // toolbar.style.background = '#d1e7fd'; // Evidenzia
+    // } else {
+    // toolbar.style.background = '';
+    // }
+    // });
+    // });
     // }
 
     // Metodi per la gestione squadra
-	loadTeamFromStorage() {
-	  const saved = this.storage.get('volleyTeam');
-	  if (!saved) {
-		// Se non esiste ancora, ritorna un array vuoto senza errori
-		return [];
-	  }
-	  
-	  try {
-		return JSON.parse(saved);
-	  } catch (error) {
-		console.error('Errore nel parsing della squadra salvata:', error);
-		return [];
-	  }
-	}
+    loadTeamFromStorage() {
+        const saved = this.storage.get('volleyTeam');
+        if (!saved) {
+            // Se non esiste ancora, ritorna un array vuoto senza errori
+            return [];
+        }
+
+        try {
+            return JSON.parse(saved);
+        } catch (error) {
+            console.error('Errore nel parsing della squadra salvata:', error);
+            return [];
+        }
+    }
 
     saveTabState() {
         const tab = this.getCurrentTab();

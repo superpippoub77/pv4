@@ -1,138 +1,188 @@
 /* TOOLBAR super-compact */
-.toolbar{
-  background:#f3f4f6;
-  padding:2px 6px;
-  display:flex;
-  align-items:center;
-  flex-wrap:wrap;
-  gap:0;
-  min-height:32px;
-  border-bottom:1px solid #e5e7eb;
-  overflow:auto;
+.toolbar {
+  background: #f3f4f6;
+  padding: 2px 6px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0;
+  min-height: 32px;
+  border-bottom: 1px solid #e5e7eb;
+  overflow: auto;
 }
 
 /* Resize */
-.toolbar-resizer{
-  height:3px;
+.toolbar-resizer {
+  background: transparent;
+  /* sfondo invisibile */
+  z-index: 1000;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 8px;
+}
+
+/* Puntini per toolbar orizzontale */
+.toolbar-top .toolbar-resizer,
+.toolbar-bottom .toolbar-resizer {
+  width: 100%;
+  height: 10px;
+  cursor: row-resize;
+  /* cursore verticale */
+}
+
+.toolbar-top .toolbar-resizer::before,
+.toolbar-bottom .toolbar-resizer::before {
+  content: "⋯";
+  /* tre puntini orizzontali */
+  font-size: 12px;
+  color: #6b7280;
+  opacity: 0.5;
+}
+
+/* Puntini per toolbar verticale */
+.toolbar-left .toolbar-resizer,
+.toolbar-right .toolbar-resizer {
+  width: 10px;
+  height: 100%;
+  cursor: col-resize;
+  /* cursore orizzontale */
+}
+
+.toolbar-left .toolbar-resizer::before,
+.toolbar-right .toolbar-resizer::before {
+  content: "⋮";
+  /* tre puntini verticali */
+  font-size: 12px;
+  color: #6b7280;
+  opacity: 0.5;
 }
 
 /* GROUP */
-.toolbar-group{
-  display:flex;
-  align-items:center;
-  gap:2px;
-  border:none;
-  padding:4px 6px;
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  border: none;
+  padding: 4px 6px;
 }
 
-.toolbar-group::after{
-  content:"⋮";
-  opacity:.35;
-  margin-left:6px;
+.toolbar-group::after {
+  content: "⋮";
+  opacity: .35;
+  margin-left: 6px;
 }
 
 /* quando lo stai trascinando */
-.toolbar-group:active{
-    cursor: grabbing;
+.toolbar-group:active {
+  cursor: grabbing;
 }
 
 /* mentre è in drag (classe che tu metti via JS) */
-.toolbar-group.dragging{
-    cursor: grabbing !important;
-    opacity: .7;
-    pointer-events:none;
+.toolbar-group.dragging {
+  cursor: grabbing !important;
+  opacity: .7;
+  pointer-events: none;
 }
 
-.toolbar-group:first-child{
-  border-left:none;
-  padding-left:0;
+.toolbar-group:first-child {
+  border-left: none;
+  padding-left: 0;
 }
 
 /* Hover */
-.toolbar-group:hover{
-  background:rgba(59,130,246,.05);
+.toolbar-group:hover {
+  background: rgba(59, 130, 246, .05);
 }
 
 /* legend e label piccole */
-.toolbar-group legend{
+.toolbar-group legend {
   all: unset;
   display: inline-block;
-  font-size:10px;
-  font-weight:600;
-  color:#6b7280;
-  text-transform:uppercase;
+  font-size: 10px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
 }
-.toolbar-group label{
-  font-size:11px;
-  margin:0;
+
+.toolbar-group label {
+  font-size: 11px;
+  margin: 0;
 }
 
 /* BUTTON */
-.toolbar button{
-  padding:3px 6px;
-  min-height:24px;
-  font-size:11px;
-  border-radius:4px;
-  border:1px solid transparent;
-  background:transparent;
-  color:#374151;
+.toolbar button {
+  padding: 3px 6px;
+  min-height: 24px;
+  font-size: 11px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #374151;
 }
-.toolbar button:hover{
-  background:#f3f4f6;
-  border-color:#d1d5db;           /* bordo grigio chiaro */
+
+.toolbar button:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  /* bordo grigio chiaro */
 }
-.toolbar button:active{
-  background:#e5e7eb;
+
+.toolbar button:active {
+  background: #e5e7eb;
 }
-.toolbar button.active{
-  background:#dbeafe;
-  border-color:#93c5fd;
-  color:#1e40af;
+
+.toolbar button.active {
+  background: #dbeafe;
+  border-color: #93c5fd;
+  color: #1e40af;
 }
 
 /* INPUT / SELECT */
 .toolbar select,
-.toolbar input[type=text]{
-  padding:3px 6px;
-  min-height:24px;
-  font-size:11px;
+.toolbar input[type=text] {
+  padding: 3px 6px;
+  min-height: 24px;
+  font-size: 11px;
 }
 
 /* file */
-.toolbar input[type=file]{
-  font-size:10px;
-  padding:2px;
+.toolbar input[type=file] {
+  font-size: 10px;
+  padding: 2px;
 }
 
 /* Placeholder più piccolo */
-.toolbar-placeholder{
-  min-width:60px;
-  min-height:30px;
+.toolbar-placeholder {
+  min-width: 60px;
+  min-height: 30px;
 }
 
 /* Responsive ancora più compatto */
-@media (max-width:768px){
-  .toolbar{
-    padding:2px 4px;
-    min-height:30px;
+@media (max-width:768px) {
+  .toolbar {
+    padding: 2px 4px;
+    min-height: 30px;
   }
-  .toolbar-group{
-    padding:3px 4px;
+
+  .toolbar-group {
+    padding: 3px 4px;
   }
-  .toolbar button{
-    padding:2px 5px;
-    min-height:22px;
-    font-size:10px;
+
+  .toolbar button {
+    padding: 2px 5px;
+    min-height: 22px;
+    font-size: 10px;
   }
 }
 
 .toolbar-group fieldset,
-.toolbar-group legend{
-    border: none !important;
-    padding: 0;
-    margin: 0;
+.toolbar-group legend {
+  border: none !important;
+  padding: 0;
+  margin: 0;
 }
 
-.toolbar-group fieldset{
-    min-inline-size: unset;
+.toolbar-group fieldset {
+  min-inline-size: unset;
 }

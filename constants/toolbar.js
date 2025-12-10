@@ -45,7 +45,7 @@ const toolbarConfig = [
         items: [
             {
                 type: "button", id: "manageTeamBtn", text: "👥 Gestisci Squadra", i18n: "btn_manage_team", titleI18n: "btn_manage_team", onClick: (editor) => {
-                    editor.teamManagementManager.show();
+                    editor.teamManager.show();
                 }
             },
             { type: "button", id: "togglePlayerNames", text: "🏷️ Nomi Giocatori", i18n: "btn_toggle_names", titleI18n: "btn_toggle_names" }

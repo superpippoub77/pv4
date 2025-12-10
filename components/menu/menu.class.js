@@ -46,7 +46,12 @@ class MenuManager {
                             return;
                         }
 
-                        row.dataset.action = entry.action;
+                        if (entry.onClick) {
+                            row.onClick = entry.onClick;
+                        }
+
+                        // Salva action solo se esiste
+                        if (entry.action) row.dataset.action = entry.action;
 
                         if (entry.checkbox) {
                             row.classList.add("checkbox");
@@ -91,25 +96,34 @@ class MenuManager {
 
     /**
      * Inizializza la barra dei menu
+     * Gli eventi possono essere contraddistinti da data-action negli item oppure con onClick direttamente sull'item
      */
     initMenuBar() {
-        const menuItems = document.querySelectorAll('.menu-dropdown-item[data-action]');
+        const menuItems = document.querySelectorAll('.menu-dropdown-item');
 
         menuItems.forEach(item => {
             item.addEventListener('click', (e) => {
                 e.stopPropagation();
+
                 const action = item.dataset.action;
                 const size = item.dataset.size;
                 const bg = item.dataset.bg;
 
-                // Chiudi tutti i menu
-                document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+                // Se esiste onClick lo esegue
+                if (item.onClick) {
+                    item.onClick(this.editor);
+                }
 
-                // Esegui l'azione
-                //this.executeMenuAction(action, size, bg);
-                this.addEventListener("click", () => item.onClick?.(this.editor));
+                // Se esiste action la chiama comunque
+                if (action) {
+                    this.executeMenuAction(action, size, bg);
+                }
+
+                // Chiudi i menu
+                document.querySelectorAll('.menu-item')
+                    .forEach(m => m.classList.remove('active'));
             });
-        });
+        })
 
         // Gestione apertura/chiusura menu
         document.querySelectorAll('.menu-item').forEach(menuItem => {

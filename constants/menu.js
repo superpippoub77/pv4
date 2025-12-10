@@ -99,9 +99,11 @@ const menuData = [
     {
         label: "👥 Squadra",
         items: [
-            { icon: "👥", label: "Gestisci Squadra", action: "manageTeam", onClick: (editor) => {
-                editor.teamManager.show();
-            } }
+            {
+                icon: "👥", label: "Gestisci Squadra", onClick: (editor) => {
+                    editor.teamManager.show();
+                }
+            }
         ]
     },
 
@@ -128,7 +130,11 @@ const menuData = [
         label: '⚙️ Salvataggio Automatico',
         //action: 'autoSaveSettings',
         items: [
-              { icon: "👥", label: "Salvataggi Automatici", action: "autoSaveSettings" }
+            {
+                icon: "👥", label: "Salvataggi Automatici", onClick: (editor) => {
+                    editor.showAutoSaveSettings();
+                }
+            }
         ]
     },
     {
