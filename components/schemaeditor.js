@@ -61,6 +61,7 @@ class SchemaEditor {
         this.toolbarManager = new ToolbarDialogManager(this, storage);
         this.footerbarManager = new ToolbarDialogManager(this, storage, "down", "footerbar");
         this.sidebarManager = new Sidebar(this, sidebarConfig, "#sidebar");
+        this.rightSidebarManager = new Sidebar(this, rightSidebarConfig, "#rightSidebar","right");
         this.historyManager = new HistoryDialogManager(this);
         this.teamManager = new TeamManagementDialog(this);
         this.workoutManager = new SaveWorkoutDialogManager(this);
@@ -4388,72 +4389,72 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             document.getElementById('workoutFileInput').click();
         });
 
-        // ========== RIGHT SIDEBAR ==========
-        const rightSidebar = document.getElementById('rightSidebar');
-        const rightSidebarHandle = document.getElementById('rightSidebarHandle');
-        const rightSidebarSwitch = document.getElementById('rightSidebarSwitch');
+        // // ========== RIGHT SIDEBAR ==========
+        // const rightSidebar = document.getElementById('rightSidebar');
+        // const rightSidebarHandle = document.getElementById('rightSidebarHandle');
+        // const rightSidebarSwitch = document.getElementById('rightSidebarSwitch');
 
-        // Toggle
-        rightSidebarSwitch.onclick = function (e) {
-            e.stopPropagation();
-            e.preventDefault();
+        // // Toggle
+        // rightSidebarSwitch.onclick = function (e) {
+        //     e.stopPropagation();
+        //     e.preventDefault();
 
-            const isHidden = rightSidebar.classList.contains('hidden');
+        //     const isHidden = rightSidebar.classList.contains('hidden');
 
-            if (isHidden) {
-                // Mostra sidebar
-                rightSidebar.classList.remove('hidden');
-                this.textContent = '▶';
-            } else {
-                // Nascondi sidebar
-                rightSidebar.classList.add('hidden');
-                this.textContent = '◀';
-            }
+        //     if (isHidden) {
+        //         // Mostra sidebar
+        //         rightSidebar.classList.remove('hidden');
+        //         this.textContent = '▶';
+        //     } else {
+        //         // Nascondi sidebar
+        //         rightSidebar.classList.add('hidden');
+        //         this.textContent = '◀';
+        //     }
 
-            return false;
-        };
+        //     return false;
+        // };
 
-        // Resize
-        let isResizingRightSidebar = false;
-        let rightSidebarOriginalWidth = null;
+        // // Resize
+        // let isResizingRightSidebar = false;
+        // let rightSidebarOriginalWidth = null;
 
-        rightSidebarHandle.onmousedown = function (e) {
-            if (e.target === rightSidebarSwitch) return;
+        // rightSidebarHandle.onmousedown = function (e) {
+        //     if (e.target === rightSidebarSwitch) return;
 
-            e.preventDefault();
+        //     e.preventDefault();
 
-            // Salva la larghezza corrente prima del resize
-            if (!rightSidebar.classList.contains('hidden')) {
-                rightSidebarOriginalWidth = rightSidebar.offsetWidth;
-            }
+        //     // Salva la larghezza corrente prima del resize
+        //     if (!rightSidebar.classList.contains('hidden')) {
+        //         rightSidebarOriginalWidth = rightSidebar.offsetWidth;
+        //     }
 
-            isResizingRightSidebar = true;
-            document.body.classList.add('resizing-sidebar');
+        //     isResizingRightSidebar = true;
+        //     document.body.classList.add('resizing-sidebar');
 
-            const startX = e.clientX;
-            const startWidth = rightSidebar.offsetWidth;
+        //     const startX = e.clientX;
+        //     const startWidth = rightSidebar.offsetWidth;
 
-            function onMouseMove(e) {
-                if (!isResizingRightSidebar) return;
-                const newWidth = startWidth - (e.clientX - startX);
-                const minWidth = 200;
-                const maxWidth = window.innerWidth / 2;
-                if (newWidth >= minWidth && newWidth <= maxWidth) {
-                    rightSidebar.style.width = newWidth + 'px';
-                    rightSidebarOriginalWidth = newWidth;
-                }
-            }
+        //     function onMouseMove(e) {
+        //         if (!isResizingRightSidebar) return;
+        //         const newWidth = startWidth - (e.clientX - startX);
+        //         const minWidth = 200;
+        //         const maxWidth = window.innerWidth / 2;
+        //         if (newWidth >= minWidth && newWidth <= maxWidth) {
+        //             rightSidebar.style.width = newWidth + 'px';
+        //             rightSidebarOriginalWidth = newWidth;
+        //         }
+        //     }
 
-            function onMouseUp() {
-                isResizingRightSidebar = false;
-                document.body.classList.remove('resizing-sidebar');
-                document.removeEventListener('mousemove', onMouseMove);
-                document.removeEventListener('mouseup', onMouseUp);
-            }
+        //     function onMouseUp() {
+        //         isResizingRightSidebar = false;
+        //         document.body.classList.remove('resizing-sidebar');
+        //         document.removeEventListener('mousemove', onMouseMove);
+        //         document.removeEventListener('mouseup', onMouseUp);
+        //     }
 
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
-        };
+        //     document.addEventListener('mousemove', onMouseMove);
+        //     document.addEventListener('mouseup', onMouseUp);
+        // };
 
         // Workout details event listeners
         document.getElementById('workoutPeriodo').addEventListener('change', (e) => {
@@ -4857,9 +4858,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         });
 
         // ✅ NUOVO: Doppio click per toggle sidebar
-        rightSidebarHandle.addEventListener('dblclick', () => {
-            rightSidebarSwitch.click();
-        });
+        // rightSidebarHandle.addEventListener('dblclick', () => {
+        //     rightSidebarSwitch.click();
+        // });
 
         // ✅ NUOVO: Doppio click per toggle sidebar sinistra
         // sidebarHandle.addEventListener('dblclick', () => {

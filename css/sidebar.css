@@ -49,12 +49,27 @@
 }
 
 /* Handle per il resize */
-.sidebar-handle,
-.right-sidebar-handle {
-    width: 10px;
+.sidebar-handle {
+    position: absolute;
+    top: 0;
+    right: 0; /* lato destro della sidebar sinistra */
+    width: 8px;
+    height: 100%;
     cursor: ew-resize;
     background: #4a6a8a;
-    position: relative;
+    border-left: 2px solid #2c3e50;
+    z-index: 100;
+}
+
+.right-sidebar-handle {
+    position: absolute;
+    top: 0;
+    left: 0; /* lato sinistro della sidebar destra */
+    width: 8px;
+    height: 100%;
+    cursor: ew-resize;
+    background: #4a6a8a;
+    border-right: 2px solid #2c3e50;
     z-index: 100;
 }
 
@@ -62,7 +77,6 @@
 .right-sidebar-handle:hover {
     background: #2ecc71;
 }
-
 /* Categoria */
 .component-category {
     margin-bottom: 0px;

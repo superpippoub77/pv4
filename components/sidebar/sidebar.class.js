@@ -9,13 +9,23 @@ class Sidebar {
         this.schemaEditor = schemaEditor;
         this.config = sidebarConfig;
         this.position = position === "right" ? "right" : "left";
-        this.controlCallbacks = new Map(); // callback dei controlli
+        this.controlCallbacks = new Map();
 
         this.container = document.querySelector(containerSelector);
         if (!this.container) throw new Error("Sidebar container not found");
 
+        // Genera un suffisso unico per questa sidebar
+        this.idSuffix = this.container.id || Math.random().toString(36).substr(2, 6);
+
         // Build
         this.build();
+
+        // Inizializza custom components
+        this.config.forEach(cat => {
+            if (cat.controlType === "custom" && cat.init) {
+                cat.init(this.schemaEditor);
+            }
+        });
 
         // Init
         this.initAccordion();
@@ -28,31 +38,46 @@ class Sidebar {
     }
 
     build() {
-        const handleHTML = `<div class="sidebar-handle" id="sidebarHandle"></div>`;
+        // Handle
+        const handleId = `sidebarHandle_${this.idSuffix}`;
+        const handle = document.createElement("div");
+        handle.id = handleId;
+        handle.className = this.position === "right" ? "right-sidebar-handle" : "sidebar-handle";
+        this.container.appendChild(handle);
+        this.sidebarHandle = handle;
 
-        const categoriesHTML = this.config
-            .map(cat => this.renderCategory(cat))
-            .join("");
-
-        this.container.innerHTML = handleHTML + categoriesHTML;
+        // Categorie
+        const categoriesHTML = this.config.map(cat => this.renderCategory(cat)).join("");
+        this.container.insertAdjacentHTML("beforeend", categoriesHTML);
 
         // Pulsante toggle
-        if (!document.getElementById("sidebarSwitch")) {
-            const btn = document.createElement("button");
-            btn.id = "sidebarSwitch";
-            btn.className = "sidebar-switch";
-            btn.textContent = this.position === "right" ? "▶" : "◀";
-            document.body.appendChild(btn);
+        const switchId = `sidebarSwitch_${this.idSuffix}`;
+        const toggleBtn = document.createElement("button");
+        toggleBtn.id = switchId;
+        toggleBtn.className = this.position === "right" ? "right-sidebar-switch" : "sidebar-switch";
+        toggleBtn.textContent = this.position === "right" ? "▶" : "◀";
+        document.body.appendChild(toggleBtn);
+        this.sidebarSwitch = toggleBtn;
 
-            btn.style.position = "absolute";
-            btn.style.top = "50%";
-            btn.style.transform = "translateY(-50%)";
-            btn.style.zIndex = 1000;
-            btn.style.left = this.position === "right"
-                ? (this.container.offsetLeft + this.container.offsetWidth) + "px"
-                : this.container.offsetWidth + "px";
+        this.sidebarSwitch.style.position = "absolute";
+        this.sidebarSwitch.style.top = "50%";
+        this.sidebarSwitch.style.transform = "translateY(-50%)";
+        this.sidebarSwitch.style.zIndex = 1000;
 
-            this.sidebarSwitch = btn;
+        // Posizione iniziale toggle
+        if (this.position === "right") {
+            this.sidebarSwitch.style.right = this.container.offsetWidth + "px";
+        } else {
+            this.sidebarSwitch.style.left = this.container.offsetWidth + "px";
+        }
+    }
+
+
+    updateSidebarSwitchPosition() {
+        if (this.position === "right") {
+            this.sidebarSwitch.style.right = this.container.offsetWidth + "px";
+        } else {
+            this.sidebarSwitch.style.left = this.container.offsetWidth + "px";
         }
     }
 
@@ -91,9 +116,10 @@ class Sidebar {
             case "buttons":
                 return `<div class="control-buttons">${cat.items.map(i => this.renderControl(i)).join("")}</div>`;
             case "controls":
-                return `<div class="control-container">${cat.items.map(i => this.renderControl(i)).join("")}</div>`;
             case "accordion":
                 return `<div class="control-container">${cat.items.map(i => this.renderControl(i)).join("")}</div>`;
+            case "custom":
+                return cat.render(this.schemaEditor);
             default:
                 return `<div class="component-grid">${cat.items.map(i => this.renderItem(i)).join("")}</div>`;
         }
@@ -215,7 +241,7 @@ class Sidebar {
         return `
             <div class="${classes.join(" ")}" ${attributes}>
                 <div class="component-icon">${iconHTML}</div>
-                <div data-i18n="${item.label}">${item.text || ""}</div>
+                <div class="component-text" data-i18n="${item.label}">${item.text || ""}</div>
             </div>`;
     }
 
@@ -268,7 +294,7 @@ class Sidebar {
         // Input/Search/Textarea
         this.container.addEventListener("input", e => {
             const input = e.target;
-            if (!["input","search","textarea"].includes(input.dataset.controlType)) return;
+            if (!["input", "search", "textarea"].includes(input.dataset.controlType)) return;
             const callback = this.controlCallbacks.get(input.id);
             if (callback) callback(input.value, e);
         });
@@ -284,9 +310,12 @@ class Sidebar {
 
     initSidebarToggle() {
         this.sidebar = this.container;
-        this.sidebarHandle = document.getElementById("sidebarHandle");
 
-        this.sidebarSwitch.onclick = e => { e.stopPropagation(); e.preventDefault(); this.toggleSidebar(); return false; };
+        this.sidebarSwitch.onclick = e => {
+            e.stopPropagation(); e.preventDefault();
+            this.toggleSidebar();
+            return false;
+        };
         this.sidebarHandle.ondblclick = () => this.toggleSidebar();
     }
 
@@ -302,10 +331,8 @@ class Sidebar {
             this.sidebarSwitch.textContent = this.position === "right" ? "◀" : "▶";
         }
 
-        // Posizione pulsante
         if (this.position === "right") {
-            this.sidebarSwitch.style.left = isHidden ? (this.sidebar.offsetLeft + this.sidebar.offsetWidth) + "px" : "auto";
-            this.sidebarSwitch.style.right = isHidden ? "auto" : "0px";
+            this.sidebarSwitch.style.right = isHidden ? this.sidebar.offsetWidth + "px" : "0px";
         } else {
             this.sidebarSwitch.style.left = isHidden ? this.sidebar.offsetWidth + "px" : "0px";
         }
@@ -330,9 +357,7 @@ class Sidebar {
             const min = 150, max = window.innerWidth / 2;
             if (newWidth >= min && newWidth <= max) {
                 this.sidebar.style.width = newWidth + "px"; this.savedWidth = newWidth;
-                this.sidebarSwitch.style.left = this.position === "right"
-                    ? this.sidebar.offsetLeft + this.sidebar.offsetWidth + "px"
-                    : newWidth + "px";
+                this.updateSidebarSwitchPosition();
             }
         });
 
@@ -346,13 +371,13 @@ class Sidebar {
     getControlValue(controlId) {
         const control = document.getElementById(controlId);
         if (!control) return null;
-        if (["INPUT","TEXTAREA","SELECT"].includes(control.tagName)) return control.value;
+        if (["INPUT", "TEXTAREA", "SELECT"].includes(control.tagName)) return control.value;
         return null;
     }
 
     setControlValue(controlId, value) {
         const control = document.getElementById(controlId);
         if (!control) return;
-        if (["INPUT","TEXTAREA","SELECT"].includes(control.tagName)) control.value = value;
+        if (["INPUT", "TEXTAREA", "SELECT"].includes(control.tagName)) control.value = value;
     }
 }
