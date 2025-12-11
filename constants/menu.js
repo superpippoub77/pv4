@@ -32,7 +32,10 @@ const menuData = [
             { icon: "↺", label: "Ruota -15°", action: "rotateLeft" },
             { icon: "↻", label: "Ruota +15°", action: "rotateRight" },
             { icon: "⟲", label: "Ruota Gruppo -15°", action: "rotateGroupLeft" },
-            { icon: "⟳", label: "Ruota Gruppo +15°", action: "rotateGroupRight" }
+            { icon: "⟳", label: "Ruota Gruppo +15°", action: "rotateGroupRight" },
+            { icon: "⇋", label: "Specchi orizzontale", onClick: (editor) => { editor.mirrorSelected("h"); } },
+            { icon: "⥮", label: "Specchi verticale", onClick: (editor) => { editor.mirrorSelected("v"); }   }
+
         ]
     },
 

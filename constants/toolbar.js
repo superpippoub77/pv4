@@ -132,6 +132,18 @@ const toolbarConfig = [
                     editor.rotateGroup(90);
                 }
             },
+            {
+                type: "button", id: "mirrorHorizontal", text: "⇋ Specchi Orizzontale", i18n: "btn_mirror_horizontal", titleI18n: "btn_mirror_horizontal",
+                onClick: (editor) => {
+                    editor.mirrorSelected("h");
+                }
+            },
+            {
+                type: "button", id: "mirrorVertical", text: "⥮ Specchi Verticale", i18n: "btn_mirror_vertical", titleI18n: "btn_mirror_vertical",
+                onClick: (editor) => {
+                    editor.mirrorSelected("v");
+                }
+            },
             { type: "button", id: "undoBtn", text: "⏪ Undo", i18n: "btn_undo", titleI18n: "btn_undo" },
             { type: "button", id: "redoBtn", text: "⏩ Redo", i18n: "btn_redo", titleI18n: "btn_redo" },
             {

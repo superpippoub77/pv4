@@ -35,3 +35,28 @@
 .accordion-content.active {
     max-height: 500px;
 }
+
+/* Struttura a due righe */
+.accordion-title {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Categoria grande */
+.category-big {
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+/* Titolo piccolo sotto */
+.title-small {
+    font-size: 8px;
+    font-weight: normal;
+    background-color: #2587e9;
+    border-radius: 2px;
+    opacity: 0.8;
+    line-height: 1.2;
+    text-transform: uppercase;
+}

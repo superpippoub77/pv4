@@ -6797,6 +6797,38 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         this.updateCurrentFrame();
     }
 
+    mirrorSelected(direction) {
+        if (this.selectedObjects.size === 0) return;
+
+        const tab = this.getCurrentTab();
+
+        this.selectedObjects.forEach((pos, id) => {
+            const objectData = tab.objects.get(id);
+            if (!objectData) return;
+
+            // Inizializzo eventuali scale mancanti
+            if (objectData.scaleX === undefined) objectData.scaleX = 1;
+            if (objectData.scaleY === undefined) objectData.scaleY = 1;
+
+            // Specchio orizzontale o verticale
+            if (direction === "h") {
+                objectData.scaleX *= -1;
+            } else if (direction === "v") {
+                objectData.scaleY *= -1;
+            }
+
+            // Applico la trasformazione completa
+            document.getElementById(id).style.transform =
+                `rotate(${objectData.rotation}deg) scale(${objectData.scaleX}, ${objectData.scaleY})`;
+
+            this.updateArrowsForObject(id);
+        });
+
+        this.saveState(`Specchiati ${direction} ${this.selectedObjects.size} oggetti`);
+        this.updateCurrentFrame();
+    }
+
+
     // Nel metodo toggleDashedObject(), aggiungi alla fine:
     toggleDashedObject() {
         if (this.selectedObjects.size === 0) return;
