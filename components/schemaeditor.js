@@ -60,6 +60,7 @@ class SchemaEditor {
         this.menuManager = new MenuManager(this);
         this.toolbarManager = new ToolbarDialogManager(this, storage);
         this.footerbarManager = new ToolbarDialogManager(this, storage, "down", "footerbar");
+
         this.sidebarManager = new Sidebar(this, sidebarConfig, "#sidebar");
         this.rightSidebarManager = new Sidebar(this, rightSidebarConfig, "#rightSidebar","right");
         this.historyManager = new HistoryDialogManager(this);
@@ -91,7 +92,7 @@ class SchemaEditor {
     async createTemplate() {
         await this.menuManager.init(this.menuData);
         await this.toolbarManager.init();
-    }
+        await this.footerbarManager.init();}
 
     async createWindows() {
         await this.historyManager.init();
@@ -4278,92 +4279,94 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         });
         document.getElementById('fileInput').addEventListener('change', (e) => this.loadSchema(e));
         document.getElementById('exportBtn').addEventListener('click', () => this.exportSchema());
-        document.getElementById('objectColor').addEventListener('change', (e) => {
-            this.changeSelectedObjectsColor(e.target.value);
-        });
-        document.getElementById('objectText').addEventListener('input', (e) => {
-            this.changeSelectedObjectsText(e.target.value);
-        });
-        document.getElementById('arrowColor').addEventListener('change', (e) => {
-            if (this.selectedArrow) {
-                this.changeArrowColor(e.target.value);
-            }
-        });
 
-        const thicknessInput = document.getElementById('arrowThickness');
-        thicknessInput.addEventListener('input', (e) => {
-            document.getElementById('thicknessValue').textContent = e.target.value;
-            if (this.selectedArrow) {
-                this.changeArrowThickness(e.target.value);
-            }
-        });
+        //TOOLBAR EVENT LISTENERS
+        // document.getElementById('objectColor').addEventListener('change', (e) => {
+        //     this.changeSelectedObjectsColor(e.target.value);
+        // });
+        // document.getElementById('objectText').addEventListener('input', (e) => {
+        //     this.changeSelectedObjectsText(e.target.value);
+        // });
+        // document.getElementById('arrowColor').addEventListener('change', (e) => {
+        //     if (this.selectedArrow) {
+        //         this.changeArrowColor(e.target.value);
+        //     }
+        // });
 
-        document.getElementById('arrowOpacity').addEventListener('input', (e) => {
-            document.getElementById('arrowOpacityValue').textContent = parseFloat(e.target.value).toFixed(2);
-            if (this.selectedArrow) {
-                this.changeArrowOpacity(e.target.value);
-            }
-        });
+        // const thicknessInput = document.getElementById('arrowThickness');
+        // thicknessInput.addEventListener('input', (e) => {
+        //     document.getElementById('thicknessValue').textContent = e.target.value;
+        //     if (this.selectedArrow) {
+        //         this.changeArrowThickness(e.target.value);
+        //     }
+        // });
 
-        document.getElementById('dashedArrowToggle').addEventListener('click', () => {
-            this.toggleDashedArrow();
-        });
+        // document.getElementById('arrowOpacity').addEventListener('input', (e) => {
+        //     document.getElementById('arrowOpacityValue').textContent = parseFloat(e.target.value).toFixed(2);
+        //     if (this.selectedArrow) {
+        //         this.changeArrowOpacity(e.target.value);
+        //     }
+        // });
 
-        document.getElementById('deleteBtn').addEventListener('click', () => this.deleteSelected());
-        document.addEventListener('keydown', (e) => this.handleKeyboard(e));
-        document.querySelectorAll('.arrow-type-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => this.changeArrowType(e.target.id.replace('arrowType', '').toLowerCase()));
-        });
+        // document.getElementById('dashedArrowToggle').addEventListener('click', () => {
+        //     this.toggleDashedArrow();
+        // });
 
-        // Event listeners per i terminali delle frecce
-        document.getElementById('arrowMarkerStart').addEventListener('change', (e) => {
-            if (this.selectedArrow) {
-                const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
-                if (arrowData) {
-                    arrowData.markerStart = e.target.checked;
-                    const svgElement = document.getElementById(this.selectedArrow);
-                    if (svgElement) {
-                        const path = svgElement.querySelector('.arrow-path');
-                        const markerId = `arrowhead-${this.selectedArrow}`;
-                        if (path) {
-                            if (e.target.checked) {
-                                path.setAttribute('marker-start', `url(#${markerId}-start)`);
-                            } else {
-                                path.removeAttribute('marker-start');
-                            }
-                        }
-                    }
-                    this.saveState(`Modificato marker start freccia ${this.selectedArrow} a ${e.target.checked}`);
-                }
-            }
-        });
+        // document.getElementById('deleteBtn').addEventListener('click', () => this.deleteSelected());
+        // document.addEventListener('keydown', (e) => this.handleKeyboard(e));
+        // document.querySelectorAll('.arrow-type-btn').forEach(btn => {
+        //     btn.addEventListener('click', (e) => this.changeArrowType(e.target.id.replace('arrowType', '').toLowerCase()));
+        // });
 
-        document.getElementById('arrowMarkerEnd').addEventListener('change', (e) => {
-            if (this.selectedArrow) {
-                const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
-                if (arrowData) {
-                    arrowData.markerEnd = e.target.checked;
-                    const svgElement = document.getElementById(this.selectedArrow);
-                    if (svgElement) {
-                        const path = svgElement.querySelector('.arrow-path');
-                        const markerId = `arrowhead-${this.selectedArrow}`;
-                        if (path) {
-                            if (e.target.checked) {
-                                path.setAttribute('marker-end', `url(#${markerId}-end)`);
-                            } else {
-                                path.removeAttribute('marker-end');
-                            }
-                        }
-                    }
-                    this.saveState(`Modificato marker end freccia ${this.selectedArrow} a ${e.target.checked}`);
-                }
-            }
-        });
+        // // Event listeners per i terminali delle frecce
+        // document.getElementById('arrowMarkerStart').addEventListener('change', (e) => {
+        //     if (this.selectedArrow) {
+        //         const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
+        //         if (arrowData) {
+        //             arrowData.markerStart = e.target.checked;
+        //             const svgElement = document.getElementById(this.selectedArrow);
+        //             if (svgElement) {
+        //                 const path = svgElement.querySelector('.arrow-path');
+        //                 const markerId = `arrowhead-${this.selectedArrow}`;
+        //                 if (path) {
+        //                     if (e.target.checked) {
+        //                         path.setAttribute('marker-start', `url(#${markerId}-start)`);
+        //                     } else {
+        //                         path.removeAttribute('marker-start');
+        //                     }
+        //                 }
+        //             }
+        //             this.saveState(`Modificato marker start freccia ${this.selectedArrow} a ${e.target.checked}`);
+        //         }
+        //     }
+        // });
+
+        // document.getElementById('arrowMarkerEnd').addEventListener('change', (e) => {
+        //     if (this.selectedArrow) {
+        //         const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
+        //         if (arrowData) {
+        //             arrowData.markerEnd = e.target.checked;
+        //             const svgElement = document.getElementById(this.selectedArrow);
+        //             if (svgElement) {
+        //                 const path = svgElement.querySelector('.arrow-path');
+        //                 const markerId = `arrowhead-${this.selectedArrow}`;
+        //                 if (path) {
+        //                     if (e.target.checked) {
+        //                         path.setAttribute('marker-end', `url(#${markerId}-end)`);
+        //                     } else {
+        //                         path.removeAttribute('marker-end');
+        //                     }
+        //                 }
+        //             }
+        //             this.saveState(`Modificato marker end freccia ${this.selectedArrow} a ${e.target.checked}`);
+        //         }
+        //     }
+        // });
 
 
 
 
-        document.getElementById('dashedObjectToggle').addEventListener('click', () => this.toggleDashedObject());
+        // document.getElementById('dashedObjectToggle').addEventListener('click', () => this.toggleDashedObject());
 
         // document.getElementById('bringToFront').addEventListener('click', () => this.bringToFront());
         // document.getElementById('sendToBack').addEventListener('click', () => this.sendToBack());
@@ -4666,11 +4669,11 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         });
 
         // Opacità per oggetti
-        const objectOpacityInput = document.getElementById('objectOpacity');
-        objectOpacityInput.addEventListener('input', (e) => {
-            document.getElementById('objectOpacityValue').textContent = parseFloat(e.target.value).toFixed(2);
-            this.changeSelectedObjectsOpacity(e.target.value);
-        });
+        // const objectOpacityInput = document.getElementById('objectOpacity');
+        // objectOpacityInput.addEventListener('input', (e) => {
+        //     document.getElementById('objectOpacityValue').textContent = parseFloat(e.target.value).toFixed(2);
+        //     this.changeSelectedObjectsOpacity(e.target.value);
+        // });
 
         // Opacità per disegni a mano libera
         const freehandOpacityInput = document.getElementById('freehandOpacity');
@@ -4771,9 +4774,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             this.generateBasicSteps();
         });
 
-        document.getElementById('objectNumber').addEventListener('input', (e) => {
-            this.changeSelectedObjectsNumber(parseInt(e.target.value));
-        });
+        // document.getElementById('objectNumber').addEventListener('input', (e) => {
+        //     this.changeSelectedObjectsNumber(parseInt(e.target.value));
+        // });
         document.getElementById('renumberObjects').addEventListener('click', () => {
             this.renumberAllObjects();
         });

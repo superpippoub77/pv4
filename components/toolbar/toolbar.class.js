@@ -270,11 +270,13 @@ class ToolbarDialogManager {
                     this.toolbar = document.createElement("div");
                     this.toolbar.id = this.id;
                     this.toolbar.className = "toolbar";
-                    document.body.append(this.toolbar);
+                    //document.body.append(this.toolbar);
 
                     const beforeDiv = document.getElementById(beforeDivId);
                     if (beforeDiv && beforeDiv.parentNode) {
                         beforeDiv.after(this.toolbar);
+                    } else {
+                        document.body.appendChild(this.toolbar);
                     }
                 }
 
@@ -283,7 +285,9 @@ class ToolbarDialogManager {
                     if (group.align !== this.align) return;
 
                     const fs = document.createElement("fieldset");
-                    fs.className = "toolbar-group";
+                    if (group.fieldsetId) fs.id = group.fieldsetId;
+                    if (group.fieldsetClass) fs.className = group.fieldsetClass;
+                    else fs.className = "toolbar-group";
 
                     const legend = document.createElement("legend");
                     legend.textContent = group.legend;
@@ -327,7 +331,14 @@ class ToolbarDialogManager {
                 el = document.createElement("button");
                 el.id = item.id;
                 el.textContent = item.text;
-                el.addEventListener("click", () => item.onClick?.(this.editor));
+                if (item.onClick) {
+                    el.addEventListener("click", (event) => item.onClick?.(this.editor, event));
+                }
+
+                if (item.onChange) {
+                    el.addEventListener("change", (event) => item.onChange?.(this.editor, event));
+                }
+
                 // Aggiungi data-i18n se presente
                 if (item.i18n || item.text) {
                     el.setAttribute("data-i18n", item.i18n || item.text);
@@ -367,6 +378,20 @@ class ToolbarDialogManager {
                 el = document.createElement("input");
                 el.id = item.id;
                 el.placeholder = item.placeholder ?? "";
+
+                // Click handler (opzionale)
+                if (item.onClick) {
+                    el.addEventListener("click", (event) => item.onClick?.(this.editor, event));
+                }
+
+                // Input handler (opzionale)
+                if (item.onInput) {
+                    el.addEventListener("input", (event) => item.onInput?.(this.editor, event));
+                }
+                if (item.onChange) {
+                    el.addEventListener("change", (event) => item.onChange?.(this.editor, event));
+                }
+
                 // Aggiungi data-i18n per il placeholder
                 if (item.placeholderI18n || item.placeholder) {
                     el.setAttribute("data-i18n-placeholder", item.placeholderI18n || item.placeholder);
@@ -381,6 +406,14 @@ class ToolbarDialogManager {
                     el.title = item.title;
                     el.setAttribute("data-i18n-title", item.titleI18n || item.title);
                 }
+
+                // Attributi input
+                if (item.inputType) el.type = item.inputType;
+                if (item.min !== undefined) el.min = item.min;
+                if (item.max !== undefined) el.max = item.max;
+                if (item.step !== undefined) el.step = item.step;
+                if (item.value !== undefined) el.value = item.value;
+
                 break;
 
             case "file":
@@ -414,6 +447,11 @@ class ToolbarDialogManager {
                 if (item.htmlI18n) {
                     el.setAttribute("data-i18n-html", item.htmlI18n);
                 }
+                break;
+            default:
+                el = document.createElement("div");
+                el.id = item.id || "";
+                el.textContent = item.text || "";
                 break;
         }
 

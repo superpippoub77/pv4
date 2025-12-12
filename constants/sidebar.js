@@ -160,7 +160,6 @@ const rightSidebarConfig = [
         render: (editor) => {
             return `
                 <div class="exercise-steps">
-                    <h3 data-i18n="local_exercise_steps_heading">📝 Step Esercizio</h3>
                     <div class="steps-controls">
                         <input type="text" id="newStepInput" placeholder="Inserisci nuovo step...">
                         <button id="addStepBtn" data-i18n="local_add_step_button">➕ Aggiungi</button>
@@ -207,8 +206,6 @@ const rightSidebarConfig = [
         render: (editor) => {
             return `
                 <div class="workout-details">
-                    <h3 data-i18n="local_workout_details_heading">📋 Dettagli Esercizio</h3>
-                    
                     <div class="detail-row">
                         <div class="detail-field">
                             <label for="workoutDate">Data:</label>

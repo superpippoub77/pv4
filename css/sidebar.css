@@ -1,7 +1,7 @@
 /* Sidebar base */
 .sidebar,
 .right-sidebar {
-    width: 280px;
+    width: 300px;
     flex-shrink: 0;
     background: #2c3e50;
     color: white;
@@ -10,13 +10,13 @@
     transition: transform 0.3s ease, width 0.1s ease;
 }
 
-.sidebar {
-    border-right: 3px solid #34495e;
+/* .sidebar {
+    border-right: 1px solid #34495e;
 }
 
 .right-sidebar {
-    border-left: 3px solid #34495e;
-}
+    border-left: 1px solid #34495e;
+} */
 
 .sidebar.hidden,
 .right-sidebar.hidden {
@@ -31,15 +31,25 @@
     width: 20px;
     height: 50px;
     cursor: pointer;
+    border: none; 
     background: #34495e;
-    border: 2px solid #2c3e50;
-    transform: translateY(-50%);
+    transform: translateY(-50%) translateY(45px);
     z-index: 1000;
     display: flex;
     align-items: center;
     justify-content: center;
-    opacity: 0.8;
+    opacity: 0.3;
     transition: background 0.2s ease, opacity 0.2s ease;
+}
+
+.sidebar-switch {
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+.right-sidebar-switch {
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
 }
 
 .sidebar-switch:hover,
@@ -48,35 +58,66 @@
     background: #2ecc71;
 }
 
-/* Handle per il resize */
-.sidebar-handle {
-    position: absolute;
-    top: 0;
-    right: 0; /* lato destro della sidebar sinistra */
-    width: 8px;
-    height: 100%;
-    cursor: ew-resize;
-    background: #4a6a8a;
-    border-left: 2px solid #2c3e50;
-    z-index: 100;
-}
-
+/* Barre di resize */
+.sidebar-handle,
 .right-sidebar-handle {
     position: absolute;
     top: 0;
-    left: 0; /* lato sinistro della sidebar destra */
     width: 8px;
     height: 100%;
     cursor: ew-resize;
+
     background: #4a6a8a;
-    border-right: 2px solid #2c3e50;
+    opacity: 0.3;
+    /* semi trasparente */
+    transition: opacity 0.2s ease, background 0.2s ease;
+
     z-index: 100;
+    border: none;
+    /* nessun bordo */
+}
+
+.sidebar-handle {
+    right: 0;
+}
+
+.right-sidebar-handle {
+    left: 0;
+}
+
+/* Tre puntini verticali */
+.sidebar-handle::before,
+.right-sidebar-handle::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 4px;
+    height: 20px;
+
+    background:
+        radial-gradient(circle, white 60%, transparent 61%) 50% 0%,
+        radial-gradient(circle, white 60%, transparent 61%) 50% 50%,
+        radial-gradient(circle, white 60%, transparent 61%) 50% 100%;
+
+    background-size: 4px 4px;
+    background-repeat: no-repeat;
+    pointer-events: none;
+    opacity: 0.7;
 }
 
 .sidebar-handle:hover,
 .right-sidebar-handle:hover {
-    background: #2ecc71;
+    opacity: 1;
+    background: #4a6a8a;
 }
+
+.sidebar-handle:hover::before,
+.right-sidebar-handle:hover::before {
+    opacity: 1;
+}
+
 /* Categoria */
 .component-category {
     margin-bottom: 0px;
@@ -86,13 +127,10 @@
 .component-category.no-accordion .category-title {
     display: flex;
     flex-direction: column;
-    /* mette gli elementi in colonna */
     align-items: flex-start;
-    /* allinea a sinistra */
     padding: 5px 10px;
     background: #34495e;
     gap: 2px;
-    /* spazio tra title-small e category-big */
 }
 
 .title-small {

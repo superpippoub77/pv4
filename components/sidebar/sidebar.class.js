@@ -59,11 +59,6 @@ class Sidebar {
         document.body.appendChild(toggleBtn);
         this.sidebarSwitch = toggleBtn;
 
-        this.sidebarSwitch.style.position = "absolute";
-        this.sidebarSwitch.style.top = "50%";
-        this.sidebarSwitch.style.transform = "translateY(-50%)";
-        this.sidebarSwitch.style.zIndex = 1000;
-
         // Posizione iniziale toggle
         if (this.position === "right") {
             this.sidebarSwitch.style.right = this.container.offsetWidth + "px";

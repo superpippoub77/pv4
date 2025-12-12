@@ -5,6 +5,8 @@ const toolbarConfig = [
     {
         legend: "toolbar_size",
         align: "up",
+        fieldsetId: "sizeControls",
+        fieldsetClass: "toolbar-group",
         items: [
             { type: "label", text: "toolbar_size" },
             {
@@ -42,6 +44,8 @@ const toolbarConfig = [
     {
         legend: "toolbar_team",
         align: "up",
+        fieldsetId: "teamControls",
+        fieldsetClass: "toolbar-group",
         items: [
             {
                 type: "button", id: "manageTeamBtn", text: "👥 Gestisci Squadra", i18n: "btn_manage_team", titleI18n: "btn_manage_team", onClick: (editor) => {
@@ -54,6 +58,9 @@ const toolbarConfig = [
 
     {
         legend: "toolbar_order",
+        align: "up",
+        fieldsetId: "orderControls",
+        fieldsetClass: "toolbar-group",
         items: [
             {
                 type: "button", id: "bringToFront", text: "⬆️ In primo piano", i18n: "btn_to_front", titleI18n: "btn_to_front",
@@ -73,6 +80,8 @@ const toolbarConfig = [
     {
         legend: "toolbar_view",
         align: "up",
+        fieldsetId: "viewControls",
+        fieldsetClass: "toolbar-group",
         items: [
             { type: "button", id: "gridToggle", text: "📐 Griglia", i18n: "btn_grid", titleI18n: "btn_grid" },
             { type: "button", id: "snapToGridBtn", text: "🧲 Allinea alla Griglia", i18n: "btn_snap_grid", titleI18n: "btn_snap_grid" },
@@ -103,7 +112,10 @@ const toolbarConfig = [
     {
         legend: "toolbar_edit",
         align: "up",
+        fieldsetId: "editControls",
+        fieldsetClass: "toolbar-group",
         items: [
+            { type: "button", id: "rotateLeft", text: "↺", i18n: "btn_rotate_left", titleI18n: "btn_rotate_left" },
             { type: "button", id: "rotateLeft", text: "↺", i18n: "btn_rotate_left", titleI18n: "btn_rotate_left" },
             { type: "button", id: "rotateRight", text: "↻", i18n: "btn_rotate_right", titleI18n: "btn_rotate_right" },
             { type: "button", id: "rotateLeft90", text: "↺90", i18n: "btn_rotate_left", titleI18n: "btn_rotate_left" },
@@ -157,6 +169,8 @@ const toolbarConfig = [
     {
         legend: "toolbar_file",
         align: "up",
+        fieldsetId: "fileControls",
+        fieldsetClass: "toolbar-group",
         items: [
             { type: "input", id: "schemaTitle", placeholder: "Titolo schema", i18nPlaceholder: "placeholder_schema_title" },
             { type: "button", id: "saveBtn", text: "💾 Salva", i18n: "btn_save_schema", titleI18n: "btn_save_schema" },
@@ -178,6 +192,8 @@ const toolbarConfig = [
     {
         legend: "toolbar_user",
         align: "up",
+        fieldsetId: "userControls",
+        fieldsetClass: "toolbar-group",
         items: [
             {
                 type: "div",
@@ -208,13 +224,13 @@ const toolbarConfig = [
         fieldsetId: "objectControls",
         fieldsetClass: "toolbar-group fixed form-grid",
         items: [
-            { type: "player", text: "Colore", label: "object_color", iconHTML: "🎨", id: "objectColor", class: "color-picker", i18n: "local_object_color_label" },
-            { type: "player", text: "Opacità", label: "object_opacity", iconHTML: "⚪", id: "objectOpacity", i18n: "local_object_opacity_label" },
-            { type: "player", text: "Valore", label: "object_opacity_value", iconHTML: "🔢", id: "objectOpacityValue", class: "small-input", i18n: "local_object_opacity_value_label" },
-            { type: "player", text: "Testo", label: "object_text", iconHTML: "✏️", id: "objectText", i18nPlaceholder: "local_object_text_label", i18n: "local_object_text_label" },
-            { type: "player", text: "Numero", label: "object_number", iconHTML: "🔢", id: "objectNumber", class: "small-input", i18n: "local_object_number_label" },
-            { type: "player", text: "Tratteggiato", label: "dashed_object_toggle", iconHTML: "⚡", id: "dashedObjectToggle", class: "toolbar-button", i18n: "local_dashed_object_toggle" },
-            { type: "player", text: "Elimina", label: "delete_object", iconHTML: "🗑️", id: "deleteBtn", i18n: "local_delete_button" }
+            { type: "input", inputType: "color", text: "Colore", label: "object_color", iconHTML: "🎨", id: "objectColor", class: "color-picker", i18n: "local_object_color_label", value: "#3498db", onClick: (editor, event) => { editor.changeSelectedObjectsColor(event.target.value) } },
+            { type: "input", inputType: "range", text: "Opacità", label: "object_opacity", iconHTML: "⚪", id: "objectOpacity", i18n: "local_object_opacity_label", min: "0", max: "1", value: "1", step: "0.01", onInput: (editor, event) => { document.getElementById('objectOpacityValue').value = parseFloat(event.target.value).toFixed(2); editor.changeSelectedObjectsOpacity(event.target.value); } },
+            { type: "input", inputType: "number", text: "Valore", label: "object_opacity_value", iconHTML: "🔢", id: "objectOpacityValue", class: "small-input", i18n: "local_object_opacity_value_label", min: "0", max: "1", step: "0.01", value: "1.00" },
+            { type: "input", inputType: "text", text: "Testo", label: "object_text", iconHTML: "✏️", id: "objectText", i18nPlaceholder: "local_object_text_label", i18n: "local_object_text_label", placeholder: "Inserisci testo...", onInput: (editor, event) => { editor.changeSelectedObjectsText(event.target.value); } },
+            { type: "input", inputType: "number", text: "Numero", label: "object_number", iconHTML: "🔢", id: "objectNumber", class: "small-input", i18n: "local_object_number_label", min: "1", onInput: (editor, event) => { editor.changeSelectedObjectsNumber(parseInt(event.target.value)); } },
+            { type: "button", text: "Tratteggiato", label: "dashed_object_toggle", iconHTML: "⚡", id: "dashedObjectToggle", class: "toolbar-button", i18n: "local_dashed_object_toggle", onClick: (editor) => { editor.toggleSelectedObjectsDashed(); } },
+            { type: "button", text: "Elimina", label: "delete_object", iconHTML: "🗑️", id: "deleteBtn", i18n: "local_delete_button", onClick: (editor) => { editor.deleteSelected(); } }
         ]
     },
     {
@@ -224,15 +240,78 @@ const toolbarConfig = [
         fieldsetId: "arrowControls",
         fieldsetClass: "toolbar-group fixed",
         items: [
-            { type: "player", text: "Colore", label: "arrow_color", iconHTML: "🎨", id: "arrowColor", class: "color-picker", i18n: "local_arrow_color_label" },
-            { type: "player", text: "Opacità", label: "arrow_opacity", iconHTML: "⚪", id: "arrowOpacity", i18n: "local_arrow_opacity_label" },
-            { type: "player", text: "Spessore", label: "arrow_thickness", iconHTML: "📏", id: "arrowThickness", i18n: "local_arrow_thickness_label" },
-            { type: "player", text: "Lineare", label: "arrow_type_linear", iconHTML: "➡️", id: "arrowTypeLinear", class: "arrow-type-btn", i18n: "local_arrow_type_linear" },
-            { type: "player", text: "Curva", label: "arrow_type_curved", iconHTML: "➰", id: "arrowTypeCurved", class: "arrow-type-btn", i18n: "local_arrow_type_curved" },
-            { type: "player", text: "Zigzag", label: "arrow_type_zigzag", iconHTML: "⚡", id: "arrowTypeZigzag", class: "arrow-type-btn", i18n: "local_arrow_type_zigzag" },
-            { type: "player", text: "Tratteggiata", label: "dashed_arrow_toggle", iconHTML: "⚡", id: "dashedArrowToggle", class: "toolbar-button", i18n: "local_dashed_arrow_toggle" },
-            { type: "player", text: "Marker Inizio", label: "arrow_marker_start", iconHTML: "🔹", id: "arrowMarkerStart", i18n: "local_arrow_marker_start_label" },
-            { type: "player", text: "Marker Fine", label: "arrow_marker_end", iconHTML: "🔹", id: "arrowMarkerEnd", i18n: "local_arrow_marker_end_label" }
+            { type: "input", inputType: "color", text: "Colore", label: "arrow_color", iconHTML: "🎨", id: "arrowColor", class: "color-picker", i18n: "local_arrow_color_label" },
+            {
+                type: "input", inputType: "range", text: "Opacità", label: "arrow_opacity", iconHTML: "⚪", id: "arrowOpacity", i18n: "local_arrow_opacity_label", min: "0", max: "1", value: "1", step: "0.01",
+                onInput: (editor, event) => {
+                    document.getElementById('arrowOpacityValue').textContent = parseFloat(event.target.value).toFixed(2);
+                    if (editor.selectedArrow) {
+                        editor.changeArrowOpacity(event.target.value);
+                    }
+                }
+            },
+            { text: "0", id: "arrowOpacityValue" },
+            {
+                type: "input", inputType: "range", text: "Spessore", label: "arrow_thickness", iconHTML: "📏", id: "arrowThickness", i18n: "local_arrow_thickness_label", min: "0", max: "3", value: "1", step: "0.01",
+                onInput: (editor, event) => {
+                    document.getElementById('thicknessValue').textContent = event.target.value;
+                    if (editor.selectedArrow) {
+                        editor.changeArrowThickness(event.target.value);
+                    }
+                }
+            },
+            { text: "0", id: "thicknessValue" },
+            { type: "button", text: "Lineare", label: "arrow_type_linear", iconHTML: "➡️", id: "arrowTypeLinear", class: "arrow-type-btn", i18n: "local_arrow_type_linear", onClick: (editor) => { editor.changeArrowType('linear'); } },
+            { type: "button", text: "Curva", label: "arrow_type_curved", iconHTML: "➰", id: "arrowTypeCurved", class: "arrow-type-btn", i18n: "local_arrow_type_curved", onClick: (editor) => { editor.changeArrowType('curved'); } },
+            { type: "button", text: "Zigzag", label: "arrow_type_zigzag", iconHTML: "⚡", id: "arrowTypeZigzag", class: "arrow-type-btn", i18n: "local_arrow_type_zigzag", onClick: (editor) => { editor.changeArrowType('zigzag'); } },
+            { type: "button", text: "Tratteggiata", label: "dashed_arrow_toggle", iconHTML: "⚡", id: "dashedArrowToggle", class: "toolbar-button", i18n: "local_dashed_arrow_toggle", onClick: (editor) => { editor.toggleDashedArrow(); } },
+            {
+                type: "input", inputType: "checkbox", text: "Marker Inizio", label: "arrow_marker_start", iconHTML: "🔹", id: "arrowMarkerStart", i18n: "local_arrow_marker_start_label", onChange: (editor, event) => {
+                    if (editor.selectedArrow) {
+                        const arrowData = editor.getCurrentTab().arrows.get(editor.selectedArrow);
+                        if (arrowData) {
+                            arrowData.markerStart = event.target.checked;
+                            const svgElement = document.getElementById(editor.selectedArrow);
+                            if (svgElement) {
+                                const path = svgElement.querySelector('.arrow-path');
+                                const markerId = `arrowhead-${editor.selectedArrow}`;
+                                if (path) {
+                                    if (event.target.checked) {
+                                        path.setAttribute('marker-start', `url(#${markerId}-start)`);
+                                    } else {
+                                        path.removeAttribute('marker-start');
+                                    }
+                                }
+                            }
+                            editor.saveState(`Modificato marker start freccia ${editor.selectedArrow} a ${event.target.checked}`);
+                        }
+                    }
+
+                }
+            },
+            {
+                type: "input", inputType: "checkbox", text: "Marker Fine", label: "arrow_marker_end", iconHTML: "🔹", id: "arrowMarkerEnd", i18n: "local_arrow_marker_end_label", onChange: (editor, event) => {
+                    if (editor.selectedArrow) {
+                        const arrowData = editor.getCurrentTab().arrows.get(editor.selectedArrow);
+                        if (arrowData) {
+                            arrowData.markerEnd = event.target.checked;
+                            const svgElement = document.getElementById(editor.selectedArrow);
+                            if (svgElement) {
+                                const path = svgElement.querySelector('.arrow-path');
+                                const markerId = `arrowhead-${editor.selectedArrow}`;
+                                if (path) {
+                                    if (event.target.checked) {
+                                        path.setAttribute('marker-end', `url(#${markerId}-end)`);
+                                    } else {
+                                        path.removeAttribute('marker-end');
+                                    }
+                                }
+                            }
+                            editor.saveState(`Modificato marker end freccia ${editor.selectedArrow} a ${event.target.checked}`);
+                        }
+                    }
+                }
+            }
         ]
     },
     {
@@ -271,7 +350,7 @@ const toolbarConfig = [
         fieldsetId: "objectInfo",
         fieldsetClass: "toolbar-group",
         items: [
-            { type: "player", text: "Nessun oggetto", label: "object_info", iconHTML: "❌", i18n: "local_no_object_selected" }
+            { text: "Nessun oggetto", label: "object_info", iconHTML: "❌", i18n: "local_no_object_selected" }
         ]
     }
 ];
