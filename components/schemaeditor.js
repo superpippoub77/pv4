@@ -58,13 +58,16 @@ class SchemaEditor {
         this.currentUser = username;
 
         this.menuManager = new MenuManager(this);
+
+        //Creazioni delle toolbar e footerbar
         this.toolbarManager = new ToolbarDialogManager(this, storage);
         this.footerbarManager = new ToolbarDialogManager(this, storage, "down", "footerbar");
 
         this.sidebarManager = new Sidebar(this, sidebarConfig, "#sidebar");
-        this.rightSidebarManager = new Sidebar(this, rightSidebarConfig, "#rightSidebar","right");
+        this.rightSidebarManager = new Sidebar(this, rightSidebarConfig, "#rightSidebar", "right");
         this.historyManager = new HistoryDialogManager(this);
         this.teamManager = new TeamManagementDialog(this);
+        this.animationManager = new AnimationDialog(this);
         this.workoutManager = new SaveWorkoutDialogManager(this);
         this.libraryManager = new LibraryWorkoutDialogManager(this);
         this.macroManager = new MacroManager(this);
@@ -92,11 +95,13 @@ class SchemaEditor {
     async createTemplate() {
         await this.menuManager.init(this.menuData);
         await this.toolbarManager.init();
-        await this.footerbarManager.init();}
+        await this.footerbarManager.init("container");
+    }
 
     async createWindows() {
         await this.historyManager.init();
         await this.teamManager.init();
+        await this.animationManager.init();
         await this.workoutManager.init();
         await this.libraryManager.init();
     }
@@ -3356,6 +3361,15 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         const x = (e.clientX - rect.left) / this.getCurrentTab().zoom;
         const y = (e.clientY - rect.top) / this.getCurrentTab().zoom;
         this.freehandPoints.push({ x, y });
+
+        // reserve an id for this in-progress freehand so we can record keyframes against it
+        try {
+            const tab = this.getCurrentTab();
+            this.pendingFreehandId = 'freehand-' + tab.nextFreehandId;
+        } catch (err) { this.pendingFreehandId = null; }
+
+        // Begin macro transaction for freehand drawing
+        try { if (window.app && window.app.macroRecorder) window.app.macroRecorder.beginTransaction('freehand'); } catch (err) { /* ignore */ }
     }
 
     continueFreehand(e) {
@@ -3370,6 +3384,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         if (distance > 2) {
             this.freehandPoints.push({ x, y });
             this.renderTempFreehand();
+            // record keyframe for the in-progress freehand
+            try { if (window.app && window.app.macroRecorder && this.pendingFreehandId) window.app.macroRecorder.recordKeyframe(this.pendingFreehandId, { points: this.freehandPoints.slice() }); } catch (err) { /* ignore */ }
         }
     }
 
@@ -3388,11 +3404,23 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         );
         this.freehandPoints = [];
         this.removeTempFreehand();
+
+        // Commit macro transaction for freehand
+        try { if (window.app && window.app.macroRecorder) window.app.macroRecorder.endTransaction('freehand'); } catch (err) { /* ignore */ }
     }
 
     createFreehand(points, color, thickness) {
         const tab = this.getCurrentTab();
-        const id = 'freehand-' + tab.nextFreehandId++;
+        // Use reserved pending id if available (set in startFreehand)
+        let id;
+        if (this.pendingFreehandId) {
+            id = this.pendingFreehandId;
+            // consume the reserved id
+            tab.nextFreehandId++;
+            this.pendingFreehandId = null;
+        } else {
+            id = 'freehand-' + tab.nextFreehandId++;
+        }
 
         const freehand = {
             id: id,
@@ -5054,6 +5082,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 element.style.transform = `rotate(${obj.rotation}deg)`;
 
                 this.updateArrowsForObject(id);
+                // record keyframe for macro differential timeline (group rotation)
+                try { if (window.app && window.app.macroRecorder) window.app.macroRecorder.recordKeyframe(id, { x: obj.x, y: obj.y, rotation: obj.rotation }); } catch (err) { /* ignore */ }
             }
         });
 
@@ -5533,6 +5563,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                         element.style.left = objectData.x + 'px';
                         element.style.top = objectData.y + 'px';
                     }
+                    // record keyframe for macro differential timeline
+                    try { if (window.app && window.app.macroRecorder) window.app.macroRecorder.recordKeyframe(id, { x: objectData.x, y: objectData.y }); } catch (err) { /* ignore */ }
                     this.updateArrowsForObject(id);
                 }
                 else if (initialPos.type === 'freehand') {
@@ -5621,6 +5653,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         } else if (this.isConnecting) {
             this.finishConnection(e);
         } else if (this.isDragging || this.isResizing || this.isRotating || this.isDraggingControlPoint || this.isRotatingGroup) {
+            // Commit any open macro transaction (drag/resize/rotate)
+            try { if (window.app && window.app.macroRecorder) window.app.macroRecorder.endTransaction(); } catch (err) { /* ignore */ }
+
             this.saveState(`Modificato posizione oggetto${this.selectedObjects.size > 1 ? 's' : ''}`);
             this.updateCurrentFrame();
         } else if (this.isSelecting) {
@@ -5743,6 +5778,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         // Sostituisci selectedObjects con le nuove posizioni salvate
         this.selectedObjects = dragStartPositions;
         this.updateObjectControls();
+
+        // Inizia una transaction macro per raggruppare il drag multi-oggetto
+        try { if (window.app && window.app.macroRecorder) window.app.macroRecorder.beginTransaction('drag'); } catch (err) { /* ignore */ }
     }
 
     updateSelectionBox(e) {
@@ -5845,6 +5883,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             width: element.offsetWidth,
             height: element.offsetHeight
         };
+
+        // Begin transaction for resize
+        try { if (window.app && window.app.macroRecorder) window.app.macroRecorder.beginTransaction('resize'); } catch (err) { /* ignore */ }
     }
     showGroupRotationCenter() {
         this.hideGroupRotationCenter();
@@ -5949,6 +5990,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         this.resizeContent(this.selectedObject, newWidth, newHeight, objectData.type);
 
         this.updateArrowsForObject(this.selectedObject.id);
+        // record keyframe for macro differential timeline (resize)
+        try { if (window.app && window.app.macroRecorder) window.app.macroRecorder.recordKeyframe(this.selectedObject.id, { width: objectData.width, height: objectData.height }); } catch (err) { /* ignore */ }
     }
 
     startRotation(element, e) {
@@ -5983,6 +6026,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
         this.rotationStart.startAngle = currentAngle;
         this.updateArrowsForObject(this.selectedObject.id);
+        // record keyframe for macro differential timeline (rotation)
+        try { if (window.app && window.app.macroRecorder) window.app.macroRecorder.recordKeyframe(this.selectedObject.id, { rotation: objectData.rotation }); } catch (err) { /* ignore */ }
     }
 
     selectObject(element) {

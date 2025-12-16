@@ -13,9 +13,40 @@ class MacroRecorder {
         this.recordedActions = [];
         this.startTime = null;
         this.playbackSpeed = 1;
+        this.verbose = false; // when true, log detailed debug info
         this.actionQueue = [];
+        this.abortRequested = false; // set true when user requests abort
+
+        this.keyframeThrottleMs = 100; // ms between recorded keyframes per object
+        this._lastKeyframeTime = new Map();
 
         this.loadMacros();
+    }
+
+    // Record a keyframe for differential timeline during transactions.
+    recordKeyframe(objectId, props = {}) {
+        if (!this.isRecording || !this.inTransaction) return false;
+
+        try {
+            const now = Date.now() - this.startTime;
+            const rel = Math.max(0, now - (this.transactionRelativeStart || 0));
+
+            const last = this._lastKeyframeTime.get(objectId) || 0;
+            if (now - last < this.keyframeThrottleMs) return false;
+            this._lastKeyframeTime.set(objectId, now);
+
+            const frames = this.transactionTimeline.get(objectId) || [];
+            // shallow copy of props to avoid mutation
+            const p = Object.assign({}, props);
+            frames.push({ t: rel, props: p });
+            this.transactionTimeline.set(objectId, frames);
+
+            if (this.verbose) console.debug('recordKeyframe', objectId, frames[frames.length - 1]);
+            return true;
+        } catch (e) {
+            console.error('recordKeyframe error', e);
+            return false;
+        }
     }
 
     // ============================================================
@@ -43,7 +74,8 @@ class MacroRecorder {
             actions: [],
             createdAt: new Date().toISOString(),
             version: '1.0',
-            tabObjects: new Map() // Snapshot degli oggetti al inizio
+            tabObjects: new Map(), // Snapshot degli oggetti al inizio
+            transactions: []
         };
 
         // Salva uno snapshot degli oggetti presenti
@@ -54,7 +86,18 @@ class MacroRecorder {
 
         console.log(`🎬 Registrazione avviata: ${macroName}`);
         this.showRecordingIndicator(true);
+        this.inTransaction = false;
+        this.transactionActions = [];
         this.hookInteractions();
+    }
+
+    setVerbose(v = true) {
+        this.verbose = !!v;
+        console.log(`🔍 MacroRecorder verbose=${this.verbose}`);
+    }
+
+    toggleVerbose() {
+        this.setVerbose(!this.verbose);
     }
 
     stopRecording() {
@@ -135,6 +178,22 @@ class MacroRecorder {
         this._originalRotate = this.editor.rotateSelected.bind(this.editor);
         this.editor.rotateSelected = this.recordRotate.bind(this);
 
+        // Intercetta copia/incolla
+        if (this.editor.copySelected) {
+            this._originalCopy = this.editor.copySelected.bind(this.editor);
+            this.editor.copySelected = this.recordCopy.bind(this);
+        }
+
+        if (this.editor.paste) {
+            this._originalPaste = this.editor.paste.bind(this.editor);
+            this.editor.paste = this.recordPaste.bind(this);
+        }
+
+        // Intercetta saveState per acquisire snapshot a fine operazione (spostamenti, resize, freehand finish...)
+        if (this.editor.saveState) {
+            this._originalSaveState = this.editor.saveState.bind(this.editor);
+            this.editor.saveState = this.recordSaveState.bind(this);
+        }
         console.log('🎣 Interazioni agganciate');
     }
 
@@ -147,6 +206,10 @@ class MacroRecorder {
         this.editor.changeSelectedObjectsText = this._originalChangeText;
         this.editor.rotateSelected = this._originalRotate;
 
+        if (this._originalCopy) this.editor.copySelected = this._originalCopy;
+        if (this._originalPaste) this.editor.paste = this._originalPaste;
+        if (this._originalSaveState) this.editor.saveState = this._originalSaveState;
+
         console.log('🎣 Interazioni scollegate');
     }
 
@@ -155,6 +218,11 @@ class MacroRecorder {
     // ============================================================
 
     recordAddObject(type, x, y, color, text, rotation, dashed, icon, src, spriteData) {
+        // Non registrare se non in recording oppure se stiamo riproducendo
+        if (!this.isRecording || this.isPlaying) {
+            return this._originalAddObject(type, x, y, color, text, rotation, dashed, icon, src, spriteData);
+        }
+
         const timestamp = Date.now() - this.startTime;
 
         const action = {
@@ -163,14 +231,20 @@ class MacroRecorder {
             params: { type, x, y, color, text, rotation, dashed, icon, src, spriteData }
         };
 
-        this.recordedActions.push(action);
-        console.log(`📝 Registrato: Aggiunto oggetto ${type}`);
+    const target = this.inTransaction ? this.transactionActions : this.recordedActions;
+    target.push(action);
+    if (this.verbose) console.debug('recordAddObject ->', action);
+    else console.log(`📝 Registrato: Aggiunto oggetto ${type}`);
 
         // Chiama il metodo originale
         return this._originalAddObject(type, x, y, color, text, rotation, dashed, icon, src, spriteData);
     }
 
     recordDelete() {
+        if (!this.isRecording || this.isPlaying) {
+            return this._originalDelete();
+        }
+
         const timestamp = Date.now() - this.startTime;
 
         // Salva lo stato prima dell'eliminazione
@@ -189,13 +263,19 @@ class MacroRecorder {
             params: { deletedObjects }
         };
 
-        this.recordedActions.push(action);
-        console.log(`📝 Registrato: Eliminati ${deletedIds.length} oggetti`);
+    const target = this.inTransaction ? this.transactionActions : this.recordedActions;
+    target.push(action);
+    if (this.verbose) console.debug('recordDelete ->', action);
+    else console.log(`📝 Registrato: Eliminati ${deletedIds.length} oggetti`);
 
         return this._originalDelete();
     }
 
     recordCreateArrow(from, to, arrowType, dashed, color, thickness) {
+        if (!this.isRecording || this.isPlaying) {
+            return this._originalCreateArrow(from, to, arrowType, dashed, color, thickness);
+        }
+
         const timestamp = Date.now() - this.startTime;
 
         const action = {
@@ -204,13 +284,19 @@ class MacroRecorder {
             params: { from, to, arrowType, dashed, color, thickness }
         };
 
-        this.recordedActions.push(action);
-        console.log(`📝 Registrato: Creata freccia`);
+    const target = this.inTransaction ? this.transactionActions : this.recordedActions;
+    target.push(action);
+    if (this.verbose) console.debug('recordCreateArrow ->', action);
+    else console.log(`📝 Registrato: Creata freccia`);
 
         return this._originalCreateArrow(from, to, arrowType, dashed, color, thickness);
     }
 
     recordChangeColor(color) {
+        if (!this.isRecording || this.isPlaying) {
+            return this._originalChangeColor(color);
+        }
+
         const timestamp = Date.now() - this.startTime;
 
         const action = {
@@ -219,13 +305,19 @@ class MacroRecorder {
             params: { color, selectedObjectsCount: this.editor.selectedObjects.size }
         };
 
-        this.recordedActions.push(action);
-        console.log(`📝 Registrato: Cambio colore a ${color}`);
+    const target = this.inTransaction ? this.transactionActions : this.recordedActions;
+    target.push(action);
+    if (this.verbose) console.debug('recordChangeColor ->', action);
+    else console.log(`📝 Registrato: Cambio colore a ${color}`);
 
         return this._originalChangeColor(color);
     }
 
     recordChangeText(text) {
+        if (!this.isRecording || this.isPlaying) {
+            return this._originalChangeText(text);
+        }
+
         const timestamp = Date.now() - this.startTime;
 
         const action = {
@@ -234,13 +326,19 @@ class MacroRecorder {
             params: { text, selectedObjectsCount: this.editor.selectedObjects.size }
         };
 
-        this.recordedActions.push(action);
-        console.log(`📝 Registrato: Cambio testo a "${text}"`);
+    const target = this.inTransaction ? this.transactionActions : this.recordedActions;
+    target.push(action);
+    if (this.verbose) console.debug('recordChangeText ->', action);
+    else console.log(`📝 Registrato: Cambio testo a "${text}"`);
 
         return this._originalChangeText(text);
     }
 
     recordRotate(degrees) {
+        if (!this.isRecording || this.isPlaying) {
+            return this._originalRotate(degrees);
+        }
+
         const timestamp = Date.now() - this.startTime;
 
         const action = {
@@ -249,15 +347,154 @@ class MacroRecorder {
             params: { degrees, selectedObjectsCount: this.editor.selectedObjects.size }
         };
 
-        this.recordedActions.push(action);
-        console.log(`📝 Registrato: Rotazione di ${degrees}°`);
+    const target = this.inTransaction ? this.transactionActions : this.recordedActions;
+    target.push(action);
+    if (this.verbose) console.debug('recordRotate ->', action);
+    else console.log(`📝 Registrato: Rotazione di ${degrees}°`);
 
         return this._originalRotate(degrees);
     }
 
     // ============================================================
+    // COPIA / INCOLLA
+    // ============================================================
+
+    recordCopy() {
+        if (!this.isRecording || this.isPlaying) {
+            return this._originalCopy();
+        }
+
+        const timestamp = Date.now() - this.startTime;
+        const action = { type: 'copy', timestamp, params: { selectedObjects: Array.from(this.editor.selectedObjects.keys()) } };
+    const target = this.inTransaction ? this.transactionActions : this.recordedActions;
+    target.push(action);
+    if (this.verbose) console.debug('recordCopy ->', action);
+    else console.log('📝 Registrato: Copia selezione');
+
+        return this._originalCopy();
+    }
+
+    recordPaste() {
+        if (!this.isRecording || this.isPlaying) {
+            return this._originalPaste();
+        }
+
+        const timestamp = Date.now() - this.startTime;
+        const action = { type: 'paste', timestamp, params: {} };
+    const target = this.inTransaction ? this.transactionActions : this.recordedActions;
+    target.push(action);
+    if (this.verbose) console.debug('recordPaste ->', action);
+    else console.log('📝 Registrato: Incolla');
+
+        return this._originalPaste();
+    }
+
+    // ============================================================
+    // SNAPSHOT (salva lo stato attuale del tab - usato per movimenti, resize, freehand finish)
+    // ============================================================
+
+    recordSaveState(message) {
+        // Sempre chiamare l'originale
+        if (this._originalSaveState) this._originalSaveState(message);
+
+        if (!this.isRecording || this.isPlaying) return;
+
+        const timestamp = Date.now() - this.startTime;
+        const tab = this.editor.getCurrentTab();
+
+        try {
+            const snapshot = {
+                objects: Array.from(tab.objects.entries()),
+                arrows: Array.from(tab.arrows.entries()),
+                freehands: Array.from(tab.freehands.entries())
+            };
+
+            const action = {
+                type: 'snapshot',
+                timestamp,
+                params: { message: message || '', snapshot }
+            };
+
+            const target = this.inTransaction ? this.transactionActions : this.recordedActions;
+            target.push(action);
+            if (this.verbose) console.debug('recordSaveState ->', { message: message || '', snapshotSize: { objects: snapshot.objects.length, arrows: snapshot.arrows.length, freehands: snapshot.freehands.length } });
+            else console.log(`📝 Registrato: Snapshot stato (${message || 'no message'})`);
+        } catch (err) {
+            console.error('Errore durante la serializzazione snapshot:', err);
+        }
+    }
+
+    // ============================================================
     // RIPRODUZIONE
     // ============================================================
+
+    // Transactions API: begin/commit a grouped set of actions
+    beginTransaction(name = '') {
+        if (!this.isRecording) return;
+        if (this.inTransaction) {
+            console.warn('Transaction already open');
+            return;
+        }
+        this.inTransaction = true;
+        this.transactionActions = [];
+        this.transactionName = name;
+        // Optionally store a snapshot at start
+        try {
+            const tab = this.editor.getCurrentTab();
+            this.transactionStartSnapshot = {
+                objects: Array.from(tab.objects.entries()),
+                arrows: Array.from(tab.arrows.entries()),
+                freehands: Array.from(tab.freehands.entries())
+            };
+        } catch (e) { this.transactionStartSnapshot = null; }
+        // timeline for differential recording inside the transaction (objectId -> [{t, props},...])
+        this.transactionTimeline = new Map();
+        this.transactionRelativeStart = (Date.now() - this.startTime) || 0;
+
+        if (this.verbose) console.debug('beginTransaction', { name, startSnapshotSize: this.transactionStartSnapshot ? this.transactionStartSnapshot.objects.length : 0 });
+        else console.log(`🔒 Transaction started: ${name}`);
+    }
+
+    endTransaction(name = '') {
+        if (!this.isRecording) return;
+        if (!this.inTransaction) {
+            console.warn('No open transaction to end');
+            return;
+        }
+
+        // capture final snapshot
+        let transactionSnapshot = null;
+        try {
+            const tab = this.editor.getCurrentTab();
+            transactionSnapshot = {
+                objects: Array.from(tab.objects.entries()),
+                arrows: Array.from(tab.arrows.entries()),
+                freehands: Array.from(tab.freehands.entries())
+            };
+        } catch (e) { transactionSnapshot = null; }
+
+        const tx = {
+            type: 'transaction',
+            timestamp: Date.now() - this.startTime,
+            params: {
+                name: name || this.transactionName || '',
+                actions: [...this.transactionActions],
+                snapshotAfter: transactionSnapshot,
+                snapshotBefore: this.transactionStartSnapshot,
+                timeline: Array.from(this.transactionTimeline ? this.transactionTimeline.entries() : [])
+            }
+        };
+
+    this.recordedActions.push(tx);
+    if (this.verbose) console.debug('endTransaction', { name: name || this.transactionName || '', actionCount: this.transactionActions.length, snapshotAfterSize: transactionSnapshot ? transactionSnapshot.objects.length : 0 });
+    else console.log(`🔓 Transaction ended: ${name || this.transactionName || ''} (${this.transactionActions.length} actions)`);
+
+        // reset transaction state
+        this.inTransaction = false;
+        this.transactionActions = [];
+        this.transactionName = null;
+        this.transactionStartSnapshot = null;
+    }
 
     async playMacro(macroName) {
         if (this.isPlaying) {
@@ -272,6 +509,7 @@ class MacroRecorder {
         }
 
         this.isPlaying = true;
+        this.abortRequested = false; // reset abort flag
         console.log(`▶️ Riproduzione macro: ${macroName}`);
 
         try {
@@ -279,8 +517,13 @@ class MacroRecorder {
             console.log(`✅ Riproduzione completata`);
             alert('✅ Macro riprodotta con successo');
         } catch (error) {
-            console.error('Errore durante la riproduzione:', error);
-            alert('❌ Errore durante la riproduzione: ' + error.message);
+            if (error && String(error.message).toLowerCase().includes('aborted')) {
+                console.log('⏹️ Riproduzione interrotta dall\'utente');
+                alert('⏹️ Riproduzione interrotta');
+            } else {
+                console.error('Errore durante la riproduzione:', error);
+                alert('❌ Errore durante la riproduzione: ' + (error.message || error));
+            }
         } finally {
             this.isPlaying = false;
         }
@@ -288,11 +531,23 @@ class MacroRecorder {
 
     async executeActions(actions) {
         for (const action of actions) {
+            if (this.abortRequested) {
+                throw new Error('Playback aborted');
+            }
             // Attesa in base al timestamp relativo
             if (actions.indexOf(action) > 0) {
                 const prevTimestamp = actions[actions.indexOf(action) - 1].timestamp;
                 const delay = (action.timestamp - prevTimestamp) / this.playbackSpeed;
-                await new Promise(resolve => setTimeout(resolve, Math.max(delay, 50)));
+                // small sleep but check abort in chunks
+                const waitMs = Math.max(delay, 50);
+                const step = 100;
+                let waited = 0;
+                while (waited < waitMs) {
+                    if (this.abortRequested) throw new Error('Playback aborted');
+                    const toWait = Math.min(step, waitMs - waited);
+                    await new Promise(resolve => setTimeout(resolve, toWait));
+                    waited += toWait;
+                }
             }
 
             await this.executeAction(action);
@@ -302,13 +557,27 @@ class MacroRecorder {
         this.editor.saveState('Macro riprodotta');
     }
 
+    abortPlayback() {
+        // Request an abort; executeActions / executeAction will notice and throw
+        if (!this.isPlaying) {
+            this.abortRequested = false;
+            return false;
+        }
+        this.abortRequested = true;
+        console.log('⏹️ Abort richiesto per la riproduzione');
+        return true;
+    }
+
     async executeAction(action) {
         const tab = this.editor.getCurrentTab();
+        if (this.abortRequested) throw new Error('Playback aborted');
+        if (this.verbose) console.groupCollapsed('⏯️ executeAction', action.type);
 
         switch (action.type) {
             case 'addObject': {
                 const { type, x, y, color, text, rotation, dashed, icon, src, spriteData } = action.params;
                 this.editor.addObject(type, x, y, color, text, rotation, dashed, icon, src, spriteData);
+                if (this.verbose) console.debug('executeAction.addObject', action.params);
                 break;
             }
 
@@ -326,36 +595,157 @@ class MacroRecorder {
                 if (this.editor.selectedObjects.size > 0) {
                     this.editor.deleteSelected();
                 }
+                if (this.verbose) console.debug('executeAction.deleteObjects', deletedObjects.map(d=>d.id));
                 break;
             }
 
             case 'createArrow': {
                 const { from, to, arrowType, dashed, color, thickness } = action.params;
                 this.editor.createArrow(from, to, arrowType, dashed, color, thickness);
+                if (this.verbose) console.debug('executeAction.createArrow', action.params);
                 break;
             }
 
             case 'changeColor': {
                 const { color } = action.params;
                 this.editor.changeSelectedObjectsColor(color);
+                if (this.verbose) console.debug('executeAction.changeColor', color);
                 break;
             }
 
             case 'changeText': {
                 const { text } = action.params;
                 this.editor.changeSelectedObjectsText(text);
+                if (this.verbose) console.debug('executeAction.changeText', text);
                 break;
             }
 
             case 'rotate': {
                 const { degrees } = action.params;
                 this.editor.rotateSelected(degrees);
+                if (this.verbose) console.debug('executeAction.rotate', degrees);
+                break;
+            }
+
+            case 'copy': {
+                try { this.editor.copySelected(); } catch (e) { console.warn('copy playback error', e); }
+                if (this.verbose) console.debug('executeAction.copy');
+                break;
+            }
+
+            case 'paste': {
+                try { this.editor.paste(); } catch (e) { console.warn('paste playback error', e); }
+                if (this.verbose) console.debug('executeAction.paste');
+                break;
+            }
+
+            case 'snapshot': {
+                try {
+                    const { snapshot } = action.params;
+                    if (!snapshot) break;
+
+                    // Ripristina lo stato del tab dal snapshot
+                    const currTab = this.editor.getCurrentTab();
+                    currTab.objects = new Map(snapshot.objects || []);
+                    currTab.arrows = new Map(snapshot.arrows || []);
+                    currTab.freehands = new Map(snapshot.freehands || []);
+
+                    // Ricarica lo stato e renderizza
+                    if (typeof this.editor.loadTabState === 'function') {
+                        this.editor.loadTabState();
+                    }
+                    if (this.verbose) console.debug('executeAction.snapshot', { objects: snapshot.objects.length, arrows: snapshot.arrows.length, freehands: snapshot.freehands.length });
+                } catch (err) {
+                    console.error('Errore riproduzione snapshot:', err);
+                }
+                break;
+            }
+
+            case 'transaction': {
+                try {
+                    const { actions: txActions } = action.params;
+                    if (!Array.isArray(txActions)) break;
+
+                    if (this.verbose) console.groupCollapsed('⤴️ transaction replay', action.params.name || 'transaction');
+                    // Esegui le azioni della transazione in ordine
+                    for (const a of txActions) {
+                        // rispettare eventuali timestamp relativi all'interno della transazione
+                        await this.executeAction(a);
+                    }
+                    if (this.verbose) console.groupEnd();
+
+                    // Se presente, applica snapshot finale per garantire stato coerente
+                        // If a differential timeline is present, play it before applying the final snapshot
+                        const timeline = action.params && action.params.timeline;
+                        if (timeline && Array.isArray(timeline) && timeline.length > 0) {
+                            try {
+                                // Flatten frames across objects into a single ordered list
+                                const frames = [];
+                                for (const [objectId, farr] of timeline) {
+                                    (farr || []).forEach(f => frames.push({ objectId, t: f.t, props: f.props }));
+                                }
+                                frames.sort((a, b) => a.t - b.t);
+
+                                let lastT = 0;
+                                for (const frame of frames) {
+                                    if (this.abortRequested) throw new Error('Playback aborted');
+                                    const delay = Math.max(0, (frame.t - lastT) / this.playbackSpeed);
+                                    if (delay > 0) await new Promise(r => setTimeout(r, delay));
+                                    lastT = frame.t;
+
+                                    // apply props to object if present
+                                    try {
+                                        const currTab = this.editor.getCurrentTab();
+                                        const obj = currTab.objects.get(frame.objectId);
+                                        if (obj) {
+                                            Object.assign(obj, frame.props);
+                                            // update DOM representation
+                                            const el = document.getElementById(frame.objectId);
+                                            if (el) {
+                                                if (frame.props.x !== undefined) el.style.left = obj.x + 'px';
+                                                if (frame.props.y !== undefined) el.style.top = obj.y + 'px';
+                                                if (frame.props.rotation !== undefined) el.style.transform = `rotate(${obj.rotation}deg)`;
+                                                if (frame.props.width !== undefined) el.style.width = obj.width + 'px';
+                                                if (frame.props.height !== undefined) el.style.height = obj.height + 'px';
+                                            }
+                                            // special handling for freehands
+                                            if (obj.type === 'freehand' && frame.props.points) {
+                                                obj.points = frame.props.points;
+                                                if (typeof this.editor.renderFreehand === 'function') this.editor.renderFreehand(obj);
+                                            }
+                                            // update arrows connected to this object
+                                            if (typeof this.editor.updateArrowsForObject === 'function') this.editor.updateArrowsForObject(frame.objectId);
+                                        }
+                                    } catch (e) {
+                                        if (this.verbose) console.debug('Error applying timeline frame', e);
+                                    }
+                                }
+                            } catch (e) {
+                                if (String(e.message).toLowerCase().includes('aborted')) throw e;
+                                console.error('Error during timeline playback', e);
+                            }
+                        }
+
+                        const snapshotAfter = action.params && action.params.snapshotAfter;
+                        if (snapshotAfter) {
+                            const currTab = this.editor.getCurrentTab();
+                            currTab.objects = new Map(snapshotAfter.objects || []);
+                            currTab.arrows = new Map(snapshotAfter.arrows || []);
+                            currTab.freehands = new Map(snapshotAfter.freehands || []);
+                            if (typeof this.editor.loadTabState === 'function') this.editor.loadTabState();
+                            if (this.verbose) console.debug('executeAction.transaction.snapshotAfter applied', { objects: snapshotAfter.objects.length });
+                        }
+                } catch (err) {
+                    console.error('Errore riproduzione transaction:', err);
+                }
                 break;
             }
 
             default:
                 console.warn(`Azione sconosciuta: ${action.type}`);
         }
+
+        if (this.verbose) console.groupEnd();
     }
 
     // ============================================================
@@ -557,6 +947,15 @@ class MacroManager {
                         <button id="btnPlayMacro" class="macro-btn success" disabled data-i18n="macro_play">
                             ▶️ Riproduci
                         </button>
+                        <button id="btnAbortPlay" class="macro-btn danger" style="display:none;" title="Interrompi la riproduzione">
+                            ⏹️ Interrompi
+                        </button>
+                        <label style="display:flex; align-items:center; gap:6px; margin-left:8px;">
+                            <select id="playTarget" style="padding:6px; border-radius:4px; border:1px solid #ccc;">
+                                <option value="currtab">Su tab corrente</option>
+                                <option value="window">In nuova finestra</option>
+                            </select>
+                        </label>
                         <button id="btnExportMacro" class="macro-btn" disabled data-i18n="macro_export">
                             📤 Esporta
                         </button>
@@ -567,6 +966,9 @@ class MacroManager {
                         <button id="btnImportMacro" class="macro-btn">
                             📥 Importa
                         </button>
+                        <label style="display:flex; align-items:center; gap:8px; margin-left: 8px;">
+                            <input type="checkbox" id="macroVerboseToggle" style="transform: scale(1.1);"> Modalità verbose
+                        </label>
                     </div>
                     <div style="margin-top: 10px; padding: 10px; background: white; border-radius: 4px;">
                         <input type="text" id="macroName" placeholder="Nome della macro..." data-i18n="macro_name"
@@ -621,10 +1023,56 @@ class MacroManager {
                     });
 
                     win.querySelector('#btnPlayMacro').addEventListener('click', () => {
-                        if (this.selectedMacro) {
+                        const abortBtn = win.querySelector('#btnAbortPlay');
+                        if (abortBtn) abortBtn.style.display = 'inline-block';
+
+                        if (!this.selectedMacro) return;
+
+                        const playTarget = win.querySelector('#playTarget') ? win.querySelector('#playTarget').value : 'currtab';
+
+                        if (playTarget === 'currtab') {
+                            // comportamento corrente: esegui sul tab corrente
                             this.playMacro(this.selectedMacro.name);
+                            return;
                         }
+
+                        // playTarget === 'window' -> apri una nuova finestra/dialog e riproduci la macro lì
+                        const macroName = this.selectedMacro.name;
+
+                        createWindow({
+                            title: `Riproduzione: ${macroName}`,
+                            id: `macroPlayWindow_${macroName}`,
+                            size: 'sm',
+                            contentHTML: `<div style="padding:20px;"><div id="macroPlayStatus" style="font-weight:bold;">⏳ Preparazione riproduzione...</div></div>`,
+                            buttons: [
+                                { label: 'Interrompi', color: 'danger', onClick: (w) => { this.macroRecorder.abortPlayback(); } },
+                                { label: 'Chiudi', color: 'secondary', onClick: (w) => { /* la finestra può essere chiusa manualmente */ } }
+                            ],
+                            listeners: {
+                                domReady: (playWin) => {
+                                    const statusEl = playWin.querySelector('#macroPlayStatus');
+                                    // Avvia riproduzione usando lo stesso recorder (che opera sul tab corrente)
+                                    this.macroRecorder.playMacro(macroName)
+                                        .then(() => {
+                                            if (statusEl) statusEl.textContent = '✅ Riproduzione completata';
+                                        })
+                                        .catch(err => {
+                                            if (statusEl) statusEl.textContent = '❌ Errore durante la riproduzione: ' + (err.message || err);
+                                            console.error('Errore riproduzione in window:', err);
+                                        });
+                                }
+                            }
+                        });
                     });
+
+                    // Abort button listener
+                    const btnAbort = win.querySelector('#btnAbortPlay');
+                    if (btnAbort) {
+                        btnAbort.addEventListener('click', () => {
+                            this.macroRecorder.abortPlayback();
+                            btnAbort.style.display = 'none';
+                        });
+                    }
 
                     win.querySelector('#btnExportMacro').addEventListener('click', () => {
                         if (this.selectedMacro) {
@@ -656,6 +1104,13 @@ class MacroManager {
                         app.playbackSpeed = parseFloat(e.target.value);
                         app.macroRecorder.setPlaybackSpeed(app.playbackSpeed);
                         win.querySelector('#speedValue').textContent = app.playbackSpeed.toFixed(1) + 'x';
+                    });
+
+                    // Verbose toggle
+                    const verboseToggle = win.querySelector('#macroVerboseToggle');
+                    verboseToggle.checked = !!this.macroRecorder.verbose;
+                    verboseToggle.addEventListener('change', (e) => {
+                        this.macroRecorder.setVerbose(e.target.checked);
                     });
                 }
             }
@@ -763,8 +1218,13 @@ class MacroManager {
 
         try {
             this.isPlaying = true;
+            this.isPlaying = true;
             document.getElementById('btnPlayMacro').disabled = true;
             document.getElementById('btnPlayMacro').textContent = '⏳ In riproduzione...';
+
+            // mostra il pulsante di abort nella dialog se presente
+            const abortBtn = document.getElementById('btnAbortPlay');
+            if (abortBtn) abortBtn.style.display = 'inline-block';
 
             await this.macroRecorder.playMacro(macroName);
 
@@ -776,6 +1236,8 @@ class MacroManager {
             this.isPlaying = false;
             document.getElementById('btnPlayMacro').disabled = false;
             document.getElementById('btnPlayMacro').textContent = '▶️ Riproduci';
+            const abortBtn2 = document.getElementById('btnAbortPlay');
+            if (abortBtn2) abortBtn2.style.display = 'none';
         }
     }
 
@@ -897,9 +1359,93 @@ class MacroManager {
                     <td style="padding: 5px; color: #333;">${macro.version}</td>
                 </tr>
             </table>
+            <div style="margin-top:10px; display:flex; gap:10px;">
+                <div id="macroPreviewCanvas" style="flex:2; border:1px solid #ccc; padding:6px; min-height:120px; background:white; overflow:auto;"></div>
+                <div id="macroPreviewStats" style="flex:1; border:1px solid #ccc; padding:6px; min-height:120px; overflow:auto;"></div>
+            </div>
         `;
 
         panel.style.display = 'block';
+        // render preview (if possible)
+        this.showMacroPreview(macro);
+    }
+
+    showMacroPreview(macro) {
+        // Try to find a snapshot in macro actions (last snapshot or transaction.snapshotAfter)
+        let snapshot = null;
+        for (let i = macro.actions.length - 1; i >= 0; i--) {
+            const a = macro.actions[i];
+            if (!a) continue;
+            if (a.type === 'snapshot' && a.params && a.params.snapshot) {
+                snapshot = a.params.snapshot; break;
+            }
+            if (a.type === 'transaction' && a.params && a.params.snapshotAfter) {
+                snapshot = a.params.snapshotAfter; break;
+            }
+        }
+
+        // fallback to tabObjects saved at macro start
+        if (!snapshot && macro.tabObjects) {
+            snapshot = {
+                objects: Array.from(macro.tabObjects.entries()),
+                arrows: [],
+                freehands: []
+            };
+        }
+
+        const canvas = document.getElementById('macroPreviewCanvas');
+        const stats = document.getElementById('macroPreviewStats');
+        if (!canvas || !stats) return;
+
+        if (!snapshot) {
+            canvas.innerHTML = '<div style="padding:20px; text-align:center; color:#999;">Nessuna anteprima disponibile</div>';
+            stats.innerHTML = '';
+            return;
+        }
+
+        // render mini preview similar to history preview
+        canvas.innerHTML = '';
+        const miniCanvas = document.createElement('div');
+        miniCanvas.style.cssText = `width:100%; height:100%; position:relative; transform:scale(0.5); transform-origin:top left; background:white;`;
+
+        (snapshot.objects || []).forEach(([id, obj]) => {
+            const element = document.createElement('div');
+            element.style.cssText = `
+                position:absolute; left:${obj.x}px; top:${obj.y}px; width:${obj.width}px; height:${obj.height}px;
+                background:${obj.color}; opacity:${obj.opacity || 1}; transform:rotate(${obj.rotation}deg);
+                border:${obj.dashed ? '2px dashed' : '2px solid'} #333; border-radius:4px; display:flex; align-items:center; justify-content:center;
+                font-size:10px; color:white; text-shadow:1px 1px 2px black;
+            `;
+            element.textContent = obj.text || '';
+            miniCanvas.appendChild(element);
+        });
+
+        (snapshot.arrows || []).forEach(([id, arrow]) => {
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.style.cssText = 'position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none;';
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            const from = arrow.from && arrow.from.x !== undefined ? arrow.from : { x: 0, y: 0 };
+            const to = arrow.to && arrow.to.x !== undefined ? arrow.to : { x: 100, y: 100 };
+            line.setAttribute('x1', from.x); line.setAttribute('y1', from.y);
+            line.setAttribute('x2', to.x); line.setAttribute('y2', to.y);
+            line.setAttribute('stroke', arrow.color || '#000');
+            line.setAttribute('stroke-width', arrow.thickness || 2);
+            if (arrow.dashed) line.setAttribute('stroke-dasharray', '5,5');
+            svg.appendChild(line);
+            miniCanvas.appendChild(svg);
+        });
+
+        canvas.appendChild(miniCanvas);
+
+        // stats
+        const objectCount = (snapshot.objects || []).length;
+        const arrowCount = (snapshot.arrows || []).length;
+        const freehandCount = (snapshot.freehands || []).length;
+        stats.innerHTML = `
+            <div><strong>📦 Oggetti:</strong> ${objectCount}</div>
+            <div><strong>➡️ Frecce:</strong> ${arrowCount}</div>
+            <div><strong>✏️ Disegni:</strong> ${freehandCount}</div>
+        `;
     }
 
     deleteMacro(macroName) {

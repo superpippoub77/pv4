@@ -190,76 +190,71 @@
     <!-- <div id="login" class="login-modal">
     </div> -->
 
-    <div id="animationDialog">
+    <!-- Animation dialog is now created by AnimationDialog class; markup removed from index.html -->
+    <!-- <div id="animationDialog">
         <div class="animation-dialog-header" id="animationDialogHeader">
             <h3 data-i18n="local_animation_controls_title">🎬 Controlli Animazione</h3>
             <button class="animation-dialog-close" id="closeAnimationDialog">&times;</button>
         </div>
         <div class="animation-dialog-body">
-            <!-- Controlli Riproduzione -->
-            <div class="animation-control-section">
-                <h4 data-i18n="local_animation_playback_title">▶️ Riproduzione</h4>
-                <div class="animation-controls-row">
-                    <button id="animationPlay" title="Play">▶️</button>
-                    <button id="animationPause" title="Pause" style="display: none;">⏸️</button>
-                    <button id="animationStop" title="Stop">⏹️</button>
-                    <button id="animationPrevFrame" title="Frame Precedente">⏮️</button>
-                    <button id="animationNextFrame" title="Frame Successivo">⏭️</button>
-                    <span class="frame-display" id="currentFrameDisplay">Frame: 0</span>
-                </div>
-            </div>
-
-            <!-- Velocità -->
-            <div class="animation-control-section">
-                <h4 data-i18n="local_animation_speed_title">⚡ Velocità</h4>
-                <div class="animation-controls-row">
-                    <label>ms/frame:</label>
-                    <input type="number" id="animationSpeed" min="100" max="5000" value="1000" step="100">
-                </div>
-            </div>
-
-            <!-- Gestione Frame -->
-            <div class="animation-control-section">
-                <h4 data-i18n="local_animation_frame_timeline_title">📋 Frame Timeline</h4>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <button id="addFrameBtn" style="background: #27ae60; color: white; border: none;">➕ Nuovo
-                        Frame</button>
-                </div>
-                <div id="framesList">
-                    <!-- Popolato dinamicamente -->
-                </div>
-            </div>
-
-            <!-- Proprietà Frame Selezionato -->
-            <div id="frameProperties" style="display: none;">
-                <h5 data-i18n="local_animation_frame_properties_title">🎨 Proprietà Frame <span id="frameNumber"></span>
-                </h5>
-                <div style="margin-bottom: 10px;">
-                    <label style="font-weight: bold;">⏱️ Timestamp (ms): <input type="number" id="frameTimestamp"
-                            min="0" step="100" style="width: 100px;"></label>
-                    <span style="font-size: 10px; color: #7f8c8d; margin-left: 10px;">(tempo in millisecondi nella
-                        timeline)</span>
-                </div>
-                <div class="frame-properties-grid">
-                    <label>X: <input type="number" id="frameX" step="1"></label>
-                    <label>Y: <input type="number" id="frameY" step="1"></label>
-                    <label>Larghezza: <input type="number" id="frameWidth" step="1"></label>
-                    <label>Altezza: <input type="number" id="frameHeight" step="1"></label>
-                    <label>Rotazione: <input type="number" id="frameRotation" step="15"></label>
-                    <label>Opacità: <input type="number" id="frameOpacity" min="0" max="1" step="0.1"></label>
-                    <label>Colore: <input type="color" id="frameColor"></label>
-                    <label style="flex-direction: row; align-items: center;">
-                        <input type="checkbox" id="frameDashed" data-i18n="local_frame_dashed_checkbox"> Tratteggiato
-                    </label>
-                </div>
-                <div class="frame-actions">
-                    <button id="updateFrameBtn" data-i18n="local_update_frame_button">💾 Aggiorna</button>
-                    <button id="deleteFrameBtn" data-i18n="local_delete_frame_button">🗑️ Elimina</button>
-                </div>
-            </div>
+    <div class="animation-control-section">
+        <h4 data-i18n="local_animation_playback_title">▶️ Riproduzione</h4>
+        <div class="animation-controls-row">
+            <button id="animationPlay" title="Play">▶️</button>
+            <button id="animationPause" title="Pause" style="display: none;">⏸️</button>
+            <button id="animationStop" title="Stop">⏹️</button>
+            <button id="animationPrevFrame" title="Frame Precedente">⏮️</button>
+            <button id="animationNextFrame" title="Frame Successivo">⏭️</button>
+            <span class="frame-display" id="currentFrameDisplay">Frame: 0</span>
         </div>
     </div>
 
+    <div class="animation-control-section">
+        <h4 data-i18n="local_animation_speed_title">⚡ Velocità</h4>
+        <div class="animation-controls-row">
+            <label>ms/frame:</label>
+            <input type="number" id="animationSpeed" min="100" max="5000" value="1000" step="100">
+        </div>
+    </div>
+
+    <div class="animation-control-section">
+        <h4 data-i18n="local_animation_frame_timeline_title">📋 Frame Timeline</h4>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <button id="addFrameBtn" style="background: #27ae60; color: white; border: none;">➕ Nuovo
+                Frame</button>
+        </div>
+        <div id="framesList">
+        </div>
+    </div>
+
+    <div id="frameProperties" style="display: none;">
+        <h5 data-i18n="local_animation_frame_properties_title">🎨 Proprietà Frame <span id="frameNumber"></span>
+        </h5>
+        <div style="margin-bottom: 10px;">
+            <label style="font-weight: bold;">⏱️ Timestamp (ms): <input type="number" id="frameTimestamp" min="0"
+                    step="100" style="width: 100px;"></label>
+            <span style="font-size: 10px; color: #7f8c8d; margin-left: 10px;">(tempo in millisecondi nella
+                timeline)</span>
+        </div>
+        <div class="frame-properties-grid">
+            <label>X: <input type="number" id="frameX" step="1"></label>
+            <label>Y: <input type="number" id="frameY" step="1"></label>
+            <label>Larghezza: <input type="number" id="frameWidth" step="1"></label>
+            <label>Altezza: <input type="number" id="frameHeight" step="1"></label>
+            <label>Rotazione: <input type="number" id="frameRotation" step="15"></label>
+            <label>Opacità: <input type="number" id="frameOpacity" min="0" max="1" step="0.1"></label>
+            <label>Colore: <input type="color" id="frameColor"></label>
+            <label style="flex-direction: row; align-items: center;">
+                <input type="checkbox" id="frameDashed" data-i18n="local_frame_dashed_checkbox"> Tratteggiato
+            </label>
+        </div>
+        <div class="frame-actions">
+            <button id="updateFrameBtn" data-i18n="local_update_frame_button">💾 Aggiorna</button>
+            <button id="deleteFrameBtn" data-i18n="local_delete_frame_button">🗑️ Elimina</button>
+        </div>
+    </div>
+    </div>
+    </div> -->
     <water-mark></water-mark>
 
     <!-- CONSTANTS AND OBJECTS -->
@@ -281,6 +276,7 @@
     <script defer src="components/teammanagement/teammanagement.class.js"></script>
     <script defer src="components/workout/libraryworkout.class.js"></script>
     <script defer src="components/workout/saveworkout.class.js"></script>
+    <script defer src="components/animation/animation.class.js"></script>
 
     <!-- COMPONENTS -->
     <script defer src="components/macro_recorder_system.js"></script>
