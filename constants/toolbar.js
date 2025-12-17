@@ -1,10 +1,10 @@
 // =======================
 // DEFINIZIONE TOOLBAR
 // =======================
-const toolbarConfig = [
+const toolbarTopConfig = [
     {
         legend: "toolbar_size",
-        align: "up",
+        position: "top",
         fieldsetId: "sizeControls",
         fieldsetClass: "toolbar-group",
         items: [
@@ -40,10 +40,9 @@ const toolbarConfig = [
             { type: "button", id: "zoomIn", text: "➕", i18n: "btn_zoom_in", titleI18n: "btn_zoom_in" }
         ]
     },
-
     {
         legend: "toolbar_team",
-        align: "up",
+        position: "top",
         fieldsetId: "teamControls",
         fieldsetClass: "toolbar-group",
         items: [
@@ -58,7 +57,7 @@ const toolbarConfig = [
 
     {
         legend: "toolbar_order",
-        align: "up",
+        position: "top",
         fieldsetId: "orderControls",
         fieldsetClass: "toolbar-group",
         items: [
@@ -79,13 +78,23 @@ const toolbarConfig = [
 
     {
         legend: "toolbar_view",
-        align: "up",
+        position: "top",
         fieldsetId: "viewControls",
         fieldsetClass: "toolbar-group",
         items: [
-            { type: "button", id: "gridToggle", text: "📐 Griglia", i18n: "btn_grid", titleI18n: "btn_grid" },
-            { type: "button", id: "snapToGridBtn", text: "🧲 Allinea alla Griglia", i18n: "btn_snap_grid", titleI18n: "btn_snap_grid" },
-            { type: "button", id: "bwToggle", text: "⚫ B/N", i18n: "btn_bw", titleI18n: "btn_bw" },
+            {
+                type: "button", id: "gridToggle", class: "gridToggle", text: "📐 Griglia", i18n: "btn_grid", titleI18n: "btn_grid", onClick: (editor) => {
+                    editor.getCurrentTab().gridVisible = !editor.getCurrentTab().gridVisible;
+                    editor.updateGrid();
+                }
+            },
+            {
+                type: "button", id: "snapToGridBtn", text: "🧲 Allinea alla Griglia", i18n: "btn_snap_grid", titleI18n: "btn_snap_grid"
+            },
+            { type: "button", id: "bwToggle", class: "bwToggle", text: "⚫ B/N", i18n: "btn_bw", titleI18n: "btn_bw", onClick: (editor) => {
+                    editor.getCurrentTab().bwMode = !editor.getCurrentTab().bwMode;
+                    editor.updateBWMode();
+                } },
             { type: "button", id: "dashedToggle", text: "⚡ Tratteggio", i18n: "btn_dashed", titleI18n: "btn_dashed" },
             { type: "button", id: "toggleLabels", text: "🔢 Etichette", i18n: "btn_labels", titleI18n: "btn_labels" },
             { type: "button", id: "renumberObjects", text: "🔄 Rinumera", i18n: "btn_renumber", titleI18n: "btn_renumber" },
@@ -111,7 +120,7 @@ const toolbarConfig = [
 
     {
         legend: "toolbar_edit",
-        align: "up",
+        position: "top",
         fieldsetId: "editControls",
         fieldsetClass: "toolbar-group",
         items: [
@@ -168,7 +177,7 @@ const toolbarConfig = [
 
     {
         legend: "toolbar_file",
-        align: "up",
+        position: "top",
         fieldsetId: "fileControls",
         fieldsetClass: "toolbar-group",
         items: [
@@ -191,7 +200,7 @@ const toolbarConfig = [
 
     {
         legend: "toolbar_user",
-        align: "up",
+        position: "top",
         fieldsetId: "userControls",
         fieldsetClass: "toolbar-group",
         items: [
@@ -212,14 +221,15 @@ const toolbarConfig = [
                 ]
             }
         ]
-    },
+    }];
 
+const toolbarBottomConfig = [
     // -----------------------
     // BOTTOM TOOLBAR CONTROLS
     // -----------------------
     {
         legend: "toolbar_object_controls",
-        align: "down",
+        position: "bottom",
         fixed: true,
         fieldsetId: "objectControls",
         fieldsetClass: "toolbar-group fixed form-grid",
@@ -235,7 +245,7 @@ const toolbarConfig = [
     },
     {
         legend: "toolbar_arrow_controls",
-        align: "down",
+        position: "bottom",
         fixed: true,
         fieldsetId: "arrowControls",
         fieldsetClass: "toolbar-group fixed",
@@ -316,7 +326,7 @@ const toolbarConfig = [
     },
     {
         legend: "toolbar_sprite_controls",
-        align: "down",
+        position: "bottom",
         fixed: true,
         fieldsetId: "spriteControls",
         fieldsetClass: "toolbar-group fixed",
@@ -333,7 +343,7 @@ const toolbarConfig = [
     },
     {
         legend: "toolbar_freehand_controls",
-        align: "down",
+        position: "bottom",
         fixed: true,
         fieldsetId: "freehandControls",
         fieldsetClass: "toolbar-group fixed",
@@ -345,7 +355,7 @@ const toolbarConfig = [
     },
     {
         legend: "toolbar_object_info",
-        align: "down",
+        position: "bottom",
         fixed: true,
         fieldsetId: "objectInfo",
         fieldsetClass: "toolbar-group",

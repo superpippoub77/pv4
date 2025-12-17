@@ -60,8 +60,8 @@ class SchemaEditor {
         this.menuManager = new MenuManager(this);
 
         //Creazioni delle toolbar e footerbar
-        this.toolbarManager = new ToolbarDialogManager(this, storage);
-        this.footerbarManager = new ToolbarDialogManager(this, storage, "down", "footerbar");
+        this.toolbarManager = new ToolbarDialogManager(this, toolbarTopConfig, storage);
+        this.footerbarManager = new ToolbarDialogManager(this, toolbarBottomConfig, storage, "footerbar", "bottom");
 
         this.sidebarManager = new Sidebar(this, sidebarConfig, "#sidebar");
         this.rightSidebarManager = new Sidebar(this, rightSidebarConfig, "#rightSidebar", "right");
@@ -1163,8 +1163,8 @@ class SchemaEditor {
         if (!tab) return;
 
         tab.background = document.getElementById('backgroundSelect').value;
-        tab.gridVisible = document.getElementById('gridToggle').classList.contains('active');
-        tab.bwMode = document.getElementById('bwToggle').classList.contains('active');
+        tab.gridVisible = document.getElementsByClassName('gridToggle')[0].classList.contains('active');
+        tab.bwMode = document.getElementsByClassName('bwToggle')[0].classList.contains('active');
         tab.zoom = this.zoom;
 
         // SALVA DIMENSIONE E BORDI
@@ -4279,14 +4279,14 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             this.getCurrentTab().background = e.target.value;
             this.updateBackground();
         });
-        document.getElementById('gridToggle').addEventListener('click', () => {
-            this.getCurrentTab().gridVisible = !this.getCurrentTab().gridVisible;
-            this.updateGrid();
-        });
-        document.getElementById('bwToggle').addEventListener('click', () => {
-            this.getCurrentTab().bwMode = !this.getCurrentTab().bwMode;
-            this.updateBWMode();
-        });
+        // document.getElementById('gridToggle').addEventListener('click', () => {
+        //     this.getCurrentTab().gridVisible = !this.getCurrentTab().gridVisible;
+        //     this.updateGrid();
+        // });
+        // document.getElementById('bwToggle').addEventListener('click', () => {
+        //     this.getCurrentTab().bwMode = !this.getCurrentTab().bwMode;
+        //     this.updateBWMode();
+        // });
 
         document.getElementById('dashedToggle').addEventListener('click', () => {
             this.dashedMode = !this.dashedMode;
@@ -7315,7 +7315,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         const tab = this.getCurrentTab();
         const canvas = document.getElementById('canvas');
         canvas.style.transform = `scale(${tab.zoom})`;
-        document.getElementById('zoomDisplay').textContent = Math.round(tab.zoom * 100) + '%';
+        if (document.getElementById('zoomDisplay')) {
+            document.getElementById('zoomDisplay').textContent = Math.round(tab.zoom * 100) + '%';
+        }
     }
 
     updateBackground() {
@@ -7325,7 +7327,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
         if (tab.gridVisible) canvas.classList.add('grid-visible');
         if (tab.bwMode) canvas.classList.add('bw-mode');
-
+        canvas.style.backgroundColor = "trqansparent";
         switch (tab.background) {
             case 'half-field':
                 canvas.classList.add('bg-half-field');
@@ -7336,18 +7338,25 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             case '3d-field':
                 canvas.classList.add('bg-3d-field');
                 break;
+            default:
+                canvas.style.backgroundColor = "#ffffff";
+                break;
         }
     }
 
     updateGrid() {
         const tab = this.getCurrentTab();
-        document.getElementById('gridToggle').classList.toggle('active', tab.gridVisible);
+        for (const el of document.getElementsByClassName('gridToggle')) {
+            el.classList.toggle('active', tab.gridVisible);
+        }
         this.updateBackground();
     }
 
     updateBWMode() {
         const tab = this.getCurrentTab();
-        document.getElementById('bwToggle').classList.toggle('active', tab.bwMode);
+        for (const el of document.getElementsByClassName('bwToggle')) {
+            el.classList.toggle('active', tab.bwMode);
+        }
         this.updateBackground();
     }
 
@@ -7573,8 +7582,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         if (!tab) return;
 
         tab.background = document.getElementById('backgroundSelect').value;
-        tab.gridVisible = document.getElementById('gridToggle').classList.contains('active');
-        tab.bwMode = document.getElementById('bwToggle').classList.contains('active');
+        tab.gridVisible = document.getElementsByClassName('gridToggle')[0].classList.contains('active');
+        tab.bwMode = document.getElementsByClassName('bwToggle')[0].classList.contains('active');
         tab.zoom = this.zoom;
 
         // AGGIUNGI SALVATAGGIO DIMENSIONE E BORDI

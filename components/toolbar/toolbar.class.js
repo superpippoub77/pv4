@@ -1,8 +1,16 @@
+class Enumerator {
+    static get TOP() { return "top"; }
+    static get BOTTOM() { return "bottom"; }
+    static get LEFT() { return "left"; }
+    static get RIGHT() { return "right"; }
+}
+
 class ToolbarDialogManager {
-    constructor(editor, storage, align = "up", id = "toolbar", position = "top") {
+    constructor(editor, config, storage, id = "toolbar", position = Enumerator.TOP) {
         this.editor = editor;
+        this.config = config;
         this.storage = storage;
-        this.align = align;
+        //this.align = align;
 
         this.toolbar = null;
         this.id = id;
@@ -164,9 +172,15 @@ class ToolbarDialogManager {
         resizer.style.cursor = this.isHorizontal() ? "row-resize" : "col-resize";
 
         // Inserisci la maniglia
+        // Inserisci la maniglia
         if (this.position === "top" || this.position === "left") {
+            // top e left: dopo la toolbar
             this.toolbar.parentNode.insertBefore(resizer, this.toolbar.nextSibling);
-        } else {
+        } else if (this.position === "bottom") {
+            // bottom: prima della toolbar
+            this.toolbar.parentNode.insertBefore(resizer, this.toolbar);
+        } else if (this.position === "right") {
+            // right: all’inizio della toolbar
             this.toolbar.insertBefore(resizer, this.toolbar.firstChild);
         }
 
@@ -281,8 +295,9 @@ class ToolbarDialogManager {
                 }
 
                 // Gruppi
-                toolbarConfig.forEach(group => {
-                    if (group.align !== this.align) return;
+                this.config.forEach(group => {
+                    if(group.position === undefined) group.position = "top"; // Default top
+                    if (group.position !== this.position) return;
 
                     const fs = document.createElement("fieldset");
                     if (group.fieldsetId) fs.id = group.fieldsetId;
@@ -320,6 +335,8 @@ class ToolbarDialogManager {
         switch (item.type) {
             case "label":
                 el = document.createElement("label");
+                el.id = item.id;
+                el.className = item.class ? item.class : "";
                 el.textContent = item.text;
                 // Aggiungi data-i18n se presente
                 if (item.i18n || item.text) {
@@ -330,6 +347,7 @@ class ToolbarDialogManager {
             case "button":
                 el = document.createElement("button");
                 el.id = item.id;
+                el.className = item.class ? item.class : "";
                 el.textContent = item.text;
                 if (item.onClick) {
                     el.addEventListener("click", (event) => item.onClick?.(this.editor, event));
@@ -353,6 +371,7 @@ class ToolbarDialogManager {
             case "select":
                 el = document.createElement("select");
                 el.id = item.id;
+                el.className = item.class ? item.class : "";
                 // Aggiungi data-i18n per il select stesso
                 if (item.i18n) {
                     el.setAttribute("data-i18n", item.i18n);
@@ -377,6 +396,7 @@ class ToolbarDialogManager {
             case "input":
                 el = document.createElement("input");
                 el.id = item.id;
+                el.className = item.class ? item.class : "";
                 el.placeholder = item.placeholder ?? "";
 
                 // Click handler (opzionale)
@@ -420,6 +440,7 @@ class ToolbarDialogManager {
                 el = document.createElement("input");
                 el.type = "file";
                 el.id = item.id;
+                el.className = item.class ? item.class : "";
                 el.accept = item.accept;
                 // Aggiungi data-i18n per il label aria
                 if (item.i18n || item.text) {
@@ -449,8 +470,9 @@ class ToolbarDialogManager {
                 }
                 break;
             default:
-                el = document.createElement("div");
+                el = document.createElement(el?.inputType || "div");
                 el.id = item.id || "";
+                el.className = item.class ? item.class : "";
                 el.textContent = item.text || "";
                 break;
         }
