@@ -14,6 +14,7 @@ class TeamManagementDialog {
         this.dialog = null;
         this.teamPlayers = this.loadTeamFromStorage();
         this.showPlayerNames = false;
+        this.currentPlayerImage = null;
 
         this.elements = {
             dialog: null,
@@ -37,24 +38,72 @@ class TeamManagementDialog {
     init() {
         this.createTeamDialog();
         this.cacheElements();
+        this.setupImageDropzone();
+    }
+    setupImageDropzone() {
+        const dz = document.getElementById('playerImageDropzone');
+        const input = document.getElementById('playerImageInput');
+
+        if (!dz || !input) return;
+
+        dz.addEventListener('click', () => input.click());
+
+        dz.addEventListener('dragover', e => {
+            e.preventDefault();
+            dz.classList.add('dragover');
+        });
+
+        dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+
+        dz.addEventListener('drop', e => {
+            e.preventDefault();
+            dz.classList.remove('dragover');
+            this.loadPlayerImage(e.dataTransfer.files[0]);
+        });
+
+        input.addEventListener('change', e => {
+            this.loadPlayerImage(e.target.files[0]);
+        });
+    }
+    loadPlayerImage(file) {
+        if (!file || !file.type.startsWith('image/')) {
+            alert('File non valido');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = e => {
+            this.currentPlayerImage = e.target.result;
+
+            const dz = document.getElementById('playerImageDropzone');
+            dz.innerHTML = `<img src="${this.currentPlayerImage}" class="player-image-preview">`;
+        };
+        reader.readAsDataURL(file);
     }
 
     // ============================================================
     // INIZIALIZZAZIONE UI
     // ============================================================
+    buildRoleOptions(typeOfSport) {
+        const roles = configuration.sports[typeOfSport] || [];
+
+        return roles
+            .map(r => `<option value="${r.value}">${r.label}</option>`)
+            .join("");
+    }
 
     /**
      * Crea la struttura HTML del dialogo
      */
     createTeamDialog() {
-        const html = `
-        <div class="team-dialog-content">
+        const roleOptionsHtml = this.buildRoleOptions(this.editor.typeOfSport);
 
-    <!-- Aggiungi Giocatore (riga 1) -->
+        const html = `
+<div class="team-dialog-content">
+
     <div class="team-form-section full-width">
         <h4>➕ Aggiungi Giocatore</h4>
 
-        <!-- Intestazioni colonne -->
         <div class="team-form-row">
             <label>Ruolo:</label>
             <label>Numero:</label>
@@ -62,23 +111,17 @@ class TeamManagementDialog {
             <label></label>
         </div>
 
-        <!-- Input -->
         <div class="team-form-row">
             <select id="newPlayerRole">
-                <option value="P1">P1 - Alzatore</option>
-                <option value="L1">L1 - Libero</option>
-                <option value="S1">S1 - Banda</option>
-                <option value="O">O - Opposto</option>
-                <option value="C1">C1 - Centro</option>
-                <option value="All">All - Allenatore</option>
-                <option value="A">A</option>
-                <option value="B">B</option>
-                <option value="C">C</option>
-                <option value="D">D</option>
+                ${roleOptionsHtml}
             </select>
 
             <input type="number" id="newPlayerNumber" min="1" max="99" placeholder="N°">
             <input type="text" id="newPlayerName" placeholder="Nome e Cognome">
+        </div>
+        <div class="player-image-dropzone" id="playerImageDropzone">
+            <span>📷 Trascina un'immagine<br><small>(opzionale)</small></span>
+            <input type="file" id="playerImageInput" accept="image/*" hidden>
         </div>
     </div>
 
@@ -99,20 +142,18 @@ class TeamManagementDialog {
     </div>
 
     <div id="jsonDropzone" class="json-dropzone">
-    Trascina qui il file JSON<br>
-    <small>(oppure clicca per selezionarlo)</small>
-    <input type="file" id="importTeamFile" accept="application/json">
-</div>
+        Trascina qui il file JSON<br>
+        <small>(oppure clicca per selezionarlo)</small>
+        <input type="file" id="importTeamFile" accept="application/json">
+    </div>
 
-    <!-- Lista Giocatori (riga 3) -->
     <div class="team-form-section full-width">
         <h4>📋 Rosa Giocatori</h4>
         <div class="team-list" id="teamPlayersList"></div>
     </div>
 
 </div>
-
-    `;
+`;
 
         this.dialog = createWindow({
             title: 'dlg_title_team',
@@ -134,15 +175,15 @@ class TeamManagementDialog {
                     }
                 },
 
-                { label: 'btn_export',  align: 'left', close: false, color: 'secondary', onClick: () => { this.exportTeam() } },
+                { label: 'btn_export', align: 'left', close: false, color: 'secondary', onClick: () => { this.exportTeam() } },
                 { label: 'btn_clear', close: false, color: 'danger', onClick: () => { this.clearTeam() } },
-                { label: 'btn_add',  align: 'center', close: false, color: 'success', onClick: () => { this.addPlayer() } },
+                { label: 'btn_add', align: 'center', close: false, color: 'success', onClick: () => { this.addPlayer() } },
                 { label: 'btn_close', color: 'secondary', onClick: () => { this.hide() } }
             ]
         });
 
 
-        
+
     }
 
     /**
@@ -288,7 +329,12 @@ class TeamManagementDialog {
         }
 
         // Aggiungi il giocatore
-        this.teamPlayers.push({ role, number, name });
+        this.teamPlayers.push({
+            role,
+            number,
+            name,
+            image: this.currentPlayerImage
+        });
         this.teamPlayers.sort((a, b) => a.number - b.number);
 
         this.saveTeamToStorage();
@@ -298,12 +344,23 @@ class TeamManagementDialog {
         this.elements.newPlayerNumber.value = '';
         this.elements.newPlayerName.value = '';
         this.elements.newPlayerName.focus();
+
+        this.currentPlayerImage = null;
+        document.getElementById('playerImageDropzone').innerHTML =
+            '📷 Trascina un\'immagine<br><small>(opzionale)</small>';
     }
 
     /**
      * Modifica un giocatore esistente
      */
     editPlayer(index) {
+        this.currentPlayerImage = player.image || null;
+
+        const dz = document.getElementById('playerImageDropzone');
+        dz.innerHTML = player.image
+            ? `<img src="${player.image}" class="player-image-preview">`
+            : '📷 Trascina un\'immagine<br><small>(opzionale)</small>';
+
         const player = this.teamPlayers[index];
         this.elements.newPlayerRole.value = player.role;
         this.elements.newPlayerNumber.value = player.number;
@@ -379,6 +436,13 @@ class TeamManagementDialog {
             actionsDiv.appendChild(deleteBtn);
 
             item.appendChild(roleDiv);
+            if (player.image) {
+                const img = document.createElement('img');
+                img.src = player.image;
+                img.className = 'player-image-preview';
+                item.appendChild(img);
+            }
+
             item.appendChild(numberDiv);
             item.appendChild(nameDiv);
             item.appendChild(actionsDiv);

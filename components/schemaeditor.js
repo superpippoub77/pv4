@@ -1,5 +1,6 @@
 class SchemaEditor {
     constructor(configuration, menuData, username, storage) {
+        this.typeOfSport = 'volleyball';
         this.storage = storage;
         this.configuration = configuration;
         this.menuData = menuData;
@@ -5237,6 +5238,19 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         if (object.type === 'player' && object.text) {
             const player = this.getPlayerByRole(object.text);
             if (player) {
+
+                // 🔹 Se il player ha un'immagine → sfondo
+                if (player.image) {
+                    content.style.backgroundImage = `url('${player.image}')`;
+                    content.style.backgroundSize = 'cover';
+                    content.style.backgroundPosition = 'center';
+                    content.style.backgroundRepeat = 'no-repeat';
+                } else {
+                    // fallback colore
+                    content.style.backgroundColor = object.color;
+                }
+
+                // badge nome sempre visibile
                 const badge = document.createElement('div');
                 badge.className = 'player-name-badge';
                 badge.textContent = `${player.name} (#${player.number})`;
@@ -5306,7 +5320,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
         switch (object.type) {
             case 'player':
-                content.style.backgroundColor = object.color;
+                if (!content.style.backgroundImage) {
+                    content.style.backgroundColor = object.color;
+                }
                 content.classList.toggle('dashed', object.dashed);
                 break;
             case 'cone':
@@ -9039,21 +9055,61 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         const lineHeight = 5;
         const maxPlayersPerColumn = 6;
 
-        // Disegna le linee per i nomi (3 colonne da 6 righe)
+
+        // Usa esclusivamente la rosa memorizzata in `teamManager` (o this.teamPlayers come fallback)
+        let roster = [];
+        if (this.teamManager) {
+            if (typeof this.teamManager.getAllPlayers === 'function') {
+                roster = this.teamManager.getAllPlayers();
+            } else if (Array.isArray(this.teamManager.teamPlayers)) {
+                roster = [...this.teamManager.teamPlayers];
+            }
+        }
+        // fallback all'editor stesso
+        if ((!roster || roster.length === 0) && Array.isArray(this.teamPlayers)) {
+            roster = [...this.teamPlayers];
+        }
+        // Ordina per numero per avere un ordine coerente
+        roster.sort((a, b) => (a.number || 0) - (b.number || 0));
+
+        // Disegna le righe/nomi per i 3 gruppi (3 colonne da 6 righe)
         for (let i = 0; i < maxPlayersPerColumn; i++) {
             const currentY = yOffset + (i * lineHeight);
 
-            // Colonna 1
-            doc.text(`${i + 1}.`, col1X, currentY);
-            doc.line(col1X + 5, currentY + 0.5, col1X + 50, currentY + 0.5);
+            const drawCell = (colX, globalIndex, slotNumber) => {
+                const player = roster[globalIndex];
+                if (player) {
+                    const text = `${player.number}. ${player.name} (${player.role})`;
+                    doc.text(text, colX, currentY);
+                    // Se avanza spazio, disegna la linea residua fino a colX+50
+                    try {
+                        const usedW = doc.getTextWidth ? doc.getTextWidth(text) : (text.length * 2.5);
+                        const maxW = 45; // area disponibile (da colX+5 a colX+50)
+                        if (usedW < maxW) {
+                            const startX = colX + 5 + usedW;
+                            const endX = colX + 50;
+                            doc.setLineWidth(0.3);
+                            doc.line(startX, currentY + 0.5, endX, currentY + 0.5);
+                        } else {
+                            // testo troppo lungo: disegna comunque una linea minima
+                            doc.line(colX + 5, currentY + 0.5, colX + 50, currentY + 0.5);
+                        }
+                    } catch (e) {
+                        doc.line(colX + 5, currentY + 0.5, colX + 50, currentY + 0.5);
+                    }
+                } else {
+                    // Nessun giocatore presente in questo slot: mostra numero e linea
+                    doc.text(`${slotNumber}.`, colX, currentY);
+                    doc.line(colX + 5, currentY + 0.5, colX + 50, currentY + 0.5);
+                }
+            };
 
-            // Colonna 2
-            doc.text(`${i + 7}.`, col2X, currentY);
-            doc.line(col2X + 5, currentY + 0.5, col2X + 50, currentY + 0.5);
-
-            // Colonna 3
-            doc.text(`${i + 13}.`, col3X, currentY);
-            doc.line(col3X + 5, currentY + 0.5, col3X + 50, currentY + 0.5);
+            // Colonna 1 (slot 1..6)
+            drawCell(col1X, i, i + 1);
+            // Colonna 2 (slot 7..12)
+            drawCell(col2X, i + maxPlayersPerColumn, i + 1 + maxPlayersPerColumn);
+            // Colonna 3 (slot 13..18)
+            drawCell(col3X, i + (2 * maxPlayersPerColumn), i + 1 + (2 * maxPlayersPerColumn));
         }
 
         yOffset += (maxPlayersPerColumn * lineHeight) + 10;
@@ -9063,7 +9119,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         const courtHeight = 45;
         const notesHeight = 25; // Altezza sezione note
         const horizontalSpacing = 8;
-        const verticalSpacing = 8;
+        const verticalSpacing = 12;
         const setsPerRow = 3;
 
         for (let set = 1; set <= 5; set++) {

@@ -226,3 +226,24 @@ body.show-all-player-names .canvas-object .player-name-badge {
 .json-dropzone:hover { background: #f2f2f2; }
 .json-dropzone.dragover { background: #e0f7ff; border-color: #3498db; color: #3498db; }
 .json-dropzone input[type="file"] { opacity: 0; position: absolute; inset: 0; cursor: pointer; }
+
+.player-image-dropzone {
+    border: 2px dashed #bbb;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    color: #777;
+}
+
+.player-image-dropzone.dragover {
+    border-color: #4caf50;
+    background: #f4fff6;
+}
+
+.player-image-preview {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+}
