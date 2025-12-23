@@ -210,6 +210,7 @@ body {
     min-width: 800px;
     min-height: 400px;
     resize: none;
+    perspective: 1000px;
 }
 
 .canvas.show-border {
@@ -387,6 +388,7 @@ body.resizing-canvas .canvas-resize-handle-single {
     align-items: center;
     justify-content: center;
     z-index: 1;
+    transform-style: preserve-3d;
 }
 
 .canvas-object.front {

@@ -91,10 +91,12 @@ const toolbarTopConfig = [
             {
                 type: "button", id: "snapToGridBtn", text: "🧲 Allinea alla Griglia", i18n: "btn_snap_grid", titleI18n: "btn_snap_grid"
             },
-            { type: "button", id: "bwToggle", class: "bwToggle", text: "⚫ B/N", i18n: "btn_bw", titleI18n: "btn_bw", onClick: (editor) => {
+            {
+                type: "button", id: "bwToggle", class: "bwToggle", text: "⚫ B/N", i18n: "btn_bw", titleI18n: "btn_bw", onClick: (editor) => {
                     editor.getCurrentTab().bwMode = !editor.getCurrentTab().bwMode;
                     editor.updateBWMode();
-                } },
+                }
+            },
             { type: "button", id: "dashedToggle", text: "⚡ Tratteggio", i18n: "btn_dashed", titleI18n: "btn_dashed" },
             { type: "button", id: "toggleLabels", text: "🔢 Etichette", i18n: "btn_labels", titleI18n: "btn_labels" },
             { type: "button", id: "renumberObjects", text: "🔄 Rinumera", i18n: "btn_renumber", titleI18n: "btn_renumber" },
@@ -124,7 +126,13 @@ const toolbarTopConfig = [
         fieldsetId: "editControls",
         fieldsetClass: "toolbar-group",
         items: [
-            { type: "button", id: "rotateLeft", text: "↺", i18n: "btn_rotate_left", titleI18n: "btn_rotate_left" },
+            { type: "input", inputType: "range", id: "objectRotationX", text: "x", i18n: "btn_rotate_x", titleI18n: "btn_rotate_x", min: "-180", max: "180", value: "0", step: "15"},
+            { type: "div", id: "rotationXValue", class: "", html: "0°" },
+            { type: "input", inputType: "range", id: "objectRotationY", text: "y", i18n: "btn_rotate_y", titleI18n: "btn_rotate_y", min: "-180", max: "180", value: "0", step: "15"},
+            { type: "div", id: "rotationYValue", class: "", html: "0°" },
+            { type: "input", inputType: "range", id: "objectRotationZ", text: "z", i18n: "btn_rotate_z", titleI18n: "btn_rotate_z", min: "-180", max: "180", value: "0", step: "15"},
+            { type: "div", id: "rotationZValue", class: "", html: "0°" },
+
             { type: "button", id: "rotateLeft", text: "↺", i18n: "btn_rotate_left", titleI18n: "btn_rotate_left" },
             { type: "button", id: "rotateRight", text: "↻", i18n: "btn_rotate_right", titleI18n: "btn_rotate_right" },
             { type: "button", id: "rotateLeft90", text: "↺90", i18n: "btn_rotate_left", titleI18n: "btn_rotate_left" },

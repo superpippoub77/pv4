@@ -4511,6 +4511,56 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         document.getElementById('workoutDescrizione').addEventListener('input', (e) => {
             this.getCurrentTab().descrizione = e.target.value;
         });
+
+
+
+
+
+        // ✅ NUOVO: Event listeners per rotazione 3D
+        document.getElementById('objectRotationX').addEventListener('input', (e) => {
+            const degrees = parseInt(e.target.value);
+            document.getElementById('rotationXValue').textContent = degrees + '°';
+
+            if (this.selectedObjects.size > 0) {
+                const tab = this.getCurrentTab();
+                const firstId = this.selectedObjects.keys().next().value;
+                const obj = tab.objects.get(firstId);
+                if (obj) {
+                    const delta = degrees - (obj.rotationX || 0);
+                    this.changeSelectedObjectsRotationX(delta);
+                }
+            }
+        });
+
+        document.getElementById('objectRotationY').addEventListener('input', (e) => {
+            const degrees = parseInt(e.target.value);
+            document.getElementById('rotationYValue').textContent = degrees + '°';
+
+            if (this.selectedObjects.size > 0) {
+                const tab = this.getCurrentTab();
+                const firstId = this.selectedObjects.keys().next().value;
+                const obj = tab.objects.get(firstId);
+                if (obj) {
+                    const delta = degrees - (obj.rotationY || 0);
+                    this.changeSelectedObjectsRotationY(delta);
+                }
+            }
+        });
+
+        document.getElementById('objectRotationZ').addEventListener('input', (e) => {
+            const degrees = parseInt(e.target.value);
+            document.getElementById('rotationZValue').textContent = degrees + '°';
+
+            if (this.selectedObjects.size > 0) {
+                const tab = this.getCurrentTab();
+                const firstId = this.selectedObjects.keys().next().value;
+                const obj = tab.objects.get(firstId);
+                if (obj) {
+                    const delta = degrees - (obj.rotation || 0);
+                    this.rotateSelected(delta);
+                }
+            }
+        });
         // // ========== LEFT SIDEBAR ==========
         // const sidebar = document.getElementById('sidebar');
         // const sidebarHandle = document.getElementById('sidebarHandle');
@@ -5106,11 +5156,13 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             width: this.getDefaultSize(type).width,
             height: this.getDefaultSize(type).height,
             color: color,
-            rotation: rotation,
+            rotation: rotation,  // Rotazione Z (esistente)
+            rotationX: 0,        // ✅ NUOVO: Rotazione asse X
+            rotationY: 0,        // ✅ NUOVO: Rotazione asse Y
             text: text,
             dashed: dashed,
             opacity: 1,
-            zIndex: this.maxZIndex++, // USA maxZIndex globale
+            zIndex: this.maxZIndex++,
             icon: icon,
             src: src,
             spriteData: spriteData,
@@ -5155,14 +5207,11 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             element = document.createElement('div');
             element.className = 'canvas-object';
             element.id = object.id;
-
             element.setAttribute('draggable', false);
             element.addEventListener('dragstart', (e) => e.preventDefault());
-
             document.getElementById('canvas').appendChild(element);
         }
 
-        // Clona l'elemento per rimuovere tutti gli event listener
         const newElement = element.cloneNode(false);
         element.parentNode.replaceChild(newElement, element);
         element = newElement;
@@ -5171,7 +5220,14 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         element.style.top = object.y + 'px';
         element.style.width = object.width + 'px';
         element.style.height = object.height + 'px';
-        element.style.transform = `rotate(${object.rotation}deg)`;
+
+        // ✅ MODIFICA: Applica rotazione 3D su tutti e tre gli assi
+        const rotX = object.rotationX || 0;
+        const rotY = object.rotationY || 0;
+        const rotZ = object.rotation || 0;
+        element.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) rotateZ(${rotZ}deg)`;
+        element.style.transformStyle = 'preserve-3d'; // ✅ IMPORTANTE per 3D
+
         element.style.zIndex = object.zIndex || 1;
         element.style.opacity = object.opacity || 1;
         element.classList.toggle('dashed', object.dashed);
@@ -6141,6 +6197,16 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 document.getElementById('objectControls').style.display = 'flex';
                 document.getElementById('arrowControls').style.display = 'none';
                 document.getElementById('freehandControls').style.display = 'none';
+
+                document.getElementById('objectRotationX').value = objectData.rotationX || 0;
+                document.getElementById('rotationXValue').textContent = (objectData.rotationX || 0) + '°';
+
+                document.getElementById('objectRotationY').value = objectData.rotationY || 0;
+                document.getElementById('rotationYValue').textContent = (objectData.rotationY || 0) + '°';
+
+                document.getElementById('objectRotationZ').value = objectData.rotation || 0;
+                document.getElementById('rotationZValue').textContent = (objectData.rotation || 0) + '°';
+
             }
             // NUOVO: Aggiungi pulsante animazione
             const animButton = document.getElementById('showAnimationControls');
@@ -6845,6 +6911,42 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         this.updateCurrentFrame();
     }
 
+    // ✅ NUOVO METODO: Cambia rotazione su asse X
+    changeSelectedObjectsRotationX(degrees) {
+        if (this.selectedObjects.size === 0) return;
+
+        const tab = this.getCurrentTab();
+        this.selectedObjects.forEach((pos, id) => {
+            const objectData = tab.objects.get(id);
+            if (!objectData) return;
+
+            objectData.rotationX = (objectData.rotationX || 0) + degrees;
+            objectData.rotationX = objectData.rotationX % 360;
+            this.renderObject(objectData);
+        });
+
+        this.saveState(`Ruotato X di ${degrees}° per ${this.selectedObjects.size} oggetti`);
+        this.updateCurrentFrame();
+    }
+
+    // ✅ NUOVO METODO: Cambia rotazione su asse Y
+    changeSelectedObjectsRotationY(degrees) {
+        if (this.selectedObjects.size === 0) return;
+
+        const tab = this.getCurrentTab();
+        this.selectedObjects.forEach((pos, id) => {
+            const objectData = tab.objects.get(id);
+            if (!objectData) return;
+
+            objectData.rotationY = (objectData.rotationY || 0) + degrees;
+            objectData.rotationY = objectData.rotationY % 360;
+            this.renderObject(objectData);
+        });
+
+        this.saveState(`Ruotato Y di ${degrees}° per ${this.selectedObjects.size} oggetti`);
+        this.updateCurrentFrame();
+    }
+
     // Nel metodo rotateSelected(), aggiungi alla fine:
     rotateSelected(degrees) {
         if (this.selectedObjects.size === 0) return;
@@ -6854,11 +6956,11 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             const objectData = tab.objects.get(id);
             if (objectData) {
                 objectData.rotation = (objectData.rotation + degrees) % 360;
-                document.getElementById(id).style.transform = `rotate(${objectData.rotation}deg)`;
+                this.renderObject(objectData); // ✅ Usa renderObject per applicare tutti gli assi
                 this.updateArrowsForObject(id);
             }
         });
-        this.saveState(`Ruotato di ${degrees} gradi ${this.selectedObjects.size} oggetti`);
+        this.saveState(`Ruotato Z di ${degrees} gradi ${this.selectedObjects.size} oggetti`);
         this.updateCurrentFrame();
     }
 
