@@ -4561,6 +4561,59 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 }
             }
         });
+        
+        // CONTROLLI: Rotazione del piano complessivo dello schema (rotate whole canvas)
+        // Create toolbar controls if a menu-bar exists
+        // try {
+        //     const menuBar = document.querySelector('.menu-bar');
+        //     if (menuBar && !document.getElementById('planeRotateControls')) {
+        //         const container = document.createElement('div');
+        //         container.id = 'planeRotateControls';
+        //         container.style.display = 'flex';
+        //         container.style.gap = '6px';
+        //         container.style.alignItems = 'center';
+
+        //         const makeBtn = (id, title, label) => {
+        //             const b = document.createElement('button');
+        //             b.id = id;
+        //             b.type = 'button';
+        //             b.className = 'sidebar-button plane-rotate-btn';
+        //             b.title = title;
+        //             b.textContent = label;
+        //             b.style.padding = '4px 6px';
+        //             b.style.fontSize = '12px';
+        //             return b;
+        //         };
+
+        //         // const btnPXm = makeBtn('rotatePlaneXMinus', 'Rotate plane X -15°', 'X−');
+        //         // const btnPXp = makeBtn('rotatePlaneXPlus', 'Rotate plane X +15°', 'X+');
+        //         // const btnPYm = makeBtn('rotatePlaneYMinus', 'Rotate plane Y -15°', 'Y−');
+        //         // const btnPYp = makeBtn('rotatePlaneYPlus', 'Rotate plane Y +15°', 'Y+');
+        //         // const btnPZm = makeBtn('rotatePlaneZMinus', 'Rotate plane Z -15°', 'Z−');
+        //         // const btnPZp = makeBtn('rotatePlaneZPlus', 'Rotate plane Z +15°', 'Z+');
+        //         // const btnReset = makeBtn('rotatePlaneReset', 'Reset plane rotation', 'Reset');
+
+        //         // container.appendChild(btnPXm);
+        //         // container.appendChild(btnPXp);
+        //         // container.appendChild(btnPYm);
+        //         // container.appendChild(btnPYp);
+        //         // container.appendChild(btnPZm);
+        //         // container.appendChild(btnPZp);
+        //         // container.appendChild(btnReset);
+
+        //         // menuBar.appendChild(container);
+
+        //         btnPXm.addEventListener('click', () => this.rotateCanvasPlane('X', -15));
+        //         btnPXp.addEventListener('click', () => this.rotateCanvasPlane('X', 15));
+        //         btnPYm.addEventListener('click', () => this.rotateCanvasPlane('Y', -15));
+        //         btnPYp.addEventListener('click', () => this.rotateCanvasPlane('Y', 15));
+        //         btnPZm.addEventListener('click', () => this.rotateCanvasPlane('Z', -15));
+        //         btnPZp.addEventListener('click', () => this.rotateCanvasPlane('Z', 15));
+        //         btnReset.addEventListener('click', () => this.resetCanvasPlaneRotation());
+        //     }
+        // } catch (err) {
+        //     console.warn('Could not create plane rotate controls', err);
+        // }
         // // ========== LEFT SIDEBAR ==========
         // const sidebar = document.getElementById('sidebar');
         // const sidebarHandle = document.getElementById('sidebarHandle');
@@ -5140,6 +5193,36 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
         this.showGroupRotationCenter(); // Riposiziona il centro di rotazione
         this.saveState(`Ruotati ${this.selectedObjects.size} oggetti di ${degrees}°`);
+    }
+
+    // Rotate the whole canvas (schema plane) around given axis by delta degrees
+    rotateCanvasPlane(axis, delta) {
+        // initialize rotation state if missing
+        if (!this.canvasRotation) this.canvasRotation = { X: 0, Y: 0, Z: 0 };
+        const a = axis.toUpperCase();
+        if (!['X', 'Y', 'Z'].includes(a)) return;
+        this.canvasRotation[a] = (this.canvasRotation[a] + delta) % 360;
+
+        const x = this.canvasRotation.X || 0;
+        const y = this.canvasRotation.Y || 0;
+        const z = this.canvasRotation.Z || 0;
+
+        const canvasEl = document.getElementById('canvas');
+        if (canvasEl) {
+            // apply 3D transforms to the canvas
+            canvasEl.style.transformStyle = 'preserve-3d';
+            canvasEl.style.transform = `rotateX(${x}deg) rotateY(${y}deg) rotateZ(${z}deg)`;
+            // keep transform origin centered
+            canvasEl.style.transformOrigin = '50% 50%';
+        }
+    }
+
+    resetCanvasPlaneRotation() {
+        this.canvasRotation = { X: 0, Y: 0, Z: 0 };
+        const canvasEl = document.getElementById('canvas');
+        if (canvasEl) {
+            canvasEl.style.transform = '';
+        }
     }
 
     addObject(type, x, y, color = '#3498db', text = '', rotation = 0, dashed = this.dashedMode, icon = null, src = null, spriteData = null) {

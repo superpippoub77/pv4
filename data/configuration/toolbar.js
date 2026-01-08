@@ -137,6 +137,14 @@ const toolbarTopConfig = [
             { type: "button", id: "rotateRight", text: "↻", i18n: "btn_rotate_right", titleI18n: "btn_rotate_right" },
             { type: "button", id: "rotateLeft90", text: "↺90", i18n: "btn_rotate_left", titleI18n: "btn_rotate_left" },
             { type: "button", id: "rotateRight90", text: "↻90", i18n: "btn_rotate_right", titleI18n: "btn_rotate_right" },
+            // Plane rotation controls: rotate the whole canvas along X/Y/Z axes
+            { type: "button", id: "rotatePlaneXMinus", text: "X−", i18n: "btn_rotate_plane_x_minus", titleI18n: "btn_rotate_plane_x_minus", onClick: (editor) => { editor.rotateCanvasPlane('X', -15); } },
+            { type: "button", id: "rotatePlaneXPlus", text: "X+", i18n: "btn_rotate_plane_x_plus", titleI18n: "btn_rotate_plane_x_plus", onClick: (editor) => { editor.rotateCanvasPlane('X', 15); } },
+            { type: "button", id: "rotatePlaneYMinus", text: "Y−", i18n: "btn_rotate_plane_y_minus", titleI18n: "btn_rotate_plane_y_minus", onClick: (editor) => { editor.rotateCanvasPlane('Y', -15); } },
+            { type: "button", id: "rotatePlaneYPlus", text: "Y+", i18n: "btn_rotate_plane_y_plus", titleI18n: "btn_rotate_plane_y_plus", onClick: (editor) => { editor.rotateCanvasPlane('Y', 15); } },
+            { type: "button", id: "rotatePlaneZMinus", text: "Z−", i18n: "btn_rotate_plane_z_minus", titleI18n: "btn_rotate_plane_z_minus", onClick: (editor) => { editor.rotateCanvasPlane('Z', -15); } },
+            { type: "button", id: "rotatePlaneZPlus", text: "Z+", i18n: "btn_rotate_plane_z_plus", titleI18n: "btn_rotate_plane_z_plus", onClick: (editor) => { editor.rotateCanvasPlane('Z', 15); } },
+            { type: "button", id: "rotatePlaneReset", text: "Reset", i18n: "btn_rotate_plane_reset", titleI18n: "btn_rotate_plane_reset", onClick: (editor) => { editor.resetCanvasPlaneRotation(); } },
             {
                 type: "button", id: "groupRotateLeft", text: "⟲ Ruota Gruppo -15°", i18n: "btn_group_rotate_left", titleI18n: "btn_group_rotate_left",
                 onClick: (editor) => {
