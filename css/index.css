@@ -207,8 +207,9 @@ body {
     transition: all 0.3s ease;
     transform-origin: center center;
     /* Per un corretto zoom al centro */
-    min-width: 800px;
-    min-height: 400px;
+    /* Ridotti i min per permettere ridimensionamento a dimensioni più piccole */
+    min-width: 400px;
+    min-height: 300px;
     resize: none;
     perspective: 1000px;
 }
@@ -270,6 +271,32 @@ body.resizing-canvas * {
 
 body.resizing-canvas .canvas-resize-handle-single {
     pointer-events: auto;
+}
+
+/* Plane rotation sphere control */
+.plane-rotation-sphere {
+    position: absolute;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #fff 0%, #cfcfcf 20%, #9fb8d6 60%, #2b6b9a 100%);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    z-index: 2000;
+    user-select: none;
+}
+
+.plane-rotation-sphere:active { cursor: grabbing; }
+
+.plane-rotation-sphere .sphere-indicator {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.7);
+    border: 2px solid rgba(0,0,0,0.15);
 }
 
 

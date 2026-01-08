@@ -137,6 +137,7 @@ const toolbarTopConfig = [
             { type: "button", id: "rotateRight", text: "↻", i18n: "btn_rotate_right", titleI18n: "btn_rotate_right" },
             { type: "button", id: "rotateLeft90", text: "↺90", i18n: "btn_rotate_left", titleI18n: "btn_rotate_left" },
             { type: "button", id: "rotateRight90", text: "↻90", i18n: "btn_rotate_right", titleI18n: "btn_rotate_right" },
+            { type: "button", id: "resetRotation", text: "Reset", i18n: "btn_reset_rotation", titleI18n: "btn_reset_rotation", onClick: (editor) => { editor.resetSelectedRotation(); } },
             // Plane rotation controls: rotate the whole canvas along X/Y/Z axes
             { type: "button", id: "rotatePlaneXMinus", text: "X−", i18n: "btn_rotate_plane_x_minus", titleI18n: "btn_rotate_plane_x_minus", onClick: (editor) => { editor.rotateCanvasPlane('X', -15); } },
             { type: "button", id: "rotatePlaneXPlus", text: "X+", i18n: "btn_rotate_plane_x_plus", titleI18n: "btn_rotate_plane_x_plus", onClick: (editor) => { editor.rotateCanvasPlane('X', 15); } },

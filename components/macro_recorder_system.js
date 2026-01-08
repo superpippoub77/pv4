@@ -1410,6 +1410,7 @@ class MacroManager {
 
         (snapshot.objects || []).forEach(([id, obj]) => {
             const element = document.createElement('div');
+            element.id = 'preview_' + id;
             element.style.cssText = `
                 position:absolute; left:${obj.x}px; top:${obj.y}px; width:${obj.width}px; height:${obj.height}px;
                 background:${obj.color}; opacity:${obj.opacity || 1}; transform:rotate(${obj.rotation}deg);
@@ -1446,6 +1447,217 @@ class MacroManager {
             <div><strong>➡️ Frecce:</strong> ${arrowCount}</div>
             <div><strong>✏️ Disegni:</strong> ${freehandCount}</div>
         `;
+
+        // Timeline editor / preview controls
+        const timelineWrapper = document.createElement('div');
+        timelineWrapper.style.cssText = 'margin-top:10px; border-top:1px dashed #eee; padding-top:8px;';
+        timelineWrapper.innerHTML = `
+            <div style="display:flex; gap:8px; align-items:center;">
+                <button id="btnPlayPreview" style="padding:6px 10px;">▶️ Riproduci anteprima</button>
+                <button id="btnStopPreview" style="padding:6px 10px; display:none;">⏹️ Interrompi</button>
+                <button id="btnSaveEditedMacro" style="padding:6px 10px;">💾 Salva macro modificata</button>
+                <div style="margin-left:8px; color:#666; font-size:12px;">(Puoi rimuovere o modificare il timestamp delle azioni)</div>
+            </div>
+            <div id="timelineList" style="margin-top:8px; max-height:160px; overflow:auto;"></div>
+        `;
+
+        stats.appendChild(timelineWrapper);
+
+        // render timeline list
+        this.renderMacroTimeline(macro);
+
+        // bind preview controls
+        const btnPlay = document.getElementById('btnPlayPreview');
+        const btnStop = document.getElementById('btnStopPreview');
+        const btnSaveEdited = document.getElementById('btnSaveEditedMacro');
+        if (btnPlay) btnPlay.addEventListener('click', () => { this.playMacroPreview(macro, snapshot); });
+        if (btnStop) btnStop.addEventListener('click', () => { this.stopMacroPreview(); });
+        if (btnSaveEdited) btnSaveEdited.addEventListener('click', () => {
+            // persist edits
+            try {
+                this.macroRecorder.persistMacros();
+            } catch (e) { /* best effort */ }
+            this.loadMacros();
+            this.renderMacroList();
+            alert('✅ Macro salvata');
+        });
+    }
+
+    // Render the timeline list and attach edit/remove handlers
+    renderMacroTimeline(macro) {
+        const listEl = document.getElementById('timelineList');
+        if (!listEl) return;
+        listEl.innerHTML = '';
+
+        macro.actions.forEach((a, idx) => {
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex; align-items:center; justify-content:space-between; padding:6px; border-bottom:1px solid #f0f0f0;';
+            const info = document.createElement('div');
+            const t = typeof a.timestamp === 'number' ? (a.timestamp / 1000).toFixed(2) + 's' : '-';
+            info.innerHTML = `<div style="font-weight:600">${idx + 1}. ${a.type}</div><div style="font-size:12px;color:#666">timestamp: ${t}</div>`;
+
+            const ctrls = document.createElement('div');
+            ctrls.style.cssText = 'display:flex; gap:6px;';
+
+            const btnEdit = document.createElement('button');
+            btnEdit.textContent = '✏️';
+            btnEdit.title = 'Modifica timestamp';
+            btnEdit.style.cssText = 'padding:4px 6px;';
+            btnEdit.addEventListener('click', () => { this.editMacroActionTimestamp(macro, idx); });
+
+            const btnRemove = document.createElement('button');
+            btnRemove.textContent = '🗑️';
+            btnRemove.title = 'Rimuovi azione';
+            btnRemove.style.cssText = 'padding:4px 6px;';
+            btnRemove.addEventListener('click', () => { this.removeMacroAction(macro, idx); });
+
+            ctrls.appendChild(btnEdit);
+            ctrls.appendChild(btnRemove);
+
+            row.appendChild(info);
+            row.appendChild(ctrls);
+            listEl.appendChild(row);
+        });
+    }
+
+    removeMacroAction(macro, idx) {
+        if (!macro || !Array.isArray(macro.actions) || idx < 0 || idx >= macro.actions.length) return;
+        if (!confirm('Eliminare questa azione dalla macro?')) return;
+        macro.actions.splice(idx, 1);
+        // persist and refresh UI
+        try { this.macroRecorder.persistMacros(); } catch (e) {}
+        this.loadMacros();
+        this.renderMacroList();
+        this.renderMacroTimeline(macro);
+        this.showMacroPreview(macro);
+    }
+
+    editMacroActionTimestamp(macro, idx) {
+        if (!macro || !Array.isArray(macro.actions) || idx < 0 || idx >= macro.actions.length) return;
+        const a = macro.actions[idx];
+        const current = typeof a.timestamp === 'number' ? (a.timestamp / 1000).toFixed(2) : '';
+        const v = prompt('Inserisci nuovo timestamp in secondi (es. 1.25):', current);
+        if (v === null) return;
+        const parsed = parseFloat(v);
+        if (isNaN(parsed) || parsed < 0) { alert('Valore non valido'); return; }
+        a.timestamp = Math.round(parsed * 1000);
+        // re-sort actions by timestamp to keep order
+        macro.actions.sort((x, y) => (x.timestamp || 0) - (y.timestamp || 0));
+        try { this.macroRecorder.persistMacros(); } catch (e) {}
+        this.loadMacros();
+        this.renderMacroList();
+        this.renderMacroTimeline(macro);
+        this.showMacroPreview(macro);
+    }
+
+    // Simple preview player that applies timeline frames and some action types to the preview canvas
+    playMacroPreview(macro, snapshot) {
+        if (!macro) return;
+        this.stopMacroPreview();
+        this._previewTimeouts = [];
+        const previewRoot = document.getElementById('macroPreviewCanvas');
+        if (!previewRoot) return;
+        const miniCanvas = previewRoot.querySelector('div');
+        if (!miniCanvas) return;
+
+        // build frame list
+        const frames = [];
+        for (const a of macro.actions) {
+            const baseT = a.timestamp || 0;
+            if (a.type === 'transaction' && a.params && a.params.timeline) {
+                try {
+                    for (const entry of a.params.timeline) {
+                        const objectId = entry[0];
+                        const farr = entry[1] || [];
+                        for (const f of farr) {
+                            frames.push({ t: baseT + (f.t || 0), type: 'frame', objectId, props: f.props });
+                        }
+                    }
+                } catch (e) { /* ignore */ }
+            } else if (a.type === 'addObject') {
+                frames.push({ t: baseT, type: 'addObject', params: a.params });
+            } else if (a.type === 'deleteObjects') {
+                frames.push({ t: baseT, type: 'deleteObjects', params: a.params });
+            } else if (a.type === 'rotate' || a.type === 'changeColor' || a.type === 'changeText') {
+                // best-effort: apply at action time to selected objects if ids present (limited data)
+                frames.push({ t: baseT, type: a.type, params: a.params });
+            }
+        }
+
+        frames.sort((a, b) => (a.t || 0) - (b.t || 0));
+        const startT = frames.length ? frames[0].t : 0;
+        const now = Date.now();
+
+        // schedule frames
+        frames.forEach(frame => {
+            const delay = Math.max(0, (frame.t || 0) - startT);
+            const to = setTimeout(() => {
+                try {
+                    if (this._previewAbort) return;
+                    if (frame.type === 'frame') {
+                        const el = document.getElementById('preview_' + frame.objectId);
+                        if (el) {
+                            const p = frame.props || {};
+                            if (p.x !== undefined) el.style.left = p.x + 'px';
+                            if (p.y !== undefined) el.style.top = p.y + 'px';
+                            if (p.rotation !== undefined) el.style.transform = 'rotate(' + p.rotation + 'deg)';
+                            if (p.width !== undefined) el.style.width = p.width + 'px';
+                            if (p.height !== undefined) el.style.height = p.height + 'px';
+                            if (p.color !== undefined) el.style.background = p.color;
+                        }
+                    } else if (frame.type === 'addObject') {
+                        const params = frame.params || {};
+                        const id = params.id || ('tmp_' + Math.random().toString(36).slice(2, 9));
+                        if (!document.getElementById('preview_' + id)) {
+                            const el = document.createElement('div');
+                            el.id = 'preview_' + id;
+                            el.style.cssText = `position:absolute; left:${params.x || 0}px; top:${params.y || 0}px; width:${params.width || 30}px; height:${params.height || 30}px; background:${params.color || '#888'}; border:2px solid #333; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:10px; color:white;`;
+                            el.textContent = params.text || '';
+                            miniCanvas.appendChild(el);
+                        }
+                    } else if (frame.type === 'deleteObjects') {
+                        const ids = (frame.params && frame.params.deletedObjects) ? frame.params.deletedObjects.map(d=>d.id) : null;
+                        if (ids && ids.length) {
+                            ids.forEach(id => {
+                                const el = document.getElementById('preview_' + id);
+                                if (el && el.parentNode) el.parentNode.removeChild(el);
+                            });
+                        }
+                    } else if (frame.type === 'rotate' && frame.params) {
+                        // rotate selected count: not actionable in preview without ids
+                    }
+                } catch (e) { /* ignore per-frame errors */ }
+            }, delay);
+            this._previewTimeouts.push(to);
+        });
+
+        // toggle UI
+        const btnPlay = document.getElementById('btnPlayPreview');
+        const btnStop = document.getElementById('btnStopPreview');
+        if (btnPlay) btnPlay.style.display = 'none';
+        if (btnStop) btnStop.style.display = 'inline-block';
+
+        // automatically restore UI after last frame
+        if (frames.length) {
+            const lastDelay = Math.max(0, (frames[frames.length - 1].t || 0) - startT) + 50;
+            const endTo = setTimeout(() => { this.stopMacroPreview(); }, lastDelay);
+            this._previewTimeouts.push(endTo);
+        }
+    }
+
+    stopMacroPreview() {
+        this._previewAbort = true;
+        if (this._previewTimeouts && Array.isArray(this._previewTimeouts)) {
+            this._previewTimeouts.forEach(t => clearTimeout(t));
+        }
+        this._previewTimeouts = [];
+        this._previewAbort = false;
+        const btnPlay = document.getElementById('btnPlayPreview');
+        const btnStop = document.getElementById('btnStopPreview');
+        if (btnPlay) btnPlay.style.display = 'inline-block';
+        if (btnStop) btnStop.style.display = 'none';
+        // re-render preview to restore initial snapshot state
+        if (this.selectedMacro) this.showMacroPreview(this.selectedMacro);
     }
 
     deleteMacro(macroName) {

@@ -2949,6 +2949,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             handle = document.createElement('div');
             handle.id = 'canvasResizeHandle';
             handle.className = 'canvas-resize-handle-single';
+            // Ensure absolute positioning context (defensive) and pointer events
+            handle.style.position = 'absolute';
+            handle.style.pointerEvents = 'auto';
             handle.innerHTML = '⇲';
             container.appendChild(handle);
         }
@@ -2961,8 +2964,12 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             const rect = canvas.getBoundingClientRect();
             const containerRect = container.getBoundingClientRect();
 
-            handle.style.left = (rect.right - containerRect.left - 10) + 'px';
-            handle.style.top = (rect.bottom - containerRect.top - 10) + 'px';
+            // Account for container scroll so the handle stays aligned to the canvas content
+            const scrollLeft = container.scrollLeft || 0;
+            const scrollTop = container.scrollTop || 0;
+
+            handle.style.left = (rect.right - containerRect.left + scrollLeft - 10) + 'px';
+            handle.style.top = (rect.bottom - containerRect.top + scrollTop - 10) + 'px';
         };
 
         // Posiziona inizialmente
@@ -2976,8 +2983,17 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             // Passa a modalità custom quando inizi il resize
             const currentSize = document.getElementById('canvasSizeSelect').value;
             if (currentSize !== 'custom') {
+                // Read computed size BEFORE removing preset class so we preserve the rendered px values
+                const rect = canvas.getBoundingClientRect();
+                const tab = this.getCurrentTab();
+                tab.customWidth = Math.round(rect.width);
+                tab.customHeight = Math.round(rect.height);
+                // Switch select to custom and apply saved custom px dimensions
                 document.getElementById('canvasSizeSelect').value = 'custom';
                 this.setCanvasSize('custom');
+                // Ensure inline styles reflect the exact computed size
+                canvas.style.width = tab.customWidth + 'px';
+                canvas.style.height = tab.customHeight + 'px';
             }
 
             isResizing = true;
@@ -2997,8 +3013,13 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             const deltaX = e.clientX - startX;
             const deltaY = e.clientY - startY;
 
-            let newWidth = Math.max(400, startWidth + deltaX);
-            let newHeight = Math.max(300, startHeight + deltaY);
+            // Read CSS min sizes to avoid fighting with stylesheet constraints
+            const computed = getComputedStyle(canvas);
+            const cssMinW = parseInt(computed.minWidth) || 400;
+            const cssMinH = parseInt(computed.minHeight) || 300;
+
+            let newWidth = Math.max(cssMinW, startWidth + deltaX);
+            let newHeight = Math.max(cssMinH, startHeight + deltaY);
 
             canvas.style.width = newWidth + 'px';
             canvas.style.height = newHeight + 'px';
@@ -3036,45 +3057,47 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         const canvas = document.getElementById('canvas');
         const canvasContainer = canvas.parentElement;
 
-        // ✅ FORZA il browser a ricalcolare le dimensioni del canvas
-        canvas.offsetHeight;
+    // ✅ FORZA il browser a ricalcolare le dimensioni del canvas
+    canvas.offsetHeight;
 
-        // ✅ USA getBoundingClientRect per coordinate ACCURATE
-        const canvasRect = canvas.getBoundingClientRect();
-        const containerRect = canvasContainer.getBoundingClientRect();
+    // ✅ USA getBoundingClientRect per coordinate ACCURATE
+    const canvasRect = canvas.getBoundingClientRect();
+    const containerRect = canvasContainer.getBoundingClientRect();
+    const scrollLeft = canvasContainer.scrollLeft || 0;
+    const scrollTop = canvasContainer.scrollTop || 0;
 
         const positions = {
             'n': {
-                left: canvasRect.left + canvasRect.width / 2 - containerRect.left - 10,
-                top: canvasRect.top - containerRect.top - 10
+                left: canvasRect.left + canvasRect.width / 2 - containerRect.left + scrollLeft - 10,
+                top: canvasRect.top - containerRect.top + scrollTop - 10
             },
             'ne': {
-                left: canvasRect.right - containerRect.left - 10,
-                top: canvasRect.top - containerRect.top - 10
+                left: canvasRect.right - containerRect.left + scrollLeft - 10,
+                top: canvasRect.top - containerRect.top + scrollTop - 10
             },
             'e': {
-                left: canvasRect.right - containerRect.left - 10,
-                top: canvasRect.top + canvasRect.height / 2 - containerRect.top - 10
+                left: canvasRect.right - containerRect.left + scrollLeft - 10,
+                top: canvasRect.top + canvasRect.height / 2 - containerRect.top + scrollTop - 10
             },
             'se': {
-                left: canvasRect.right - containerRect.left - 10,
-                top: canvasRect.bottom - containerRect.top - 10
+                left: canvasRect.right - containerRect.left + scrollLeft - 10,
+                top: canvasRect.bottom - containerRect.top + scrollTop - 10
             },
             's': {
-                left: canvasRect.left + canvasRect.width / 2 - containerRect.left - 10,
-                top: canvasRect.bottom - containerRect.top - 10
+                left: canvasRect.left + canvasRect.width / 2 - containerRect.left + scrollLeft - 10,
+                top: canvasRect.bottom - containerRect.top + scrollTop - 10
             },
             'sw': {
-                left: canvasRect.left - containerRect.left - 10,
-                top: canvasRect.bottom - containerRect.top - 10
+                left: canvasRect.left - containerRect.left + scrollLeft - 10,
+                top: canvasRect.bottom - containerRect.top + scrollTop - 10
             },
             'w': {
-                left: canvasRect.left - containerRect.left - 10,
-                top: canvasRect.top + canvasRect.height / 2 - containerRect.top - 10
+                left: canvasRect.left - containerRect.left + scrollLeft - 10,
+                top: canvasRect.top + canvasRect.height / 2 - containerRect.top + scrollTop - 10
             },
             'nw': {
-                left: canvasRect.left - containerRect.left - 10,
-                top: canvasRect.top - containerRect.top - 10
+                left: canvasRect.left - containerRect.left + scrollLeft - 10,
+                top: canvasRect.top - containerRect.top + scrollTop - 10
             }
         };
 
@@ -3096,8 +3119,11 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             const rect = canvas.getBoundingClientRect();
             const containerRect = canvas.parentElement.getBoundingClientRect();
 
-            handle.style.left = (rect.right - containerRect.left - 10) + 'px';
-            handle.style.top = (rect.bottom - containerRect.top - 10) + 'px';
+            const scrollLeft = canvas.parentElement.scrollLeft || 0;
+            const scrollTop = canvas.parentElement.scrollTop || 0;
+
+            handle.style.left = (rect.right - containerRect.left + scrollLeft - 10) + 'px';
+            handle.style.top = (rect.bottom - containerRect.top + scrollTop - 10) + 'px';
         }
     }
     // NUOVO METODO - Toggle bordi canvas
@@ -4300,6 +4326,11 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         document.getElementById('rotateRight').addEventListener('click', () => this.rotateSelected(15));
         document.getElementById('rotateLeft90').addEventListener('click', () => this.rotateSelected(-90));
         document.getElementById('rotateRight90').addEventListener('click', () => this.rotateSelected(90));
+        // Reset rotation for selected objects
+        const resetRotBtn = document.getElementById('resetRotation');
+        if (resetRotBtn) {
+            resetRotBtn.addEventListener('click', () => this.resetSelectedRotation());
+        }
         document.getElementById('undoBtn').addEventListener('click', () => this.undo());
         document.getElementById('redoBtn').addEventListener('click', () => this.redo());
         document.getElementById('saveBtn').addEventListener('click', () => this.saveSchema());
@@ -5011,6 +5042,167 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         document.getElementById('recordMacroBtn').addEventListener('click', () => {
             this.macroManager.showDialog();
         });
+
+        // ========== Plane rotation sphere control ==========
+        // Create a draggable sphere in the top-right corner of the canvas container
+        try {
+            const canvasContainer = document.querySelector('.canvas-container');
+            if (canvasContainer && !document.getElementById('planeRotationSphere')) {
+                const sphere = document.createElement('div');
+                sphere.id = 'planeRotationSphere';
+                sphere.className = 'plane-rotation-sphere';
+                sphere.style.right = '16px';
+                sphere.style.top = '16px';
+                sphere.style.position = 'absolute';
+
+                const indicator = document.createElement('div');
+                indicator.className = 'sphere-indicator';
+                sphere.appendChild(indicator);
+
+                canvasContainer.appendChild(sphere);
+
+                // Create toggle button to show/hide the sphere
+                const toggleBtn = document.createElement('button');
+                toggleBtn.id = 'togglePlaneSphereBtn';
+                toggleBtn.className = 'toggle-plane-sphere-btn';
+                toggleBtn.type = 'button';
+                toggleBtn.title = 'Mostra/Nascondi sfera rotazione piano';
+                toggleBtn.textContent = '🔘';
+                // position it near the sphere
+                toggleBtn.style.position = 'absolute';
+                toggleBtn.style.right = '16px';
+                toggleBtn.style.top = '80px';
+                toggleBtn.style.zIndex = 2000;
+                canvasContainer.appendChild(toggleBtn);
+
+                // Apply saved position/visibility if present in tab
+                try {
+                    const tab = this.getCurrentTab();
+                    if (tab && tab.planeSphere) {
+                        const ps = tab.planeSphere;
+                        if (ps.left !== undefined && ps.top !== undefined) {
+                            sphere.style.left = ps.left + 'px';
+                            sphere.style.top = ps.top + 'px';
+                            sphere.style.right = '';
+                        }
+                        if (ps.visible === false) {
+                            sphere.style.display = 'none';
+                        }
+                    }
+                } catch (err) {
+                    // ignore
+                }
+
+                toggleBtn.addEventListener('click', (ev) => {
+                    ev.preventDefault();
+                    const tab = this.getCurrentTab();
+                    tab.planeSphere = tab.planeSphere || {};
+                    if (sphere.style.display === 'none') {
+                        sphere.style.display = '';
+                        tab.planeSphere.visible = true;
+                    } else {
+                        sphere.style.display = 'none';
+                        tab.planeSphere.visible = false;
+                    }
+                    this.saveState('Toggle sfera rotazione piano');
+                });
+
+                // Drag handling
+                let draggingSphere = false;
+                let movingSphere = false; // Alt-drag to move the control
+                let startX = 0, startY = 0;
+                let sphereStartLeft = null, sphereStartTop = null;
+
+                const onMouseMove = (e) => {
+                    if (!draggingSphere) return;
+                    e.preventDefault();
+
+                    const dx = e.clientX - startX;
+                    const dy = e.clientY - startY;
+
+                    if (movingSphere) {
+                        // Move the sphere position within the canvasContainer
+                        const containerRect = canvasContainer.getBoundingClientRect();
+                        let newLeft = sphereStartLeft + dx;
+                        let newTop = sphereStartTop + dy;
+
+                        // Clamp inside container
+                        newLeft = Math.max(0, Math.min(newLeft, containerRect.width - sphere.offsetWidth));
+                        newTop = Math.max(0, Math.min(newTop, containerRect.height - sphere.offsetHeight));
+
+                        sphere.style.left = newLeft + 'px';
+                        sphere.style.top = newTop + 'px';
+                        // clear right style so left/top take effect
+                        sphere.style.right = '';
+
+                        // persist temporarily in current tab
+                        const tab = this.getCurrentTab();
+                        tab.planeSphere = tab.planeSphere || {};
+                        tab.planeSphere.left = newLeft;
+                        tab.planeSphere.top = newTop;
+                    } else {
+                        // Rotate the canvas plane: Shift => Z, otherwise X/Y
+                        if (e.shiftKey) {
+                            this.rotateCanvasPlane('Z', dx * 0.5);
+                        } else {
+                            this.rotateCanvasPlane('X', -dy * 0.5);
+                            this.rotateCanvasPlane('Y', dx * 0.5);
+                        }
+
+                        // update visual of sphere to match canvas rotation
+                        const cr = this.canvasRotation || { X: 0, Y: 0, Z: 0 };
+                        sphere.style.transform = `rotateX(${cr.X}deg) rotateY(${cr.Y}deg) rotateZ(${cr.Z}deg)`;
+                    }
+
+                    startX = e.clientX;
+                    startY = e.clientY;
+                };
+
+                const onMouseUp = (e) => {
+                    if (!draggingSphere) return;
+                    draggingSphere = false;
+                    movingSphere = false;
+                    document.body.classList.remove('dragging-sphere');
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+                    this.saveState('Modificata sfera/rotazione piano');
+                };
+
+                sphere.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    draggingSphere = true;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    document.body.classList.add('dragging-sphere');
+
+                    const rect = sphere.getBoundingClientRect();
+                    const containerRect = canvasContainer.getBoundingClientRect();
+                    sphereStartLeft = rect.left - containerRect.left;
+                    sphereStartTop = rect.top - containerRect.top;
+
+                    // If Alt key is pressed at start, we enter move mode (reposition the control)
+                    movingSphere = !!e.altKey;
+
+                    document.addEventListener('mousemove', onMouseMove);
+                    document.addEventListener('mouseup', onMouseUp);
+                });
+
+                // Allow wheel on sphere to rotate Z
+                sphere.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                    this.rotateCanvasPlane('Z', e.deltaY > 0 ? 5 : -5);
+                    const cr = this.canvasRotation || { X: 0, Y: 0, Z: 0 };
+                    sphere.style.transform = `rotateX(${cr.X}deg) rotateY(${cr.Y}deg) rotateZ(${cr.Z}deg)`;
+                    this.saveState('Ruotato piano schema (wheel)');
+                });
+
+                // Tooltip: Alt+drag to move, Shift+drag to rotate Z
+                sphere.title = 'Drag: rotate X/Y, Shift+drag: rotate Z, Alt+drag: move control, wheel: rotate Z';
+            }
+        } catch (err) {
+            console.warn('Could not create plane rotation sphere', err);
+        }
     }
 
     // initTeamDialogDrag() {
@@ -5245,7 +5437,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             text: text,
             dashed: dashed,
             opacity: 1,
-            zIndex: this.maxZIndex++,
+            // Campo (court) deve rimanere sotto a tutti gli altri oggetti
+            zIndex: (type === 'court' || type === 'half-court' || type === 'full-field' || type === 'full-court') ? 0 : this.maxZIndex++,
             icon: icon,
             src: src,
             spriteData: spriteData,
@@ -5311,7 +5504,13 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         element.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) rotateZ(${rotZ}deg)`;
         element.style.transformStyle = 'preserve-3d'; // ✅ IMPORTANTE per 3D
 
-        element.style.zIndex = object.zIndex || 1;
+        // Ensure court/plane stays below everything else
+        if (object.type === 'court' || object.type === 'half-court' || object.type === 'full-field' || object.type === 'full-court') {
+            element.style.zIndex = 0;
+            element.classList.add('court-object');
+        } else {
+            element.style.zIndex = Math.max(1, object.zIndex || 1);
+        }
         element.style.opacity = object.opacity || 1;
         element.classList.toggle('dashed', object.dashed);
 
@@ -7180,12 +7379,47 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         this.selectedObjects.forEach((pos, id) => {
             const objectData = tab.objects.get(id);
             if (objectData) {
-                objectData.rotation = (objectData.rotation + degrees) % 360;
-                document.getElementById(id).style.transform = `rotate(${objectData.rotation}deg)`;
+                objectData.rotation = (objectData.rotation || 0) + degrees;
+                objectData.rotation = objectData.rotation % 360;
+                // Use renderObject so all axes (rotationX, rotationY, rotationZ) and transform-style are applied
+                this.renderObject(objectData);
                 this.updateArrowsForObject(id);
             }
         });
         this.saveState(`Ruotato di ${degrees} gradi ${this.selectedObjects.size} oggetti`);
+        this.updateCurrentFrame();
+    }
+
+    // Reset rotation (all axes) for selected objects
+    resetSelectedRotation() {
+        if (this.selectedObjects.size === 0) return;
+
+        const tab = this.getCurrentTab();
+        this.selectedObjects.forEach((pos, id) => {
+            const objectData = tab.objects.get(id);
+            if (objectData) {
+                objectData.rotation = 0;
+                objectData.rotationX = 0;
+                objectData.rotationY = 0;
+                this.renderObject(objectData);
+                this.updateArrowsForObject(id);
+            }
+        });
+        this.saveState(`Reset rotazione per ${this.selectedObjects.size} oggetti`);
+        this.updateCurrentFrame();
+        // Reset rotation UI controls if present
+        const rx = document.getElementById('objectRotationX');
+        const ry = document.getElementById('objectRotationY');
+        const rz = document.getElementById('objectRotationZ');
+        if (rx) { rx.value = 0; }
+        if (ry) { ry.value = 0; }
+        if (rz) { rz.value = 0; }
+        const rxv = document.getElementById('rotationXValue');
+        const ryv = document.getElementById('rotationYValue');
+        const rzv = document.getElementById('rotationZValue');
+        if (rxv) rxv.textContent = '0°';
+        if (ryv) ryv.textContent = '0°';
+        if (rzv) rzv.textContent = '0°';
     }
 
     deleteSelected() {
@@ -7802,6 +8036,22 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 y: data.y
             });
         });
+        // Save canvas rotation and plane sphere position/visibility
+        try {
+            tab.canvasRotation = this.canvasRotation || { X: 0, Y: 0, Z: 0 };
+            const sphere = document.getElementById('planeRotationSphere');
+            const canvasContainer = document.querySelector('.canvas-container');
+            if (sphere && canvasContainer) {
+                const rect = sphere.getBoundingClientRect();
+                const crect = canvasContainer.getBoundingClientRect();
+                tab.planeSphere = tab.planeSphere || {};
+                tab.planeSphere.left = Math.round(rect.left - crect.left);
+                tab.planeSphere.top = Math.round(rect.top - crect.top);
+                tab.planeSphere.visible = sphere.style.display !== 'none';
+            }
+        } catch (err) {
+            // ignore
+        }
     }
 
     loadTabState() {
@@ -7871,6 +8121,37 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         this.updateBWMode();
         this.deselectAll();
         this.updateAllResizeHandles();
+
+        // Restore canvas rotation if present
+        try {
+            if (tab.canvasRotation) {
+                this.canvasRotation = tab.canvasRotation;
+                const x = tab.canvasRotation.X || 0;
+                const y = tab.canvasRotation.Y || 0;
+                const z = tab.canvasRotation.Z || 0;
+                const canvasEl = document.getElementById('canvas');
+                if (canvasEl) {
+                    canvasEl.style.transformStyle = 'preserve-3d';
+                    canvasEl.style.transform = `rotateX(${x}deg) rotateY(${y}deg) rotateZ(${z}deg)`;
+                    canvasEl.style.transformOrigin = '50% 50%';
+                }
+            }
+
+            // Restore plane sphere position/visibility
+            const sphere = document.getElementById('planeRotationSphere');
+            const canvasContainer = document.querySelector('.canvas-container');
+            if (sphere && canvasContainer && tab.planeSphere) {
+                const ps = tab.planeSphere;
+                if (ps.left !== undefined && ps.top !== undefined) {
+                    sphere.style.left = ps.left + 'px';
+                    sphere.style.top = ps.top + 'px';
+                    sphere.style.right = '';
+                }
+                if (ps.visible === false) sphere.style.display = 'none';
+            }
+        } catch (err) {
+            // ignore
+        }
     }
 
     saveState(description = 'Modifica') {
