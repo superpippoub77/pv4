@@ -5814,7 +5814,17 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
         const freehandPath = e.target.closest('.freehand-path');
         if (freehandPath) {
-            this.selectFreehand(freehandPath.closest('.freehand-svg').id);
+            const fhId = freehandPath.closest('.freehand-svg').id;
+            this.selectFreehand(fhId);
+            // Prepare selection entry so freehand can be dragged like objects
+            const tab = this.getCurrentTab();
+            const freehand = tab.freehands.get(fhId);
+            if (freehand) {
+                // store a copy of points as the initial position for drag calculations
+                this.selectedObjects.set(fhId, { type: 'freehand', points: [...freehand.points] });
+                // start dragging immediately
+                this.startDrag(e);
+            }
             return;
         }
         if (e.target.closest('.resize-handle') || e.target.closest('.rotate-handle') || e.target.closest('.connection-point')) {
@@ -6145,6 +6155,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             const objData = tab.objects.get(id);
             if (objData) {
                 dragStartPositions.set(id, { x: objData.x, y: objData.y });
+            } else if (pos && pos.type === 'freehand') {
+                // preserve freehand initial points so we can translate them during drag
+                dragStartPositions.set(id, { type: 'freehand', points: pos.points ? [...pos.points] : [] });
             }
         });
 
