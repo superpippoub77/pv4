@@ -4373,7 +4373,22 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         // });
 
         // document.getElementById('deleteBtn').addEventListener('click', () => this.deleteSelected());
-        // document.addEventListener('keydown', (e) => this.handleKeyboard(e));
+        // Keyboard handling for editor actions (delete, copy/paste, arrow move)
+        // Ignore key events when focus is inside inputs/textareas or contentEditable elements
+        if (!document._vpw4_keyboard_listener_added) {
+            document.addEventListener('keydown', (e) => {
+                try {
+                    const tgt = e.target || {};
+                    const tag = (tgt.tagName || '').toUpperCase();
+                    if (tag === 'INPUT' || tag === 'TEXTAREA' || tgt.isContentEditable) return; // let native handling happen
+                    // call the centralized handler
+                    this.handleKeyboard(e);
+                } catch (err) {
+                    console.error('Keyboard handler error:', err);
+                }
+            });
+            document._vpw4_keyboard_listener_added = true;
+        }
         // document.querySelectorAll('.arrow-type-btn').forEach(btn => {
         //     btn.addEventListener('click', (e) => this.changeArrowType(e.target.id.replace('arrowType', '').toLowerCase()));
         // });

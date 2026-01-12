@@ -208,7 +208,7 @@ body {
     transform-origin: center center;
     /* Per un corretto zoom al centro */
     /* Ridotti i min per permettere ridimensionamento a dimensioni più piccole */
-    min-width: 400px;
+    min-width: 600px;
     min-height: 300px;
     resize: none;
     perspective: 1000px;
@@ -884,7 +884,7 @@ body.dragging-endpoint .canvas-object .connection-point {
     background-color: transparent;
 
     /* 🔹 Bordo perimetrale visibile */
-    border: 2px solid black;
+    border: 1px solid black;
 
     /* 🔹 Disegno delle linee interne */
     background-image:
@@ -920,7 +920,7 @@ body.dragging-endpoint .canvas-object .connection-point {
     overflow: hidden;
     background-color: transparent;
     /* Campo trasparente o bianco */
-    border: 2px solid black;
+    border: 1px solid black;
     /* Perimetro visibile */
 }
 
