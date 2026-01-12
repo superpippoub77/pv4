@@ -337,13 +337,36 @@
                 });
                 exportBtn.dataset.listenerAdded = "true"; // evita di aggiungere listener duplicati
             }
+
+            // // Listener per DataVolley cheatsheet PDF (scegli formato)
+            // const exportDVBtn = document.getElementById('exportDataVolleyBtn');
+            // if (exportDVBtn && !exportDVBtn.dataset.listenerAdded) {
+            //     exportDVBtn.addEventListener('click', () => {
+            //         if (window.editor && window.editor.exportDataVolleyCheatsheet) {
+            //             // Chiedi formato all'utente
+            //             let mode = prompt("Formato PDF: scrivi 'compact' per versione compatta, 'extended' per versione estesa, o 'scout' per il foglio scout con tabella giocatori (default: extended)", "extended");
+            //             if (!mode) mode = 'extended';
+            //             if (String(mode).toLowerCase() === 'scout' || String(mode).toLowerCase() === 'scoutsheet') {
+            //                 let boxes = prompt('Numero di caselle per fondamentale (es: 20)', '20');
+            //                 boxes = parseInt(boxes, 10);
+            //                 if (isNaN(boxes) || boxes <= 0) boxes = 20;
+            //                 const interactive = prompt("Aprire versione compilabile in-browser? (s/n)", 'n');
+            //                 const interactiveFlag = (String(interactive || '').toLowerCase() === 's');
+            //                 window.editor.exportDataVolleyCheatsheet(mode, { boxCount: boxes, interactive: interactiveFlag });
+            //             } else {
+            //                 window.editor.exportDataVolleyCheatsheet(mode);
+            //             }
+            //         } else {
+            //             alert('Errore: La funzione di esportazione DataVolley non è stata caricata correttamente.');
+            //         }
+            //     });
+            //     exportDVBtn.dataset.listenerAdded = "true";
+            // }
         }
 
         document.addEventListener("DOMContentLoaded", () => {
             initializeEditor();
         });
     </script>
-
 </body>
-
 </html>

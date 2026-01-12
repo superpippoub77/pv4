@@ -113,6 +113,7 @@ const toolbarTopConfig = [
                 }
             },
             { type: "button", id: "exportFormationsBtn", text: "📋 Foglio Formazioni", i18n: "btn_export_formations", titleI18n: "btn_export_formations" },
+            { type: "button", id: "exportDataVolleyBtn", text: "📋 Foglio Scout", i18n: "btn_export_scout", titleI18n: "btn_export_scout" },
             { type: "button", id: "showAnimationControls", text: "🎬 Animazione", i18n: "btn_show_animation", titleI18n: "btn_show_animation" },
             { type: "button", id: "recordMacroBtn", text: "⏺️", i18n: "btn_record_start", titleI18n: "btn_record_start" },
             { type: "button", id: "stopRecordBtn", text: "⏹️", i18n: "btn_record_stop", titleI18n: "btn_record_stop" },

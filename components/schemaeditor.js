@@ -3057,14 +3057,14 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         const canvas = document.getElementById('canvas');
         const canvasContainer = canvas.parentElement;
 
-    // ✅ FORZA il browser a ricalcolare le dimensioni del canvas
-    canvas.offsetHeight;
+        // ✅ FORZA il browser a ricalcolare le dimensioni del canvas
+        canvas.offsetHeight;
 
-    // ✅ USA getBoundingClientRect per coordinate ACCURATE
-    const canvasRect = canvas.getBoundingClientRect();
-    const containerRect = canvasContainer.getBoundingClientRect();
-    const scrollLeft = canvasContainer.scrollLeft || 0;
-    const scrollTop = canvasContainer.scrollTop || 0;
+        // ✅ USA getBoundingClientRect per coordinate ACCURATE
+        const canvasRect = canvas.getBoundingClientRect();
+        const containerRect = canvasContainer.getBoundingClientRect();
+        const scrollLeft = canvasContainer.scrollLeft || 0;
+        const scrollTop = canvasContainer.scrollTop || 0;
 
         const positions = {
             'n': {
@@ -4592,7 +4592,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 }
             }
         });
-        
+
         // CONTROLLI: Rotazione del piano complessivo dello schema (rotate whole canvas)
         // Create toolbar controls if a menu-bar exists
         // try {
@@ -4960,6 +4960,10 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         });
         document.getElementById('exportFormationsBtn').addEventListener('click', () => {
             this.exportFormationSheet();
+        });
+
+        document.getElementById('exportDataVolleyBtn').addEventListener('click', () => {
+            this.exportDataVolley();
         });
 
         // Gestione squadra
@@ -9463,7 +9467,25 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         doc.save(`Allenamento_${timestamp}.pdf`);
         alert('Esportazione PDF completata con successo!');
     }
-
+    async exportDataVolley() {
+        if (window.editor && window.editor.exportDataVolleyCheatsheet) {
+            // Chiedi formato all'utente
+            let mode = prompt("Formato PDF: scrivi 'compact' per versione compatta, 'extended' per versione estesa, o 'scout' per il foglio scout con tabella giocatori (default: extended)", "extended");
+            if (!mode) mode = 'extended';
+            if (String(mode).toLowerCase() === 'scout' || String(mode).toLowerCase() === 'scoutsheet') {
+                let boxes = prompt('Numero di caselle per fondamentale (es: 20)', '20');
+                boxes = parseInt(boxes, 10);
+                if (isNaN(boxes) || boxes <= 0) boxes = 20;
+                const interactive = prompt("Aprire versione compilabile in-browser? (s/n)", 'n');
+                const interactiveFlag = (String(interactive || '').toLowerCase() === 's');
+                window.editor.exportDataVolleyCheatsheet(mode, { boxCount: boxes, interactive: interactiveFlag });
+            } else {
+                window.editor.exportDataVolleyCheatsheet(mode);
+            }
+        } else {
+            alert('Errore: La funzione di esportazione DataVolley non è stata caricata correttamente.');
+        }
+    }
     async exportFormationSheet() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF({
@@ -9495,7 +9517,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         doc.text('DATA: _____________', margin + fieldWidth1 + spacing, yOffset);
         doc.text('LUOGO: _____________', margin + (fieldWidth1 + spacing) * 2, yOffset);
 
-        yOffset += 8;
+        // Spazio maggiore dopo la prima riga di campi per evitare sovrapposizioni
+        yOffset += 12;
 
         // ============ SECONDA RIGA: 2 CAMPI ============
         const fieldWidth2 = 80;
@@ -9503,13 +9526,15 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         doc.text('AVVERSARIO: __________________________________', margin, yOffset);
         doc.text('ARBITRO: __________________________________', margin + fieldWidth2 + spacing, yOffset);
 
-        yOffset += 10;
+        // Spazio maggiore dopo la seconda riga (avversario/arbitro)
+        yOffset += 16;
 
         // ============ ELENCO NOMI FORMAZIONI ============
         doc.setFontSize(11);
         doc.setFont(undefined, 'bold');
         doc.text('ELENCO GIOCATORI:', margin, yOffset);
-        yOffset += 5;
+        // Piccolo spazio prima della lista giocatori
+        yOffset += 8;
 
         doc.setFontSize(9);
         doc.setFont(undefined, 'normal');
@@ -9518,6 +9543,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         const col1X = margin;
         const col2X = margin + 60;
         const col3X = margin + 120;
+        // Altezza riga giocatori (ridotta per evitare overflow sull'ultima riga)
         const lineHeight = 5;
         const maxPlayersPerColumn = 6;
 
@@ -9578,14 +9604,15 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             drawCell(col3X, i + (2 * maxPlayersPerColumn), i + 1 + (2 * maxPlayersPerColumn));
         }
 
-        yOffset += (maxPlayersPerColumn * lineHeight) + 10;
+        // Spazio extra sotto la lista giocatori prima dei campi dei set
+        yOffset += (maxPlayersPerColumn * lineHeight) + 14;
 
         // ============ DISEGNA I 5 SET (3 PER RIGA) ============
         const courtWidth = 55;
         const courtHeight = 45;
-        const notesHeight = 25; // Altezza sezione note
+        const notesHeight = 30; // Altezza sezione note (aumentata per firma/note)
         const horizontalSpacing = 8;
-        const verticalSpacing = 12;
+        const verticalSpacing = 14;
         const setsPerRow = 3;
 
         for (let set = 1; set <= 5; set++) {
@@ -9653,11 +9680,19 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
             doc.setFontSize(7);
             doc.setFont(undefined, 'normal');
-            positions.forEach(pos => {
+            positions.forEach((pos, idx) => {
                 const cx = courtX + pos.x;
                 const cy = fieldY + pos.y;
                 doc.setDrawColor(200);
+                // Cerchio giocatore
                 doc.circle(cx, cy, 5, 'S');
+                // Numero posizione (1..6) a fianco del cerchio, in piccolo
+                doc.setFontSize(6);
+                doc.setFont(undefined, 'normal');
+                // posiziona il numero leggermente a destra e centrato verticalmente
+                doc.text(String(idx + 1), cx + 6, cy + 1);
+                // Riporta font-size al valore precedente per eventuali altri testi
+                doc.setFontSize(7);
             });
 
             // ============ SOSTITUZIONI E NOTE SOTTO IL CAMPO ============
@@ -9687,7 +9722,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             // Firma allenatore (solo per i primi 3 set, allineati in basso)
             if (set <= 3) {
                 doc.setFontSize(7);
-                doc.text('Firma All.: ______________', courtX, notesY + 22);
+                // Spazio maggiore per la firma dell'allenatore
+                doc.text('Firma All.: ______________', courtX, notesY + 26);
             }
         }
 
@@ -9707,5 +9743,590 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         doc.save(`Formazioni_${timestamp}.pdf`);
 
         console.log('✅ Foglio formazioni generato con successo');
+    }
+
+    async exportDataVolleyCheatsheet(mode = 'extended', opts = {}) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 15;
+        let y = 20;
+
+        // Mode adjustments
+        const isCompact = (mode && String(mode).toLowerCase() === 'compact');
+        const titleFont = isCompact ? 14 : 16;
+        const headerFont = isCompact ? 10 : 11;
+        const bodyFont = isCompact ? 8 : 10;
+        const rowHeight = isCompact ? 6 : 7;
+        const headerSpacing = isCompact ? 4 : 6;
+
+        // Title
+        doc.setFontSize(titleFont);
+        doc.setFont(undefined, 'bold');
+        doc.text('DataVolley — Codici e Valutazioni', pageWidth / 2, y, { align: 'center' });
+
+        y += isCompact ? 8 : 12;
+
+        // Special mode: scout sheet (printable table with roster rows and empty cells per fondamentale)
+        if (mode && (String(mode).toLowerCase() === 'scout' || String(mode).toLowerCase() === 'scoutsheet')) {
+            // gather roster
+            let roster = [];
+            if (this.teamManager) {
+                if (typeof this.teamManager.getAllPlayers === 'function') {
+                    roster = this.teamManager.getAllPlayers();
+                } else if (Array.isArray(this.teamManager.teamPlayers)) {
+                    roster = [...this.teamManager.teamPlayers];
+                }
+            }
+            if ((!roster || roster.length === 0) && Array.isArray(this.teamPlayers)) {
+                roster = [...this.teamPlayers];
+            }
+            roster.sort((a, b) => (a.number || 0) - (b.number || 0));
+
+            const fundamentals = ['S', 'R', 'A', 'B', 'D', 'F', 'O', 'T'];
+
+            // respect options
+            const boxCount = (opts && opts.boxCount) ? Math.max(1, parseInt(opts.boxCount, 10)) : 20;
+            const interactive = !!(opts && opts.interactive);
+
+            if (interactive) {
+                // open in-browser editor modal
+                this.showScoutEditor(roster, fundamentals, boxCount);
+                return;
+            }
+
+            // layout
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text('DataVolley — Scout Sheet', pageWidth / 2, y, { align: 'center' });
+            y += 8;
+
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+
+            const contentWidth = pageWidth - margin * 2;
+            const nameCol = 60; // mm
+            const remaining = contentWidth - nameCol;
+            const colWidth = remaining / fundamentals.length;
+
+            // Compute box grid to accomodate boxCount (prefer 2 rows)
+            const boxCountDesired = 20; // default visual layout (kept for sizing if not using boxCount variable below)
+            const boxCols = 10;
+            const boxRows = Math.ceil((boxCount) / boxCols);
+            const boxSpacing = 2;
+            const boxMaxW = 10; // maximum box width
+            const innerPadding = 4;
+            const boxW = Math.min(boxMaxW, (colWidth - innerPadding * 2 - (boxCols - 1) * boxSpacing) / boxCols);
+            const boxH = Math.max(4, boxW * 0.6);
+
+            // row height must fit the two box rows plus padding
+            const rowHeight = Math.ceil(boxRows * boxH + (boxRows - 1) * boxSpacing + 8);
+
+            // header row
+            let x = margin;
+            doc.setFont(undefined, 'bold');
+            doc.text('Numero - Nome', x + 2, y + 6);
+            x += nameCol;
+            for (let i = 0; i < fundamentals.length; i++) {
+                const fx = x + 2;
+                doc.text(fundamentals[i], fx + (colWidth / 2) - 2, y + 6, { align: 'center' });
+                x += colWidth;
+            }
+            doc.setFont(undefined, 'normal');
+
+            // draw header box
+            doc.setLineWidth(0.4);
+            doc.rect(margin, y - 2, contentWidth, rowHeight);
+            // vertical lines
+            x = margin + nameCol;
+            for (let i = 0; i < fundamentals.length; i++) {
+                doc.line(x, y - 2, x, y - 2 + rowHeight);
+                x += colWidth;
+            }
+
+            y += rowHeight + 4;
+
+            // rows for players
+            for (let i = 0; i < roster.length; i++) {
+                const p = roster[i];
+
+                // paginate
+                if (y + rowHeight > pageHeight - margin - 10) {
+                    doc.addPage();
+                    y = margin;
+                }
+
+                // name cell
+                doc.text(`${p.number || ''} - ${p.name || ''}`, margin + 2, y + 6);
+
+                // draw row box
+                doc.rect(margin, y - 2, contentWidth, rowHeight);
+
+                // vertical separators and empty small boxes per fundamental
+                let cx = margin + nameCol;
+                for (let j = 0; j < fundamentals.length; j++) {
+                    // vertical line
+                    doc.line(cx, y - 2, cx, y - 2 + rowHeight);
+
+                    // draw grid of small boxes (2 rows x 10 cols = 20 boxes)
+                    const startX = cx + innerPadding;
+                    const startY = y - 2 + 6; // top padding inside cell
+                    for (let r = 0; r < boxRows; r++) {
+                        for (let c = 0; c < boxCols; c++) {
+                            const bx = startX + c * (boxW + boxSpacing);
+                            const by = startY + r * (boxH + boxSpacing);
+                            // ensure we don't overflow the column width
+                            if (bx + boxW <= cx + colWidth - innerPadding) {
+                                doc.rect(bx, by, boxW, boxH);
+                            }
+                        }
+                    }
+
+                    cx += colWidth;
+                }
+
+                y += rowHeight + 4;
+            }
+
+            // footer timestamp
+            doc.setFontSize(8);
+            doc.setTextColor(120, 120, 120);
+            const now2 = new Date();
+            const ts = now2.getFullYear() + String(now2.getMonth() + 1).padStart(2, '0') + String(now2.getDate()).padStart(2, '0') + '_' + String(now2.getHours()).padStart(2, '0') + String(now2.getMinutes()).padStart(2, '0');
+            doc.text(`Generato da VolleyProW4 — ${ts}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+
+            doc.save(`DataVolley_ScoutSheet_${ts}.pdf`);
+            console.log('✅ DataVolley scout sheet PDF generato');
+            return;
+        }
+
+        // Prepare content and columns
+        const codes = [
+            ['S', 'Battuta (serve)'],
+            ['R', 'Ricezione (reception)'],
+            ['A', 'Attacco (attack)'],
+            ['B', 'Muro (block)'],
+            ['D', 'Difesa (dig)'],
+            ['F', 'Freeball'],
+            ['O', 'Alzata / Set'],
+            ['T', 'Tocco di seconda / transizione']
+        ];
+
+        const symbols = [
+            ['#', 'Ottimo / perfetto'],
+            ['+', 'Positivo'],
+            ['!', 'Neutro / corretto'],
+            ['-', 'Debole / poco efficace'],
+            ['/', 'Molto debole / quasi errore'],
+            ['=', 'Errore netto']
+        ];
+
+        // Columns layout
+        const contentWidth = pageWidth - margin * 2;
+        const gutter = isCompact ? 8 : 12;
+        const colWidth = (contentWidth - gutter) / 2;
+        const leftX = margin;
+        const rightX = margin + colWidth + gutter;
+
+        // Secondary columns inside each column: code cell + description cell
+        const codeCellWidth = 12;
+        const descCellWidth = colWidth - codeCellWidth - 4;
+
+        // Compute heights
+        const leftHeight = headerSpacing + (codes.length * rowHeight) + 6;
+        const rightHeight = headerSpacing + (symbols.length * rowHeight) + 6;
+        const columnHeight = Math.max(leftHeight, rightHeight);
+
+        // Draw borders for both columns
+        doc.setLineWidth(0.5);
+        doc.rect(leftX - 2, y - headerSpacing, colWidth + 4, columnHeight);
+        doc.rect(rightX - 2, y - headerSpacing, colWidth + 4, columnHeight);
+
+        // Headers
+        doc.setFontSize(headerFont);
+        doc.setFont(undefined, 'bold');
+        doc.text('1) Codici fondamentali', leftX + 2, y - headerSpacing + 4);
+        doc.text('2) Valutazioni (simboli)', rightX + 2, y - headerSpacing + 4);
+
+        // Draw horizontal separators and rows for left column
+        doc.setFontSize(bodyFont);
+        doc.setFont(undefined, 'normal');
+
+        let leftRowY = y;
+        for (let i = 0; i < codes.length; i++) {
+            const rowTop = leftRowY + (i * rowHeight);
+            // horizontal line
+            doc.line(leftX - 2, rowTop + rowHeight - 1, leftX - 2 + colWidth + 4, rowTop + rowHeight - 1);
+            // vertical separator between code and description
+            const codeX = leftX + 2 + codeCellWidth;
+            doc.line(codeX, rowTop, codeX, rowTop + rowHeight - 1);
+
+            // code centered
+            const codeTextX = leftX + 2 + (codeCellWidth / 2);
+            const codeTextY = rowTop + rowHeight / 2 + 1;
+            doc.setFontSize(bodyFont);
+            doc.text(String(codes[i][0]), codeTextX, codeTextY, { align: 'center' });
+
+            // description
+            const descX = codeX + 4;
+            doc.text(codes[i][1], descX, codeTextY);
+        }
+
+        // Draw horizontal separators and rows for right column
+        let rightRowY = y;
+        for (let i = 0; i < symbols.length; i++) {
+            const rowTop = rightRowY + (i * rowHeight);
+            // horizontal line
+            doc.line(rightX - 2, rowTop + rowHeight - 1, rightX - 2 + colWidth + 4, rowTop + rowHeight - 1);
+            // vertical separator
+            const codeX = rightX + 2 + codeCellWidth;
+            doc.line(codeX, rowTop, codeX, rowTop + rowHeight - 1);
+
+            // code centered
+            const codeTextX = rightX + 2 + (codeCellWidth / 2);
+            const codeTextY = rowTop + rowHeight / 2 + 1;
+            doc.setFontSize(bodyFont);
+            doc.text(String(symbols[i][0]), codeTextX, codeTextY, { align: 'center' });
+
+            // description
+            const descX = codeX + 4;
+            doc.text(symbols[i][1], descX, codeTextY);
+        }
+
+        // Advance y after columns
+        y = y + columnHeight + 6;
+
+        // Examples and formulas (extended only or compact brief)
+        doc.setFont(undefined, 'bold');
+        doc.setFontSize(headerFont);
+        doc.text(isCompact ? 'Esempi / Efficienze (sommario)' : 'Esempi e calcoli — Efficienze e percentuali', margin, y);
+        y += headerSpacing + 4;
+
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(bodyFont);
+        if (isCompact) {
+            // compact: single-line examples
+            doc.text('Esempi: S#, R/, A+, B/, D-', margin + 4, y);
+            y += rowHeight + 2;
+            doc.text('Efficienza attacco = (vincenti − errori) / totale', margin + 4, y);
+            y += rowHeight + 2;
+            doc.text('Sideout% / Breakpoint%: % punti vinti ricevendo/servendo', margin + 4, y);
+            y += rowHeight + 2;
+        } else {
+            const examples = [
+                'S# → battuta che genera difficoltà alta alla ricezione',
+                'R/ → ricezione sbagliata',
+                'A+ → attacco efficace',
+                'B/ → blocco vincente',
+                'D- → difesa poco efficace'
+            ];
+            examples.forEach(e => { doc.text(`• ${e}`, margin + 4, y); y += rowHeight; });
+
+            y += 4;
+            doc.setFont(undefined, 'bold');
+            doc.text('Efficienza attacco (es.):', margin, y);
+            y += headerSpacing + 2;
+            doc.setFont(undefined, 'normal');
+            doc.text('(punti vincenti − errori) / totale attacchi', margin + 4, y);
+            y += rowHeight;
+            doc.text('Esempio: 40 attacchi; 20 vincenti; 10 errori → (20 − 10) / 40 = 25%', margin + 4, y);
+            y += rowHeight + 4;
+
+            doc.setFont(undefined, 'bold');
+            doc.text('Sideout % / Breakpoint %', margin, y);
+            y += headerSpacing + 2;
+            doc.setFont(undefined, 'normal');
+            doc.text('Sideout% → % punti vinti dalla squadra che riceve', margin + 4, y);
+            y += rowHeight;
+            doc.text('Breakpoint% → % punti vinti dalla squadra che serve', margin + 4, y);
+            y += rowHeight + 4;
+
+            doc.setFont(undefined, 'bold');
+            doc.text('Distribuzione per rotazione / zona', margin, y);
+            y += headerSpacing + 2;
+            doc.setFont(undefined, 'normal');
+            doc.text('Statistiche per rotazioni (1–6) e zone (es. 4,2,3).', margin + 4, y);
+            y += rowHeight + 4;
+        }
+
+        // Footer timestamp
+        doc.setFontSize(8);
+        doc.setTextColor(120, 120, 120);
+        const now = new Date();
+        const timestamp = now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0') + '_' + String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0');
+        doc.text(`Generato da VolleyProW4 — ${timestamp}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+
+        doc.save(`DataVolley_Cheatsheet_${mode}_${timestamp}.pdf`);
+        console.log('✅ DataVolley cheatsheet PDF generato');
+    }
+
+    // Show an in-browser editable scout sheet
+    showScoutEditor(roster, fundamentals, boxCount = 20) {
+        // remove existing if present
+        const existing = document.getElementById('scoutEditorModal');
+        if (existing) existing.remove();
+
+        const modal = document.createElement('div');
+        modal.id = 'scoutEditorModal';
+        modal.style.position = 'fixed';
+        modal.style.left = '0';
+        modal.style.top = '0';
+        modal.style.width = '100%';
+        modal.style.height = '100%';
+        modal.style.background = 'rgba(0,0,0,0.6)';
+        modal.style.zIndex = 9999;
+        modal.style.display = 'flex';
+        modal.style.alignItems = 'center';
+        modal.style.justifyContent = 'center';
+
+        const container = document.createElement('div');
+        container.style.width = '90%';
+        container.style.height = '85%';
+        container.style.background = '#fff';
+        container.style.borderRadius = '6px';
+        container.style.padding = '12px';
+        container.style.overflow = 'auto';
+
+        const title = document.createElement('h3');
+        title.innerText = `Scout Editor — ${roster.length} giocatori — ${boxCount} caselle per fondamentale`;
+        container.appendChild(title);
+
+        const form = document.createElement('div');
+        form.style.width = '100%';
+
+        // build table: header row
+        const table = document.createElement('table');
+        table.style.borderCollapse = 'collapse';
+        table.style.width = '100%';
+
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        const thName = document.createElement('th');
+        thName.innerText = 'Numero - Nome';
+        thName.style.border = '1px solid #ccc';
+        thName.style.padding = '6px';
+        headerRow.appendChild(thName);
+
+        for (let f = 0; f < fundamentals.length; f++) {
+            const th = document.createElement('th');
+            th.innerText = fundamentals[f];
+            th.style.border = '1px solid #ccc';
+            th.style.padding = '6px';
+            headerRow.appendChild(th);
+        }
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+
+        // Create inputs: for each player, create row with fundamentals; each cell holds boxCount checkboxes
+        for (let i = 0; i < roster.length; i++) {
+            const p = roster[i];
+            const tr = document.createElement('tr');
+
+            const tdName = document.createElement('td');
+            tdName.innerText = `${p.number || ''} - ${p.name || ''}`;
+            tdName.style.border = '1px solid #eee';
+            tdName.style.padding = '6px';
+            tdName.style.verticalAlign = 'top';
+            tr.appendChild(tdName);
+
+            for (let f = 0; f < fundamentals.length; f++) {
+                const td = document.createElement('td');
+                td.style.border = '1px solid #eee';
+                td.style.padding = '6px';
+
+                // container for boxes
+                const boxContainer = document.createElement('div');
+                boxContainer.style.display = 'flex';
+                boxContainer.style.flexWrap = 'wrap';
+                boxContainer.style.gap = '4px';
+
+                for (let b = 0; b < boxCount; b++) {
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.dataset.playerIndex = i;
+                    cb.dataset.fundamental = fundamentals[f];
+                    cb.dataset.boxIndex = b;
+                    boxContainer.appendChild(cb);
+                }
+
+                td.appendChild(boxContainer);
+                tr.appendChild(td);
+            }
+
+            tbody.appendChild(tr);
+        }
+
+        table.appendChild(tbody);
+        form.appendChild(table);
+        container.appendChild(form);
+
+        // action buttons
+        const actions = document.createElement('div');
+        actions.style.marginTop = '12px';
+        actions.style.display = 'flex';
+        actions.style.justifyContent = 'flex-end';
+        actions.style.gap = '8px';
+
+        const exportBtn = document.createElement('button');
+        exportBtn.innerText = 'Esporta PDF compilato';
+        exportBtn.style.padding = '8px 12px';
+        exportBtn.style.background = '#27ae60';
+        exportBtn.style.color = '#fff';
+        exportBtn.style.border = 'none';
+        exportBtn.style.borderRadius = '4px';
+
+        const closeBtn = document.createElement('button');
+        closeBtn.innerText = 'Chiudi';
+        closeBtn.style.padding = '8px 12px';
+        closeBtn.style.border = '1px solid #ccc';
+        closeBtn.style.borderRadius = '4px';
+
+        actions.appendChild(closeBtn);
+        actions.appendChild(exportBtn);
+        container.appendChild(actions);
+
+        modal.appendChild(container);
+        document.body.appendChild(modal);
+
+        closeBtn.addEventListener('click', () => modal.remove());
+
+        exportBtn.addEventListener('click', () => {
+            // gather data
+            const filled = {};
+            for (let i = 0; i < roster.length; i++) {
+                filled[i] = {};
+                for (let f = 0; f < fundamentals.length; f++) {
+                    filled[i][fundamentals[f]] = [];
+                }
+            }
+
+            const inputs = modal.querySelectorAll('input[type=checkbox]');
+            inputs.forEach(inp => {
+                const pi = parseInt(inp.dataset.playerIndex, 10);
+                const fund = inp.dataset.fundamental;
+                const bi = parseInt(inp.dataset.boxIndex, 10);
+                if (inp.checked) filled[pi][fund].push(bi);
+            });
+
+            // call exporter for filled data
+            this.exportScoutPDFFromData(roster, fundamentals, boxCount, filled);
+            modal.remove();
+        });
+    }
+
+    // Export a scout PDF using filled data (filled is object: filled[playerIndex][fund] -> array of box indices checked)
+    exportScoutPDFFromData(roster, fundamentals, boxCount = 20, filled = {}) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 15;
+        let y = 20;
+
+        doc.setFontSize(14);
+        doc.setFont(undefined, 'bold');
+        doc.text('DataVolley — Scout Sheet (compilato)', pageWidth / 2, y, { align: 'center' });
+        y += 8;
+
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+
+        const contentWidth = pageWidth - margin * 2;
+        const nameCol = 60; // mm
+        const remaining = contentWidth - nameCol;
+        const colWidth = remaining / fundamentals.length;
+
+        // box grid
+        const boxCols = Math.min(10, boxCount);
+        const boxRows = Math.ceil(boxCount / boxCols);
+        const boxSpacing = 2;
+        const boxMaxW = 10;
+        const innerPadding = 4;
+        const boxW = Math.min(boxMaxW, (colWidth - innerPadding * 2 - (boxCols - 1) * boxSpacing) / boxCols);
+        const boxH = Math.max(4, boxW * 0.6);
+        const rowHeight = Math.ceil(boxRows * boxH + (boxRows - 1) * boxSpacing + 8);
+
+        // header row
+        let x = margin;
+        doc.setFont(undefined, 'bold');
+        doc.text('Numero - Nome', x + 2, y + 6);
+        x += nameCol;
+        for (let i = 0; i < fundamentals.length; i++) {
+            const fx = x + 2;
+            doc.text(fundamentals[i], fx + (colWidth / 2) - 2, y + 6, { align: 'center' });
+            x += colWidth;
+        }
+        doc.setFont(undefined, 'normal');
+
+        // draw header box
+        doc.setLineWidth(0.4);
+        doc.rect(margin, y - 2, contentWidth, rowHeight);
+        // vertical lines
+        x = margin + nameCol;
+        for (let i = 0; i < fundamentals.length; i++) {
+            doc.line(x, y - 2, x, y - 2 + rowHeight);
+            x += colWidth;
+        }
+
+        y += rowHeight + 4;
+
+        for (let i = 0; i < roster.length; i++) {
+            const p = roster[i];
+
+            if (y + rowHeight > pageHeight - margin - 10) {
+                doc.addPage();
+                y = margin;
+            }
+
+            doc.text(`${p.number || ''} - ${p.name || ''}`, margin + 2, y + 6);
+            doc.rect(margin, y - 2, contentWidth, rowHeight);
+
+            let cx = margin + nameCol;
+            for (let j = 0; j < fundamentals.length; j++) {
+                // vertical separator
+                doc.line(cx, y - 2, cx, y - 2 + rowHeight);
+
+                const startX = cx + innerPadding;
+                const startY = y - 2 + 6;
+                for (let r = 0; r < boxRows; r++) {
+                    for (let c = 0; c < boxCols; c++) {
+                        const idx = r * boxCols + c;
+                        if (idx >= boxCount) continue;
+                        const bx = startX + c * (boxW + boxSpacing);
+                        const by = startY + r * (boxH + boxSpacing);
+                        if (bx + boxW <= cx + colWidth - innerPadding) {
+                            doc.rect(bx, by, boxW, boxH);
+                            // mark if filled
+                            const filledArr = (filled[i] && filled[i][fundamentals[j]]) ? filled[i][fundamentals[j]] : [];
+                            if (filledArr && filledArr.indexOf(idx) !== -1) {
+                                // draw X
+                                doc.setLineWidth(0.8);
+                                doc.line(bx + 1, by + 1, bx + boxW - 1, by + boxH - 1);
+                                doc.line(bx + boxW - 1, by + 1, bx + 1, by + boxH - 1);
+                                doc.setLineWidth(0.4);
+                            }
+                        }
+                    }
+                }
+
+                cx += colWidth;
+            }
+
+            y += rowHeight + 4;
+        }
+
+        // footer timestamp
+        doc.setFontSize(8);
+        doc.setTextColor(120, 120, 120);
+        const now = new Date();
+        const ts = now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0') + '_' + String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0');
+        doc.text(`Generato da VolleyProW4 — ${ts}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+
+        doc.save(`DataVolley_ScoutSheet_filled_${ts}.pdf`);
+        console.log('✅ DataVolley scout sheet (compilato) PDF generato');
     }
 }
