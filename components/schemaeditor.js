@@ -9422,12 +9422,24 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         canvas.style.position = 'relative';
 
         // Forza il re-render di tutti gli oggetti e frecce con posizioni assolute
+        // Export should include the grid (canvas background) and only objects that are above the plane.
+        // Objects that represent the court/plane itself (court, half-court, full-field, full-court)
+        // are considered part of the plane and are NOT re-positioned here; the grid/background remains.
         tab.objects.forEach(obj => {
+            // Skip plane/court elements — keep the canvas background as the grid
+            if (obj.type === 'court' || obj.type === 'half-court' || obj.type === 'full-field' || obj.type === 'full-court') {
+                return;
+            }
+
             const element = document.getElementById(obj.id);
             if (element) {
+                // Position absolutely relative to canvas and flatten 3D transforms for export
                 element.style.left = obj.x + 'px';
                 element.style.top = obj.y + 'px';
-                element.style.transform = `rotate(${obj.rotation}deg)`;
+                // Flatten: export as 2D rotation only to avoid 3D depth artifacts in generated file
+                element.style.transform = `rotate(${obj.rotation || 0}deg)`;
+                // Ensure visible above the canvas
+                element.style.zIndex = Math.max(1, obj.zIndex || 1);
             }
         });
 
