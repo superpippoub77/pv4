@@ -14,6 +14,12 @@ class SchemaEditor {
         this.isConnecting = false;
         this.arrowMode = false;
         this.dashedMode = false; // New property for dashed mode for new objects/arrows
+    // If true, objects inherit the canvas plane rotation/inclination (rotationX, rotationY)
+    this.inheritPlaneRotationEnabled = false;
+        // 3D depth settings: ensure objects sit above the canvas plane by default
+        // and avoid going below the reference plane when rotated on Y.
+        this.objectDepthEnabled = true; // default: enabled to keep objects above the plane
+        this.objectDepthPx = 20; // default translateZ in pixels
         this.selectedObject = null;
         this.selectedObjects = new Map();
         this.selectedArrow = null;
@@ -5463,6 +5469,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             canvasEl.style.transform = `scale(${zoom}) ${transformValue}`;
             canvasEl.style.transformOrigin = '50% 50%';
         }
+        // After applying plane transform, refresh object transforms if they inherit the plane rotation
+        try { this.updateAllObjectTransforms(); } catch (err) { /* ignore */ }
     }
 
     resetCanvasPlaneRotation() {
@@ -5477,6 +5485,26 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             const zoom = this.getCurrentTab() ? (this.getCurrentTab().zoom || 1) : 1;
             canvasEl.style.transform = zoom && zoom !== 1 ? `scale(${zoom})` : '';
         }
+        // Update existing objects so their transforms reflect the reset (if they inherit plane rotation)
+        try { this.updateAllObjectTransforms(); } catch (err) { /* ignore */ }
+    }
+
+    // Update only the CSS transform of all rendered objects (fast path, does not rebuild DOM)
+    updateAllObjectTransforms() {
+        const tab = this.getCurrentTab();
+        if (!tab) return;
+        tab.objects.forEach(obj => {
+            const el = document.getElementById(obj.id);
+            if (!el) return;
+            const rotX = (this.inheritPlaneRotationEnabled && this.canvasRotation) ? (this.canvasRotation.X || 0) : (obj.rotationX || 0);
+            const rotY = (this.inheritPlaneRotationEnabled && this.canvasRotation) ? (this.canvasRotation.Y || 0) : (obj.rotationY || 0);
+            const rotZ = obj.rotation || 0;
+            const depth = (this.objectDepthEnabled ? (this.objectDepthPx || 0) : 0);
+            // translateZ ensures object visually sits above the canvas plane. Keep backface hidden to avoid showing undersides.
+            el.style.transform = `translateZ(${depth}px) rotateX(${rotX}deg) rotateY(${rotY}deg) rotateZ(${rotZ}deg)`;
+            el.style.transformStyle = 'preserve-3d';
+            el.style.backfaceVisibility = 'hidden';
+        });
     }
 
     // Return the mouse point in canvas-local coordinates (taking into account CSS transforms and zoom)
@@ -5563,6 +5591,12 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
         tab.objects.set(id, object);
 
+        // If the toolbar toggle is active, initialize the object's X/Y rotation to match the canvas plane
+        if (this.inheritPlaneRotationEnabled && this.canvasRotation) {
+            object.rotationX = this.canvasRotation.X || 0;
+            object.rotationY = this.canvasRotation.Y || 0;
+        }
+
         // AGGIORNA maxZIndex del tab
         tab.maxZIndex = this.maxZIndex;
 
@@ -5611,12 +5645,15 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         element.style.width = object.width + 'px';
         element.style.height = object.height + 'px';
 
-        // ✅ MODIFICA: Applica rotazione 3D su tutti e tre gli assi
-        const rotX = object.rotationX || 0;
-        const rotY = object.rotationY || 0;
+    // ✅ MODIFICA: Applica rotazione 3D su tutti e tre gli assi e mantieni l'oggetto sopra il piano
+    const rotX = (this.inheritPlaneRotationEnabled && this.canvasRotation) ? (this.canvasRotation.X || 0) : (object.rotationX || 0);
+    const rotY = (this.inheritPlaneRotationEnabled && this.canvasRotation) ? (this.canvasRotation.Y || 0) : (object.rotationY || 0);
         const rotZ = object.rotation || 0;
-        element.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) rotateZ(${rotZ}deg)`;
+        const depth = (this.objectDepthEnabled ? (this.objectDepthPx || 0) : 0);
+        // translateZ keeps objects visually above the canvas plane so Y-rotations don't send them "under" the plane.
+        element.style.transform = `translateZ(${depth}px) rotateX(${rotX}deg) rotateY(${rotY}deg) rotateZ(${rotZ}deg)`;
         element.style.transformStyle = 'preserve-3d'; // ✅ IMPORTANTE per 3D
+        element.style.backfaceVisibility = 'hidden'; // evita che il retro venga mostrato sotto il piano
 
         // Ensure court/plane stays below everything else
         if (object.type === 'court' || object.type === 'half-court' || object.type === 'full-field' || object.type === 'full-court') {
@@ -6214,9 +6251,12 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     }
     startAreaSelection(e) {
         this.isSelecting = true;
+        // store both canvas-local start (for precise object tests) and screen start (for drawing the box anywhere)
         const p = this.getCanvasLocalPoint(e);
         this.selectionStart = { x: p.x, y: p.y };
-        this.canvasRect = rect;
+        this.selectionStartScreen = { clientX: e.clientX, clientY: e.clientY };
+        // store the canvas bounding rect returned by getCanvasLocalPoint
+        this.canvasRect = p.rect;
         this.createSelectionBox();
     }
 
@@ -6226,15 +6266,23 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             box = document.createElement('div');
             box.id = 'selectionBox';
             box.className = 'selection-box';
-            box.style.position = 'absolute';
+            // append to body and use fixed positioning so selection can start outside the canvas
+            box.style.position = 'fixed';
             box.style.border = '2px dashed #3498db';
             box.style.backgroundColor = 'rgba(52, 152, 219, 0.1)';
             box.style.pointerEvents = 'none';
             box.style.zIndex = '9999';
             box.style.display = 'none';
-            document.getElementById('canvas').appendChild(box);
+            document.body.appendChild(box);
         }
         box.style.display = 'block';
+        // initialize position if start screen coords exist
+        if (this.selectionStartScreen) {
+            box.style.left = this.selectionStartScreen.clientX + 'px';
+            box.style.top = this.selectionStartScreen.clientY + 'px';
+            box.style.width = '0px';
+            box.style.height = '0px';
+        }
     }
 
     startDrag(e) {
@@ -6267,15 +6315,15 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     updateSelectionBox(e) {
         const box = document.getElementById('selectionBox');
         if (!box) return;
+        // Draw the visual selection box in screen coordinates so it can start outside the canvas
+        const start = this.selectionStartScreen || { clientX: 0, clientY: 0 };
+        const currentScreenX = e.clientX;
+        const currentScreenY = e.clientY;
 
-        const p = this.getCanvasLocalPoint(e);
-        const currentX = p.x;
-        const currentY = p.y;
-
-        const left = Math.min(this.selectionStart.x, currentX);
-        const top = Math.min(this.selectionStart.y, currentY);
-        const width = Math.abs(this.selectionStart.x - currentX);
-        const height = Math.abs(this.selectionStart.y - currentY);
+        const left = Math.min(start.clientX, currentScreenX);
+        const top = Math.min(start.clientY, currentScreenY);
+        const width = Math.abs(start.clientX - currentScreenX);
+        const height = Math.abs(start.clientY - currentScreenY);
 
         box.style.left = `${left}px`;
         box.style.top = `${top}px`;
@@ -6286,62 +6334,40 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     finalizeSelectionBox(e) {
         const box = document.getElementById('selectionBox');
         if (!box) return;
-        const p = this.getCanvasLocalPoint(e);
-        const currentX = p.x;
-        const currentY = p.y;
-
-        // selectionStart and currentX/currentY are already in canvas local coordinates (pre-zoom)
-        const selectionRect = {
-            left: Math.min(this.selectionStart.x, currentX),
-            top: Math.min(this.selectionStart.y, currentY),
-            right: Math.max(this.selectionStart.x, currentX),
-            bottom: Math.max(this.selectionStart.y, currentY)
-        };
+        // Use the visual selection box in screen coordinates to capture DOM elements anywhere
+        const selRect = box.getBoundingClientRect();
 
         const tab = this.getCurrentTab();
         this.deselectAll();
 
-        // Controlla oggetti
-        tab.objects.forEach((objData, objId) => {
-            const objLeft = objData.x;
-            const objTop = objData.y;
-            const objRight = objData.x + objData.width;
-            const objBottom = objData.y + objData.height;
-
-            if (objLeft < selectionRect.right && objRight > selectionRect.left &&
-                objTop < selectionRect.bottom && objBottom > selectionRect.top) {
-
-                this.selectedObjects.set(objId, { x: objData.x, y: objData.y });
-                const element = document.getElementById(objId);
-                if (element) {
-                    element.classList.add('selected', 'group-selected');
+        // Select DOM elements that intersect the screen selection rectangle (covers objects outside canvas)
+        const candidateObjects = document.querySelectorAll('.canvas-object');
+        candidateObjects.forEach(el => {
+            try {
+                const r = el.getBoundingClientRect();
+                const overlaps = !(r.right < selRect.left || r.left > selRect.right || r.bottom < selRect.top || r.top > selRect.bottom);
+                if (overlaps) {
+                    const objId = el.id;
+                    const objData = tab.objects.get(objId);
+                    if (objData) {
+                        this.selectedObjects.set(objId, { x: objData.x, y: objData.y });
+                        el.classList.add('selected', 'group-selected');
+                    }
                 }
-            }
+            } catch (err) { /* ignore */ }
         });
 
-        // AGGIUNTO: Controlla disegni a mano libera
+        // Also check freehand SVGs by DOM rect
         tab.freehands.forEach((freehand, freehandId) => {
-            const xs = freehand.points.map(p => p.x);
-            const ys = freehand.points.map(p => p.y);
-            const fhLeft = Math.min(...xs);
-            const fhTop = Math.min(...ys);
-            const fhRight = Math.max(...xs);
-            const fhBottom = Math.max(...ys);
-
-            if (fhLeft < selectionRect.right && fhRight > selectionRect.left &&
-                fhTop < selectionRect.bottom && fhBottom > selectionRect.top) {
-
-                // Memorizza il freehand come selezionato
-                this.selectedObjects.set(freehandId, {
-                    type: 'freehand',
-                    points: freehand.points
-                });
-
-                const svg = document.getElementById(freehandId);
-                if (svg) {
-                    const path = svg.querySelector('.freehand-path');
-                    if (path) path.classList.add('selected');
-                }
+            const fhEl = document.getElementById(freehandId);
+            if (!fhEl) return;
+            const r = fhEl.getBoundingClientRect();
+            const overlaps = !(r.right < selRect.left || r.left > selRect.right || r.bottom < selRect.top || r.top > selRect.bottom);
+            if (overlaps) {
+                const fhPath = fhEl.querySelector('.freehand-path');
+                if (fhPath) fhPath.classList.add('selected');
+                this.selectedFreehand = freehandId;
+                this.selectedObjects.set(freehandId, { type: 'freehand', points: freehand.points });
             }
         });
 
@@ -9265,6 +9291,18 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         this.updateGrid();
         this.updateBWMode();
         this.updateZoom();
+        // Ensure the toolbar checkbox for inheriting plane rotation reflects current state
+        try {
+            const inheritEl = document.getElementById('inheritPlaneRotation');
+            if (inheritEl) {
+                if (inheritEl.type === 'checkbox') {
+                    inheritEl.checked = !!this.inheritPlaneRotationEnabled;
+                }
+                inheritEl.classList.toggle('active', !!this.inheritPlaneRotationEnabled);
+            }
+        } catch (err) {
+            // ignore if toolbar not yet present or in non-DOM contexts
+        }
     }
     prepareCanvasForExport() {
         const canvas = document.getElementById('canvas');
