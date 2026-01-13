@@ -263,7 +263,7 @@ class MenuManager {
             'about': () => this.showAboutDialog(),
 
             // ========== USER ==========
-            'logout': () => this.editor.handleLogout(),
+            'logout': () => this.editor.loginManager.handleLogout(),
         };
 
         if (actions[action]) {

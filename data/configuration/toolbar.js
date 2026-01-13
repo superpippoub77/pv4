@@ -21,9 +21,9 @@ const toolbarTopConfig = [
                     ["a2-portrait", "size_a2_portrait"],
                     ["a2-landscape", "size_a2_landscape"],
                     ["business-card", "size_business_card"]
-                ]
+                ], onChange: (editor, value) => { editor.setCanvasSize(value); }
             },
-            { type: "button", id: "toggleCanvasBorder", text: "🖼️ Bordi", i18n: "btn_toggle_borders", titleI18n: "btn_toggle_borders" },
+            { type: "button", id: "toggleCanvasBorder", text: "🖼️ Bordi", i18n: "btn_toggle_borders", titleI18n: "btn_toggle_borders", onClick: (editor) => { editor.toggleCanvasBorder(); } },
 
             { type: "label", text: "label_background" },
             {
@@ -35,9 +35,9 @@ const toolbarTopConfig = [
                 ]
             },
 
-            { type: "button", id: "zoomOut", text: "➖", i18n: "btn_zoom_out", titleI18n: "btn_zoom_out" },
+            { type: "button", id: "zoomOut", text: "➖", i18n: "btn_zoom_out", titleI18n: "btn_zoom_out", onClick: (editor) => { editor.changeZoom(-0.1) } },
             { type: "div", id: "zoomDisplay", class: "zoom-display", html: "100%" },
-            { type: "button", id: "zoomIn", text: "➕", i18n: "btn_zoom_in", titleI18n: "btn_zoom_in" }
+            { type: "button", id: "zoomIn", text: "➕", i18n: "btn_zoom_in", titleI18n: "btn_zoom_in", onClick: (editor) => { editor.changeZoom(0.1) } }
         ]
     },
     {
@@ -51,7 +51,7 @@ const toolbarTopConfig = [
                     editor.teamManager.show();
                 }
             },
-            { type: "button", id: "togglePlayerNames", text: "🏷️ Nomi Giocatori", i18n: "btn_toggle_names", titleI18n: "btn_toggle_names" }
+            { type: "button", id: "togglePlayerNames", text: "🏷️ Nomi Giocatori", i18n: "btn_toggle_names", titleI18n: "btn_toggle_names", onClick: (editor) => { editor.togglePlayerNames(); } }
         ]
     },
 
@@ -89,7 +89,12 @@ const toolbarTopConfig = [
                 }
             },
             {
-                type: "button", id: "snapToGridBtn", text: "🧲 Allinea alla Griglia", i18n: "btn_snap_grid", titleI18n: "btn_snap_grid"
+                type: "button", id: "snapToGridBtn", text: "🧲 Allinea alla Griglia", i18n: "btn_snap_grid", titleI18n: "btn_snap_grid", onClick: (editor) => {
+                    // Chiama la funzione di allineamento sulla griglia
+                    if (window.editor && window.editor.snapObjectsToGrid) {
+                        window.editor.snapObjectsToGrid();
+                    }
+                }
             },
             {
                 type: "button", id: "bwToggle", class: "bwToggle", text: "⚫ B/N", i18n: "btn_bw", titleI18n: "btn_bw", onClick: (editor) => {
@@ -97,25 +102,48 @@ const toolbarTopConfig = [
                     editor.updateBWMode();
                 }
             },
-            { type: "button", id: "dashedToggle", text: "⚡ Tratteggio", i18n: "btn_dashed", titleI18n: "btn_dashed" },
-            { type: "button", id: "toggleLabels", text: "🔢 Etichette", i18n: "btn_labels", titleI18n: "btn_labels" },
-            { type: "button", id: "renumberObjects", text: "🔄 Rinumera", i18n: "btn_renumber", titleI18n: "btn_renumber" },
+            {
+                type: "button", id: "dashedToggle", text: "⚡ Tratteggio", i18n: "btn_dashed", titleI18n: "btn_dashed", onClick: (editor) => {
+                    editor.dashedMode = !editor.dashedMode;
+                    document.getElementById('dashedToggle').classList.toggle('active', editor.dashedMode);
+                }
+            },
+            {
+                type: "button", id: "toggleLabels", text: "🔢 Etichette", i18n: "btn_labels", titleI18n: "btn_labels", onClick: (editor) => {
+                    editor.toggleObjectLabels();
+                }
+            },
+            {
+                type: "button", id: "renumberObjects", text: "🔄 Rinumera", i18n: "btn_renumber", titleI18n: "btn_renumber", onClick: (editor) => {
+                    editor.renumberAllObjects();
+                }
+            },
             { type: "button", id: "exportPdfBtn", text: "📄 Esporta PDF", i18n: "btn_export_pdf_full", titleI18n: "btn_export_pdf_full" },
             {
                 type: "button", id: "freehandModeBtn", text: "✏️ Disegno", i18n: "btn_freehand_draw", titleI18n: "btn_freehand_draw",
                 onClick: (editor) => {
-                    return (e) => {
-                        editor.freehandMode = !editor.freehandMode;
-                        e.currentTarget.classList.toggle('active', editor.freehandMode);
-                        document.getElementById('canvas').style.cursor = editor.freehandMode ? 'crosshair' : 'default';
-                        editor.deselectAll();
-                    };
+                    editor.freehandMode = !editor.freehandMode;
+                    document.getElementById('freehandModeBtn').classList.toggle('active', editor.freehandMode);
+                    document.getElementById('canvas').style.cursor = editor.freehandMode ? 'crosshair' : 'default';
+                    editor.deselectAll();
                 }
             },
-            { type: "button", id: "exportFormationsBtn", text: "📋 Foglio Formazioni", i18n: "btn_export_formations", titleI18n: "btn_export_formations" },
-            { type: "button", id: "exportDataVolleyBtn", text: "📋 Foglio Scout", i18n: "btn_export_scout", titleI18n: "btn_export_scout" },
-            { type: "button", id: "showAnimationControls", text: "🎬 Animazione", i18n: "btn_show_animation", titleI18n: "btn_show_animation" },
-            { type: "button", id: "recordMacroBtn", text: "⏺️", i18n: "btn_record_start", titleI18n: "btn_record_start" },
+            {
+                type: "button", id: "exportFormationsBtn", text: "📋 Foglio Formazioni", i18n: "btn_export_formations", titleI18n: "btn_export_formations", onClick: (editor) => {
+                    editor.exportFormationSheet();
+                }
+            },
+            {
+                type: "button", id: "exportDataVolleyBtn", text: "📋 Foglio Scout", i18n: "btn_export_scout", titleI18n: "btn_export_scout", onClick: (editor) => {
+                    editor.exportDataVolley();
+                }
+            },
+            {
+                type: "button", id: "showAnimationControls", text: "🎬 Animazione", i18n: "btn_show_animation", titleI18n: "btn_show_animation", onClick: (editor) => {
+                    editor.showAnimationControls();
+                }
+            },
+            { type: "button", id: "recordMacroBtn", text: "⏺️", i18n: "btn_record_start", titleI18n: "btn_record_start", onClick: (editor) => { editor.macroManager.showDialog(); } },
             { type: "button", id: "stopRecordBtn", text: "⏹️", i18n: "btn_record_stop", titleI18n: "btn_record_stop" },
             { type: "button", id: "playMacroBtn", text: "▶️", i18n: "btn_record_play", titleI18n: "btn_record_play" }
         ]
@@ -127,17 +155,17 @@ const toolbarTopConfig = [
         fieldsetId: "editControls",
         fieldsetClass: "toolbar-group",
         items: [
-            { type: "input", inputType: "range", id: "objectRotationX", text: "x", i18n: "btn_rotate_x", titleI18n: "btn_rotate_x", min: "-180", max: "180", value: "0", step: "15"},
+            { type: "input", inputType: "range", id: "objectRotationX", text: "x", i18n: "btn_rotate_x", titleI18n: "btn_rotate_x", min: "-180", max: "180", value: "0", step: "15" },
             { type: "div", id: "rotationXValue", class: "", html: "0°" },
-            { type: "input", inputType: "range", id: "objectRotationY", text: "y", i18n: "btn_rotate_y", titleI18n: "btn_rotate_y", min: "-180", max: "180", value: "0", step: "15"},
+            { type: "input", inputType: "range", id: "objectRotationY", text: "y", i18n: "btn_rotate_y", titleI18n: "btn_rotate_y", min: "-180", max: "180", value: "0", step: "15" },
             { type: "div", id: "rotationYValue", class: "", html: "0°" },
-            { type: "input", inputType: "range", id: "objectRotationZ", text: "z", i18n: "btn_rotate_z", titleI18n: "btn_rotate_z", min: "-180", max: "180", value: "0", step: "15"},
+            { type: "input", inputType: "range", id: "objectRotationZ", text: "z", i18n: "btn_rotate_z", titleI18n: "btn_rotate_z", min: "-180", max: "180", value: "0", step: "15" },
             { type: "div", id: "rotationZValue", class: "", html: "0°" },
 
-            { type: "button", id: "rotateLeft", text: "↺", i18n: "btn_rotate_left", titleI18n: "btn_rotate_left" },
-            { type: "button", id: "rotateRight", text: "↻", i18n: "btn_rotate_right", titleI18n: "btn_rotate_right" },
-            { type: "button", id: "rotateLeft90", text: "↺90", i18n: "btn_rotate_left", titleI18n: "btn_rotate_left" },
-            { type: "button", id: "rotateRight90", text: "↻90", i18n: "btn_rotate_right", titleI18n: "btn_rotate_right" },
+            { type: "button", id: "rotateLeft", text: "↺", i18n: "btn_rotate_left", titleI18n: "btn_rotate_left", onClick: (editor) => { editor.rotateSelected(-15); } },
+            { type: "button", id: "rotateRight", text: "↻", i18n: "btn_rotate_right", titleI18n: "btn_rotate_right", onClick: (editor) => { editor.rotateSelected(15); } },
+            { type: "button", id: "rotateLeft90", text: "↺90", i18n: "btn_rotate_left", titleI18n: "btn_rotate_left", onClick: (editor) => { editor.rotateSelected(-90); } },
+            { type: "button", id: "rotateRight90", text: "↻90", i18n: "btn_rotate_right", titleI18n: "btn_rotate_right", onClick: (editor) => { editor.rotateSelected(90); } },
             { type: "button", id: "resetRotation", text: "Reset", i18n: "btn_reset_rotation", titleI18n: "btn_reset_rotation", onClick: (editor) => { editor.resetSelectedRotation(); } },
             // Plane rotation controls: rotate the whole canvas along X/Y/Z axes
             { type: "button", id: "rotatePlaneXMinus", text: "X−", i18n: "btn_rotate_plane_x_minus", titleI18n: "btn_rotate_plane_x_minus", onClick: (editor) => { editor.rotateCanvasPlane('X', -15); } },
@@ -183,8 +211,8 @@ const toolbarTopConfig = [
                     editor.mirrorSelected("v");
                 }
             },
-            { type: "button", id: "undoBtn", text: "⏪ Undo", i18n: "btn_undo", titleI18n: "btn_undo" },
-            { type: "button", id: "redoBtn", text: "⏩ Redo", i18n: "btn_redo", titleI18n: "btn_redo" },
+            { type: "button", id: "undoBtn", text: "⏪ Undo", i18n: "btn_undo", titleI18n: "btn_undo", onClick: (editor) => { editor.undo(); } },
+            { type: "button", id: "redoBtn", text: "⏩ Redo", i18n: "btn_redo", titleI18n: "btn_redo", onClick: (editor) => { editor.redo(); } },
             {
                 type: "button", id: "historyBtn", text: "📜 Storico", i18n: "btn_history", titleI18n: "btn_history", onClick: (editor) => {
                     editor.historyManager.show();
@@ -200,14 +228,18 @@ const toolbarTopConfig = [
         fieldsetClass: "toolbar-group",
         items: [
             { type: "input", id: "schemaTitle", placeholder: "Titolo schema", i18nPlaceholder: "placeholder_schema_title" },
-            { type: "button", id: "saveBtn", text: "💾 Salva", i18n: "btn_save_schema", titleI18n: "btn_save_schema" },
-            { type: "button", id: "saveWorkOutBtn", text: "💾 Salva Allenamento", i18n: "btn_save_workout", titleI18n: "btn_save_workout" },
-            { type: "button", id: "loadBtn", text: "📁 Carica", i18n: "btn_load_schema", titleI18n: "btn_load_schema" },
-            { type: "button", id: "loadWorkOutBtn", text: "📁 Carica Allenamento", i18n: "btn_load_workout", titleI18n: "btn_load_workout" },
+            { type: "button", id: "saveBtn", text: "💾 Salva", i18n: "btn_save_schema", titleI18n: "btn_save_schema", onClick: (editor) => { editor.saveSchema(); } },
+            { type: "button", id: "saveWorkOutBtn", text: "💾 Salva Allenamento", i18n: "btn_save_workout", titleI18n: "btn_save_workout", onClick: (editor) => { editor.workoutManager.show(); } },
+            {
+                type: "button", id: "loadBtn", text: "📁 Carica", i18n: "btn_load_schema", titleI18n: "btn_load_schema", onClick: (editor) => {
+                    document.getElementById('fileInput').click();
+                }
+            },
+            { type: "button", id: "loadWorkOutBtn", text: "📁 Carica Allenamento", i18n: "btn_load_workout", titleI18n: "btn_load_workout", onClick: (editor) => { document.getElementById('workoutFileInput').click(); } },
             { type: "file", id: "fileInput", accept: ".json", style: "display:none" },
             { type: "file", id: "workoutFileInput", accept: ".json", style: "display:none" },
-            { type: "button", id: "exportBtn", text: "📤 Esporta", i18n: "btn_export_schema", titleI18n: "btn_export_schema" },
-            { type: "button", id: "exportWorkOutBtn", text: "📤 Genera la scheda", i18n: "btn_export_workout_sheet", titleI18n: "btn_export_workout_sheet" },
+            { type: "button", id: "exportBtn", text: "📤 Esporta", i18n: "btn_export_schema", titleI18n: "btn_export_schema", onClick: (editor) => { editor.exportSchema(); } },
+            { type: "button", id: "exportWorkOutBtn", text: "📤 Genera la scheda", i18n: "btn_export_workout_sheet", titleI18n: "btn_export_workout_sheet", onClick: (editor) => { editor.exportWorkout(); } },
             {
                 type: "button", id: "loadFromLibrary", text: "📁 Libreria", i18n: "btn_load_library", titleI18n: "btn_load_library", onClick: (editor) => {
                     editor.libraryManager.show();
@@ -366,9 +398,25 @@ const toolbarBottomConfig = [
         fieldsetId: "freehandControls",
         fieldsetClass: "toolbar-group fixed",
         items: [
-            { type: "player", text: "Colore Traccia", label: "freehand_color", iconHTML: "🎨", id: "freehandColor", class: "color-picker", i18n: "local_freehand_color_label" },
-            { type: "player", text: "Spessore", label: "freehand_thickness", iconHTML: "📏", id: "freehandThickness", i18n: "local_freehand_thickness_label" },
-            { type: "player", text: "Opacità", label: "freehand_opacity", iconHTML: "⚪", id: "freehandOpacity", i18n: "local_freehand_opacity_label" }
+            { type: "input", inputType: "color", text: "Colore Traccia", label: "freehand_color", iconHTML: "🎨", id: "freehandColor", class: "color-picker", i18n: "local_freehand_color_label", onChange: (editor, event) => { editor.changeFreehandColor(event.target.value); } },
+            {
+                type: "input", inputType: "range", text: "Spessore", label: "freehand_thickness", iconHTML: "📏", id: "freehandThickness", i18n: "local_freehand_thickness_label", min: "1", max: "15", value: "3", onInput: (editor, event) => {
+                    document.getElementById('freehandThicknessValue').textContent = event.target.value;
+                    if (editor.selectedFreehand) {
+                        editor.changeFreehandThickness(event.target.value);
+                    }
+                }
+            },
+            { type: "div", id: "freehandThicknessValue", class: "", html: "3" },
+            {
+                type: "input", inputType: "range", text: "Opacità", label: "freehand_opacity", iconHTML: "⚪", id: "freehandOpacity", i18n: "local_freehand_opacity_label", min: "0", max: "1", step: "0.01", onInput: (editor, event) => {
+                    document.getElementById('freehandOpacityValue').textContent = parseFloat(event.target.value).toFixed(2);
+                    if (editor.selectedFreehand) {
+                        editor.changeFreehandOpacity(event.target.value);
+                    }
+                }
+            },
+            { type: "div", id: "freehandOpacityValue", class: "", html: "1.00" }
         ]
     },
     {

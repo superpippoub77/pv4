@@ -72,7 +72,7 @@ class SchemaEditor {
         this.workoutManager = new SaveWorkoutDialogManager(this);
         this.libraryManager = new LibraryWorkoutDialogManager(this);
         this.macroManager = new MacroManager(this);
-
+        this.loginManager = new LoginManager();
     }
 
     async initialize() {
@@ -584,6 +584,17 @@ class SchemaEditor {
         if (menuContainer) {
             menuContainer.style.display = 'none';
         }
+
+        // Nascondi anche toolbar e le barre laterali (se presenti)
+        document.querySelectorAll('.toolbar').forEach(t => t.style.display = 'none');
+        const sidebar = document.getElementById('sidebar') || document.querySelector('.sidebar');
+        if (sidebar) sidebar.style.display = 'none';
+        const rightSidebar = document.getElementById('rightSidebar') || document.querySelector('.right-sidebar');
+        if (rightSidebar) rightSidebar.style.display = 'none';
+
+        // Nascondi watermark o altri elementi di frame
+        const watermark = document.querySelector('water-mark') || document.getElementById('watermark');
+        if (watermark) watermark.style.display = 'none';
     }
 
     addStep() {
@@ -3530,6 +3541,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         path.addEventListener('mousedown', (e) => {
             e.stopPropagation();
             this.selectFreehand(freehand.id);
+            // Avvia il drag direttamente dal path in modo che il mousemove venga catturato
+            // anche se l'evento non arriva al canvas a causa dello stopPropagation.
+            this.startDrag(e);
         });
 
         path.addEventListener('contextmenu', (e) => {
@@ -3597,6 +3611,18 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         if (svg) {
             const path = svg.querySelector('.freehand-path');
             if (path) path.classList.add('selected');
+        }
+
+        // Ensure the freehand is also represented in selectedObjects so
+        // keyboard-based movements (arrow keys / delete) work consistently
+        try {
+            const tab = this.getCurrentTab();
+            const freehand = tab.freehands.get(freehandId);
+            if (freehand) {
+                this.selectedObjects.set(freehandId, { type: 'freehand', points: [...freehand.points] });
+            }
+        } catch (err) {
+            console.warn('Could not add freehand to selectedObjects in selectFreehand:', err);
         }
 
         this.updateFreehandControls();
@@ -3707,28 +3733,28 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             document.getElementById('password').focus();
         }
     }
-    handleLogout() {
-        if (confirm('Sei sicuro di voler uscire?')) {
-            this.currentUser = null;
-            sessionStorage.removeItem('currentUser');
+    // handleLogout() {
+    //     if (confirm('Sei sicuro di voler uscire?')) {
+    //         this.currentUser = null;
+    //         sessionStorage.removeItem('currentUser');
 
-            // Nascondi container principale
-            // const mainContainer = document.querySelector('.container');
-            // if (mainContainer) {
-            //     mainContainer.style.display = 'none';
-            // }
+    //         // Nascondi container principale
+    //         // const mainContainer = document.querySelector('.container');
+    //         // if (mainContainer) {
+    //         //     mainContainer.style.display = 'none';
+    //         // }
 
-            // const menuContainer = document.querySelector('.menu-bar');
-            // if (menuContainer) {
-            //     menuContainer.style.display = 'none';
-            // }
+    //         // const menuContainer = document.querySelector('.menu-bar');
+    //         // if (menuContainer) {
+    //         //     menuContainer.style.display = 'none';
+    //         // }
 
-            // Nascondi info utente
-            document.getElementById('userInfo').style.display = 'none';
+    //         // Nascondi info utente
+    //         document.getElementById('userInfo').style.display = 'none';
 
-            this.showLoginModal();
-        }
-    }
+    //         this.showLoginModal();
+    //     }
+    // }
 
 
     // showSaveWorkoutDialog() {
@@ -4315,30 +4341,30 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         //     this.updateBWMode();
         // });
 
-        document.getElementById('dashedToggle').addEventListener('click', () => {
-            this.dashedMode = !this.dashedMode;
-            document.getElementById('dashedToggle').classList.toggle('active', this.dashedMode);
-        });
+        // document.getElementById('dashedToggle').addEventListener('click', () => {
+        //     this.dashedMode = !this.dashedMode;
+        //     document.getElementById('dashedToggle').classList.toggle('active', this.dashedMode);
+        // });
 
-        document.getElementById('zoomIn').addEventListener('click', () => this.changeZoom(0.1));
-        document.getElementById('zoomOut').addEventListener('click', () => this.changeZoom(-0.1));
-        document.getElementById('rotateLeft').addEventListener('click', () => this.rotateSelected(-15));
-        document.getElementById('rotateRight').addEventListener('click', () => this.rotateSelected(15));
-        document.getElementById('rotateLeft90').addEventListener('click', () => this.rotateSelected(-90));
-        document.getElementById('rotateRight90').addEventListener('click', () => this.rotateSelected(90));
+        // document.getElementById('zoomIn').addEventListener('click', () => this.changeZoom(0.1));
+        // document.getElementById('zoomOut').addEventListener('click', () => this.changeZoom(-0.1));
+        // document.getElementById('rotateLeft').addEventListener('click', () => this.rotateSelected(-15));
+        // document.getElementById('rotateRight').addEventListener('click', () => this.rotateSelected(15));
+        // document.getElementById('rotateLeft90').addEventListener('click', () => this.rotateSelected(-90));
+        // document.getElementById('rotateRight90').addEventListener('click', () => this.rotateSelected(90));
         // Reset rotation for selected objects
-        const resetRotBtn = document.getElementById('resetRotation');
-        if (resetRotBtn) {
-            resetRotBtn.addEventListener('click', () => this.resetSelectedRotation());
-        }
-        document.getElementById('undoBtn').addEventListener('click', () => this.undo());
-        document.getElementById('redoBtn').addEventListener('click', () => this.redo());
-        document.getElementById('saveBtn').addEventListener('click', () => this.saveSchema());
-        document.getElementById('loadBtn').addEventListener('click', () => {
-            document.getElementById('fileInput').click();
-        });
+        // const resetRotBtn = document.getElementById('resetRotation');
+        // if (resetRotBtn) {
+        //     resetRotBtn.addEventListener('click', () => this.resetSelectedRotation());
+        // }
+        // document.getElementById('undoBtn').addEventListener('click', () => this.undo());
+        // document.getElementById('redoBtn').addEventListener('click', () => this.redo());
+        //document.getElementById('saveBtn').addEventListener('click', () => this.saveSchema());
+        // document.getElementById('loadBtn').addEventListener('click', () => {
+        //     document.getElementById('fileInput').click();
+        // });
         document.getElementById('fileInput').addEventListener('change', (e) => this.loadSchema(e));
-        document.getElementById('exportBtn').addEventListener('click', () => this.exportSchema());
+        //document.getElementById('exportBtn').addEventListener('click', () => this.exportSchema());
 
         //TOOLBAR EVENT LISTENERS
         // document.getElementById('objectColor').addEventListener('change', (e) => {
@@ -4462,10 +4488,10 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         // document.getElementById('groupRotateRight90').addEventListener('click', () => this.rotateGroup(90));
 
         //Salvataggio Allenamenti
-        document.getElementById('saveWorkOutBtn').addEventListener('click', () => this.workoutManager.show());
-        document.getElementById('loadWorkOutBtn').addEventListener('click', () => {
-            document.getElementById('workoutFileInput').click();
-        });
+        // document.getElementById('saveWorkOutBtn').addEventListener('click', () => this.workoutManager.show());
+        // document.getElementById('loadWorkOutBtn').addEventListener('click', () => {
+        //     document.getElementById('workoutFileInput').click();
+        // });
 
         // // ========== RIGHT SIDEBAR ==========
         // const rightSidebar = document.getElementById('rightSidebar');
@@ -4827,24 +4853,24 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         // // Event listener per il caricamento workout
         // document.getElementById('workoutFileInput').addEventListener('change', (e) => this.loadWorkout(e));
 
-        document.getElementById('freehandModeBtn').addEventListener('click', (e) => {
-            this.freehandMode = !this.freehandMode;
-            e.currentTarget.classList.toggle('active', this.freehandMode);
-            document.getElementById('canvas').style.cursor = this.freehandMode ? 'crosshair' : 'default';
-            this.deselectAll();
-        });
+        // document.getElementById('freehandModeBtn').addEventListener('click', (e) => {
+        //     this.freehandMode = !this.freehandMode;
+        //     e.currentTarget.classList.toggle('active', this.freehandMode);
+        //     document.getElementById('canvas').style.cursor = this.freehandMode ? 'crosshair' : 'default';
+        //     this.deselectAll();
+        // });
 
-        document.getElementById('freehandColor').addEventListener('change', (e) => {
-            this.changeFreehandColor(e.target.value);
-        });
+        // document.getElementById('freehandColor').addEventListener('change', (e) => {
+        //     this.changeFreehandColor(e.target.value);
+        // });
 
-        const freehandThicknessInput = document.getElementById('freehandThickness');
-        freehandThicknessInput.addEventListener('input', (e) => {
-            document.getElementById('freehandThicknessValue').textContent = e.target.value;
-            if (this.selectedFreehand) {
-                this.changeFreehandThickness(e.target.value);
-            }
-        });
+        // const freehandThicknessInput = document.getElementById('freehandThickness');
+        // freehandThicknessInput.addEventListener('input', (e) => {
+        //     document.getElementById('freehandThicknessValue').textContent = e.target.value;
+        //     if (this.selectedFreehand) {
+        //         this.changeFreehandThickness(e.target.value);
+        //     }
+        // });
 
         // Opacità per oggetti
         // const objectOpacityInput = document.getElementById('objectOpacity');
@@ -4854,23 +4880,23 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         // });
 
         // Opacità per disegni a mano libera
-        const freehandOpacityInput = document.getElementById('freehandOpacity');
-        freehandOpacityInput.addEventListener('input', (e) => {
-            document.getElementById('freehandOpacityValue').textContent = parseFloat(e.target.value).toFixed(2);
-            if (this.selectedFreehand) {
-                this.changeFreehandOpacity(e.target.value);
-            }
-        });
+        // const freehandOpacityInput = document.getElementById('freehandOpacity');
+        // freehandOpacityInput.addEventListener('input', (e) => {
+        //     document.getElementById('freehandOpacityValue').textContent = parseFloat(e.target.value).toFixed(2);
+        //     if (this.selectedFreehand) {
+        //         this.changeFreehandOpacity(e.target.value);
+        //     }
+        // });
 
-        const snapButton = document.getElementById('snapToGridBtn');
-        if (snapButton) {
-            snapButton.addEventListener('click', () => {
-                // Chiama la funzione di allineamento sulla griglia
-                if (window.editor && window.editor.snapObjectsToGrid) {
-                    window.editor.snapObjectsToGrid();
-                }
-            });
-        }
+        // const snapButton = document.getElementById('snapToGridBtn');
+        // if (snapButton) {
+        //     snapButton.addEventListener('click', () => {
+        //         // Chiama la funzione di allineamento sulla griglia
+        //         if (window.editor && window.editor.snapObjectsToGrid) {
+        //             window.editor.snapObjectsToGrid();
+        //         }
+        //     });
+        // }
         // Nel canvas, aggiungi context menu per azioni globali
         canvas.addEventListener('contextmenu', (e) => {
             // Se click su canvas vuoto (non su oggetti)
@@ -4943,9 +4969,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             }
         });
 
-        document.getElementById('toggleLabels').addEventListener('click', () => {
-            this.toggleObjectLabels();
-        });
+        // document.getElementById('toggleLabels').addEventListener('click', () => {
+        //     this.toggleObjectLabels();
+        // });
 
         document.getElementById('generateAISteps').addEventListener('click', () => {
             //this.generateAISteps();
@@ -4955,9 +4981,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         // document.getElementById('objectNumber').addEventListener('input', (e) => {
         //     this.changeSelectedObjectsNumber(parseInt(e.target.value));
         // });
-        document.getElementById('renumberObjects').addEventListener('click', () => {
-            this.renumberAllObjects();
-        });
+        // document.getElementById('renumberObjects').addEventListener('click', () => {
+        //     this.renumberAllObjects();
+        // });
 
         document.getElementById('workoutTiming').addEventListener('input', (e) => {
             this.getCurrentTab().timing = parseInt(e.target.value) || 10;
@@ -4973,13 +4999,13 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         document.getElementById('workoutNr').addEventListener('input', (e) => {
             this.getCurrentTab().nr = parseInt(e.target.value) || 1;
         });
-        document.getElementById('exportFormationsBtn').addEventListener('click', () => {
-            this.exportFormationSheet();
-        });
+        // document.getElementById('exportFormationsBtn').addEventListener('click', () => {
+        //     this.exportFormationSheet();
+        // });
 
-        document.getElementById('exportDataVolleyBtn').addEventListener('click', () => {
-            this.exportDataVolley();
-        });
+        // document.getElementById('exportDataVolleyBtn').addEventListener('click', () => {
+        //     this.exportDataVolley();
+        // });
 
         // Gestione squadra
         // document.getElementById('manageTeamBtn').addEventListener('click', () => {
@@ -5010,17 +5036,17 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         //     this.clearTeam();
         // });
 
-        document.getElementById('togglePlayerNames').addEventListener('click', () => {
-            this.togglePlayerNames();
-        });
+        // document.getElementById('togglePlayerNames').addEventListener('click', () => {
+        //     this.togglePlayerNames();
+        // });
 
-        document.getElementById('canvasSizeSelect').addEventListener('change', (e) => {
-            this.setCanvasSize(e.target.value);
-        });
+        // document.getElementById('canvasSizeSelect').addEventListener('change', (e) => {
+        //     this.setCanvasSize(e.target.value);
+        // });
 
-        document.getElementById('toggleCanvasBorder').addEventListener('click', () => {
-            this.toggleCanvasBorder();
-        });
+        // document.getElementById('toggleCanvasBorder').addEventListener('click', () => {
+        //     this.toggleCanvasBorder();
+        // });
 
         // AGGIUNGI QUESTO BLOCCO
         //this.initHistoryDialog();
@@ -5038,9 +5064,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
         this.initTabDragDrop();
         // E aggiungi il listener
-        document.getElementById('historyBtn').addEventListener('click', () => {
-            this.historyManager.show();
-        });
+        // document.getElementById('historyBtn').addEventListener('click', () => {
+        //     this.historyManager.show();
+        // });
 
         // ✅ NUOVO: Doppio click per toggle sidebar
         // rightSidebarHandle.addEventListener('dblclick', () => {
@@ -5058,9 +5084,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         // });
 
         // Aggiungi pulsanti per macro recorder
-        document.getElementById('recordMacroBtn').addEventListener('click', () => {
-            this.macroManager.showDialog();
-        });
+        // document.getElementById('recordMacroBtn').addEventListener('click', () => {
+        //     this.macroManager.showDialog();
+        // });
 
         // ========== Plane rotation sphere control ==========
         // Create a draggable sphere in the top-right corner of the canvas container

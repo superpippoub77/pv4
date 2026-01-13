@@ -28,6 +28,12 @@ body {
     overflow: hidden;
 }
 
+/* Utility: classe aggiunta da LoginManager.hideApp() - nasconde l'app quando è necessario */
+.hidden {
+    display: none !important;
+    visibility: hidden !important;
+}
+
 /* MAIN CONTAINER - Flex per occupare lo spazio disponibile */
 .container {
     display: flex !important;

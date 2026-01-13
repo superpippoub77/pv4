@@ -9,6 +9,7 @@ class LoginManager {
         this.onLoginSuccess = options.onLoginSuccess || (() => { });
         this.onLogoutSuccess = options.onLogoutSuccess || (() => { });
         this.userDataUrl = options.userDataUrl || 'data/users.json';
+        this.mainContainerId = options.mainContainerId || 'container';
 
         this.init();
     }
@@ -65,12 +66,15 @@ class LoginManager {
         await this.loadUsers();
         this.setupEventListeners();
 
-        // Controlla se c'è una sessione salvata
         const savedUser = sessionStorage.getItem('currentUser');
+
         if (savedUser) {
             this.currentUser = savedUser;
+            this.hideLoginModal();
+            this.showApp();
             this.onLoginSuccess(savedUser);
         } else {
+            this.hideApp();
             this.showLoginModal();
         }
     }
@@ -202,6 +206,7 @@ class LoginManager {
             passwordInput.value = '';
 
             this.hideLoginModal();
+            this.showApp();                 // ✅ MOSTRA APP
             this.showUserInfo(username);
             this.onLoginSuccess(username);
         } else {
@@ -215,20 +220,17 @@ class LoginManager {
      * Gestisce il logout
      */
     handleLogout() {
-        if (!confirm('Sei sicuro di voler uscire?')) {
-            return;
-        }
+        if (!confirm('Sei sicuro di voler uscire?')) return;
 
         this.currentUser = null;
         sessionStorage.removeItem('currentUser');
 
-        // Nascondi info utente
-        const userInfo = document.getElementById('userInfo');
-        if (userInfo) {
-            userInfo.style.display = 'none';
-        }
+        this.hideApp();              // ✅ NASCONDE APP
+        this.showLoginModal();       // ✅ MOSTRA LOGIN
 
-        this.showLoginModal();
+        const userInfo = document.getElementById('userInfo');
+        if (userInfo) userInfo.style.display = 'none';
+
         this.onLogoutSuccess();
     }
 
@@ -307,5 +309,15 @@ class LoginManager {
             loginTime: new Date(),
             sessionId: sessionStorage.getItem('currentUser')
         };
+    }
+
+    hideApp() {
+        const app = document.getElementById(this.mainContainerId);
+        if (app) app.classList.add('hidden');
+    }
+
+    showApp() {
+        const app = document.getElementById(this.mainContainerId);
+        if (app) app.classList.remove('hidden');
     }
 }
