@@ -18,8 +18,31 @@ class SchemaEditor {
     this.inheritPlaneRotationEnabled = false;
         // 3D depth settings: ensure objects sit above the canvas plane by default
         // and avoid going below the reference plane when rotated on Y.
-        this.objectDepthEnabled = true; // default: enabled to keep objects above the plane
-        this.objectDepthPx = 20; // default translateZ in pixels
+        // Load persisted values from storage when available, otherwise compute sensible default.
+        try {
+            const savedDepthEnabled = this.storage.get('objectDepthEnabled');
+            if (savedDepthEnabled !== null && savedDepthEnabled !== undefined) {
+                this.objectDepthEnabled = savedDepthEnabled === 'true' || savedDepthEnabled === true;
+            } else {
+                this.objectDepthEnabled = true;
+            }
+        } catch (err) {
+            this.objectDepthEnabled = true;
+        }
+
+        try {
+            const savedDepthPx = this.storage.get('objectDepthPx');
+            if (savedDepthPx !== null && savedDepthPx !== undefined) {
+                const n = parseInt(savedDepthPx);
+                this.objectDepthPx = isNaN(n) ? 20 : n;
+            } else {
+                // sensible default proportional to a typical object size (player)
+                const d = Math.round(Math.min(this.getDefaultSize('player').width, this.getDefaultSize('player').height) * 0.5);
+                this.objectDepthPx = d || 20;
+            }
+        } catch (err) {
+            this.objectDepthPx = 20;
+        }
         this.selectedObject = null;
         this.selectedObjects = new Map();
         this.selectedArrow = null;
@@ -9302,6 +9325,29 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             }
         } catch (err) {
             // ignore if toolbar not yet present or in non-DOM contexts
+        }
+        // Sync object depth controls in the toolbar with current state
+        try {
+            const depthCheckbox = document.getElementById('enableObjectDepth');
+            if (depthCheckbox) {
+                if (depthCheckbox.type === 'checkbox') depthCheckbox.checked = !!this.objectDepthEnabled;
+                depthCheckbox.classList.toggle('active', !!this.objectDepthEnabled);
+            }
+            const depthPreset = document.getElementById('objectDepthPreset');
+            const depthCustom = document.getElementById('objectDepthCustom');
+            if (depthPreset && depthCustom) {
+                // If current px matches a preset, select it; otherwise set preset to 'custom' and update custom input
+                const presets = ['0','8','20','40'];
+                const cur = String(this.objectDepthPx || 0);
+                if (presets.includes(cur)) {
+                    depthPreset.value = cur;
+                } else {
+                    depthPreset.value = 'custom';
+                }
+                depthCustom.value = String(this.objectDepthPx || 0);
+            }
+        } catch (err) {
+            // ignore UI sync errors
         }
     }
     prepareCanvasForExport() {
