@@ -5183,18 +5183,18 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 canvasContainer.appendChild(sphere);
 
                 // Create toggle button to show/hide the sphere
-                const toggleBtn = document.createElement('button');
-                toggleBtn.id = 'togglePlaneSphereBtn';
-                toggleBtn.className = 'toggle-plane-sphere-btn';
-                toggleBtn.type = 'button';
-                toggleBtn.title = 'Mostra/Nascondi sfera rotazione piano';
-                toggleBtn.textContent = '🔘';
-                // position it near the sphere
-                toggleBtn.style.position = 'absolute';
-                toggleBtn.style.right = '16px';
-                toggleBtn.style.top = '80px';
-                toggleBtn.style.zIndex = 2000;
-                canvasContainer.appendChild(toggleBtn);
+                // const toggleBtn = document.createElement('button');
+                // toggleBtn.id = 'togglePlaneSphereBtn';
+                // toggleBtn.className = 'toggle-plane-sphere-btn';
+                // toggleBtn.type = 'button';
+                // toggleBtn.title = 'Mostra/Nascondi sfera rotazione piano';
+                // toggleBtn.textContent = '🔘';
+                // // position it near the sphere
+                // toggleBtn.style.position = 'absolute';
+                // toggleBtn.style.right = '16px';
+                // toggleBtn.style.top = '80px';
+                // toggleBtn.style.zIndex = 2000;
+                // canvasContainer.appendChild(toggleBtn);
 
                 // Apply saved position/visibility if present in tab
                 try {
@@ -5214,19 +5214,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     // ignore
                 }
 
-                toggleBtn.addEventListener('click', (ev) => {
-                    ev.preventDefault();
-                    const tab = this.getCurrentTab();
-                    tab.planeSphere = tab.planeSphere || {};
-                    if (sphere.style.display === 'none') {
-                        sphere.style.display = '';
-                        tab.planeSphere.visible = true;
-                    } else {
-                        sphere.style.display = 'none';
-                        tab.planeSphere.visible = false;
-                    }
-                    this.saveState('Toggle sfera rotazione piano');
-                });
+                // toggleBtn.addEventListener('click', (ev) => {
+                    
+                // });
 
                 // Drag handling
                 let draggingSphere = false;
@@ -9073,12 +9063,14 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             // Attendi che il browser applichi tutte le modifiche
             await new Promise(resolve => setTimeout(resolve, 300));
 
-            // Dimensioni fisse per evitare problemi di scala
-            const exportWidth = 1600;
-            const exportHeight = 1200;
+            // Export size: use the canvas visible area so we export only the drawing region
+            const exportWidth = Math.max(1, canvas.offsetWidth || canvas.clientWidth || 600);
+            const exportHeight = Math.max(1, canvas.offsetHeight || canvas.clientHeight || 300);
+            const dpr = window.devicePixelRatio || 1;
+            const scale = Math.max(1, dpr);
 
             const exportCanvas = await html2canvas(canvas, {
-                scale: 2,
+                scale: scale,
                 useCORS: true,
                 allowTaint: true,
                 backgroundColor: tab.bwMode ? null : '#ffffff',
