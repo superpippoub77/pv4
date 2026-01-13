@@ -19,8 +19,9 @@ class SchemaEditor {
         // 3D depth settings: ensure objects sit above the canvas plane by default
         // and avoid going below the reference plane when rotated on Y.
         // Load persisted values from storage when available, otherwise compute sensible default.
+        // Load per-user or global persisted values when available; fall back to sensible defaults.
         try {
-            const savedDepthEnabled = this.storage.get('objectDepthEnabled');
+            const savedDepthEnabled = this.loadUserPref('objectDepthEnabled');
             if (savedDepthEnabled !== null && savedDepthEnabled !== undefined) {
                 this.objectDepthEnabled = savedDepthEnabled === 'true' || savedDepthEnabled === true;
             } else {
@@ -31,7 +32,7 @@ class SchemaEditor {
         }
 
         try {
-            const savedDepthPx = this.storage.get('objectDepthPx');
+            const savedDepthPx = this.loadUserPref('objectDepthPx');
             if (savedDepthPx !== null && savedDepthPx !== undefined) {
                 const n = parseInt(savedDepthPx);
                 this.objectDepthPx = isNaN(n) ? 20 : n;
@@ -42,6 +43,14 @@ class SchemaEditor {
             }
         } catch (err) {
             this.objectDepthPx = 20;
+        }
+
+        // Auto-depth mode: compute translateZ per-object based on size when enabled.
+        try {
+            const savedAuto = this.loadUserPref('objectDepthAuto');
+            this.objectDepthAuto = savedAuto === 'true' || savedAuto === true;
+        } catch (err) {
+            this.objectDepthAuto = false;
         }
         this.selectedObject = null;
         this.selectedObjects = new Map();
@@ -102,6 +111,42 @@ class SchemaEditor {
         this.libraryManager = new LibraryWorkoutDialogManager(this);
         this.macroManager = new MacroManager(this);
         this.loginManager = new LoginManager();
+    }
+
+    // Load a user-scoped preference (falls back to global key if user-specific not present)
+    loadUserPref(key) {
+        try {
+            if (this.currentUser) {
+                const v = this.storage.get(`userPrefs:${this.currentUser}:${key}`);
+                if (v !== null && v !== undefined) return v;
+            }
+            return this.storage.get(key);
+        } catch (err) {
+            return null;
+        }
+    }
+
+    // Save a user-scoped preference (falls back to global write if no user)
+    saveUserPref(key, value) {
+        try {
+            if (this.currentUser) {
+                this.storage.set(`userPrefs:${this.currentUser}:${key}`, value);
+            } else {
+                this.storage.set(key, value);
+            }
+        } catch (err) {
+            // ignore
+        }
+    }
+
+    // Compute a sensible translateZ (depth) value for an object based on its size.
+    computeObjectDepth(object) {
+        const factor = 0.5; // 50% of min(width,height) by default
+        const w = object.width || 0;
+        const h = object.height || 0;
+        const base = Math.round(Math.min(w, h) * factor);
+        // clamp to reasonable range
+        return Math.max(0, Math.min(base, 200));
     }
 
     async initialize() {
@@ -5522,7 +5567,12 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             const rotX = (this.inheritPlaneRotationEnabled && this.canvasRotation) ? (this.canvasRotation.X || 0) : (obj.rotationX || 0);
             const rotY = (this.inheritPlaneRotationEnabled && this.canvasRotation) ? (this.canvasRotation.Y || 0) : (obj.rotationY || 0);
             const rotZ = obj.rotation || 0;
-            const depth = (this.objectDepthEnabled ? (this.objectDepthPx || 0) : 0);
+            let depth = 0;
+            if (this.objectDepthAuto) {
+                depth = this.computeObjectDepth(obj);
+            } else if (this.objectDepthEnabled) {
+                depth = (this.objectDepthPx || 0);
+            }
             // translateZ ensures object visually sits above the canvas plane. Keep backface hidden to avoid showing undersides.
             el.style.transform = `translateZ(${depth}px) rotateX(${rotX}deg) rotateY(${rotY}deg) rotateZ(${rotZ}deg)`;
             el.style.transformStyle = 'preserve-3d';
@@ -5672,7 +5722,12 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     const rotX = (this.inheritPlaneRotationEnabled && this.canvasRotation) ? (this.canvasRotation.X || 0) : (object.rotationX || 0);
     const rotY = (this.inheritPlaneRotationEnabled && this.canvasRotation) ? (this.canvasRotation.Y || 0) : (object.rotationY || 0);
         const rotZ = object.rotation || 0;
-        const depth = (this.objectDepthEnabled ? (this.objectDepthPx || 0) : 0);
+        let depth = 0;
+        if (this.objectDepthAuto) {
+            depth = this.computeObjectDepth(object);
+        } else if (this.objectDepthEnabled) {
+            depth = (this.objectDepthPx || 0);
+        }
         // translateZ keeps objects visually above the canvas plane so Y-rotations don't send them "under" the plane.
         element.style.transform = `translateZ(${depth}px) rotateX(${rotX}deg) rotateY(${rotY}deg) rotateZ(${rotZ}deg)`;
         element.style.transformStyle = 'preserve-3d'; // ✅ IMPORTANTE per 3D
