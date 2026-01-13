@@ -206,6 +206,12 @@ body {
     min-height: 0;
 }
 
+/* Perspective applied to container so plane transforms use it while canvas (objects) remain above */
+.canvas-container {
+    perspective: 1000px;
+    transform-style: preserve-3d;
+}
+
 .canvas {
     position: relative;
     background: transparent;
@@ -217,7 +223,8 @@ body {
     min-width: 600px;
     min-height: 300px;
     resize: none;
-    perspective: 1000px;
+    /* perspective moved to .canvas-container */
+    perspective: none;
 }
 
 .canvas.show-border {
@@ -1188,4 +1195,32 @@ body.dragging-endpoint .canvas-object .connection-point {
     background: white;
     border-radius: 8px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+/* Plane that renders the grid/background below objects */
+.canvas-plane {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* don't block interactions */
+    z-index: 0; /* sits below the canvas content */
+    transform-origin: 50% 50%;
+    backface-visibility: hidden;
+}
+
+/* Ensure the canvas (objects) sits on top of the plane */
+.canvas {
+    z-index: 1;
+    position: relative; /* ensure z-index applies */
+    transform-style: preserve-3d;
+}
+
+/* Reuse existing grid styling for the plane */
+.canvas-plane.grid-visible {
+    background-image:
+        linear-gradient(to right, #ddd 1px, transparent 1px),
+        linear-gradient(to bottom, #ddd 1px, transparent 1px);
+    background-size: 20px 20px;
 }

@@ -84,7 +84,7 @@ class SchemaEditor {
     beforeInit() {
         //this.initToolbarDragDrop();
         // this.initLibraryLoading();
-        this.initializeTab(1, 'Schema 1');
+    this.initializeTab(1, 'Schema 1');
         this.initCanvasResize();
         this.initializeExistingTabs();
         this.updateUI();
@@ -92,6 +92,8 @@ class SchemaEditor {
         this.initAutoSave();
         this.restoreStatusAutoSave();
     }
+
+    // NOTE: removed createCanvasPlane() - the grid/background plane is the main `#canvas` element.
 
     async createTemplate() {
         await this.menuManager.init(this.menuData);
@@ -3395,9 +3397,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     startFreehand(e) {
         this.isDrawing = true;
         this.freehandPoints = [];
-        const rect = document.getElementById('canvas').getBoundingClientRect();
-        const x = (e.clientX - rect.left) / this.getCurrentTab().zoom;
-        const y = (e.clientY - rect.top) / this.getCurrentTab().zoom;
+        const p = this.getCanvasLocalPoint(e);
+        const x = p.x;
+        const y = p.y;
         this.freehandPoints.push({ x, y });
 
         // reserve an id for this in-progress freehand so we can record keyframes against it
@@ -3412,9 +3414,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
     continueFreehand(e) {
         if (!this.isDrawing) return;
-        const rect = document.getElementById('canvas').getBoundingClientRect();
-        const x = (e.clientX - rect.left) / this.getCurrentTab().zoom;
-        const y = (e.clientY - rect.top) / this.getCurrentTab().zoom;
+        const p = this.getCanvasLocalPoint(e);
+        const x = p.x;
+        const y = p.y;
 
         // Aggiungi punto solo se sufficientemente distante dall'ultimo
         const lastPoint = this.freehandPoints[this.freehandPoints.length - 1];
@@ -5365,9 +5367,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             return;
         }
 
-        const rect = e.currentTarget.getBoundingClientRect();
-        let x = (e.clientX - rect.left) / this.getCurrentTab().zoom;
-        let y = (e.clientY - rect.top) / this.getCurrentTab().zoom;
+    const p = this.getCanvasLocalPoint(e);
+    let x = p.x;
+    let y = p.y;
 
         // Se il drag ha un offset salvato (es. mouse preso al centro dell'oggetto)
         if (data.offsetX !== undefined && data.offsetY !== undefined) {
@@ -5444,22 +5446,89 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         const y = this.canvasRotation.Y || 0;
         const z = this.canvasRotation.Z || 0;
 
+        const planeEl = document.querySelector('.canvas-plane');
         const canvasEl = document.getElementById('canvas');
+        const transformValue = `rotateX(${x}deg) rotateY(${y}deg) rotateZ(${z}deg)`;
+        if (planeEl) {
+            // apply 3D transforms to the plane
+            planeEl.style.transformStyle = 'preserve-3d';
+            planeEl.style.transform = transformValue;
+            planeEl.style.transformOrigin = '50% 50%';
+        }
         if (canvasEl) {
-            // apply 3D transforms to the canvas
+            // Also apply the same transform to the canvas so objects visually rotate with the plane.
+            // Preserve current zoom (scale) if any by prefixing the scale transform.
+            const zoom = this.getCurrentTab() ? (this.getCurrentTab().zoom || 1) : 1;
             canvasEl.style.transformStyle = 'preserve-3d';
-            canvasEl.style.transform = `rotateX(${x}deg) rotateY(${y}deg) rotateZ(${z}deg)`;
-            // keep transform origin centered
+            canvasEl.style.transform = `scale(${zoom}) ${transformValue}`;
             canvasEl.style.transformOrigin = '50% 50%';
         }
     }
 
     resetCanvasPlaneRotation() {
         this.canvasRotation = { X: 0, Y: 0, Z: 0 };
+        const planeEl = document.querySelector('.canvas-plane');
+        if (planeEl) {
+            planeEl.style.transform = '';
+        }
         const canvasEl = document.getElementById('canvas');
         if (canvasEl) {
-            canvasEl.style.transform = '';
+            // restore zoom-only transform if zoom exists
+            const zoom = this.getCurrentTab() ? (this.getCurrentTab().zoom || 1) : 1;
+            canvasEl.style.transform = zoom && zoom !== 1 ? `scale(${zoom})` : '';
         }
+    }
+
+    // Return the mouse point in canvas-local coordinates (taking into account CSS transforms and zoom)
+    getCanvasLocalPoint(e) {
+        const canvas = document.getElementById('canvas');
+        if (!canvas) return { x: 0, y: 0 };
+        const rect = canvas.getBoundingClientRect();
+        const zoom = this.getCurrentTab() ? (this.getCurrentTab().zoom || 1) : 1;
+
+        // point in element's bounding box coordinate space
+        const px = e.clientX - rect.left;
+        const py = e.clientY - rect.top;
+
+        const style = window.getComputedStyle(canvas);
+        const transform = style.transform || 'none';
+        if (!transform || transform === 'none') {
+            return { x: px / zoom, y: py / zoom, rect };
+        }
+
+        // compute transform origin in pixels
+        const origin = style.transformOrigin || '50% 50%';
+        const parts = origin.split(' ');
+        const parseOrigin = (str, length) => {
+            if (str.indexOf('%') !== -1) return (parseFloat(str) / 100) * length;
+            return parseFloat(str);
+        };
+        const ox = parseOrigin(parts[0] || '50%', rect.width);
+        const oy = parseOrigin(parts[1] || '50%', rect.height);
+
+        // Use DOMMatrix to invert the transform and map the point back
+        let matrix;
+        try {
+            matrix = new DOMMatrix(transform);
+        } catch (err) {
+            // fallback: no transform parsing
+            return { x: px / zoom, y: py / zoom, rect };
+        }
+
+        let inv;
+        try {
+            inv = matrix.inverse();
+        } catch (err) {
+            // not invertible
+            return { x: px / zoom, y: py / zoom, rect };
+        }
+
+        const localPoint = new DOMPoint(px - ox, py - oy);
+        const un = inv.transformPoint(localPoint);
+        const localX = un.x + ox;
+        const localY = un.y + oy;
+
+        return { x: localX / zoom, y: localY / zoom, rect };
     }
 
     addObject(type, x, y, color = '#3498db', text = '', rotation = 0, dashed = this.dashedMode, icon = null, src = null, spriteData = null) {
@@ -5858,7 +5927,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         }
 
         if (this.arrowMode) {
-            this.startConnection({ objectId: null, position: { x: (e.clientX - e.currentTarget.getBoundingClientRect().left) / this.getCurrentTab().zoom, y: (e.clientY - e.currentTarget.getBoundingClientRect().top) / this.getCurrentTab().zoom } }, e);
+            const p = this.getCanvasLocalPoint(e);
+            this.startConnection({ objectId: null, position: { x: p.x, y: p.y } }, e);
             return;
         }
 
@@ -5945,9 +6015,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         if (this.isDraggingControlPoint && this.selectedArrow) {
             const arrow = this.getCurrentTab().arrows.get(this.selectedArrow);
             if (arrow) {
-                const rect = document.getElementById('canvas').getBoundingClientRect();
-                const newX = (e.clientX - rect.left) / this.getCurrentTab().zoom;
-                const newY = (e.clientY - rect.top) / this.getCurrentTab().zoom;
+                const p = this.getCanvasLocalPoint(e);
+                const newX = p.x;
+                const newY = p.y;
 
                 arrow.controlPoint = { x: newX, y: newY };
                 this.renderArrow(arrow);
@@ -5956,8 +6026,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         }
 
         if (this.isDragging) {
-            const deltaX = (e.clientX - this.dragStart.x) / this.getCurrentTab().zoom;
-            const deltaY = (e.clientY - this.dragStart.y) / this.getCurrentTab().zoom;
+            const current = this.getCanvasLocalPoint(e);
+            const deltaX = current.x - this.dragStart.x;
+            const deltaY = current.y - this.dragStart.y;
 
             const tab = this.getCurrentTab();
 
@@ -5999,9 +6070,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             this.updateSelectionBox(e);
         } else if (this.isDraggingEndpoint && this.selectedArrow) {
             const arrow = this.getCurrentTab().arrows.get(this.selectedArrow);
-            const rect = document.getElementById('canvas').getBoundingClientRect();
-            const newX = (e.clientX - rect.left) / this.getCurrentTab().zoom;
-            const newY = (e.clientY - rect.top) / this.getCurrentTab().zoom;
+            const p = this.getCanvasLocalPoint(e);
+            const newX = p.x;
+            const newY = p.y;
 
             const nearbyPoint = this.findNearbyConnectionPoint(e);
 
@@ -6143,11 +6214,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     }
     startAreaSelection(e) {
         this.isSelecting = true;
-        const rect = document.getElementById('canvas').getBoundingClientRect();
-        this.selectionStart = {
-            x: e.clientX - rect.left,
-            y: e.clientY - rect.top
-        };
+        const p = this.getCanvasLocalPoint(e);
+        this.selectionStart = { x: p.x, y: p.y };
         this.canvasRect = rect;
         this.createSelectionBox();
     }
@@ -6171,7 +6239,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
     startDrag(e) {
         this.isDragging = true;
-        this.dragStart = { x: e.clientX, y: e.clientY };
+        // store the drag start in canvas-local coordinates (account for transforms + zoom)
+        this.dragStart = this.getCanvasLocalPoint(e);
 
         // ✅ MODIFICA: Salva la posizione iniziale di TUTTI gli oggetti selezionati
         const tab = this.getCurrentTab();
@@ -6199,9 +6268,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         const box = document.getElementById('selectionBox');
         if (!box) return;
 
-        const rect = document.getElementById('canvas').getBoundingClientRect();
-        const currentX = e.clientX - rect.left;
-        const currentY = e.clientY - rect.top;
+        const p = this.getCanvasLocalPoint(e);
+        const currentX = p.x;
+        const currentY = p.y;
 
         const left = Math.min(this.selectionStart.x, currentX);
         const top = Math.min(this.selectionStart.y, currentY);
@@ -6217,17 +6286,16 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     finalizeSelectionBox(e) {
         const box = document.getElementById('selectionBox');
         if (!box) return;
+        const p = this.getCanvasLocalPoint(e);
+        const currentX = p.x;
+        const currentY = p.y;
 
-        const rect = document.getElementById('canvas').getBoundingClientRect();
-        const currentX = e.clientX - rect.left;
-        const currentY = e.clientY - rect.top;
-
-        const zoom = this.getCurrentTab().zoom;
+        // selectionStart and currentX/currentY are already in canvas local coordinates (pre-zoom)
         const selectionRect = {
-            left: Math.min(this.selectionStart.x, currentX) / zoom,
-            top: Math.min(this.selectionStart.y, currentY) / zoom,
-            right: Math.max(this.selectionStart.x, currentX) / zoom,
-            bottom: Math.max(this.selectionStart.y, currentY) / zoom
+            left: Math.min(this.selectionStart.x, currentX),
+            top: Math.min(this.selectionStart.y, currentY),
+            right: Math.max(this.selectionStart.x, currentX),
+            bottom: Math.max(this.selectionStart.y, currentY)
         };
 
         const tab = this.getCurrentTab();
@@ -6690,9 +6758,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     updateConnectionPreview(e) {
         if (!this.connectionPreview) return;
 
-        const rect = document.getElementById('canvas').getBoundingClientRect();
-        const currentX = (e.clientX - rect.left) / this.getCurrentTab().zoom;
-        const currentY = (e.clientY - rect.top) / this.getCurrentTab().zoom;
+        const p = this.getCanvasLocalPoint(e);
+        const currentX = p.x;
+        const currentY = p.y;
 
         const pathData = this.generateArrowPath(this.connectionPreview.startPos, { x: currentX, y: currentY }, this.arrowType);
         this.connectionPreview.path.setAttribute('d', pathData);
@@ -6704,8 +6772,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         const target = e.target.closest('.connection-point');
         const targetObject = target?.closest('.canvas-object');
 
-        const rect = document.getElementById('canvas').getBoundingClientRect();
-        const endPos = { x: (e.clientX - rect.left) / this.getCurrentTab().zoom, y: (e.clientY - rect.top) / this.getCurrentTab().zoom };
+    const p = this.getCanvasLocalPoint(e);
+    const endPos = { x: p.x, y: p.y };
 
         let to;
         if (target && targetObject && targetObject.id !== this.connectionStart.objectId) {
@@ -7807,7 +7875,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     updateZoom() {
         const tab = this.getCurrentTab();
         const canvas = document.getElementById('canvas');
-        canvas.style.transform = `scale(${tab.zoom})`;
+        // preserve any current canvas rotation (stored in this.canvasRotation)
+        const rot = this.canvasRotation ? `rotateX(${this.canvasRotation.X || 0}deg) rotateY(${this.canvasRotation.Y || 0}deg) rotateZ(${this.canvasRotation.Z || 0}deg)` : '';
+        canvas.style.transform = rot ? `scale(${tab.zoom}) ${rot}` : `scale(${tab.zoom})`;
         if (document.getElementById('zoomDisplay')) {
             document.getElementById('zoomDisplay').textContent = Math.round(tab.zoom * 100) + '%';
         }
@@ -7816,11 +7886,12 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     updateBackground() {
         const tab = this.getCurrentTab();
         const canvas = document.getElementById('canvas');
+        // Keep canvas element as the plane that renders background/grid
         canvas.className = 'canvas';
-
+        // Apply grid / BW on the canvas itself
         if (tab.gridVisible) canvas.classList.add('grid-visible');
         if (tab.bwMode) canvas.classList.add('bw-mode');
-        canvas.style.backgroundColor = "trqansparent";
+        canvas.style.backgroundColor = "transparent";
         switch (tab.background) {
             case 'half-field':
                 canvas.classList.add('bg-half-field');
@@ -8190,7 +8261,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 const canvasEl = document.getElementById('canvas');
                 if (canvasEl) {
                     canvasEl.style.transformStyle = 'preserve-3d';
-                    canvasEl.style.transform = `rotateX(${x}deg) rotateY(${y}deg) rotateZ(${z}deg)`;
+                    // preserve zoom if present
+                    const zoom = this.getCurrentTab() ? (this.getCurrentTab().zoom || 1) : 1;
+                    canvasEl.style.transform = `scale(${zoom}) rotateX(${x}deg) rotateY(${y}deg) rotateZ(${z}deg)`;
                     canvasEl.style.transformOrigin = '50% 50%';
                 }
             }
