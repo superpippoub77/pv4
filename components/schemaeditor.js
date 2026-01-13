@@ -14,8 +14,8 @@ class SchemaEditor {
         this.isConnecting = false;
         this.arrowMode = false;
         this.dashedMode = false; // New property for dashed mode for new objects/arrows
-    // If true, objects inherit the canvas plane rotation/inclination (rotationX, rotationY)
-    this.inheritPlaneRotationEnabled = false;
+        // If true, objects inherit the canvas plane rotation/inclination (rotationX, rotationY)
+        this.inheritPlaneRotationEnabled = false;
         // 3D depth settings: ensure objects sit above the canvas plane by default
         // and avoid going below the reference plane when rotated on Y.
         // Load persisted values from storage when available, otherwise compute sensible default.
@@ -158,7 +158,7 @@ class SchemaEditor {
     beforeInit() {
         //this.initToolbarDragDrop();
         // this.initLibraryLoading();
-    this.initializeTab(1, 'Schema 1');
+        this.initializeTab(1, 'Schema 1');
         this.initCanvasResize();
         this.initializeExistingTabs();
         this.updateUI();
@@ -337,15 +337,14 @@ class SchemaEditor {
                     })) || [],
                     canvasSize: tabData.canvasSize,
                     showBorder: tabData.showBorder,
-                    maxZIndex: tabData.maxZIndex
+                    maxZIndex: tabData.maxZIndex,
+                    canvasRotation: tabData.canvasRotation,
                 };
                 autoSaveData.tabs.push(tabState);
             });
 
             // Salva in storage con chiave unica
-            const autoSaveKey = `autoSave_${this.currentUser || 'default'}`;
-            this.storage.set(autoSaveKey, JSON.stringify(autoSaveData));
-
+            this.saveUserPref('autosave', JSON.stringify(autoSaveData));
             this.lastAutoSave = Date.now();
             this.showAutoSaveIndicator('💾 Salvato automaticamente', '#27ae60');
 
@@ -362,8 +361,7 @@ class SchemaEditor {
      */
     restoreAutoSave() {
         try {
-            const autoSaveKey = `autoSave_${this.currentUser || 'default'}`;
-            const savedData = this.storage.get(autoSaveKey);
+            const savedData = this.loadUserPref('autosave');
 
             if (!savedData) {
                 alert('Nessun salvataggio automatico trovato');
@@ -425,6 +423,7 @@ class SchemaEditor {
                 tab.canvasSize = tabData.canvasSize;
                 tab.showBorder = tabData.showBorder;
                 tab.maxZIndex = tabData.maxZIndex;
+                tab.canvasRotation = tabData.canvasRotation;
 
                 if (tabData.frames) {
                     tab.frames = tabData.frames.map(frameData => ({
@@ -456,8 +455,8 @@ class SchemaEditor {
 
     restoreStatusAutoSave() {
         try {
-            const autoSaveKey = `autoSave_${this.currentUser || 'default'}`;
-            const savedData = this.storage.get(autoSaveKey);
+            //const autoSaveKey = `autoSave_${this.currentUser || 'default'}`;
+            const savedData = this.loadUserPref('autosave');
 
             // Se la chiave non esiste → esci senza messaggi
             if (!savedData) return false;
@@ -504,7 +503,8 @@ class SchemaEditor {
                     exerciseSteps: tabData.exerciseSteps || [],
                     canvasSize: tabData.canvasSize,
                     showBorder: tabData.showBorder,
-                    maxZIndex: tabData.maxZIndex
+                    maxZIndex: tabData.maxZIndex,
+                    canvasRotation: tabData.canvasRotation,
                 });
 
                 if (tabData.frames) {
@@ -1258,6 +1258,24 @@ class SchemaEditor {
         // SALVA DIMENSIONE E BORDI
         tab.canvasSize = this.canvasSize;
         tab.showBorder = this.showCanvasBorder;
+
+        // Salva rotazione del piano canvas
+        tab.canvasRotation = this.canvasRotation || { X: 0, Y: 0, Z: 0 };
+        // Salva posizione e visibilità della sfera
+        try {
+            const sphere = document.getElementById('planeRotationSphere');
+            const canvasContainer = document.querySelector('.canvas-container');
+            if (sphere && canvasContainer) {
+                const rect = sphere.getBoundingClientRect();
+                const crect = canvasContainer.getBoundingClientRect();
+                tab.planeSphere = tab.planeSphere || {};
+                tab.planeSphere.left = Math.round(rect.left - crect.left);
+                tab.planeSphere.top = Math.round(rect.top - crect.top);
+                tab.planeSphere.visible = sphere.style.display !== 'none';
+            }
+        } catch (err) {
+            // ignore
+        }
 
         // ✅ NUOVO: Salva dimensioni custom
         if (tab.canvasSize === 'custom') {
@@ -5215,7 +5233,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 }
 
                 // toggleBtn.addEventListener('click', (ev) => {
-                    
+
                 // });
 
                 // Drag handling
@@ -5431,9 +5449,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             return;
         }
 
-    const p = this.getCanvasLocalPoint(e);
-    let x = p.x;
-    let y = p.y;
+        const p = this.getCanvasLocalPoint(e);
+        let x = p.x;
+        let y = p.y;
 
         // Se il drag ha un offset salvato (es. mouse preso al centro dell'oggetto)
         if (data.offsetX !== undefined && data.offsetY !== undefined) {
@@ -5708,9 +5726,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         element.style.width = object.width + 'px';
         element.style.height = object.height + 'px';
 
-    // ✅ MODIFICA: Applica rotazione 3D su tutti e tre gli assi e mantieni l'oggetto sopra il piano
-    const rotX = (this.inheritPlaneRotationEnabled && this.canvasRotation) ? (this.canvasRotation.X || 0) : (object.rotationX || 0);
-    const rotY = (this.inheritPlaneRotationEnabled && this.canvasRotation) ? (this.canvasRotation.Y || 0) : (object.rotationY || 0);
+        // ✅ MODIFICA: Applica rotazione 3D su tutti e tre gli assi e mantieni l'oggetto sopra il piano
+        const rotX = (this.inheritPlaneRotationEnabled && this.canvasRotation) ? (this.canvasRotation.X || 0) : (object.rotationX || 0);
+        const rotY = (this.inheritPlaneRotationEnabled && this.canvasRotation) ? (this.canvasRotation.Y || 0) : (object.rotationY || 0);
         const rotZ = object.rotation || 0;
         let depth = 0;
         if (this.objectDepthAuto) {
@@ -6866,8 +6884,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         const target = e.target.closest('.connection-point');
         const targetObject = target?.closest('.canvas-object');
 
-    const p = this.getCanvasLocalPoint(e);
-    const endPos = { x: p.x, y: p.y };
+        const p = this.getCanvasLocalPoint(e);
+        const endPos = { x: p.x, y: p.y };
 
         let to;
         if (target && targetObject && targetObject.id !== this.connectionStart.objectId) {
@@ -8311,6 +8329,47 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             this.updateAllResizeHandles();
         }, 150);
 
+
+        // ✅ AGGIUNGI QUESTO BLOCCO - Ripristina rotazione piano canvas
+        try {
+            if (tab.canvasRotation) {
+                this.canvasRotation = tab.canvasRotation;
+                const x = tab.canvasRotation.X || 0;
+                const y = tab.canvasRotation.Y || 0;
+                const z = tab.canvasRotation.Z || 0;
+                const canvasEl = document.getElementById('canvas');
+                if (canvasEl) {
+                    canvasEl.style.transformStyle = 'preserve-3d';
+                    const zoom = tab.zoom || 1;
+                    canvasEl.style.transform = `scale(${zoom}) rotateX(${x}deg) rotateY(${y}deg) rotateZ(${z}deg)`;
+                    canvasEl.style.transformOrigin = '50% 50%';
+                }
+
+                // Aggiorna anche la sfera visivamente
+                const sphere = document.getElementById('planeRotationSphere');
+                if (sphere) {
+                    sphere.style.transform = `rotateX(${x}deg) rotateY(${y}deg) rotateZ(${z}deg)`;
+                }
+            }
+
+            // Ripristina posizione/visibilità sfera
+            const sphere = document.getElementById('planeRotationSphere');
+            const canvasContainer = document.querySelector('.canvas-container');
+            if (sphere && canvasContainer && tab.planeSphere) {
+                const ps = tab.planeSphere;
+                if (ps.left !== undefined && ps.top !== undefined) {
+                    sphere.style.left = ps.left + 'px';
+                    sphere.style.top = ps.top + 'px';
+                    sphere.style.right = '';
+                }
+                if (ps.visible === false) {
+                    sphere.style.display = 'none';
+                }
+            }
+        } catch (err) {
+            console.warn('Errore ripristino rotazione piano:', err);
+        }
+
         if (tab.showBorder) {
             canvas.classList.add('show-border');
         } else {
@@ -9391,7 +9450,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             const depthCustom = document.getElementById('objectDepthCustom');
             if (depthPreset && depthCustom) {
                 // If current px matches a preset, select it; otherwise set preset to 'custom' and update custom input
-                const presets = ['0','8','20','40'];
+                const presets = ['0', '8', '20', '40'];
                 const cur = String(this.objectDepthPx || 0);
                 if (presets.includes(cur)) {
                     depthPreset.value = cur;

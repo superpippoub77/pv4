@@ -176,17 +176,18 @@ const toolbarTopConfig = [
             { type: "button", id: "rotatePlaneZPlus", text: "Z+", i18n: "btn_rotate_plane_z_plus", titleI18n: "btn_rotate_plane_z_plus", onClick: (editor) => { editor.rotateCanvasPlane('Z', 15); } },
             { type: "button", id: "rotatePlaneReset", text: "Reset", i18n: "btn_rotate_plane_reset", titleI18n: "btn_rotate_plane_reset", onClick: (editor) => { editor.resetCanvasPlaneRotation(); } },
             {
-                type: "button", id: "togglePlaneSphereBtn", text: "Shpere", i18n: "btn_ebable_sphere", titleI18n: "btn_ebable_sphere", onClick: (editor) => {
+                type: "button", id: "togglePlaneSphereBtn", text: "Shpere", class:"active", i18n: "btn_ebable_sphere", titleI18n: "btn_ebable_sphere", onClick: (editor, ev) => {
                     ev.preventDefault();
                     const tab = editor.getCurrentTab();
                     tab.planeSphere = tab.planeSphere || {};
-                    if (sphere.style.display === 'none') {
-                        sphere.style.display = '';
+                    if (document.getElementById('planeRotationSphere').style.display === 'none') {
+                        document.getElementById('planeRotationSphere')  .style.display = '';
                         tab.planeSphere.visible = true;
                     } else {
-                        sphere.style.display = 'none';
+                        document.getElementById('planeRotationSphere').style.display = 'none';
                         tab.planeSphere.visible = false;
                     }
+                    document.getElementById('togglePlaneSphereBtn').classList.toggle('active', tab.planeSphere.visible);
                     editor.saveState('Toggle sfera rotazione piano');
                 }
             },
