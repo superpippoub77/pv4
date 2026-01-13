@@ -8856,6 +8856,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             })),
             animationSpeed: tab.animationSpeed || 1000,
             exerciseSteps: tab.exerciseSteps || []
+            ,
+            // Persist canvas plane rotation so reload preserves inclination
+            canvasRotation: tab.canvasRotation || this.canvasRotation || { X: 0, Y: 0, Z: 0 }
         };
 
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -8953,6 +8956,10 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         tab.gridVisible = data.gridVisible !== undefined ? data.gridVisible : true;
         tab.bwMode = data.bwMode || false;
         tab.zoom = data.zoom || 1;
+        // Restore canvas rotation if present in imported JSON
+        if (data.canvasRotation) {
+            tab.canvasRotation = data.canvasRotation;
+        }
         tab.periodo = data.periodo || 'GEN';
         tab.ruolo = data.ruolo || 'GEN';
         tab.tipologia = data.tipologia || 'GEN';
