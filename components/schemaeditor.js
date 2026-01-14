@@ -5837,29 +5837,41 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     }
 
     render3DObject(object) {
-        if (!this.threeScene) return;
-        console.log('mesh pos', object.x, 0, object.y, 'scale', object.width / 100, object.height / 100);
+        if (!this.threeScene || !object.model3d) return;
 
         const loader = new THREE.GLTFLoader();
         loader.load(object.model3d, (gltf) => {
             const mesh = gltf.scene;
-            //mesh.position.set(object.x, 0, object.y);
-            mesh.position.set(0, 0, 0);
-            mesh.rotation.set(
-                THREE.MathUtils.degToRad(object.rotationX),
-                THREE.MathUtils.degToRad(object.rotationY),
-                THREE.MathUtils.degToRad(object.rotation)
-            );
-            mesh.scale.set(1, 1, 1);
-            //mesh.scale.set(object.width / 100, 1, object.height / 100);
 
+            // 1️⃣ Posizione: centrato sopra il piano
+            mesh.position.set(object.x || 0, object.height / 2 || 0, object.y || 0);
+
+            // 2️⃣ Rotazioni (X, Y, Z in gradi convertiti in radianti)
+            mesh.rotation.set(
+                THREE.MathUtils.degToRad(object.rotationX || 0),
+                THREE.MathUtils.degToRad(object.rotationY || 0),
+                THREE.MathUtils.degToRad(object.rotation || 0)
+            );
+
+            // 3️⃣ Scala proporzionata in base alla dimensione dell'oggetto
+            const scaleX = object.width / 100 || 1;
+            const scaleZ = object.height / 100 || 1;
+            mesh.scale.set(scaleX, scaleX, scaleZ);
+
+            // 4️⃣ Aggiungi alla scena
             this.threeScene.add(mesh);
             object.mesh = mesh;
 
-            // Forza il render subito dopo il caricamento
+            // 5️⃣ Centra la camera sul nuovo mesh per debug (opzionale)
+            if (this.autoCenterCamera) {
+                this.threeCamera.lookAt(mesh.position);
+            }
+
+            // 6️⃣ Aggiorna la scena subito
             this.threeRenderer.render(this.threeScene, this.threeCamera);
-        })
+        });
     }
+
     bringToFront() {
         if (this.selectedObjects.size === 0) return;
 
