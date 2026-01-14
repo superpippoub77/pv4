@@ -6785,12 +6785,12 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 document.getElementById('spriteStopAnimation').style.display = isAnimating ? 'inline-block' : 'none';
 
                 document.getElementById('objectInfo').textContent = `Sprite selezionato (Frame ${sprite.frame}/${maxFrame})`;
-            } else if (object.is3d && object.mesh) {
-                object.mesh.position.x = object.x;
-                object.mesh.position.z = object.y;
-                object.mesh.rotation.x = THREE.MathUtils.degToRad(object.rotationX);
-                object.mesh.rotation.y = THREE.MathUtils.degToRad(object.rotationY);
-                object.mesh.rotation.z = THREE.MathUtils.degToRad(object.rotation);
+            } else if (objectData.is3d && objectData.mesh) {
+                objectData.mesh.position.x = objectData.x;
+                objectData.mesh.position.z = objectData.y;
+                objectData.mesh.rotation.x = THREE.MathUtils.degToRad(objectData.rotationX);
+                objectData.mesh.rotation.y = THREE.MathUtils.degToRad(objectData.rotationY);
+                objectData.mesh.rotation.z = THREE.MathUtils.degToRad(objectData.rotation);
             } else {
                 // Nascondi controlli sprite per altri tipi
                 spriteControls.style.display = 'none';
