@@ -152,6 +152,7 @@ class SchemaEditor {
     async initialize() {
         await this.createTemplate();  // aspetta che tutti gli init finiscano
         await this.createWindows();
+        this.initThreeJS(); // Inizializza Three.js qui
         this.beforeInit();                // chiama beforeInit subito dopo
     }
 
@@ -181,6 +182,49 @@ class SchemaEditor {
         await this.animationManager.init();
         await this.workoutManager.init();
         await this.libraryManager.init();
+    }
+
+    initThreeJS() {
+        const canvas = document.getElementById('three-canvas');
+        if (!canvas) return;
+
+        // 1. Creazione della Scena
+        this.threeScene = new THREE.Scene();
+
+        // 2. Camera (Prospettiva)
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+        this.threeCamera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+        this.threeCamera.position.set(0, 100, 200);
+        this.threeCamera.lookAt(0, 0, 0);
+
+        // 3. Renderer
+        this.threeRenderer = new THREE.WebGLRenderer({
+            canvas: canvas,
+            antialias: true,
+            alpha: true // Utile se vuoi vedere lo sfondo del sito sotto il 3D
+        });
+        this.threeRenderer.setSize(width, height);
+        this.threeRenderer.setPixelRatio(window.devicePixelRatio);
+
+        // 4. Luci (necessarie per vedere i modelli 3D)
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+        this.threeScene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        directionalLight.position.set(10, 20, 10);
+        this.threeScene.add(directionalLight);
+
+        // 5. Avvio del loop di animazione
+        this.animateThree();
+    }
+
+    animateThree() {
+        requestAnimationFrame(() => this.animateThree());
+        // Rendering della scena
+        if (this.threeRenderer && this.threeScene && this.threeCamera) {
+            this.threeRenderer.render(this.threeScene, this.threeCamera);
+        }
     }
 
     /**
@@ -4380,6 +4424,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                         text: item.dataset.text || '',
                         icon: item.dataset.icon || null,
                         src: item.dataset.src || null,
+                        model3d: item.dataset.model3d || null,
                         spriteSheet: item.dataset.spriteSheet || null,
                         spriteCols: parseInt(item.dataset.spriteCols) || 1,
                         spriteRows: parseInt(item.dataset.spriteRows) || 1,
@@ -5473,6 +5518,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             this.addObject(data.type, x, y, data.color, data.text, 0, this.dashedMode, data.icon);
         } else if (data.type === 'local-svg') {
             this.addObject(data.type, x, y, data.color, data.text, 0, this.dashedMode, null, data.src);
+        } else if (data.type === 'object') {
+            this.addObject(data.type, x, y, data.color, data.text, 0, this.dashedMode, null, null, null, data.model3d, true);
         } else {
             this.addObject(data.type, x, y, data.color, data.text);
         }
@@ -5640,7 +5687,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         return { x: localX / zoom, y: localY / zoom, rect };
     }
 
-    addObject(type, x, y, color = '#3498db', text = '', rotation = 0, dashed = this.dashedMode, icon = null, src = null, spriteData = null) {
+    addObject(type, x, y, color = '#3498db', text = '', rotation = 0, dashed = this.dashedMode, icon = null, src = null, spriteData = null, model3d = null, is3d = false) {
         const tab = this.getCurrentTab();
         const id = 'obj-' + tab.nextObjectId++;
 
@@ -5667,7 +5714,11 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             spriteData: spriteData,
             animations: [],
             currentAnimationFrame: 0,
-            objectNumber: objectNumber
+            objectNumber: objectNumber,
+            // 🔥 3D
+            is3d: is3d,
+            model3d: model3d,
+            mesh: null,
         };
 
         tab.objects.set(id, object);
@@ -5700,6 +5751,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             'icon': { width: 40, height: 40 },
             'mat': { width: 120, height: 40 },
             'local-svg': { width: 60, height: 60 },
+            'object': { width: 60, height: 60 },
             'sprite': { width: 64, height: 64 },
             'brick': { width: 250, height: 10 },
         };
@@ -5707,6 +5759,11 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     }
 
     renderObject(object) {
+        if (object.is3d && object.model3d) {
+            this.render3DObject(object);
+            return;
+        }
+
         let element = document.getElementById(object.id);
         if (!element) {
             element = document.createElement('div');
@@ -5777,7 +5834,31 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         element.addEventListener('dragstart', (e) => e.preventDefault());
     }
 
+    render3DObject(object) {
+        if (!this.threeScene) return;
 
+        const loader = new THREE.GLTFLoader();
+        loader.load(object.model3d, (gltf) => {
+            const mesh = gltf.scene;
+
+            // Mappo coordinate canvas -> Three.js
+            mesh.position.set(object.x, 0, object.y); // Y = avanti/indietro
+            mesh.rotation.set(
+                THREE.MathUtils.degToRad(object.rotationX),
+                THREE.MathUtils.degToRad(object.rotationY),
+                THREE.MathUtils.degToRad(object.rotation)
+            );
+
+            mesh.scale.set(
+                object.width / 100,
+                1,
+                object.height / 100
+            );
+
+            this.threeScene.add(mesh);
+            object.mesh = mesh; // legame dati <-> mesh
+        });
+    }
     bringToFront() {
         if (this.selectedObjects.size === 0) return;
 
@@ -5864,6 +5945,23 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         }
 
         if (object.type === 'local-svg') {
+            content.innerHTML = `<img src="${object.src}" alt="${object.alt || ''}" />`;
+            content.style.color = object.color;
+            content.classList.toggle('dashed', object.dashed);
+
+            // Imposta la dimensione iniziale dell'SVG
+            const img = content.querySelector('img');
+            if (img) {
+                const minDimension = Math.min(object.width, object.height);
+                const size = Math.max(12, minDimension * 0.6);
+                img.style.width = `${size}px`;
+                img.style.height = `${size}px`;
+            }
+
+            return content;
+        }
+
+        if (object.type === 'object') {
             content.innerHTML = `<img src="${object.src}" alt="${object.alt || ''}" />`;
             content.style.color = object.color;
             content.classList.toggle('dashed', object.dashed);
@@ -6687,7 +6785,12 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 document.getElementById('spriteStopAnimation').style.display = isAnimating ? 'inline-block' : 'none';
 
                 document.getElementById('objectInfo').textContent = `Sprite selezionato (Frame ${sprite.frame}/${maxFrame})`;
-
+            } else if (object.is3d && object.mesh) {
+                object.mesh.position.x = object.x;
+                object.mesh.position.z = object.y;
+                object.mesh.rotation.x = THREE.MathUtils.degToRad(object.rotationX);
+                object.mesh.rotation.y = THREE.MathUtils.degToRad(object.rotationY);
+                object.mesh.rotation.z = THREE.MathUtils.degToRad(object.rotation);
             } else {
                 // Nascondi controlli sprite per altri tipi
                 spriteControls.style.display = 'none';

@@ -216,6 +216,9 @@ class Sidebar {
             item.icon ? `data-icon="${item.icon}"` : "",
             item.src ? `data-src="${item.src}"` : "",
             item.spriteSheet ? `data-sprite-sheet="${item.spriteSheet}"` : "",
+            item.model3d ? `data-model3d="${item.model3d}"` : "",
+            //item.preview ? `data-preview="${item.preview}"` : "",
+            item.render ? `data-render="${item.render}"` : "",
             item.cols ? `data-sprite-cols="${item.cols}"` : "",
             item.rows ? `data-sprite-rows="${item.rows}"` : "",
             item.frame !== undefined ? `data-sprite-frame="${item.frame}"` : "",
@@ -264,7 +267,9 @@ class Sidebar {
                 text: item.dataset.text || "",
                 color: item.dataset.color || "",
                 icon: item.dataset.icon || "",
+                render: item.dataset.render || "2d",
                 src: item.dataset.src || "",
+                model3d: item.dataset.model3d || "",
                 sprite: item.dataset.spriteSheet
                     ? {
                         sheet: item.dataset.spriteSheet,

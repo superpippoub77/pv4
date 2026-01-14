@@ -146,6 +146,17 @@ const sidebarConfig = [
             }
         ]
     },
+
+    {
+        title: "🖼️ Immagini 3D Locali",
+        i18ncategory: "component_category_volleyball_local_3d_images",
+        i18ntitle: "component_title_volleyball_local_3d_images",
+        category: "volleyball-local-3d-images",
+        controlType: "accordion",
+        items: [
+            { type: "object", src: "data/images/volleyball_ball.svg", model3d: "data/images/m3.glb", label: "local_m3_volleyball_ball", iconHTML: "🏐", category: "volleyball-local-3d-images" }
+        ]
+    }
 ];
 
 // ========== SIDEBAR DESTRA CONFIGURAZIONE ==========

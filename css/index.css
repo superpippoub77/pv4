@@ -1246,3 +1246,11 @@ body.dragging-endpoint .canvas-object .connection-point {
         linear-gradient(to bottom, #ddd 1px, transparent 1px);
     background-size: 20px 20px;
 }
+
+/* === THREE.JS LAYER === */
+#three-canvas {
+    position: absolute;
+    inset: 0;
+    z-index: 0;              /* sotto agli oggetti */
+    pointer-events: none;    /* NON blocca drag/click */
+}
