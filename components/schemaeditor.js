@@ -5843,13 +5843,15 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         const loader = new THREE.GLTFLoader();
         loader.load(object.model3d, (gltf) => {
             const mesh = gltf.scene;
-            mesh.position.set(object.x, 0, object.y);
+            //mesh.position.set(object.x, 0, object.y);
+            mesh.position.set(0, 0, 0);
             mesh.rotation.set(
                 THREE.MathUtils.degToRad(object.rotationX),
                 THREE.MathUtils.degToRad(object.rotationY),
                 THREE.MathUtils.degToRad(object.rotation)
             );
-            mesh.scale.set(object.width / 100, 1, object.height / 100);
+            mesh.scale.set(1, 1, 1);
+            //mesh.scale.set(object.width / 100, 1, object.height / 100);
 
             this.threeScene.add(mesh);
             object.mesh = mesh;
