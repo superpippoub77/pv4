@@ -5759,11 +5759,13 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     }
 
     renderObject(object) {
+        // Se è un oggetto 3D, delega al renderer 3D
         if (object.is3d && object.model3d) {
             this.render3DObject(object);
             return;
         }
 
+        // Prendi o crea l'elemento DOM
         let element = document.getElementById(object.id);
         if (!element) {
             element = document.createElement('div');
@@ -5774,16 +5776,13 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             document.getElementById('canvas').appendChild(element);
         }
 
-        const newElement = element.cloneNode(false);
-        element.parentNode.replaceChild(newElement, element);
-        element = newElement;
-
+        // Applica posizione e dimensione
         element.style.left = object.x + 'px';
         element.style.top = object.y + 'px';
         element.style.width = object.width + 'px';
         element.style.height = object.height + 'px';
 
-        // ✅ MODIFICA: Applica rotazione 3D su tutti e tre gli assi e mantieni l'oggetto sopra il piano
+        // Rotazioni 3D e profondità
         const rotX = (this.inheritPlaneRotationEnabled && this.canvasRotation) ? (this.canvasRotation.X || 0) : (object.rotationX || 0);
         const rotY = (this.inheritPlaneRotationEnabled && this.canvasRotation) ? (this.canvasRotation.Y || 0) : (object.rotationY || 0);
         const rotZ = object.rotation || 0;
@@ -5791,15 +5790,14 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         if (this.objectDepthAuto) {
             depth = this.computeObjectDepth(object);
         } else if (this.objectDepthEnabled) {
-            depth = (this.objectDepthPx || 0);
+            depth = this.objectDepthPx || 0;
         }
-        // translateZ keeps objects visually above the canvas plane so Y-rotations don't send them "under" the plane.
         element.style.transform = `translateZ(${depth}px) rotateX(${rotX}deg) rotateY(${rotY}deg) rotateZ(${rotZ}deg)`;
-        element.style.transformStyle = 'preserve-3d'; // ✅ IMPORTANTE per 3D
-        element.style.backfaceVisibility = 'hidden'; // evita che il retro venga mostrato sotto il piano
+        element.style.transformStyle = 'preserve-3d';
+        element.style.backfaceVisibility = 'hidden';
 
-        // Ensure court/plane stays below everything else
-        if (object.type === 'court' || object.type === 'half-court' || object.type === 'full-field' || object.type === 'full-court') {
+        // Z-index e oggetti speciali tipo court
+        if (['court', 'half-court', 'full-field', 'full-court'].includes(object.type)) {
             element.style.zIndex = 0;
             element.classList.add('court-object');
         } else {
@@ -5808,14 +5806,18 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         element.style.opacity = object.opacity || 1;
         element.classList.toggle('dashed', object.dashed);
 
+        // Aggiorna contenuto senza cancellare l'elemento
         element.innerHTML = '';
         const content = this.createObjectContent(object);
         element.appendChild(content);
 
+        // Aggiorna controlli e label
         this.resizeContent(element, object.width, object.height, object.type);
         this.addControlHandles(element);
         this.addConnectionPoints(element);
         this.addObjectLabel(element, object);
+
+        // Eventi
         element.addEventListener('contextmenu', (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -5836,28 +5838,25 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
     render3DObject(object) {
         if (!this.threeScene) return;
+        console.log('mesh pos', object.x, 0, object.y, 'scale', object.width / 100, object.height / 100);
 
         const loader = new THREE.GLTFLoader();
         loader.load(object.model3d, (gltf) => {
             const mesh = gltf.scene;
-
-            // Mappo coordinate canvas -> Three.js
-            mesh.position.set(object.x, 0, object.y); // Y = avanti/indietro
+            mesh.position.set(object.x, 0, object.y);
             mesh.rotation.set(
                 THREE.MathUtils.degToRad(object.rotationX),
                 THREE.MathUtils.degToRad(object.rotationY),
                 THREE.MathUtils.degToRad(object.rotation)
             );
-
-            mesh.scale.set(
-                object.width / 100,
-                1,
-                object.height / 100
-            );
+            mesh.scale.set(object.width / 100, 1, object.height / 100);
 
             this.threeScene.add(mesh);
-            object.mesh = mesh; // legame dati <-> mesh
-        });
+            object.mesh = mesh;
+
+            // Forza il render subito dopo il caricamento
+            this.threeRenderer.render(this.threeScene, this.threeCamera);
+        })
     }
     bringToFront() {
         if (this.selectedObjects.size === 0) return;
