@@ -258,39 +258,14 @@ const toolbarTopConfig = [
                 }
             },
             { type: "button", id: "loadWorkOutBtn", text: "📁 Carica Allenamento", i18n: "btn_load_workout", titleI18n: "btn_load_workout", onClick: (editor) => { document.getElementById('workoutFileInput').click(); } },
-            { type: "file", id: "fileInput", accept: ".json", style: "display:none" },
-            { type: "file", id: "workoutFileInput", accept: ".json", style: "display:none" },
+            { type: "file", id: "fileInput", class:"hidden", accept: ".json", style: "display:none" },
+            { type: "file", id: "workoutFileInput", class:"hidden", accept: ".json", style: "display:none" },
             { type: "button", id: "exportBtn", text: "📤 Esporta", i18n: "btn_export_schema", titleI18n: "btn_export_schema", onClick: (editor) => { editor.exportSchema(); } },
             { type: "button", id: "exportWorkOutBtn", text: "📤 Genera la scheda", i18n: "btn_export_workout_sheet", titleI18n: "btn_export_workout_sheet", onClick: (editor) => { editor.exportWorkout(); } },
             {
                 type: "button", id: "loadFromLibrary", text: "📁 Libreria", i18n: "btn_load_library", titleI18n: "btn_load_library", onClick: (editor) => {
                     editor.libraryManager.show();
                 }
-            }
-        ]
-    },
-
-    {
-        legend: "toolbar_user",
-        position: "top",
-        fieldsetId: "userControls",
-        fieldsetClass: "toolbar-group",
-        items: [
-            {
-                type: "div",
-                id: "userInfo",
-                class: "user-info",
-                style: "display:none;",
-                html: `👤 <span id="currentUsername"></span> <button class="logout-button" id="logoutButton" data-i18n="btn_logout">Esci</button>`
-            },
-            {
-                type: "select",
-                id: "languageSelector",
-                options: [
-                    ["it", "language_italian"],
-                    ["en", "language_english"],
-                    ["fr", "language_french"]
-                ]
             }
         ]
     }];

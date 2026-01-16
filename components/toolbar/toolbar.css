@@ -63,9 +63,9 @@
 .toolbar-group {
   display: flex;
   align-items: center;
-  gap: 2px;
-  border: none;
-  padding: 4px 6px;
+  gap: 1px;
+  border: 1px solid #d1d5db;
+  padding: 0 0 6px 0;
 }
 
 .toolbar-group::after {
@@ -180,11 +180,47 @@
 
 .toolbar-group fieldset,
 .toolbar-group legend {
-  border: none !important;
+  font-size: 0.6rem !important;
   padding: 0;
   margin: 0;
 }
 
 .toolbar-group fieldset {
   min-inline-size: unset;
+}
+
+/* Tooltip base */
+.toolbar button.tooltip-wrapper {
+    position: relative; /* essenziale per posizionare il tooltip */
+}
+
+.toolbar button .tooltip-text {
+    position: absolute;
+    background-color: #fde68a;
+    color: #000;
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    z-index: 10000;
+}
+
+.toolbar button.show-tooltip .tooltip-text {
+    opacity: 1;
+}
+
+/* Freccia (opzionale) */
+.toolbar button .tooltip-text::after {
+    content: '';
+    position: absolute;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #fde68a transparent transparent transparent;
+    top: 100%; /* default sotto */
+    left: 50%;
+    transform: translateX(-50%);
 }

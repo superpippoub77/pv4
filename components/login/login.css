@@ -1,121 +1,46 @@
-/* --- SFONDO CAMPO DA VOLLEY ARANCIONE --- */
+/* --- SFONDO GENERALE CON IMMAGINE RESPONSIVE --- */
 .login-modal {
     display: flex;
     align-items: center;
     justify-content: center;
     position: fixed;
     inset: 0;
-    /* Sfondo gradiente radiale: più scuro ai bordi, chiaro al centro */
-    background: radial-gradient(
-        circle at center, 
-        rgba(255, 238, 0, 0.6) 0%,   /* centro chiaro */
-        rgba(255, 166, 0, 0.72) 70%, /* transizione graduale */
-        rgba(200, 100, 0, 0.8) 100% /* bordi più scuri */
-    );
-
     overflow: hidden;
     z-index: 10000;
     animation: fadeIn 1s ease-in-out;
-    border:20px solid black;
-}
 
-/* Linee tipo campo */
-.volley-bg {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    /* Colore di sfondo base */
-    /* background-color: #f7d30a; */
-
-    /* Bordo Perimetrale */
-    border: 4px solid white;
-
-    /* ----------------------------------------------------------- */
-    /* UNIFICAZIONE: Disegno delle Linee Interne con background-image */
-    /* Le POSIZIONI sono definite in percentuale, lo SPESSORE è 2px fisso. */
-    /* ----------------------------------------------------------- */
-    background-image:
-        /* 1. Linea Centrale (Rete) - 50% della larghezza */
-        linear-gradient(to right,
-            transparent 0%,
-            /* Inizia la linea 1px prima del 50% */
-            transparent calc(50% - 2px),
-            white calc(50% - 2px),
-            /* Finisce la linea 1px dopo il 50% */
-            white calc(50% + 2px),
-            transparent calc(50% + 2px),
-            transparent 100%),
-
-        /* 2. Linea dei 3 Metri (Zona Sinistra) - 3m / 18m = 33.33% della larghezza */
-        linear-gradient(to right,
-            transparent 0%,
-            /* Inizia la linea 1px prima del 33.33% */
-            transparent calc(33.3333% - 2px),
-            white calc(33.3333% - 2px),
-            /* Finisce la linea 1px dopo il 33.33% */
-            white calc(33.3333% + 2px),
-            transparent calc(33.3333% + 2px),
-            transparent 100%),
-
-        /* 3. Linea dei 3 Metri (Zona Destra) - 15m / 18m = 66.67% della larghezza */
-        linear-gradient(to right,
-            transparent 0%,
-            /* Inizia la linea 1px prima del 66.67% */
-            transparent calc(66.6667% - 2px),
-            white calc(66.6667% - 21px),
-            /* Finisce la linea 1px dopo il 66.67% */
-            white calc(66.6667% + 2px),
-            transparent calc(66.6667% + 2px),
-            transparent 100%);
-
-    /* Configurazione Generale dello Sfondo */
-    background-size: 100% 100%;
-    background-position: center center;
-    background-repeat: no-repeat;
-}
-
-/* --- PALLONE DA PALLAVOLO --- */
-.volley-ball {
-    position: absolute;
-    width: 80px;
-    height: 80px;
-    background-image: url('https://upload.wikimedia.org/wikipedia/commons/4/40/Volleyball.svg');
+    /* Sfondo di default (mobile/portrait) */
+    background: url('../../data/images/hp_bg_portrait.png') no-repeat center center;
     background-size: cover;
-    background-position: center;
-    animation: spikeBall 6s cubic-bezier(0.42, 0, 0.58, 1) infinite;
-    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.6));
 }
 
+/* Schermi larghi / landscape */
+@media (min-aspect-ratio: 16/9), (min-width: 768px) {
+    .login-modal {
+        background: url('../../data/images/hp_bg_landscape.png') no-repeat center center;
+        background-size: cover;
+    }
+}
 
 /* --- BOX LOGIN --- */
 .login-content {
     position: relative;
-    background: rgba(44, 62, 80, 0.96);
+    background: rgba(44, 62, 80, 0.95); 
     padding: 40px 30px;
     border-radius: 18px;
     width: 90%;
     max-width: 400px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7),
-        inset 0 0 25px rgba(52, 152, 219, 0.3);
+    box-shadow: 
+        0 20px 50px rgba(0, 0, 0, 0.7),  /* ombra principale profonda */
+        0 0 30px rgba(0, 0, 0, 0.5) inset; /* leggera ombra interna */
+    border: 1px solid rgba(255, 255, 255, 0.1); /* bordo sottile per contrasto */
     color: white;
     text-align: center;
     animation: popUp 0.7s ease forwards;
-    backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px); /* sfondo leggermente sfocato */
 }
 
-.login-content h2 {
-    font-size: 26px;
-    margin-bottom: 25px;
-    letter-spacing: 1px;
-    background: linear-gradient(90deg, #3498db, #1abc9c, #f1c40f);
-    background-clip: text;
-    /* proprietà standard */
-    -webkit-background-clip: text;
-    /* compatibilità Chrome/Safari */
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-}
-
+/* Campi input */
 .login-field {
     margin-bottom: 18px;
     text-align: left;
@@ -144,6 +69,7 @@
     box-shadow: 0 0 10px #3498db;
 }
 
+/* Bottone login */
 .login-button {
     width: 100%;
     padding: 12px;
@@ -162,7 +88,7 @@
     box-shadow: 0 0 15px #1abc9c;
 }
 
-/* --- ERRORE --- */
+/* Errore login */
 .login-error {
     color: #e74c3c;
     font-size: 13px;
@@ -171,391 +97,13 @@
     text-align: center;
 }
 
-/* --- FIRMA SPIKECODE --- */
-.login-footer {
-    position: absolute;
-    bottom: 15px;
-    right: 25px;
-    font-size: 13px;
-    color: rgba(255, 255, 255, 0.8);
-    opacity: 0;
-    animation: fadeInText 3s ease 3s forwards;
-}
-
-.spikecode {
-    color: #f1c40f;
-    font-weight: 700;
-    text-shadow: 0 0 6px #f39c12;
-    display: inline-block;
-    /* necessario per animazioni di transform */
-    animation: pulseRotate 2s ease-in-out infinite;
-}
-
-@keyframes pulseRotate {
-    0% {
-        transform: scale(1) rotate(0deg);
-    }
-
-    25% {
-        transform: scale(1.4) rotate(45deg);
-    }
-
-    50% {
-        transform: scale(1) rotate(0deg);
-    }
-
-    75% {
-        transform: scale(1.4) rotate(-45deg);
-    }
-
-    100% {
-        transform: scale(1) rotate(0deg);
-    }
-}
-
-/* --- ANIMAZIONI --- */
+/* Animazioni base */
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 @keyframes popUp {
-    0% {
-        transform: scale(0.8);
-        opacity: 0;
-    }
-
-    100% {
-        transform: scale(1);
-        opacity: 1;
-    }
-}
-
-@keyframes moveLines {
-    from {
-        background-position: 0 0, 0 0;
-    }
-
-    to {
-        background-position: 0 90px, 120px 0;
-    }
-}
-
-@keyframes spikeBall {
-    0% {
-        transform: translate(-400px, -300px) rotate(0deg) scale(1);
-        opacity: 0;
-    }
-
-    2% {
-        transform: translate(-180px, -250px) rotate(12deg) scale(1.02);
-        opacity: 1;
-    }
-
-    4% {
-        transform: translate(-160px, -220px) rotate(24deg) scale(1.01);
-    }
-
-    6% {
-        transform: translate(-140px, -190px) rotate(36deg) scale(1);
-    }
-
-    8% {
-        transform: translate(-120px, -170px) rotate(48deg) scale(0.99);
-    }
-
-    10% {
-        transform: translate(-100px, -150px) rotate(60deg) scale(1.01);
-    }
-
-    12% {
-        transform: translate(-80px, -130px) rotate(72deg) scale(1);
-    }
-
-    14% {
-        transform: translate(-60px, -115px) rotate(84deg) scale(0.99);
-    }
-
-    16% {
-        transform: translate(-40px, -100px) rotate(96deg) scale(1.01);
-    }
-
-    18% {
-        transform: translate(-20px, -85px) rotate(108deg) scale(1);
-    }
-
-    20% {
-        transform: translate(0px, -70px) rotate(120deg) scale(0.98);
-    }
-
-    22% {
-        transform: translate(30px, -60px) rotate(132deg) scale(1.02);
-    }
-
-    24% {
-        transform: translate(60px, -50px) rotate(144deg) scale(1);
-    }
-
-    26% {
-        transform: translate(90px, -40px) rotate(156deg) scale(0.99);
-    }
-
-    28% {
-        transform: translate(120px, -30px) rotate(168deg) scale(1.01);
-    }
-
-    30% {
-        transform: translate(150px, -20px) rotate(180deg) scale(1);
-    }
-
-    32% {
-        transform: translate(180px, -10px) rotate(192deg) scale(0.99);
-    }
-
-    34% {
-        transform: translate(210px, 0px) rotate(204deg) scale(1.01);
-    }
-
-    36% {
-        transform: translate(240px, 5px) rotate(216deg) scale(1);
-    }
-
-    38% {
-        transform: translate(270px, 10px) rotate(228deg) scale(0.98);
-    }
-
-    40% {
-        transform: translate(300px, 15px) rotate(240deg) scale(1.02);
-    }
-
-    42% {
-        transform: translate(350px, 10px) rotate(252deg) scale(1);
-    }
-
-    44% {
-        transform: translate(400px, 20px) rotate(264deg) scale(0.99);
-    }
-
-    46% {
-        transform: translate(450px, 15px) rotate(276deg) scale(1.01);
-    }
-
-    48% {
-        transform: translate(500px, 25px) rotate(288deg) scale(1);
-    }
-
-    50% {
-        transform: translate(550px, 20px) rotate(300deg) scale(0.98);
-    }
-
-    52% {
-        transform: translate(600px, 30px) rotate(312deg) scale(1.02);
-    }
-
-    54% {
-        transform: translate(650px, 25px) rotate(324deg) scale(1);
-    }
-
-    56% {
-        transform: translate(700px, 35px) rotate(336deg) scale(0.99);
-    }
-
-    58% {
-        transform: translate(750px, 30px) rotate(348deg) scale(1.01);
-    }
-
-    60% {
-        transform: translate(800px, 40px) rotate(360deg) scale(1);
-    }
-
-    62% {
-        transform: translate(850px, 35px) rotate(372deg) scale(0.98);
-    }
-
-    64% {
-        transform: translate(900px, 45px) rotate(384deg) scale(1.02);
-    }
-
-    66% {
-        transform: translate(950px, 40px) rotate(396deg) scale(1);
-    }
-
-    68% {
-        transform: translate(1000px, 50px) rotate(408deg) scale(0.99);
-    }
-
-    70% {
-        transform: translate(1050px, 45px) rotate(420deg) scale(1.01);
-    }
-
-    72% {
-        transform: translate(1100px, 55px) rotate(432deg) scale(1);
-    }
-
-    74% {
-        transform: translate(1150px, 60px) rotate(444deg) scale(0.98);
-    }
-
-    76% {
-        transform: translate(1200px, 70px) rotate(456deg) scale(0.95);
-    }
-
-    78% {
-        transform: translate(1250px, 80px) rotate(468deg) scale(0.93);
-    }
-
-    80% {
-        transform: translate(1300px, 90px) rotate(480deg) scale(0.9);
-    }
-
-    82% {
-        transform: translate(1325px, 120px) rotate(492deg) scale(0.88);
-    }
-
-    84% {
-        transform: translate(1350px, 150px) rotate(504deg) scale(0.85);
-        opacity: 0.7;
-    }
-
-    86% {
-        transform: translate(1375px, 170px) rotate(516deg) scale(0.83);
-        opacity: 0.5;
-    }
-
-    88% {
-        transform: translate(1385px, 180px) rotate(528deg) scale(0.82);
-        opacity: 0.4;
-    }
-
-    90% {
-        transform: translate(1390px, 190px) rotate(540deg) scale(0.8);
-        opacity: 0.3;
-    }
-
-    92% {
-        transform: translate(1395px, 195px) rotate(552deg) scale(0.78);
-        opacity: 0.2;
-    }
-
-    94% {
-        transform: translate(1398px, 198px) rotate(564deg) scale(0.77);
-        opacity: 0.1;
-    }
-
-    96% {
-        transform: translate(1400px, 200px) rotate(576deg) scale(0.75);
-        opacity: 0;
-    }
-
-    100% {
-        transform: translate(1400px, 200px) rotate(600deg) scale(0.75);
-        opacity: 0;
-    }
-}
-
-
-
-@keyframes fadeInText {
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.volley-ball:nth-child(2) {
-    animation-delay: 2s;
-    animation-duration: 4.5s;
-}
-
-/* --- TITOLO LOGIN --- */
-.login-title {
-    font-size: 28px;
-    font-weight: 800;
-    text-align: center;
-    margin-bottom: 8px;
-    letter-spacing: 0.5px;
-    background: linear-gradient(90deg, #00b4ff, #1abc9c, #f1c40f);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: glowTitle 4s ease-in-out infinite;
-}
-
-.login-subtitle {
-    font-size: 15px;
-    color: #e0e0e0;
-    text-align: center;
-    margin-bottom: 25px;
-    letter-spacing: 0.3px;
-    opacity: 0.9;
-}
-
-/* --- TITOLO LOGIN --- */
-.login-title {
-    font-size: 28px;
-    font-weight: 800;
-    text-align: center;
-    margin-bottom: 8px;
-    letter-spacing: 0.5px;
-    color: #ffffff;
-    text-shadow: 0 0 10px rgba(52, 152, 219, 0.8),
-        0 0 20px rgba(26, 188, 156, 0.6),
-        0 0 40px rgba(241, 196, 15, 0.4);
-    animation: glowTitle 3s ease-in-out infinite;
-}
-
-
-
-/* --- EVIDENZIAZIONE "VolleyPro" --- */
-.highlight {
-    -webkit-text-stroke: 1px #000;
-    color: #00b4ff;
-    text-shadow: 0 0 10px rgba(0, 180, 255, 0.9),
-        0 0 25px rgba(0, 180, 255, 0.6);
-}
-
-/* --- ENFASI SULLA "W4" --- */
-.w4 {
-    color: #ffd700;
-    /* oro pieno */
-    -webkit-text-stroke: 1px #000;
-    /* bordo nero sottile */
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.9),
-        0 0 25px rgba(255, 215, 0, 0.7),
-        0 0 40px rgba(255, 255, 255, 0.4);
-    font-weight: 900;
-    letter-spacing: 1px;
-    animation: pulseW4 2s ease-in-out infinite;
-}
-
-/* --- ANIMAZIONI --- */
-@keyframes glowTitle {
-
-    0%,
-    100% {
-        text-shadow: 0 0 10px rgba(26, 188, 156, 0.8);
-    }
-
-    50% {
-        text-shadow: 0 0 20px rgba(26, 188, 156, 1);
-    }
-}
-
-@keyframes pulseW4 {
-
-    0%,
-    100% {
-        transform: scale(1);
-        text-shadow: 0 0 1px #ffd700;
-    }
-
-    50% {
-        transform: scale(1.1);
-        text-shadow: 0 0 5px #fff48a;
-    }
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
 }

@@ -296,7 +296,7 @@ class ToolbarDialogManager {
 
                 // Gruppi
                 this.config.forEach(group => {
-                    if(group.position === undefined) group.position = "top"; // Default top
+                    if (group.position === undefined) group.position = "top"; // Default top
                     if (group.position !== this.position) return;
 
                     const fs = document.createElement("fieldset");
@@ -362,9 +362,26 @@ class ToolbarDialogManager {
                     el.setAttribute("data-i18n", item.i18n || item.text);
                 }
                 // Aggiungi title/tooltip se presente
+                // if (item.title) {
+                //     el.title = item.title;
+                //     el.setAttribute("data-i18n-title", item.titleI18n || item.title);
+                // }
+
                 if (item.title) {
-                    el.title = item.title;
-                    el.setAttribute("data-i18n-title", item.titleI18n || item.title);
+                    el.classList.add("tooltip-wrapper"); // importante
+                    const tooltip = document.createElement("span");
+                    tooltip.className = "tooltip-text";
+                    tooltip.textContent = item.title;
+                    el.appendChild(tooltip);
+
+                    el.addEventListener("mouseenter", () => {
+                        el.classList.add("show-tooltip");
+                        this.positionTooltip(el, tooltip);
+                    });
+
+                    el.addEventListener("mouseleave", () => {
+                        el.classList.remove("show-tooltip");
+                    });
                 }
                 break;
 
@@ -478,6 +495,26 @@ class ToolbarDialogManager {
         }
 
         return el;
+    }
+
+    positionTooltip(button, tooltip) {
+        const text = button.getAttribute("data-i18n-title") || button.title;
+        tooltip.textContent = text;
+
+        const rect = button.getBoundingClientRect();
+        const tooltipRect = tooltip.getBoundingClientRect();
+        const spacing = 5;
+
+        let top = rect.top - tooltipRect.height - spacing;
+        let left = rect.left + rect.width / 2 - tooltipRect.width / 2;
+
+        // Controllo overflow
+        if (top < 0) top = rect.bottom + spacing;
+        if (left < 0) left = spacing;
+        if (left + tooltipRect.width > window.innerWidth) left = window.innerWidth - tooltipRect.width - spacing;
+
+        tooltip.style.top = `${top + window.scrollY}px`;
+        tooltip.style.left = `${left + window.scrollX}px`;
     }
 
     /* Vecchio metodo */
