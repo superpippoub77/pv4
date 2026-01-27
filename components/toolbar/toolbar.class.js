@@ -347,41 +347,72 @@ class ToolbarDialogManager {
             case "button":
                 el = document.createElement("button");
                 el.id = item.id;
-                el.className = item.class ? item.class : "";
+                el.className = (item.class ? item.class : "") + " tooltip-wrapper"; // Aggiunge sempre la classe wrapper
                 el.textContent = item.text;
+
                 if (item.onClick) {
                     el.addEventListener("click", (event) => item.onClick?.(this.editor, event));
                 }
 
-                if (item.onChange) {
-                    el.addEventListener("change", (event) => item.onChange?.(this.editor, event));
-                }
+                if (item.i18n) el.setAttribute("data-i18n", item.i18n);
 
-                // Aggiungi data-i18n se presente
-                if (item.i18n || item.text) {
-                    el.setAttribute("data-i18n", item.i18n || item.text);
-                }
-                // Aggiungi title/tooltip se presente
-                // if (item.title) {
-                //     el.title = item.title;
-                //     el.setAttribute("data-i18n-title", item.titleI18n || item.title);
-                // }
-
-                if (item.title) {
-                    el.classList.add("tooltip-wrapper"); // importante
+                const tooltipText = item.title || item.text;
+                if (tooltipText) {
                     const tooltip = document.createElement("span");
-                    tooltip.className = "tooltip-text";
-                    tooltip.textContent = item.title;
-                    el.appendChild(tooltip);
+                    tooltip.className = "tooltip-text floating-tooltip";
+                    tooltip.textContent = tooltipText;
 
-                    el.addEventListener("mouseenter", () => {
+                    // Se c'è una traduzione per il titolo, impostala
+                    if (item.titleI18n || item.i18n) {
+                        tooltip.setAttribute("data-i18n", item.titleI18n || item.i18n);
+                    }
+
+                    // Ensure button has an id so we can reference it if needed
+                    if (!el.id) {
+                        el.id = item.id || `toolbar-btn-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+                    }
+
+                    // Append tooltip to body to avoid clipping by parent containers / transforms
+                    document.body.appendChild(tooltip);
+
+                    // Remove native title to avoid browser default tooltip
+                    el.removeAttribute('title');
+
+                    // Mouseenter: show & position tooltip; attach live repositioning
+                    el.addEventListener("mouseenter", (ev) => {
                         el.classList.add("show-tooltip");
+                        tooltip.classList.add('visible');
+                        // Position once immediately (positionTooltip uses button rect)
                         this.positionTooltip(el, tooltip);
+
+                        if (!el._tooltipPointerMove) {
+                            el._tooltipPointerMove = (ev2) => {
+                                this.positionTooltip(el, tooltip);
+                            };
+                        }
+                        el.addEventListener('pointermove', el._tooltipPointerMove);
                     });
 
+                    // Mouseleave: hide tooltip and cleanup
                     el.addEventListener("mouseleave", () => {
                         el.classList.remove("show-tooltip");
+                        tooltip.classList.remove('visible');
+                        if (el._tooltipPointerMove) {
+                            try { el.removeEventListener('pointermove', el._tooltipPointerMove); } catch (e) { }
+                        }
+
+                        // Clear inline positioning so CSS can fully control visibility next time
+                        tooltip.style.left = '';
+                        tooltip.style.top = '';
+                        tooltip.style.right = '';
+                        tooltip.style.bottom = '';
+                        tooltip.style.transform = '';
+                        tooltip.style.visibility = '';
+                        tooltip.style.display = '';
                     });
+
+                    // Keep a reference for potential cleanup
+                    el._tooltipElement = tooltip;
                 }
                 break;
 
@@ -498,24 +529,48 @@ class ToolbarDialogManager {
     }
 
     positionTooltip(button, tooltip) {
-        const text = button.getAttribute("data-i18n-title") || button.title;
+        // Determine tooltip text: prefer explicit i18n/title on the tooltip element,
+        // then the button-level data-i18n-title, then the tooltip's existing text,
+        // finally fall back to the button text.
+        const text = tooltip.getAttribute('data-i18n')
+            || button.getAttribute('data-i18n-title')
+            || tooltip.textContent
+            || button.textContent || '';
         tooltip.textContent = text;
 
+        // Compute pixel-perfect position using the button bounding rect.
         const rect = button.getBoundingClientRect();
-        const tooltipRect = tooltip.getBoundingClientRect();
-        const spacing = 5;
 
-        let top = rect.top - tooltipRect.height - spacing;
-        let left = rect.left + rect.width / 2 - tooltipRect.width / 2;
+        // Ensure tooltip is displayed so we can measure it
+        tooltip.style.display = 'block';
+        tooltip.style.position = 'fixed';
 
-        // Controllo overflow
-        if (top < 0) top = rect.bottom + spacing;
-        if (left < 0) left = spacing;
-        if (left + tooltipRect.width > window.innerWidth) left = window.innerWidth - tooltipRect.width - spacing;
+        // Horizontal center of the button
+        const left = rect.left + rect.width / 2;
 
-        tooltip.style.top = `${top + window.scrollY}px`;
-        tooltip.style.left = `${left + window.scrollX}px`;
+        // Vertical position: place tooltip above the button with a small gap
+        // We measure the tooltip height after making it visible.
+        const tooltipHeight = tooltip.offsetHeight || 24;
+        let top = rect.top - 8 - tooltipHeight;
+
+        // If not enough space above, place tooltip below the button
+        if (top < 8) {
+            top = rect.bottom + 8;
+        }
+
+        // Clamp horizontally within viewport (small margin)
+        const tooltipWidth = tooltip.offsetWidth || 100;
+        const minLeft = 8 + tooltipWidth / 2;
+        const maxLeft = window.innerWidth - 8 - tooltipWidth / 2;
+        const clampedLeft = Math.min(Math.max(left, minLeft), maxLeft);
+
+        tooltip.style.left = clampedLeft + 'px';
+        tooltip.style.top = top + 'px';
+        tooltip.style.right = 'auto';
+        tooltip.style.bottom = 'auto';
+        tooltip.style.transform = 'translateX(-50%)';
     }
+
 
     /* Vecchio metodo */
     initToolbarDragDrop() {

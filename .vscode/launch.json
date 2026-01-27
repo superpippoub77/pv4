@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Chrome (localhost:8000)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:8000/",
+      "webRoot": "${workspaceFolder}",
+      "preLaunchTask": "Run Local Server"
+    },
+    {
+      "name": "Launch Edge (localhost:8000)",
+      "type": "msedge",
+      "request": "launch",
+      "url": "http://localhost:8000/",
+      "webRoot": "${workspaceFolder}",
+      "preLaunchTask": "Run Local Server"
+    }
+  ]
+}

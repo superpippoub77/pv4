@@ -273,11 +273,11 @@ const rightSidebarConfig = [
                             <input type="number" id="workoutNr" min="0" value="1">
                         </div>
                         <div class="detail-field">
-                            <label for="workoutTiming" data-i18n="local_workout_duration_label">Durata (sec):</label>
+                            <label for="workoutTiming" data-i18n="local_workout_duration_label">Tempo(s):</label>
                             <input type="number" id="workoutTiming" min="0" max="600" value="1">
                         </div>
                         <div class="detail-field">
-                            <label for="workoutRec" data-i18n="local_workout_recovery_label">Recupero (sec):</label>
+                            <label for="workoutRec" data-i18n="local_workout_recovery_label">Recupero(s):</label>
                             <input type="number" id="workoutRec" min="0" max="600" value="60">
                         </div>
                     </div>

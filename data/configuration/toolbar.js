@@ -89,7 +89,7 @@ const toolbarTopConfig = [
                 }
             },
             {
-                type: "button", id: "snapToGridBtn", text: "🧲 Allinea alla Griglia", i18n: "btn_snap_grid", titleI18n: "btn_snap_grid", onClick: (editor) => {
+                type: "button", id: "snapToGridBtn", title: "Allinea alla Griglia", text: "🧲 Allinea alla Griglia", i18n: "btn_snap_grid", titleI18n: "btn_snap_grid", onClick: (editor) => {
                     // Chiama la funzione di allineamento sulla griglia
                     if (window.editor && window.editor.snapObjectsToGrid) {
                         window.editor.snapObjectsToGrid();
@@ -265,6 +265,45 @@ const toolbarTopConfig = [
             {
                 type: "button", id: "loadFromLibrary", text: "📁 Libreria", i18n: "btn_load_library", titleI18n: "btn_load_library", onClick: (editor) => {
                     editor.libraryManager.show();
+                }
+            }
+            ,
+            {
+                type: "button", id: "registerGlbToolbarBtn", text: "📦 Registra .glb", i18n: "btn_register_glb", titleI18n: "btn_register_glb", onClick: (editor) => {
+                    // Open a hidden file input to let user pick one or more .glb files and register them
+                    try {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = '.glb,application/octet-stream,model/gltf-binary';
+                        input.multiple = true;
+                        input.style.display = 'none';
+                        document.body.appendChild(input);
+                        input.addEventListener('change', async (e) => {
+                            const files = e.target.files;
+                            if (!files || files.length === 0) return;
+                            let count = 0;
+                            for (let i = 0; i < files.length; i++) {
+                                const f = files[i];
+                                try {
+                                    const ab = await f.arrayBuffer();
+                                    const name = f.name;
+                                    editor.registerAsset(name, ab);
+                                    editor.registerAsset('data/images/' + name, ab);
+                                    editor.registerAsset('./data/images/' + name, ab);
+                                    editor.registerAsset('images/' + name, ab);
+                                    count++;
+                                } catch (err) {
+                                    console.error('registerGlbToolbarBtn: failed to register', f.name, err);
+                                }
+                            }
+                            try { alert(`Registrati ${count} file .glb`); } catch (_) {}
+                            input.value = '';
+                            try { document.body.removeChild(input); } catch (_) {}
+                        });
+                        input.click();
+                    } catch (err) {
+                        console.error('registerGlbToolbarBtn error', err);
+                    }
                 }
             }
         ]

@@ -67,6 +67,15 @@ class SchemaEditor {
         this.isSelecting = false;
         this.selectionStart = { x: 0, y: 0 };
         this.canvasRect = null;
+    // 3D interaction state
+    this.isResizing3D = false;
+    this.resize3DStart = null;
+    this.isDragging3D = false;
+    this.drag3DStart = null;
+    this.isRotating3D = false;
+    this.rotate3DStart = null;
+    this._threeHandlesContainer = null; // DOM container for screen-space handles
+    this._threeBoxHelpers = new Map();
         this.libraryWorkouts = [];
         this.selectedLibraryFile = null;
         this.librarySource = 'unknown';
@@ -111,6 +120,57 @@ class SchemaEditor {
         this.libraryManager = new LibraryWorkoutDialogManager(this);
         this.macroManager = new MacroManager(this);
         this.loginManager = new LoginManager();
+    }
+
+    startDrag3D(objectId, e) {
+        // initialize drag state for a 3D object
+        const tab = this.getCurrentTab();
+        const obj = tab.objects.get(objectId);
+        if (!obj || !obj.mesh) return;
+        this.isDragging3D = true;
+        this.drag3DStart = {
+            objectId,
+            startClientX: e.clientX,
+            startClientY: e.clientY,
+            startObjX: obj.x,
+            startObjY: obj.y
+        };
+
+        // compute drag plane in world space (use camera facing plane through object)
+        const mesh = obj.mesh;
+        const worldPos = new THREE.Vector3();
+        mesh.getWorldPosition(worldPos);
+        // plane normal is camera look direction
+        const camDir = new THREE.Vector3();
+        this.threeCamera.getWorldDirection(camDir);
+        this._dragPlane = new THREE.Plane().setFromNormalAndCoplanarPoint(camDir, worldPos);
+
+        // compute initial intersection point
+        this._dragStartPoint = this._getMouseIntersectionWithPlane(e.clientX, e.clientY, this._dragPlane);
+    }
+
+    _getMouseIntersectionWithPlane(clientX, clientY, plane) {
+        const rect = this.threeCanvas.getBoundingClientRect();
+        const x = ((clientX - rect.left) / rect.width) * 2 - 1;
+        const y = -((clientY - rect.top) / rect.height) * 2 + 1;
+        const pointer = new THREE.Vector2(x, y);
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(pointer, this.threeCamera);
+        const ray = raycaster.ray;
+        const target = new THREE.Vector3();
+        ray.intersectPlane(plane, target);
+        return target;
+    }
+
+    _worldToCanvasPosition(worldVec) {
+        if (!this.threeCamera || !this.threeCanvas) return { x: 0, y: 0 };
+        const width = this.threeCanvas.clientWidth;
+        const height = this.threeCanvas.clientHeight;
+        const vec = worldVec.clone();
+        vec.project(this.threeCamera);
+        const x = (vec.x + 1) / 2 * width;
+        const y = (-vec.y + 1) / 2 * height;
+        return { x, y };
     }
 
     // Load a user-scoped preference (falls back to global key if user-specific not present)
@@ -224,6 +284,14 @@ class SchemaEditor {
         // Rendering della scena
         if (this.threeRenderer && this.threeScene && this.threeCamera) {
             this.threeRenderer.render(this.threeScene, this.threeCamera);
+            // Update screen-space handles position if present
+            try {
+                if (this._threeHandlesContainer && this.selectedObjects.size > 0) {
+                    const firstId = this.selectedObjects.keys().next().value;
+                    const obj = this.getCurrentTab().objects.get(firstId);
+                    if (obj && obj.mesh) this.update3DHandlesPosition(obj);
+                }
+            } catch (err) { /* ignore */ }
         }
     }
 
@@ -5202,6 +5270,58 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         //this.initTeamDialogDrag();
 
         this.initTabDragDrop();
+        // Add a quick UI button to register local .glb files (file-picker).
+        try {
+            const menuBar = document.querySelector('.menu-bar') || document.body;
+            if (menuBar && !document.getElementById('registerGlbBtn')) {
+                const btn = document.createElement('button');
+                btn.id = 'registerGlbBtn';
+                btn.type = 'button';
+                btn.className = 'sidebar-button';
+                btn.textContent = 'Registra .glb';
+                btn.title = 'Carica e registra file .glb locali';
+                btn.style.marginLeft = '8px';
+                menuBar.appendChild(btn);
+
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.glb,application/octet-stream,model/gltf-binary';
+                input.multiple = true;
+                input.style.display = 'none';
+                document.body.appendChild(input);
+
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    input.click();
+                });
+
+                input.addEventListener('change', async (e) => {
+                    const files = e.target.files;
+                    if (!files || files.length === 0) return;
+                    let registered = 0;
+                    for (let i = 0; i < files.length; i++) {
+                        const f = files[i];
+                        try {
+                            const ab = await f.arrayBuffer();
+                            const name = f.name;
+                            // Register under multiple keys to match likely references
+                            this.registerAsset(name, ab);
+                            this.registerAsset('data/images/' + name, ab);
+                            this.registerAsset('./data/images/' + name, ab);
+                            this.registerAsset('images/' + name, ab);
+                            registered++;
+                            console.log('Registered .glb asset', name);
+                        } catch (err) {
+                            console.error('Failed to register asset', f.name, err);
+                        }
+                    }
+                    try { alert(`Registrati ${registered} file .glb`); } catch (_) {}
+                    input.value = '';
+                });
+            }
+        } catch (err) {
+            console.warn('Could not create Register .glb button', err);
+        }
         // E aggiungi il listener
         // document.getElementById('historyBtn').addEventListener('click', () => {
         //     this.historyManager.show();
@@ -5480,6 +5600,43 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
     handleCanvasDrop(e) {
         e.preventDefault();
+        // Preferisci file locali (es. .glb) se presenti in dataTransfer.files
+        const files = e.dataTransfer && e.dataTransfer.files ? e.dataTransfer.files : null;
+        if (files && files.length > 0) {
+            // Handle each file; if it's a .glb, read as ArrayBuffer and load directly
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const lower = (file.name || '').toLowerCase();
+                if (lower.endsWith('.glb') || file.type === 'model/gltf-binary') {
+                    // Place the object at drop point (will compute below)
+                    const p = this.getCanvasLocalPoint(e);
+                    let x = p.x + i * 10;
+                    let y = p.y + i * 10;
+
+                    // Create a placeholder object entry (no model3d URL)
+                    const obj = this.addObject('object', x, y, '#999999', file.name, 0, this.dashedMode, null, null, null, null, true);
+
+                    // Read file and parse GLB without fetching
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        const arrayBuffer = ev.target.result;
+                        try {
+                            this.render3DObjectFromArrayBuffer(obj, arrayBuffer, file.name);
+                        } catch (err) {
+                            console.error('Errore render3DObjectFromArrayBuffer', err);
+                        }
+                    };
+                    reader.onerror = (ev) => {
+                        console.error('FileReader error for', file.name, ev);
+                    };
+                    reader.readAsArrayBuffer(file);
+                } else {
+                    console.warn('Unsupported file dropped:', file.name);
+                }
+            }
+
+            return;
+        }
 
         let data;
         try {
@@ -5839,37 +5996,283 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     render3DObject(object) {
         if (!this.threeScene || !object.model3d) return;
 
+        // If the mesh is already present, just update its transform instead of re-parsing/re-loading
+        if (object.mesh) {
+            try {
+                this._applyObjectTransformToMesh(object, object.mesh);
+            } catch (err) {
+                console.warn('Error updating existing 3D mesh transform', err);
+            }
+            return;
+        }
+
+        // Ensure we have an assetMap container for registered assets
+        if (!this.assetMap) this.assetMap = {};
+
         const loader = new THREE.GLTFLoader();
-        loader.load(object.model3d, (gltf) => {
-            const mesh = gltf.scene;
 
-            // 1️⃣ Posizione: centrato sopra il piano
-            mesh.position.set(object.x || 0, object.height / 2 || 0, object.y || 0);
+        // If an asset has been pre-registered (via registerAsset), use it to avoid network fetch
+        const registered = this.assetMap[object.model3d];
+        if (registered) {
+            if (registered.type === 'buffer' && registered.buffer) {
+                console.debug('[SchemaEditor] Using registered buffer for', object.model3d);
+                loader.parse(registered.buffer, '', (gltf) => {
+                    this._finalizeParsedGLTF(object, gltf);
+                }, (err) => {
+                    console.error('GLTF parse error for registered buffer', object.model3d, err);
+                });
+                return;
+            } else if (registered.type === 'url' && registered.url) {
+                console.debug('[SchemaEditor] Using registered url for', object.model3d, registered.url);
+                loader.load(registered.url, (gltf) => {
+                    this._finalizeParsedGLTF(object, gltf);
+                }, undefined, (err) => {
+                    console.error('GLTFLoader failed to load registered URL', registered.url, err);
+                });
+                return;
+            }
+        }
 
-            // 2️⃣ Rotazioni (X, Y, Z in gradi convertiti in radianti)
+        // If the model3d is directly an ArrayBuffer, parse it
+        if (object.model3d instanceof ArrayBuffer) {
+            console.debug('[SchemaEditor] Parsing ArrayBuffer model for', object.id || object.model3d);
+            loader.parse(object.model3d, '', (gltf) => {
+                this._finalizeParsedGLTF(object, gltf);
+            }, (err) => {
+                console.error('GLTF parse error (ArrayBuffer)', err);
+            });
+            return;
+        }
+
+        // If it's a blob: or data: URL we can load it directly
+        if (typeof object.model3d === 'string' && (object.model3d.startsWith('blob:') || object.model3d.startsWith('data:'))) {
+            loader.load(object.model3d, (gltf) => {
+                this._finalizeParsedGLTF(object, gltf);
+            }, undefined, (err) => {
+                console.error('GLTFLoader failed to load', object.model3d, err);
+            });
+            return;
+        }
+
+        // Fallback: attempt to fetch the .glb via standard fetch API and parse the ArrayBuffer.
+        // This gives clearer network errors and is compatible with running a simple static server.
+        try {
+            fetch(object.model3d).then(resp => {
+                if (!resp.ok) throw new Error(`HTTP ${resp.status} ${resp.statusText}`);
+                return resp.arrayBuffer();
+            }).then(arrayBuffer => {
+                // register buffer so subsequent loads avoid fetch
+                if (!this.assetMap) this.assetMap = {};
+                this.assetMap[object.model3d] = { type: 'buffer', buffer: arrayBuffer };
+                loader.parse(arrayBuffer, '', (gltf) => {
+                    this._finalizeParsedGLTF(object, gltf);
+                }, (parseErr) => {
+                    console.error('GLTF parse error after fetch', object.model3d, parseErr);
+                });
+            }).catch(err => {
+                console.error('Failed to fetch', object.model3d, err);
+                console.info('If you are not running a web server, register the .glb as an ArrayBuffer/Blob or data-URI using editor.registerAsset(name, data) to avoid network fetch.');
+
+                // Offer the user to pick a local .glb file to satisfy this missing asset
+                try {
+                    if (typeof window !== 'undefined' && typeof window.confirm === 'function') {
+                        const want = confirm(`Non riesco a caricare ${object.model3d} (fetch fallita). Vuoi selezionare il file .glb corrispondente sul tuo disco per registrarlo e riprovare?`);
+                        if (want) {
+                            const input = document.createElement('input');
+                            input.type = 'file';
+                            input.accept = '.glb,application/octet-stream,model/gltf-binary';
+                            input.style.display = 'none';
+                            document.body.appendChild(input);
+                            input.addEventListener('change', async (e) => {
+                                const f = e.target.files && e.target.files[0];
+                                if (f) {
+                                    try {
+                                        const ab = await f.arrayBuffer();
+                                        // register under the original reference so future loads use it
+                                        this.registerAsset(object.model3d, ab);
+                                        // retry rendering the object (will now use the registered buffer)
+                                        setTimeout(() => this.render3DObject(object), 50);
+                                    } catch (err2) {
+                                        console.error('Errore durante la lettura del file .glb selezionato', err2);
+                                    }
+                                }
+                                // cleanup
+                                try { document.body.removeChild(input); } catch (_) {}
+                            });
+                            input.click();
+                        }
+                    }
+                } catch (promptErr) {
+                    console.warn('prompt/register fallback failed', promptErr);
+                }
+            });
+        } catch (outerErr) {
+            console.error('Unexpected error while fetching model3d', outerErr);
+        }
+    }
+
+    render3DObjectFromArrayBuffer(object, arrayBuffer, filename = '') {
+        if (!this.threeScene || !arrayBuffer) return;
+
+        // Register the buffer so future loads can reuse it without network fetch
+        if (!this.assetMap) this.assetMap = {};
+        if (filename) {
+            this.assetMap[filename] = { type: 'buffer', buffer: arrayBuffer };
+        }
+
+        const loader = new THREE.GLTFLoader();
+        loader.parse(arrayBuffer, '', (gltf) => {
+            try {
+                this._finalizeParsedGLTF(object, gltf);
+            } catch (err) {
+                console.warn('render3DObjectFromArrayBuffer error', err);
+            }
+        }, (err) => {
+            console.error('GLTF parse error for', filename, err);
+        });
+    }
+
+    // Public API: register an asset so it can be used without network fetch.
+    // name: string key to reference later (e.g. 'data/images/m3.glb')
+    // data: ArrayBuffer | Blob | data-url string | blob-url string
+    registerAsset(name, data) {
+        if (!this.assetMap) this.assetMap = {};
+        try {
+            if (data instanceof ArrayBuffer) {
+                this.assetMap[name] = { type: 'buffer', buffer: data };
+            } else if (data instanceof Blob) {
+                const url = URL.createObjectURL(data);
+                this.assetMap[name] = { type: 'url', url };
+            } else if (typeof data === 'string') {
+                this.assetMap[name] = { type: 'url', url: data };
+            } else {
+                console.warn('registerAsset: unsupported data type', data);
+            }
+        } catch (err) {
+            console.error('registerAsset error', err);
+        }
+    }
+
+    // Internal helper to finish placing a parsed/loaded GLTF into the scene
+    _finalizeParsedGLTF(object, gltf) {
+        const mesh = gltf.scene;
+        try {
+            const canvasEl = document.getElementById('canvas');
+            const rect = canvasEl ? canvasEl.getBoundingClientRect() : null;
+
             mesh.rotation.set(
                 THREE.MathUtils.degToRad(object.rotationX || 0),
                 THREE.MathUtils.degToRad(object.rotationY || 0),
                 THREE.MathUtils.degToRad(object.rotation || 0)
             );
 
-            // 3️⃣ Scala proporzionata in base alla dimensione dell'oggetto
-            const scaleX = object.width / 100 || 1;
-            const scaleZ = object.height / 100 || 1;
-            mesh.scale.set(scaleX, scaleX, scaleZ);
+            const bbox = new THREE.Box3().setFromObject(mesh);
+            const size = bbox.getSize(new THREE.Vector3());
+            const center = bbox.getCenter(new THREE.Vector3());
 
-            // 4️⃣ Aggiungi alla scena
-            this.threeScene.add(mesh);
-            object.mesh = mesh;
+            let worldX = object.x || 0;
+            let worldZ = object.y || 0;
+            let worldY = (size.y / 2) || (object.height / 200) || 0.5;
 
-            // 5️⃣ Centra la camera sul nuovo mesh per debug (opzionale)
-            if (this.autoCenterCamera) {
-                this.threeCamera.lookAt(mesh.position);
+            if (rect) {
+                const desiredWorldWidth = 400;
+                const scaleFactor = desiredWorldWidth / rect.width;
+                const localX = object.x || 0;
+                const localY = object.y || 0;
+                worldX = (localX - rect.width / 2) * scaleFactor;
+                worldZ = (localY - rect.height / 2) * scaleFactor * -1;
+                worldY = (size.y * 0.5) * Math.max(object.height / 100, 1);
             }
 
-            // 6️⃣ Aggiorna la scena subito
+            mesh.position.x = worldX - center.x * (object.width / Math.max(size.x, 1) || 1);
+            mesh.position.y = worldY;
+            mesh.position.z = worldZ - center.z * (object.height / Math.max(size.z, 1) || 1);
+
+            const targetScale = (object.width || 100) / Math.max(size.x, 1);
+            mesh.scale.set(targetScale, targetScale, targetScale);
+
+            // Tagga la mesh con l'id dell'oggetto per poterla selezionare tramite raycast
+            mesh.userData = mesh.userData || {};
+            mesh.userData.objectId = object.id;
+            // Assicura che anche i figli ereditino il riferimento
+            mesh.traverse((n) => {
+                if (n && n.isMesh) {
+                    n.userData = n.userData || {};
+                    n.userData.objectId = object.id;
+                    n.castShadow = true;
+                    n.receiveShadow = true;
+                }
+            });
+
+            this.threeScene.add(mesh);
+            console.debug('[SchemaEditor] GLTF finalized and added to threeScene for object', object.id, { mesh });
+        } catch (err) {
+            console.warn('finalizeParsedGLTF error', err);
+        }
+        object.mesh = mesh;
+
+        if (this.autoCenterCamera) {
+            this.threeCamera.lookAt(mesh.position);
+        }
+
+        if (this.threeRenderer && this.threeCamera && this.threeScene) {
             this.threeRenderer.render(this.threeScene, this.threeCamera);
-        });
+        }
+    }
+
+    // Apply the editor object's transform values (x/y/width/height/rotationX/Y/Z) to a Three.js mesh
+    _applyObjectTransformToMesh(object, mesh) {
+        if (!mesh) return;
+
+        // Compute world placement consistent with _finalizeParsedGLTF
+        const canvasEl = document.getElementById('canvas');
+        const rect = canvasEl ? canvasEl.getBoundingClientRect() : null;
+
+        // compute bbox size and center for scaling reference
+        const bbox = new THREE.Box3().setFromObject(mesh);
+        const size = bbox.getSize(new THREE.Vector3());
+        const center = bbox.getCenter(new THREE.Vector3());
+
+        let worldX = object.x || 0;
+        let worldZ = object.y || 0;
+        let worldY = (size.y / 2) || (object.height / 200) || 0.5;
+
+        if (rect) {
+            const desiredWorldWidth = 400;
+            const scaleFactor = desiredWorldWidth / rect.width;
+            const localX = object.x || 0;
+            const localY = object.y || 0;
+            worldX = (localX - rect.width / 2) * scaleFactor;
+            worldZ = (localY - rect.height / 2) * scaleFactor * -1;
+            worldY = (size.y * 0.5) * Math.max(object.height / 100, 1);
+        }
+
+        mesh.position.x = worldX - center.x * (object.width / Math.max(size.x, 1) || 1);
+        mesh.position.y = worldY;
+        mesh.position.z = worldZ - center.z * (object.height / Math.max(size.z, 1) || 1);
+
+        const targetScale = (object.width || 100) / Math.max(size.x, 1);
+        mesh.scale.set(targetScale, targetScale, targetScale);
+
+        mesh.rotation.set(
+            THREE.MathUtils.degToRad(object.rotationX || 0),
+            THREE.MathUtils.degToRad(object.rotationY || 0),
+            THREE.MathUtils.degToRad(object.rotation || 0)
+        );
+        // Update box helper if present
+        try {
+            const helper = this._threeBoxHelpers.get(object.id);
+            if (helper) helper.update();
+        } catch (err) { /* ignore */ }
+    }
+
+    removeAllBoxHelpers() {
+        try {
+            this._threeBoxHelpers.forEach((helper, id) => {
+                try { this.threeScene.remove(helper); } catch (e) { /* ignore */ }
+            });
+        } catch (err) { /* ignore */ }
+        this._threeBoxHelpers.clear();
     }
 
     bringToFront() {
@@ -6141,6 +6544,63 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             return;
         }
 
+        // If clicking on the Three.js canvas, try raycasting to select 3D meshes
+        try {
+            const threeCanvas = document.getElementById('three-canvas');
+            if (threeCanvas) {
+                const rect = threeCanvas.getBoundingClientRect();
+                // check if pointer is within threeCanvas bounds (more robust than target checks)
+                const inside = e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
+                if (inside && this.threeScene && this.threeCamera && typeof THREE !== 'undefined') {
+                    const mouse = new THREE.Vector2();
+                    mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                    mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+                    const raycaster = new THREE.Raycaster();
+                    raycaster.setFromCamera(mouse, this.threeCamera);
+                    const intersects = raycaster.intersectObjects(this.threeScene.children, true);
+                    console.debug('[SchemaEditor] Raycast intersects count', intersects && intersects.length, 'mouse', {x: e.clientX, y: e.clientY}, 'canvasRect', rect);
+                    if (intersects && intersects.length > 0) {
+                        // Find first intersect with a userData.objectId
+                        const hit = intersects.find(i => i.object && i.object.userData && i.object.userData.objectId);
+                        if (hit) console.debug('[SchemaEditor] Raycast hit object', hit.object.userData && hit.object.userData.objectId, hit.object);
+                        if (hit) {
+                            const oid = hit.object.userData.objectId;
+                            if (oid) {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    console.debug('[SchemaEditor] Selecting 3D object via raycast', oid);
+                                    // select the corresponding 3D object data
+                                    this.select3DObject(oid);
+                                    // If Ctrl is pressed while clicking a 3D object, start a resize gesture
+                                    if (e.ctrlKey) {
+                                        const tab = this.getCurrentTab();
+                                        const obj = tab.objects.get(oid);
+                                        if (obj) {
+                                            this.isResizing3D = true;
+                                            this.resize3DStart = {
+                                                x: e.clientX,
+                                                y: e.clientY,
+                                                width: obj.width,
+                                                height: obj.height,
+                                                objectId: oid
+                                            };
+                                        }
+                                    }
+                                    // If no modifier, start dragging the 3D object
+                                    else {
+                                        this.startDrag3D(oid, e);
+                                    }
+                                    return;
+                                }
+                        }
+                    }
+                }
+            }
+        } catch (rayErr) {
+            console.warn('Raycast selection failed', rayErr);
+        }
+
         const freehandPath = e.target.closest('.freehand-path');
         if (freehandPath) {
             const fhId = freehandPath.closest('.freehand-svg').id;
@@ -6294,6 +6754,56 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             });
         } else if (this.isResizing && this.selectedObject) {
             this.handleResize(e);
+        } else if (this.isResizing3D && this.resize3DStart) {
+            // Resize 3D object by pointer delta (Ctrl+drag)
+            const dx = (e.clientX - this.resize3DStart.x) / this.getCurrentTab().zoom;
+            const dy = (e.clientY - this.resize3DStart.y) / this.getCurrentTab().zoom;
+
+            const newWidth = Math.max(10, this.resize3DStart.width + dx);
+            const newHeight = Math.max(10, this.resize3DStart.height + dy);
+
+            const tab = this.getCurrentTab();
+            const obj = tab.objects.get(this.resize3DStart.objectId);
+            if (obj) {
+                obj.width = newWidth;
+                obj.height = newHeight;
+                if (obj.mesh) {
+                    try { this._applyObjectTransformToMesh(obj, obj.mesh); } catch (err) { console.warn('apply transform during 3D resize', err); }
+                }
+            }
+        } else if (this.isDragging3D && this.drag3DStart) {
+            // Drag 3D object on plane defined at the object's world position
+            const ds = this.drag3DStart;
+            const tab = this.getCurrentTab();
+            const obj = tab.objects.get(ds.objectId);
+            if (!obj || !obj.mesh) return;
+
+            const intersect = this._getMouseIntersectionWithPlane(e.clientX, e.clientY, this._dragPlane);
+            if (!intersect || !this._dragStartPoint) return;
+
+            const projectedStart = this._worldToCanvasPosition(this._dragStartPoint);
+            const projectedNow = this._worldToCanvasPosition(intersect);
+            const screenDX = projectedNow.x - projectedStart.x;
+            const screenDY = projectedNow.y - projectedStart.y;
+
+            obj.x = ds.startObjX + screenDX;
+            obj.y = ds.startObjY + screenDY;
+            if (obj.mesh) {
+                try { this._applyObjectTransformToMesh(obj, obj.mesh); } catch (err) { /* ignore */ }
+            }
+        } else if (this.isRotating3D && this.rotate3DStart) {
+            // Simple 3D rotate by horizontal pointer movement
+            const rs = this.rotate3DStart;
+            const dx = e.clientX - rs.x;
+            const tab = this.getCurrentTab();
+            const obj = tab.objects.get(rs.objectId);
+            if (obj) {
+                // sensitivity: 0.5 degrees per pixel
+                obj.rotation = (rs.startRotation + dx * 0.5) % 360;
+                if (obj.mesh) {
+                    try { this._applyObjectTransformToMesh(obj, obj.mesh); } catch (err) { /* ignore */ }
+                }
+            }
         } else if (this.isRotating && this.selectedObject) {
             this.handleRotation(e);
         } else if (this.isRotatingGroup) {
@@ -6374,6 +6884,48 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             this.updateCurrentFrame();
         } else if (this.isSelecting) {
             this.finalizeSelectionBox(e);
+        }
+
+        if (this.isResizing3D) {
+            this.isResizing3D = false;
+            // finalize resize
+            if (this.resize3DStart) {
+                const tab = this.getCurrentTab();
+                const obj = tab.objects.get(this.resize3DStart.objectId);
+                if (obj) {
+                    this.saveState(`Ridimensionato oggetto 3D ${obj.id}`);
+                    this.updateCurrentFrame();
+                }
+            }
+            this.resize3DStart = null;
+        }
+
+        if (this.isDragging3D) {
+            this.isDragging3D = false;
+            if (this.drag3DStart) {
+                const tab = this.getCurrentTab();
+                const obj = tab.objects.get(this.drag3DStart.objectId);
+                if (obj) {
+                    this.saveState(`Spostato oggetto 3D ${obj.id}`);
+                    this.updateCurrentFrame();
+                }
+            }
+            this.drag3DStart = null;
+            this._dragPlane = null;
+            this._dragStartPoint = null;
+        }
+
+        if (this.isRotating3D) {
+            this.isRotating3D = false;
+            if (this.rotate3DStart) {
+                const tab = this.getCurrentTab();
+                const obj = tab.objects.get(this.rotate3DStart.objectId);
+                if (obj) {
+                    this.saveState(`Ruotato oggetto 3D ${obj.id}`);
+                    this.updateCurrentFrame();
+                }
+            }
+            this.rotate3DStart = null;
         }
 
         this.isDragging = false;
@@ -6744,6 +7296,214 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         }
     }
 
+    // Select a 3D object by its object id (no DOM element available)
+    select3DObject(objectId) {
+        console.debug('[SchemaEditor] select3DObject called for', objectId);
+        this.deselectAll();
+        const tab = this.getCurrentTab();
+        const objectData = tab.objects.get(objectId);
+        if (!objectData) return;
+
+        // Mark as selected in the internal map
+        this.selectedObjects.set(objectId, { x: objectData.x, y: objectData.y });
+        this.selectedObject = null; // no DOM element
+
+        // Optionally add a visual indicator for selection (e.g., highlight mesh)
+        if (objectData.mesh) {
+            // Add a BoxHelper for a clear visual selection
+            try {
+                if (!this._threeBoxHelpers.has(objectId)) {
+                    const helper = new THREE.BoxHelper(objectData.mesh, 0xffcc00);
+                    helper.material.linewidth = 2;
+                    this.threeScene.add(helper);
+                    this._threeBoxHelpers.set(objectId, helper);
+                    console.debug('[SchemaEditor] BoxHelper added for', objectId, helper);
+                }
+            } catch (err) {
+                console.warn('Could not add BoxHelper', err);
+            }
+
+            // Slight emissive tint for meshes that support it
+            objectData.mesh.traverse(n => {
+                if (n && n.isMesh) {
+                    try {
+                        if (n.material && n.material.emissive) {
+                            n.userData._prevEmissive = n.material.emissive.clone();
+                            n.material.emissive.setHex(0x333333);
+                        }
+                    } catch (err) { /* ignore */ }
+                }
+            });
+
+            // Create screen-space handles container if not present
+            console.debug('[SchemaEditor] Creating 3D handles for', objectId);
+            this.create3DHandles(objectData);
+            console.debug('[SchemaEditor] After create3DHandles, objectData._threeHandles=', objectData._threeHandles);
+        }
+
+        this.updateObjectControls();
+    }
+
+    // Create simple screen-space handles for a 3D object (resize + rotate)
+    create3DHandles(objectData) {
+        try {
+            if (!this.threeCanvas) this.threeCanvas = document.getElementById('three-canvas');
+            if (!this._threeHandlesContainer) {
+                const parent = this.threeCanvas.parentElement || document.body;
+                this._threeHandlesContainer = document.createElement('div');
+                this._threeHandlesContainer.style.position = 'absolute';
+                this._threeHandlesContainer.style.left = '0';
+                this._threeHandlesContainer.style.top = '0';
+                this._threeHandlesContainer.style.width = '100%';
+                this._threeHandlesContainer.style.height = '100%';
+                this._threeHandlesContainer.style.pointerEvents = 'none';
+                this._threeHandlesContainer.style.zIndex = 9999;
+                // ensure parent is positioned so absolute 100% covers canvas area
+                try {
+                    const cs = window.getComputedStyle(parent);
+                    if (cs.position === 'static' || !cs.position) parent.style.position = 'relative';
+                } catch (err) {
+                    parent.style.position = 'relative';
+                }
+                parent.appendChild(this._threeHandlesContainer);
+                console.debug('[SchemaEditor] created _threeHandlesContainer and appended to parent', parent);
+            }
+
+            // remove previous handles for this object
+            this.remove3DHandles(objectData.id);
+
+            const makeHandle = (cls, cursor) => {
+                const h = document.createElement('div');
+                h.className = cls;
+                h.style.position = 'absolute';
+                h.style.width = '12px';
+                h.style.height = '12px';
+                h.style.background = '#fff';
+                h.style.border = '2px solid #333';
+                h.style.borderRadius = '2px';
+                h.style.boxSizing = 'border-box';
+                h.style.pointerEvents = 'auto';
+                h.style.cursor = cursor;
+                return h;
+            };
+
+            const resizeHandle = makeHandle('three-handle-resize', 'nwse-resize');
+            const rotateHandle = makeHandle('three-handle-rotate', 'grab');
+
+            // attach pointer handlers
+            resizeHandle.addEventListener('pointerdown', (ev) => this._on3DResizePointerDown(ev, objectData.id));
+            rotateHandle.addEventListener('pointerdown', (ev) => this._on3DRotatePointerDown(ev, objectData.id));
+            // pointerup to finalize and release pointer capture
+            resizeHandle.addEventListener('pointerup', (ev) => {
+                try { ev.target.releasePointerCapture(ev.pointerId); } catch (err) { /* ignore */ }
+                this.isResizing3D = false;
+                this.resize3DStart = null;
+            });
+            rotateHandle.addEventListener('pointerup', (ev) => {
+                try { ev.target.releasePointerCapture(ev.pointerId); } catch (err) { /* ignore */ }
+                this.isRotating3D = false;
+                this.rotate3DStart = null;
+            });
+
+            this._threeHandlesContainer.appendChild(resizeHandle);
+            this._threeHandlesContainer.appendChild(rotateHandle);
+            console.debug('[SchemaEditor] appended 3D handles to container for object', objectData.id);
+
+            // store handles on objectData for later updates/removal
+            objectData._threeHandles = {
+                resizeHandle,
+                rotateHandle
+            };
+
+            // initial placement
+            this.update3DHandlesPosition(objectData);
+        } catch (err) {
+            console.warn('create3DHandles failed', err);
+        }
+    }
+
+    update3DHandlesPosition(objectData) {
+        if (!objectData || !objectData.mesh || !this._threeHandlesContainer || !this.threeCanvas) return;
+        try {
+            const bbox = new THREE.Box3().setFromObject(objectData.mesh);
+            const center = new THREE.Vector3();
+            bbox.getCenter(center);
+            const max = bbox.max;
+
+            const center2D = this._worldToCanvasPosition(center);
+            const corner2D = this._worldToCanvasPosition(max);
+
+            const handles = objectData._threeHandles;
+            if (!handles) return;
+
+            // compute offsets relative to the handles container's parent
+            const canvasRect = this.threeCanvas.getBoundingClientRect();
+            const parentRect = this._threeHandlesContainer.parentElement.getBoundingClientRect();
+
+            const offsetX = canvasRect.left - parentRect.left;
+            const offsetY = canvasRect.top - parentRect.top;
+
+            // place rotate handle near top-center
+            handles.rotateHandle.style.left = (offsetX + center2D.x - 6) + 'px';
+            handles.rotateHandle.style.top = (offsetY + center2D.y - 30) + 'px';
+
+            // place resize handle at bbox corner
+            handles.resizeHandle.style.left = (offsetX + corner2D.x - 6) + 'px';
+            handles.resizeHandle.style.top = (offsetY + corner2D.y - 6) + 'px';
+        } catch (err) { console.warn('update3DHandlesPosition error', err); }
+    }
+
+    remove3DHandles(objectId) {
+        try {
+            if (!this._threeHandlesContainer) return;
+            if (!objectId) {
+                // remove all
+                this._threeHandlesContainer.innerHTML = '';
+                return;
+            }
+            const tab = this.getCurrentTab();
+            const obj = tab.objects.get(objectId);
+            if (obj && obj._threeHandles) {
+                const { resizeHandle, rotateHandle } = obj._threeHandles;
+                try { resizeHandle.remove(); } catch (e) { /* ignore */ }
+                try { rotateHandle.remove(); } catch (e) { /* ignore */ }
+                delete obj._threeHandles;
+            }
+        } catch (err) { /* ignore */ }
+    }
+
+    _on3DResizePointerDown(e, objectId) {
+        e.stopPropagation();
+        e.preventDefault();
+        this.isResizing3D = true;
+        const tab = this.getCurrentTab();
+        const obj = tab.objects.get(objectId);
+        if (!obj) return;
+        this.resize3DStart = {
+            x: e.clientX,
+            y: e.clientY,
+            width: obj.width,
+            height: obj.height,
+            objectId: objectId
+        };
+        e.target.setPointerCapture(e.pointerId);
+    }
+
+    _on3DRotatePointerDown(e, objectId) {
+        e.stopPropagation();
+        e.preventDefault();
+        this.isRotating3D = true;
+        const tab = this.getCurrentTab();
+        const obj = tab.objects.get(objectId);
+        if (!obj) return;
+        this.rotate3DStart = {
+            x: e.clientX,
+            objectId: objectId,
+            startRotation: obj.rotation || 0
+        };
+        e.target.setPointerCapture(e.pointerId);
+    }
+
     toggleMultiSelection(element) {
         const objectId = element.id;
         const tab = this.getCurrentTab();
@@ -6933,6 +7693,26 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         this.selectedObjects.clear();
         this.selectedArrow = null;
 
+        // Clear any 3D mesh highlight markers we set in select3DObject
+        try {
+            if (this.threeScene) {
+                this.threeScene.traverse(n => {
+                    if (n && n.isMesh && n.userData && n.userData._prevEmissive) {
+                        try {
+                            if (n.material && n.material.emissive && n.userData._prevEmissive) {
+                                n.material.emissive.copy(n.userData._prevEmissive);
+                            }
+                        } catch (err) {
+                            // ignore
+                        }
+                        delete n.userData._prevEmissive;
+                    }
+                });
+            }
+        } catch (err) {
+            // ignore
+        }
+
         document.getElementById('objectInfo').textContent = 'Nessun oggetto selezionato';
         document.getElementById('objectText').value = '';
         document.getElementById('dashedObjectToggle').style.display = 'none';
@@ -6944,6 +7724,12 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         this.selectedFreehand = null;
         document.getElementById('freehandControls').style.display = 'none';
         document.getElementById('spriteControls').style.display = 'none';
+
+        // Remove any 3D helpers and screen-space handles
+        try {
+            this.removeAllBoxHelpers();
+            this.remove3DHandles();
+        } catch (err) { /* ignore */ }
     }
 
     startConnection(from, e) {

@@ -114,6 +114,8 @@ const translations = {
     "btn_export_schema": "📤 Esporta",
     "btn_export_workout_sheet": "📤 Genera la scheda di allenamento",
     "btn_load_library": "📁 Libreria",
+  "btn_register_glb": "📦 Registra .glb",
+  "btn_register_glb": "📦 Register .glb",
     "toolbar_user": "Utente",
     "btn_logout": "Esci",
     "tab_schema_1": "Schema 1",
