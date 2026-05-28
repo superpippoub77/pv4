@@ -209,6 +209,40 @@ class SchemaEditor {
         return Math.max(0, Math.min(base, 200));
     }
 
+    // Compute depth for arrows so they stay visually detached from the plane like objects.
+    computeArrowDepth(arrow) {
+        const tab = this.getCurrentTab();
+        if (!tab) return 0;
+
+        if (this.objectDepthAuto) {
+            const linkedDepths = [];
+
+            if (arrow.from?.objectId) {
+                const fromObj = tab.objects.get(arrow.from.objectId);
+                if (fromObj) linkedDepths.push(this.computeObjectDepth(fromObj));
+            }
+
+            if (arrow.to?.objectId) {
+                const toObj = tab.objects.get(arrow.to.objectId);
+                if (toObj) linkedDepths.push(this.computeObjectDepth(toObj));
+            }
+
+            if (linkedDepths.length > 0) {
+                const sum = linkedDepths.reduce((acc, d) => acc + d, 0);
+                return Math.round(sum / linkedDepths.length);
+            }
+
+            // Fallback for free-point arrows when auto depth is enabled.
+            return Math.max(0, Math.min(this.objectDepthPx || 0, 200));
+        }
+
+        if (this.objectDepthEnabled) {
+            return Math.max(0, Math.min(this.objectDepthPx || 0, 200));
+        }
+
+        return 0;
+    }
+
     async initialize() {
         await this.createTemplate();  // aspetta che tutti gli init finiscano
         await this.createWindows();
@@ -5790,6 +5824,16 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             el.style.transformStyle = 'preserve-3d';
             el.style.backfaceVisibility = 'hidden';
         });
+
+        // Keep arrow depth in sync with current depth preferences.
+        tab.arrows.forEach((arrow) => {
+            const arrowEl = document.getElementById(arrow.id);
+            if (!arrowEl) return;
+            const depth = this.computeArrowDepth(arrow);
+            arrowEl.style.transform = `translateZ(${depth}px)`;
+            arrowEl.style.transformStyle = 'preserve-3d';
+            arrowEl.style.backfaceVisibility = 'hidden';
+        });
     }
 
     // Return the mouse point in canvas-local coordinates (taking into account CSS transforms and zoom)
@@ -8104,6 +8148,11 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         svg.style.width = (maxX - minX) + 'px';
         svg.style.height = (maxY - minY) + 'px';
         svg.setAttribute('viewBox', `${minX} ${minY} ${maxX - minX} ${maxY - minY}`);
+
+        const depth = this.computeArrowDepth(arrow);
+        svg.style.transform = `translateZ(${depth}px)`;
+        svg.style.transformStyle = 'preserve-3d';
+        svg.style.backfaceVisibility = 'hidden';
     }
 
     getArrowPoint(point) {
