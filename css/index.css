@@ -39,6 +39,7 @@ body {
     display: flex !important;
     flex: 1;
     min-height: 0;
+    position: relative;
 
 }
 
@@ -165,8 +166,9 @@ body {
 }
 
 .schema-details textarea {
-    min-width: 600px;
-    max-width: 600px;
+    min-width: min(600px, 100%);
+    width: min(600px, 100%);
+    max-width: 100%;
     height: 120px;
     resize: vertical;
 }
@@ -204,6 +206,7 @@ body {
     /* Permette lo scroll se il canvas è zoomato/ridimensionato oltre la viewport */
     padding: 0;
     min-height: 0;
+    -webkit-overflow-scrolling: touch;
 }
 
 /* Perspective applied to container so plane transforms use it while canvas (objects) remain above */
@@ -807,6 +810,165 @@ body.dragging-endpoint .canvas-object .connection-point {
 
     .toolbar-group {
         justify-content: center;
+    }
+}
+
+@media (max-width: 900px) {
+    body {
+        overflow: hidden;
+    }
+
+    .main-content {
+        width: 100%;
+    }
+
+    .canvas-container {
+        justify-content: flex-start;
+        align-items: flex-start;
+        padding: 8px;
+    }
+
+    .canvas {
+        min-width: 320px;
+        min-height: 220px;
+    }
+
+    .schema-details {
+        padding: 8px 10px;
+        gap: 10px;
+    }
+
+    .sidebar,
+    .right-sidebar {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: min(82vw, 320px);
+        z-index: 1200;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .sidebar {
+        left: 0;
+    }
+
+    .right-sidebar {
+        right: 0;
+    }
+
+    .sidebar-switch,
+    .right-sidebar-switch {
+        position: fixed;
+        top: 50%;
+        transform: translateY(-50%);
+        opacity: 0.9;
+        z-index: 1300;
+    }
+
+    .sidebar-handle,
+    .right-sidebar-handle {
+        display: none;
+    }
+}
+
+@media (max-width: 600px) {
+    .canvas-container {
+        padding: 6px;
+    }
+
+    .canvas {
+        min-width: 280px;
+        min-height: 180px;
+    }
+
+    .modal-content {
+        width: 94%;
+        margin: 5% auto;
+        padding: 14px;
+    }
+
+    .dialog-container {
+        width: min(96vw, 560px);
+        max-height: 86vh;
+    }
+
+    .dialog-body {
+        padding: 12px;
+    }
+
+    .filters {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+}
+
+@media (max-width: 430px) {
+    .container {
+        min-height: calc(100dvh - env(safe-area-inset-bottom, 0px));
+    }
+
+    .main-content {
+        min-width: 0;
+    }
+
+    .sidebar,
+    .right-sidebar {
+        width: min(88vw, 320px);
+    }
+
+    .sidebar-switch,
+    .right-sidebar-switch {
+        width: 26px;
+        height: 58px;
+        opacity: 0.95;
+    }
+
+    .schema-details {
+        font-size: 11px;
+        padding: 6px 8px;
+        gap: 8px;
+    }
+
+    .schema-details .detail-group {
+        width: 100%;
+    }
+
+    .schema-details select,
+    .schema-details textarea {
+        width: 100%;
+    }
+
+    .canvas-container {
+        padding: 4px;
+    }
+
+    .canvas {
+        min-width: 260px;
+        min-height: 170px;
+    }
+
+    .modal-content {
+        width: 96%;
+        margin: 3% auto;
+        padding: 12px;
+    }
+}
+
+@media (max-width: 430px) and (max-height: 740px) {
+    .canvas {
+        min-height: 150px;
+    }
+
+    .dialog-container {
+        max-height: 90vh;
+    }
+
+    .dialog-header {
+        padding: 10px 12px;
+    }
+
+    .dialog-header h3 {
+        font-size: 14px;
     }
 }
 

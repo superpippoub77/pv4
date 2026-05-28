@@ -353,3 +353,24 @@ body.resizing-sidebar .right-sidebar-switch {
 .searchable-suggestion:focus {
     outline: none;
 }
+
+@media (max-width: 900px) {
+    .workout-details .detail-row.cols-3,
+    .workout-details .detail-row.cols-4 {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .workout-details .detail-row,
+    .workout-details .detail-row.cols-2,
+    .workout-details .detail-row.cols-3,
+    .workout-details .detail-row.cols-4 {
+        grid-template-columns: 1fr;
+    }
+
+    .component-item {
+        max-width: none;
+        flex: 1 1 calc(50% - 6px);
+    }
+}

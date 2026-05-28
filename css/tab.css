@@ -68,6 +68,8 @@
     outline: none;
     width: auto;
     min-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .tab-title:focus {
@@ -86,4 +88,61 @@
 .tab.dragging {
     opacity: 0.4;
     cursor: move;
+}
+
+@media (max-width: 900px) {
+    .tabs-container {
+        padding: 4px 8px 0;
+        gap: 4px;
+    }
+
+    .tab {
+        padding: 7px 10px;
+        font-size: 12px;
+        max-width: 170px;
+    }
+
+    .tab-title {
+        min-width: 56px;
+        max-width: 120px;
+    }
+
+    .add-tab {
+        padding: 8px;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .tab {
+        padding: 6px 8px;
+        font-size: 11px;
+        max-width: 145px;
+    }
+
+    .tab-close {
+        margin-left: 6px;
+    }
+}
+
+@media (max-width: 430px) {
+    .tabs-container {
+        padding: 3px 6px 0;
+        gap: 3px;
+    }
+
+    .tab {
+        padding: 6px 7px;
+        max-width: 132px;
+    }
+
+    .tab-title {
+        min-width: 44px;
+        max-width: 88px;
+    }
+
+    .add-tab {
+        min-height: 30px;
+        padding: 6px 7px;
+    }
 }

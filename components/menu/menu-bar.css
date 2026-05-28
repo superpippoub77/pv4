@@ -193,6 +193,24 @@
     }
 }
 
+@media (max-width: 430px) {
+    .menu-bar {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .menu-item {
+        flex: 0 0 auto;
+        padding: 8px 10px;
+    }
+
+    .menu-dropdown {
+        min-width: 170px;
+    }
+}
+
 .menu-item.right {
     margin-left: auto; /* spinge tutto verso destra */
 }

@@ -35,6 +35,29 @@ class Sidebar {
         // Toggle e resize
         this.initSidebarToggle();
         this.initSidebarResize();
+        this.applyInitialResponsiveState();
+
+        window.addEventListener("resize", () => this.handleViewportResize());
+    }
+
+    applyInitialResponsiveState() {
+        if (!window.matchMedia("(max-width: 900px)").matches) return;
+        if (this.sidebar.classList.contains("hidden")) return;
+
+        this.savedWidth = this.sidebar.offsetWidth || 280;
+        this.sidebar.classList.add("hidden");
+        this.sidebarSwitch.textContent = this.position === "right" ? "◀" : "▶";
+
+        if (this.position === "right") {
+            this.sidebarSwitch.style.right = "0px";
+        } else {
+            this.sidebarSwitch.style.left = "0px";
+        }
+    }
+
+    handleViewportResize() {
+        if (this.sidebar.classList.contains("hidden")) return;
+        this.updateSidebarSwitchPosition();
     }
 
     build() {
