@@ -93,6 +93,8 @@ class SchemaEditor {
         this.currentWorkoutObjective = '';
         this.currentWorkoutObservations = '';
         this.canvasSize = 'custom';
+        this.defaultCustomCanvasWidth = 560;
+        this.defaultCustomCanvasHeight = 400;
         this.showCanvasBorder = false;
         this.historyMetadata = new Map();
         this.floatingToolbarGroups = new Map();
@@ -3147,6 +3149,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             exerciseSteps: [],
             connectionPointCounters: new Map(),
             canvasSize: 'custom',
+            customWidth: this.defaultCustomCanvasWidth,
+            customHeight: this.defaultCustomCanvasHeight,
             showBorder: false,
             maxZIndex: 1000
         });
@@ -3177,8 +3181,10 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 canvas.style.width = tab.customWidth + 'px';
                 canvas.style.height = tab.customHeight + 'px';
             } else {
-                canvas.style.width = '';
-                canvas.style.height = '';
+                tab.customWidth = this.defaultCustomCanvasWidth;
+                tab.customHeight = this.defaultCustomCanvasHeight;
+                canvas.style.width = tab.customWidth + 'px';
+                canvas.style.height = tab.customHeight + 'px';
             }
         } else {
             // Applica la classe preset
