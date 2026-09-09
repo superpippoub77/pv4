@@ -26,6 +26,10 @@
     background-size: cover;
 }
 
+.mat-object.dashed {
+    border-style: dashed !important;
+    border-color: #333 !important;
+}
 
 .net-object {
     width: 100%;
@@ -43,6 +47,11 @@
     border-top: 2px solid #666;
     position: absolute;
     box-sizing: border-box;
+}
+
+.net-object.dashed {
+    border-top-style: dashed !important;
+    border-color: #333 !important;
 }
 
 /* Astine pallavolo che superano la rete */
@@ -133,6 +142,12 @@
 
     border: 1px solid #8b2e1e;
     border-radius: 6px;
+}
+
+.brick-object.dashed {
+    border-style: dashed !important;
+    border-color: #333 !important;
+    border-width: 2px !important;
 }
 
 

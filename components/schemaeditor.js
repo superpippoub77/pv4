@@ -10220,6 +10220,20 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             if (sidebar) sidebar.style.display = originalSidebarDisplay;
             if (rightSidebar) rightSidebar.style.display = originalRightSidebarDisplay;
             if (watermark) watermark.style.display = originalWatermarkDisplay;
+
+            // ✅ Ripristina lo stato del canvas (griglia, background, transform)
+            const canvas = document.getElementById('canvas');
+            if (canvas) {
+                canvas.style.transform = originalState?.transform || 'none';
+                canvas.style.overflow = originalState?.overflow || 'hidden';
+                canvas.style.position = originalState?.position || 'relative';
+                canvas.style.backgroundColor = originalState?.backgroundColor || '';
+                if (originalState?.hasGridVisible) {
+                    canvas.classList.add('grid-visible');
+                } else {
+                    canvas.classList.remove('grid-visible');
+                }
+            }
         }
     }
 
@@ -10468,8 +10482,14 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         const originalState = {
             transform: canvas.style.transform,
             overflow: canvas.style.overflow,
-            position: canvas.style.position
+            position: canvas.style.position,
+            hasGridVisible: canvas.classList.contains('grid-visible'),
+            backgroundColor: canvas.style.backgroundColor
         };
+
+        // ✅ Rimuovi la griglia grigia e la quadrettatura durante l'esportazione
+        canvas.classList.remove('grid-visible');
+        canvas.style.backgroundColor = 'white';
 
         // Resetta le trasformazioni per l'export
         canvas.style.transform = 'none';

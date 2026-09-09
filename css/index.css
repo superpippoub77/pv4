@@ -468,7 +468,9 @@ body.resizing-canvas .canvas-resize-handle-single {
 }
 
 .canvas-object.dashed {
-    border-style: dashed;
+    border-style: dashed !important;
+    border-width: 2px !important;
+    border-color: #333 !important;
 }
 
 /* MODIFICA QUESTA REGOLA CSS ESISTENTE */
@@ -670,6 +672,13 @@ body.dragging-endpoint .canvas-object .connection-point {
     height: 100%;
     background: #f39c12;
     border-radius: 0 0 50% 50%;
+    border: 2px solid #d68910;
+}
+
+.cone-object.dashed {
+    border-style: dashed;
+    border-width: 2px;
+    border-color: #333;
 }
 
 .goal-object {
