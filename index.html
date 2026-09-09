@@ -283,6 +283,11 @@
 
     <!-- COMPONENTS -->
     <script defer src="components/macro_recorder_system.js"></script>
+    
+    <!-- JWT & PROFILE MANAGEMENT -->
+    <script defer src="components/api-client.js"></script>
+    <script defer src="components/login-manager.js"></script>
+    <script defer src="components/profile-manager.js"></script>
 
     <!-- CORE COMPONENTS -->
     <script defer src="components/schemaeditor.js"></script>
@@ -309,6 +314,12 @@
                         storage = new Storage(username);
                         window.editor = new SchemaEditor(configuration, menuData, username, storage);
                         await window.editor.initialize();
+                        
+                        // Inizializza profileManager per il profilo utente
+                        if (typeof APIClient !== 'undefined' && typeof ProfileManager !== 'undefined') {
+                            window.apiClient = new APIClient('/api');
+                            window.profileManager = new ProfileManager(window.apiClient);
+                        }
 
                         const langSelector = document.getElementById('languageSelector');
                         langSelector.value = defaultLang;
