@@ -263,6 +263,7 @@ class MenuManager {
             'about': () => this.showAboutDialog(),
 
             // ========== USER ==========
+            'showUserProfile': () => this.showUserProfile(),
             'logout': () => this.editor.loginManager.handleLogout(),
         };
 
@@ -331,6 +332,35 @@ class MenuManager {
                     }
                 }
             ]
+        });
+    }
+
+    /**
+     * Dialog per Profilo Utente
+     */
+    showUserProfile() {
+        // Se esiste ProfileManager (dal login.html), usalo
+        if (window.profileManager) {
+            window.profileManager.showProfileDialog();
+            return;
+        }
+
+        // Fallback: mostra un semplice dialog
+        const username = this.editor.currentUser || 'Utente';
+        const dialog = createWindow({
+            title: '👤 Profilo Utente',
+            contentHTML: `
+            <div style="padding: 20px;">
+                <h3>Profilo: ${username}</h3>
+                <p style="color: #666; margin-top: 10px;">
+                    ℹ️ Attiva l'autenticazione JWT per accedere alle impostazioni del profilo completo.
+                </p>
+                <div style="background: #f0f0f0; padding: 15px; border-radius: 4px; margin-top: 15px;">
+                    <p><strong>Username:</strong> ${username}</p>
+                </div>
+            </div>
+        `,
+            size: 'sm'
         });
     }
 

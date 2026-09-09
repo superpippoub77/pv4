@@ -161,7 +161,9 @@ const menuData = [
         label: "👤 User",
         meta: { align: "right" },
         items: [
-            { icon: "🚪", label: "Logout", action: "logout" }
+            { icon: "�", label: "Profilo", action: "showUserProfile" },
+            { separator: true },
+            { icon: "�🚪", label: "Logout", action: "logout" }
         ]
     }
 ];
