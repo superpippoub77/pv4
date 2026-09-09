@@ -345,6 +345,16 @@
                         if (typeof APIClient !== 'undefined' && typeof ProfileManager !== 'undefined') {
                             window.apiClient = new APIClient(window.APP_CONFIG.API_BASE_URL);
                             window.profileManager = new ProfileManager(window.apiClient);
+                            
+                            // Effettua il login automatico tramite le API JWT per accedere al profilo
+                            // Usa le credenziali di default (admin/1234) come fallback
+                            try {
+                                await window.apiClient.login(username || 'admin', '1234');
+                                console.log('Login JWT automatico riuscito per:', username);
+                            } catch (error) {
+                                console.log('Login JWT fallito, il profilo potrebbe non essere disponibile:', error.message);
+                                // Continua comunque, il profilo semplicemente non sarà disponibile
+                            }
                         }
 
                         const langSelector = document.getElementById('languageSelector');
