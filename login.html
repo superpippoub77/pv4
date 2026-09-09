@@ -4,6 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PV4 - Login con JWT</title>
+    
+    <!-- API Configuration -->
+    <script>
+        // Configurazione dell'ambiente
+        window.APP_CONFIG = {
+            API_BASE_URL: (() => {
+                const host = window.location.hostname;
+                const port = window.location.port;
+                
+                // In sviluppo locale
+                if (host === 'localhost' || host === '127.0.0.1') {
+                    return port === '8000' ? '/api' : `http://localhost:8000/api`;
+                }
+                
+                // In produzione - personalizza qui il path delle API
+                if (host === 'www.filippomorano.com' || host === 'filippomorano.com') {
+                    // MODIFICA QUESTO PATH IN BASE A DOVE SONO LE API IN PRODUZIONE
+                    return 'pv4/api';  // o 'https://api.filippomorano.com', ecc
+                }
+                
+                // Default
+                return '/api';
+            })()
+        };
+        console.log('API Base URL:', window.APP_CONFIG.API_BASE_URL);
+    </script>
+    
     <style>
         * {
             margin: 0;
@@ -322,7 +349,7 @@
     <script src="components/helper.js"></script>
 
     <script>
-        let api = new APIClient('/api');
+        let api = new APIClient(window.APP_CONFIG.API_BASE_URL);
         let loginManager = new LoginManager(api);
         let profileManager = new ProfileManager(api);
 

@@ -4,6 +4,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- API Configuration -->
+    <script>
+        // Configurazione dell'ambiente
+        window.APP_CONFIG = {
+            API_BASE_URL: (() => {
+                const host = window.location.hostname;
+                const port = window.location.port;
+                
+                // In sviluppo locale
+                if (host === 'localhost' || host === '127.0.0.1') {
+                    return port === '8000' ? '/api' : `http://localhost:8000/api`;
+                }
+                
+                // In produzione - personalizza qui il path delle API
+                if (host === 'www.filippomorano.com' || host === 'filippomorano.com') {
+                    // MODIFICA QUESTO PATH IN BASE A DOVE SONO LE API IN PRODUZIONE
+                    return 'pv4/api';  // o 'https://api.filippomorano.com', ecc
+                }
+                
+                // Default
+                return '/api';
+            })()
+        };
+        console.log('API Base URL:', window.APP_CONFIG.API_BASE_URL);
+    </script>
 
     <!-- Titolo SEO ottimizzato -->
     <title>Volleyball Coach Pro W4 - Editor e Workout per Allenatori di Pallavolo</title>
@@ -317,7 +343,7 @@
                         
                         // Inizializza profileManager per il profilo utente
                         if (typeof APIClient !== 'undefined' && typeof ProfileManager !== 'undefined') {
-                            window.apiClient = new APIClient('/api');
+                            window.apiClient = new APIClient(window.APP_CONFIG.API_BASE_URL);
                             window.profileManager = new ProfileManager(window.apiClient);
                         }
 
