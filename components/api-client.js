@@ -127,6 +127,39 @@ class APIClient {
     });
   }
 
+  // ===== WORKOUTS API =====
+  async getWorkouts() {
+    return this.request('/workouts.php');
+  }
+
+  async getAllWorkouts() {
+    return this.request('/workouts.php/all');
+  }
+
+  async getWorkout(id) {
+    return this.request(`/workouts.php/${id}`);
+  }
+
+  async createWorkout(name, objective, observations, data, sport = 'volleyball') {
+    return this.request('/workouts.php', {
+      method: 'POST',
+      body: JSON.stringify({ name, objective, observations, data, sport })
+    });
+  }
+
+  async updateWorkout(id, name, objective, observations, data, sport = 'volleyball') {
+    return this.request(`/workouts.php/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ name, objective, observations, data, sport })
+    });
+  }
+
+  async deleteWorkout(id) {
+    return this.request(`/workouts.php/${id}`, {
+      method: 'DELETE'
+    });
+  }
+
   // ===== PROFILE API =====
   async getProfile() {
     return this.request('/profile.php');

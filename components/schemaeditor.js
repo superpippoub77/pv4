@@ -4071,7 +4071,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     //     }, 100);
     // }
 
-    saveWorkout(fileName) {
+    async saveWorkout(fileName) {
         // Salva lo stato corrente del tab attivo
         this.saveTabState();
 
@@ -4127,21 +4127,39 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             tabs: allTabs
         };
 
-        // Salva il file
-        const blob = new Blob([JSON.stringify(workoutData, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${fileName}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        try {
+            // Salva nel database SQLite via API
+            const apiClient = new APIClient();
+            const response = await apiClient.createWorkout(
+                fileName,
+                globalObjective,
+                globalObservations,
+                workoutData,
+                'volleyball'
+            );
 
-        console.log(`Allenamento salvato: ${allTabs.length} schemi`);
+            console.log(`Allenamento salvato nel database: ${response.id}`);
+            
+            // Mostra messaggio di successo
+            alert(`✅ Allenamento "${fileName}" salvato con successo!\nID: ${response.id}`);
 
-        // ✅ Chiudi il modal dopo il salvataggio
-        document.getElementById('saveWorkoutModal').style.display = 'none';
+            // Opzionalmente, scarica anche il file JSON localmente
+            const blob = new Blob([JSON.stringify(workoutData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${fileName}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            console.log(`Allenamento salvato: ${allTabs.length} schemi`);
+
+        } catch (error) {
+            console.error('Errore nel salvataggio dell\'allenamento:', error);
+            alert(`❌ Errore nel salvataggio: ${error.message}`);
+        }
     }
 
     loadWorkout(event) {
@@ -4296,21 +4314,43 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     }
 
     // Metodo di utilità per la scomposizione del nome file
-    parseFilename(filename) {
-        // Esempio: PRE.ANA.A.alzate_miste.json
-        const parts = filename.replace('.json', '').split('.');
-        if (parts.length < 4) return null;
+    parseFilename(item) {
+        // Se è un oggetto dal database
+        if (typeof item === 'object' && item !== null) {
+            // Estrai i dati dall'oggetto
+            return {
+                id: item.id,
+                filename: `${item.id}`, // Usa l'ID come identificatore
+                periodo: 'GEN',  // Potrebbero essere nei metadati se aggiungessero i campi
+                tipologia: 'GEN',
+                ruolo: 'GEN',
+                titolo: item.name || item.filename,
+                author: item.author,
+                objective: item.objective,
+                source: 'database'
+            };
+        }
 
-        const [periodo, tipologia, ruolo, ...rest] = parts;
-        const titolo = rest.join('.'); // Ricompone il titolo se contiene altri punti
+        // Se è una stringa (vecchio formato)
+        if (typeof item === 'string') {
+            // Esempio: PRE.ANA.A.alzate_miste.json
+            const parts = item.replace('.json', '').split('.');
+            if (parts.length < 4) return null;
 
-        return {
-            filename: filename,
-            periodo: periodo,
-            tipologia: tipologia,
-            ruolo: ruolo,
-            titolo: titolo.replace(/_/g, ' ') // Sostituisce gli underscore con spazi per la visualizzazione
-        };
+            const [periodo, tipologia, ruolo, ...rest] = parts;
+            const titolo = rest.join('.'); // Ricompone il titolo se contiene altri punti
+
+            return {
+                filename: item,
+                periodo: periodo,
+                tipologia: tipologia,
+                ruolo: ruolo,
+                titolo: titolo.replace(/_/g, ' '), // Sostituisce gli underscore con spazi per la visualizzazione
+                source: 'filesystem'
+            };
+        }
+
+        return null;
     }
 
     // initLibraryLoading() {

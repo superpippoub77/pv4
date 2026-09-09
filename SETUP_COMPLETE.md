@@ -192,6 +192,97 @@ POST   /api/exercises.php          → Crea esercizio
 GET    /api/exercises.php/:id      → Ottieni esercizio
 ```
 
+### Workouts (richiede JWT) - ✨ NUOVO
+```
+GET    /api/workouts.php           → Allenamenti utente
+GET    /api/workouts.php/all       → Tutti gli allenamenti
+POST   /api/workouts.php           → Salva allenamento
+GET    /api/workouts.php/:id       → Ottieni allenamento
+PUT    /api/workouts.php/:id       → Aggiorna allenamento
+DELETE /api/workouts.php/:id       → Elimina allenamento
+```
+
+---
+
+## 🏋️ Workouts - Nuovo Sistema Salvataggio
+
+### ✨ Novità
+- ✅ Tutti gli allenamenti salvati nel DB SQLite
+- ✅ Endpoint REST completo (CRUD)
+- ✅ Integrazione JWT autenticazione
+- ✅ Backward compatibility con filesystem
+- ✅ Data storage in formato JSON
+
+### Tabella Database
+```sql
+CREATE TABLE workouts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    author TEXT,
+    user_id INTEGER,
+    objective TEXT,
+    observations TEXT,
+    data TEXT NOT NULL,  -- JSON completo allenamento
+    sport TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+```
+
+### Utilizzo Frontend
+```javascript
+const api = new APIClient('/api');
+
+// Salva allenamento
+const response = await api.createWorkout(
+  'Allenamento 1',
+  'Obiettivo del training',
+  'Osservazioni',
+  workoutData,  // JSON completo con tab e schemi
+  'volleyball'
+);
+console.log('Salvato con ID:', response.id);
+
+// Carica allenamento
+const workout = await api.getWorkout(response.id);
+console.log(workout.data);  // JSON decodificato
+
+// Aggiorna
+await api.updateWorkout(id, name, objective, observations, data, sport);
+
+// Elimina
+await api.deleteWorkout(id);
+
+// Lista allenamenti utente
+const myWorkouts = await api.getWorkouts();
+```
+
+### Modifiche File Frontend
+- `schemaeditor.js` - `saveWorkout()` ora salva su DB
+- `api-client.js` - Nuovi metodi workouts
+- `libraryworkout.class.js` - Carica da DB o filesystem
+- `api_libreria.php` - Legge da DB SQLite
+- `api_allenamento.php` - Legge da DB con fallback
+
+### Flow Salvataggio
+```
+User "Salva Allenamento"
+    ↓
+SaveWorkoutDialogManager mostra form
+    ↓
+User compila dati + clicca Salva
+    ↓
+saveWorkout() asincrono
+    ├→ Raccoglie dati tutti tab
+    ├→ Chiama APIClient.createWorkout()
+    ├→ Invia POST /api/workouts.php
+    ├→ Database.addWorkout() salva su SQLite
+    ├→ Riceve ID da DB
+    ├→ Mostra alert successo
+    └→ Scarica JSON locale (backup)
+```
+
 ---
 
 ## 💻 Utilizzo nei Componenti
@@ -235,11 +326,16 @@ Verificato il funzionamento di:
 - ✅ JWT token generation
 - ✅ Token validation
 - ✅ API GET /users con autenticazione
+- ✅ API GET /exercises con autenticazione
+- ✅ API CRUD /workouts con autenticazione
 - ✅ Database SQLite CRUD
+- ✅ Salvataggio allenamenti nel DB
+- ✅ Caricamento allenamenti da DB
 - ✅ Utente admin pre-creato
 - ✅ CORS headers
 - ✅ Error handling
 - ✅ 24h token expiration
+- ✅ Backward compatibility filesystem
 
 ---
 
@@ -248,13 +344,17 @@ Verificato il funzionamento di:
 ### Immediati
 - [ ] Cambiare JWT secret in `api/base.php`
 - [ ] Implementare password hashing (password_hash)
-- [ ] Testare gli altri endpoint API
+- [ ] Testare gli endpoint workouts completamente
+- [ ] Aggiungere validazione form allenamenti
 
 ### Medio Termine
 - [ ] Rate limiting su login
 - [ ] Logging delle richieste
 - [ ] Backup database
 - [ ] Test unitari
+- [ ] Aggiungere metadata allenamenti (periodo, tipologia, ruolo)
+- [ ] Implementare soft delete per workout
+- [ ] Condivisione allenamenti tra utenti
 
 ### Produzione
 - [ ] Abilitare HTTPS
@@ -262,6 +362,8 @@ Verificato il funzionamento di:
 - [ ] Migrare da password plaintext
 - [ ] Database replication
 - [ ] Monitoring e alerting
+- [ ] Export allenamenti PDF/Excel
+- [ ] Versionamento workout (storico versioni)
 
 ---
 

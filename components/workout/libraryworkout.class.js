@@ -146,7 +146,7 @@ class LibraryWorkoutDialogManager {
      * Carica la lista dei file dal backend PHP con FALLBACK
      */
     async fetchLibraryWorkouts() {
-        let filenames = [];
+        let workoutList = [];
         const endpoint = 'api/api_libreria.php';
 
         try {
@@ -156,10 +156,10 @@ class LibraryWorkoutDialogManager {
                 throw new Error(`Errore nel server PHP (Status: ${response.status}).`);
             }
 
-            filenames = await response.json();
+            workoutList = await response.json();
 
-            if (!Array.isArray(filenames)) {
-                throw new Error('La risposta del server non è un array valido di nomi file.');
+            if (!Array.isArray(workoutList)) {
+                throw new Error('La risposta del server non è un array valido.');
             }
 
             this.librarySource = 'server';
@@ -171,7 +171,7 @@ class LibraryWorkoutDialogManager {
 
             this.librarySource = 'fallback';
 
-            filenames = [
+            workoutList = [
                 'PRE.ANA.A.esempio1.json'
             ];
 
@@ -183,8 +183,8 @@ class LibraryWorkoutDialogManager {
             `;
         }
 
-        this.libraryWorkouts = filenames
-            .map(f => this.parseFilename(f))
+        this.libraryWorkouts = workoutList
+            .map(item => this.parseFilename(item))
             .filter(w => w !== null);
 
         this.populateFilters(this.libraryWorkouts);
@@ -192,23 +192,46 @@ class LibraryWorkoutDialogManager {
     }
 
     /**
-     * Parsing del nome file
-     * Esempio: PRE.ANA.A.alzate_miste.json
+     * Parsing - gestisce sia stringhe (vecchio formato) che oggetti (nuovo DB formato)
+     * Stringa: PRE.ANA.A.alzate_miste.json
+     * Oggetto: {id, name, author, objective, sport, created_at, updated_at}
      */
-    parseFilename(filename) {
-        const parts = filename.replace('.json', '').split('.');
-        if (parts.length < 4) return null;
+    parseFilename(item) {
+        // Se è un oggetto dal database
+        if (typeof item === 'object' && item !== null) {
+            // Estrai i dati dall'oggetto
+            return {
+                id: item.id,
+                filename: `${item.id}`, // Usa l'ID come identificatore
+                periodo: 'GEN',  // Potrebbero essere nei metadati se aggiungessero i campi
+                tipologia: 'GEN',
+                ruolo: 'GEN',
+                titolo: item.name || item.filename,
+                author: item.author,
+                objective: item.objective,
+                source: 'database'
+            };
+        }
 
-        const [periodo, tipologia, ruolo, ...rest] = parts;
-        const titolo = rest.join('.');
+        // Se è una stringa (vecchio formato)
+        if (typeof item === 'string') {
+            const parts = item.replace('.json', '').split('.');
+            if (parts.length < 4) return null;
 
-        return {
-            filename: filename,
-            periodo: periodo,
-            tipologia: tipologia,
-            ruolo: ruolo,
-            titolo: titolo.replace(/_/g, ' ')
-        };
+            const [periodo, tipologia, ruolo, ...rest] = parts;
+            const titolo = rest.join('.');
+
+            return {
+                filename: item,
+                periodo: periodo,
+                tipologia: tipologia,
+                ruolo: ruolo,
+                titolo: titolo.replace(/_/g, ' '),
+                source: 'filesystem'
+            };
+        }
+
+        return null;
     }
 
     /**

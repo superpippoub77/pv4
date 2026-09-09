@@ -1,38 +1,32 @@
 <?php
-// Configurazione degli header per l'API
+require_once 'base.php';
+
 header('Content-Type: application/json');
-// Potrebbe essere necessario per i test locali, in produzione si dovrebbe limitare
-header('Access-Control-Allow-Origin: *'); 
+header('Access-Control-Allow-Origin: *');
 
-$library_dir = '../volleyball_exercise_library/';
-$json_files = [];
+$db = new Database();
 
-// Assicura che la directory esista e sia leggibile
-if (is_dir($library_dir)) {
-    // Legge tutti i file e le directory all'interno di 'libreria/'
-    $files = scandir($library_dir);
+try {
+    // Leggi tutti gli allenamenti dal database
+    $workouts = $db->getAllWorkouts();
     
-    foreach ($files as $file) {
-        // Ignora . e ..
-        if ($file === '.' || $file === '..') {
-            continue;
-        }
-        
-        // Verifica che sia un file e che termini con .json
-        if (is_file($library_dir . $file) && pathinfo($file, PATHINFO_EXTENSION) === 'json') {
-            $json_files[] = $file;
-        }
-    }
+    // Restituisce la lista degli allenamenti
+    $workoutNames = array_map(function($workout) {
+        return [
+            'id' => $workout['id'],
+            'name' => $workout['name'],
+            'author' => $workout['author'],
+            'objective' => $workout['objective'],
+            'sport' => $workout['sport'],
+            'created_at' => $workout['created_at'],
+            'updated_at' => $workout['updated_at']
+        ];
+    }, $workouts);
     
-    // Restituisce l'array dei nomi dei file in formato JSON
-    echo json_encode($json_files);
+    echo json_encode($workoutNames);
     
-} else {
-    // Gestione errore se la directory non esiste
+} catch (Exception $e) {
     http_response_code(500);
-    echo json_encode(['error' => 'Directory della libreria non trovata.']);
+    echo json_encode(['error' => 'Errore nel caricamento della libreria: ' . $e->getMessage()]);
 }
-
-// Nota: se usi un file .htaccess per il routing, questo script potrebbe essere incorporato diversamente.
-// Per la soluzione più semplice, lo si chiama direttamente.
 ?>

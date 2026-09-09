@@ -87,6 +87,22 @@ class Database {
             )
         ");
 
+        $this->db->exec("
+            CREATE TABLE IF NOT EXISTS workouts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                author TEXT,
+                user_id INTEGER,
+                objective TEXT,
+                observations TEXT,
+                data TEXT NOT NULL,
+                sport TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        ");
+
         // Importa utente admin se non esiste
         $stmt = $this->db->prepare("SELECT COUNT(*) FROM users WHERE username = ?");
         $stmt->execute(['admin']);
@@ -213,6 +229,77 @@ class Database {
         );
         $stmt->execute([$name, $category, $sport, $description, is_string($data) ? $data : json_encode($data)]);
         return $this->db->lastInsertId();
+    }
+
+    // ===== WORKOUTS =====
+    public function getAllWorkouts() {
+        $stmt = $this->db->prepare("SELECT id, name, author, objective, sport, created_at, updated_at FROM workouts ORDER BY updated_at DESC");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getWorkout($id) {
+        $stmt = $this->db->prepare("SELECT * FROM workouts WHERE id = ?");
+        $stmt->execute([$id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($row) {
+            $row['data'] = json_decode($row['data'], true);
+        }
+        return $row;
+    }
+
+    public function getWorkoutByName($name) {
+        $stmt = $this->db->prepare("SELECT * FROM workouts WHERE name = ? LIMIT 1");
+        $stmt->execute([$name]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($row) {
+            $row['data'] = json_decode($row['data'], true);
+        }
+        return $row;
+    }
+
+    public function getWorkoutsByUser($user_id) {
+        $stmt = $this->db->prepare("SELECT id, name, author, objective, sport, created_at, updated_at FROM workouts WHERE user_id = ? ORDER BY updated_at DESC");
+        $stmt->execute([$user_id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function addWorkout($name, $author, $user_id, $objective, $observations, $data, $sport = null) {
+        $stmt = $this->db->prepare(
+            "INSERT INTO workouts (name, author, user_id, objective, observations, data, sport, created_at, updated_at) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
+        );
+        $stmt->execute([
+            $name, 
+            $author, 
+            $user_id, 
+            $objective, 
+            $observations, 
+            is_string($data) ? $data : json_encode($data),
+            $sport
+        ]);
+        return $this->db->lastInsertId();
+    }
+
+    public function updateWorkout($id, $name, $objective, $observations, $data, $sport = null) {
+        $stmt = $this->db->prepare(
+            "UPDATE workouts SET name = ?, objective = ?, observations = ?, data = ?, sport = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?"
+        );
+        $stmt->execute([
+            $name,
+            $objective,
+            $observations,
+            is_string($data) ? $data : json_encode($data),
+            $sport,
+            $id
+        ]);
+        return true;
+    }
+
+    public function deleteWorkout($id) {
+        $stmt = $this->db->prepare("DELETE FROM workouts WHERE id = ?");
+        $stmt->execute([$id]);
+        return true;
     }
 }
 
