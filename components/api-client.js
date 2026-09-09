@@ -126,6 +126,22 @@ class APIClient {
       body: JSON.stringify({ name, category, sport, description, data })
     });
   }
+
+  // ===== PROFILE API =====
+  async getProfile() {
+    return this.request('/profile.php');
+  }
+
+  async updateProfile(first_name, last_name, email, phone, team_id, position, bio) {
+    return this.request('/profile.php', {
+      method: 'POST',
+      body: JSON.stringify({ first_name, last_name, email, phone, team_id, position, bio })
+    });
+  }
+
+  async getTeams() {
+    return this.request('/profile.php/teams');
+  }
 }
 
 // Esporta il client globalmente

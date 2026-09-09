@@ -149,6 +149,16 @@
             border-radius: 6px;
             margin-bottom: 20px;
             text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .user-info:hover {
+            background: #efefef;
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
         }
 
         .user-info p {
@@ -304,20 +314,38 @@
     <!-- Scripts -->
     <script src="components/api-client.js"></script>
     <script src="components/login-manager.js"></script>
+    <script src="components/profile-manager.js"></script>
+    <script src="components/helper.js"></script>
 
     <script>
         let api = new APIClient('/api');
         let loginManager = new LoginManager(api);
+        let profileManager = new ProfileManager(api);
 
         // Event listeners per autenticazione
         window.addEventListener('user:login', () => {
             document.getElementById('loginCard').classList.remove('active');
             document.getElementById('dashboard').classList.add('active');
+            
+            // Carica profilo dopo login
+            setTimeout(() => {
+                profileManager.loadProfile().catch(err => console.log('Profilo non ancora creato'));
+            }, 100);
         });
 
         window.addEventListener('user:logout', () => {
             document.getElementById('dashboard').classList.remove('active');
             document.getElementById('loginCard').classList.add('active');
+        });
+
+        // Listener click sulla sezione user-info per aprire il profilo
+        window.addEventListener('load', () => {
+            const userInfo = document.querySelector('.user-info');
+            if (userInfo) {
+                userInfo.addEventListener('click', () => {
+                    profileManager.showProfileDialog();
+                });
+            }
         });
 
         async function handleLogin(event) {
@@ -399,6 +427,9 @@
                 document.getElementById('currentUser').textContent = user.username;
                 document.getElementById('loginCard').classList.remove('active');
                 document.getElementById('dashboard').classList.add('active');
+                
+                // Carica profilo
+                profileManager.loadProfile().catch(err => console.log('Profilo non ancora creato'));
             }
         }
     </script>

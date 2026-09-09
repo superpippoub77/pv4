@@ -59,11 +59,46 @@ class Database {
             )
         ");
 
+        $this->db->exec("
+            CREATE TABLE IF NOT EXISTS teams (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                description TEXT,
+                sport TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ");
+
+        $this->db->exec("
+            CREATE TABLE IF NOT EXISTS user_profiles (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER UNIQUE,
+                first_name TEXT,
+                last_name TEXT,
+                email TEXT,
+                phone TEXT,
+                team_id INTEGER,
+                position TEXT,
+                bio TEXT,
+                avatar_url TEXT,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id),
+                FOREIGN KEY (team_id) REFERENCES teams(id)
+            )
+        ");
+
         // Importa utente admin se non esiste
         $stmt = $this->db->prepare("SELECT COUNT(*) FROM users WHERE username = ?");
         $stmt->execute(['admin']);
         if ($stmt->fetchColumn() == 0) {
             $this->addUser('admin', '1234', 'a1b2c3d4e5f6g7h8', '2025-12-31');
+        }
+
+        // Crea team di default se non esiste
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM teams WHERE name = ?");
+        $stmt->execute(['Default Team']);
+        if ($stmt->fetchColumn() == 0) {
+            $this->db->exec("INSERT INTO teams (name, description, sport) VALUES ('Default Team', 'Team di default', 'volleyball')");
         }
     }
 
@@ -84,6 +119,60 @@ class Database {
             "INSERT INTO users (username, password, salt, expiration) VALUES (?, ?, ?, ?)"
         );
         $stmt->execute([$username, $password, $salt, $expiration]);
+        return $this->db->lastInsertId();
+    }
+
+    // ===== USER PROFILES =====
+    public function getUserProfile($user_id) {
+        $stmt = $this->db->prepare("
+            SELECT 
+                up.id,
+                up.first_name,
+                up.last_name,
+                up.email,
+                up.phone,
+                up.team_id,
+                up.position,
+                up.bio,
+                up.avatar_url,
+                t.name as team_name,
+                t.sport as team_sport
+            FROM user_profiles up
+            LEFT JOIN teams t ON up.team_id = t.id
+            WHERE up.user_id = ?
+        ");
+        $stmt->execute([$user_id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function updateUserProfile($user_id, $first_name, $last_name, $email, $phone, $team_id, $position, $bio) {
+        $stmt = $this->db->prepare("
+            INSERT OR REPLACE INTO user_profiles 
+            (user_id, first_name, last_name, email, phone, team_id, position, bio, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        ");
+        $stmt->execute([$user_id, $first_name, $last_name, $email, $phone, $team_id, $position, $bio]);
+        return true;
+    }
+
+    // ===== TEAMS =====
+    public function getTeams() {
+        $stmt = $this->db->prepare("SELECT * FROM teams ORDER BY name");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getTeam($id) {
+        $stmt = $this->db->prepare("SELECT * FROM teams WHERE id = ?");
+        $stmt->execute([$id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function addTeam($name, $description, $sport) {
+        $stmt = $this->db->prepare(
+            "INSERT INTO teams (name, description, sport) VALUES (?, ?, ?)"
+        );
+        $stmt->execute([$name, $description, $sport]);
         return $this->db->lastInsertId();
     }
 

@@ -347,28 +347,28 @@ body.resizing-canvas .canvas-resize-handle-single {
 
 /* Dimensioni predefinite */
 .canvas.size-a4-portrait {
-    width: 794px;
-    height: 1123px;
+    width: 794px !important;
+    height: 1123px !important;
 }
 
 .canvas.size-a4-landscape {
-    width: 1123px;
-    height: 794px;
+    width: 1123px !important;
+    height: 794px !important;
 }
 
 .canvas.size-a3-portrait {
-    width: 1123px;
-    height: 1587px;
+    width: 1123px !important;
+    height: 1587px !important;
 }
 
 .canvas.size-a3-landscape {
-    width: 1587px;
-    height: 1123px;
+    width: 1587px !important;
+    height: 1123px !important;
 }
 
 .canvas.size-business-card {
-    width: 340px;
-    height: 191px;
+    width: 340px !important;
+    height: 191px !important;
 }
 
 /* Dimensioni A5 (148 x 210 mm = 559 x 794 px @ 96dpi) */
