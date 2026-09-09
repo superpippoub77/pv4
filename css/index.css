@@ -222,9 +222,8 @@ body {
     transition: all 0.3s ease;
     transform-origin: center center;
     /* Per un corretto zoom al centro */
-    /* Ridotti i min per permettere ridimensionamento a dimensioni più piccole */
-    min-width: 600px;
-    min-height: 300px;
+    min-width: 100px;    /* Permette ridimensionamento piccolo */
+    min-height: 100px;   /* Permette ridimensionamento piccolo */
     resize: none;
     /* perspective moved to .canvas-container */
     perspective: none;
@@ -372,27 +371,26 @@ body.resizing-canvas .canvas-resize-handle-single {
     height: 191px;
 }
 
-/* Dimensioni A5 */
+/* Dimensioni A5 (148 x 210 mm = 559 x 794 px @ 96dpi) */
 .canvas.size-a5-portrait {
-    width: 148mm !important;
-    height: 210mm !important;
+    width: 559px !important;
+    height: 794px !important;
 }
 
 .canvas.size-a5-landscape {
-    width: 210mm !important;
-    height: 148mm !important;
-
+    width: 794px !important;
+    height: 559px !important;
 }
 
-/* Dimensioni A2 */
+/* Dimensioni A2 (420 x 594 mm = 1587 x 2245 px @ 96dpi) */
 .canvas.size-a2-portrait {
-    width: 420mm !important;
-    height: 594mm !important;
+    width: 1587px !important;
+    height: 2245px !important;
 }
 
 .canvas.size-a2-landscape {
-    width: 594mm !important;
-    height: 420mm !important;
+    width: 2245px !important;
+    height: 1587px !important;
 }
 
 

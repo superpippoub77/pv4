@@ -1,0 +1,13 @@
+{
+  "name": "pv4",
+  "version": "1.0.0",
+  "description": "Volleyball training app",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "init-db": "node scripts/init-db.js"
+  },
+  "dependencies": {
+    "sqlite3": "^5.1.6"
+  }
+}

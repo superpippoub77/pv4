@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PV4 - Login con JWT</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            display: none;
+        }
+
+        .login-card.active {
+            display: block;
+        }
+
+        .dashboard {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            display: none;
+        }
+
+        .dashboard.active {
+            display: block;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .error {
+            background: #fee;
+            color: #c00;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid #c00;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .success {
+            background: #efe;
+            color: #0a0;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid #0a0;
+            display: none;
+        }
+
+        .success.show {
+            display: block;
+        }
+
+        .user-info {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .user-info p {
+            color: #666;
+            margin: 5px 0;
+        }
+
+        .user-info strong {
+            color: #333;
+        }
+
+        .info-section {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-section h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .info-section p {
+            color: #666;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .button-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .button-secondary:hover {
+            background: #d0d0d0;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid #667eea;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.6s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Card -->
+        <div class="login-card active" id="loginCard">
+            <div class="header">
+                <h1>🏐 PV4</h1>
+                <p>Accedi per continuare</p>
+            </div>
+
+            <div class="error" id="loginError"></div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="admin" value="admin" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Inserisci password" value="1234" required>
+                </div>
+
+                <div class="loading" id="loginLoading">
+                    <span class="spinner"></span>
+                    <span>Accesso in corso...</span>
+                </div>
+
+                <button type="submit" id="loginBtn">Accedi</button>
+            </form>
+
+            <div class="info-section" style="margin-top: 30px;">
+                <h3>Demo</h3>
+                <p>Username: <strong>admin</strong></p>
+                <p>Password: <strong>1234</strong></p>
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div class="dashboard" id="dashboard">
+            <div class="header">
+                <h1>🏐 PV4</h1>
+                <p>Dashboard</p>
+            </div>
+
+            <div class="success" id="dashboardSuccess"></div>
+
+            <div class="user-info">
+                <p>Benvenuto,</p>
+                <p><strong id="currentUser">-</strong></p>
+                <p style="font-size: 12px; color: #999; margin-top: 10px;">
+                    <span id="tokenStatus">Token scade in 24 ore</span>
+                </p>
+            </div>
+
+            <div class="info-section">
+                <h3>API Backend PHP</h3>
+                <p>✅ Autenticazione JWT<br>
+                   ✅ Database SQLite<br>
+                   ✅ Gestione Utenti<br>
+                   ✅ Configurazione App<br>
+                   ✅ Libreria Esercizi</p>
+            </div>
+
+            <button type="button" onclick="testAPI()">Test API</button>
+            
+            <div id="apiResult" style="background: #f0f0f0; padding: 15px; border-radius: 6px; margin-top: 20px; display: none;">
+                <h4 style="margin-bottom: 10px;">Risultati API:</h4>
+                <pre id="apiResultContent" style="font-size: 12px; overflow-x: auto; max-height: 200px;"></pre>
+            </div>
+
+            <div class="button-group">
+                <button type="button" class="button-secondary" onclick="logout()">Logout</button>
+                <button type="button" onclick="testConfig()">Carica Config</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="components/api-client.js"></script>
+    <script src="components/login-manager.js"></script>
+
+    <script>
+        let api = new APIClient('/api');
+        let loginManager = new LoginManager(api);
+
+        // Event listeners per autenticazione
+        window.addEventListener('user:login', () => {
+            document.getElementById('loginCard').classList.remove('active');
+            document.getElementById('dashboard').classList.add('active');
+        });
+
+        window.addEventListener('user:logout', () => {
+            document.getElementById('dashboard').classList.remove('active');
+            document.getElementById('loginCard').classList.add('active');
+        });
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const loginError = document.getElementById('loginError');
+            const loginLoading = document.getElementById('loginLoading');
+            const loginBtn = document.getElementById('loginBtn');
+
+            loginError.classList.remove('show');
+            loginLoading.classList.add('show');
+            loginBtn.disabled = true;
+
+            try {
+                await loginManager.login(username, password);
+                document.getElementById('currentUser').textContent = username;
+                
+                // Mostra dashboard
+                setTimeout(() => {
+                    document.getElementById('loginCard').classList.remove('active');
+                    document.getElementById('dashboard').classList.add('active');
+                }, 300);
+            } catch (error) {
+                loginError.textContent = error.message;
+                loginError.classList.add('show');
+            } finally {
+                loginLoading.classList.remove('show');
+                loginBtn.disabled = false;
+            }
+        }
+
+        async function testAPI() {
+            const apiResult = document.getElementById('apiResult');
+            const apiResultContent = document.getElementById('apiResultContent');
+
+            try {
+                const users = await api.getUsers();
+                const exercises = await api.getExercises();
+                
+                const result = {
+                    users: users.users.length,
+                    exercises: exercises.exercises.length,
+                    timestamp: new Date().toLocaleTimeString('it-IT')
+                };
+
+                apiResultContent.textContent = JSON.stringify(result, null, 2);
+                apiResult.style.display = 'block';
+            } catch (error) {
+                apiResultContent.textContent = 'Errore: ' + error.message;
+                apiResult.style.display = 'block';
+            }
+        }
+
+        async function testConfig() {
+            const dashboardSuccess = document.getElementById('dashboardSuccess');
+            try {
+                const config = await api.getConfig('app_config');
+                dashboardSuccess.textContent = 'Configurazione caricata con successo!';
+                dashboardSuccess.classList.add('show');
+                setTimeout(() => dashboardSuccess.classList.remove('show'), 3000);
+            } catch (error) {
+                dashboardSuccess.textContent = 'Errore: ' + error.message;
+                dashboardSuccess.style.background = '#fee';
+                dashboardSuccess.style.color = '#c00';
+                dashboardSuccess.classList.add('show');
+                setTimeout(() => dashboardSuccess.classList.remove('show'), 3000);
+            }
+        }
+
+        function logout() {
+            loginManager.logout();
+        }
+
+        // Aggiorna user info quando loggato
+        if (loginManager.isLoggedIn()) {
+            const user = loginManager.getCurrentUser();
+            if (user) {
+                document.getElementById('currentUser').textContent = user.username;
+                document.getElementById('loginCard').classList.remove('active');
+                document.getElementById('dashboard').classList.add('active');
+            }
+        }
+    </script>
+</body>
+</html>
