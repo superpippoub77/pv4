@@ -1423,3 +1423,9 @@ body.dragging-endpoint .canvas-object .connection-point {
     z-index: 0;              /* sotto agli oggetti */
     pointer-events: none;    /* NON blocca drag/click */
 }
+/* Il disegno delle linee sta nel contenuto (.court-object / .half-court-object):
+   sul contenitore esterno farebbe comparire le linee del campo intero anche sulla metà campo */
+.canvas-object.court-object {
+    background-image: none;
+    border: none;
+}

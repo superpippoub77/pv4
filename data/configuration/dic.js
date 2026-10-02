@@ -775,3 +775,6 @@ Object.assign(translations.fr, {
 Object.assign(translations.it, { "btn_add": "Aggiungi", "btn_clear": "Svuota squadra", "btn_close": "Chiudi", "btn_export": "Esporta", "btn_import": "Importa testo", "btn_import_file": "Importa file" });
 Object.assign(translations.en, { "btn_add": "Add", "btn_clear": "Clear team", "btn_close": "Close", "btn_export": "Export", "btn_import": "Import text", "btn_import_file": "Import file" });
 Object.assign(translations.fr, { "btn_add": "Ajouter", "btn_clear": "Vider l'équipe", "btn_close": "Fermer", "btn_export": "Exporter", "btn_import": "Importer texte", "btn_import_file": "Importer fichier" });
+Object.assign(translations.it, { "rail_text_exercise": "Crea da testo", "dlg_title_text_exercise": "Crea esercizio da testo", "btn_create_exercise": "Crea esercizio", "btn_learn_changes": "Impara dalle modifiche" });
+Object.assign(translations.en, { "rail_text_exercise": "Create from text", "dlg_title_text_exercise": "Create exercise from text", "btn_create_exercise": "Create exercise", "btn_learn_changes": "Learn from my changes" });
+Object.assign(translations.fr, { "rail_text_exercise": "Créer depuis texte", "dlg_title_text_exercise": "Créer un exercice depuis un texte", "btn_create_exercise": "Créer l'exercice", "btn_learn_changes": "Apprendre de mes modifications" });

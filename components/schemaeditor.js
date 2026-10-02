@@ -122,6 +122,7 @@ class SchemaEditor {
         this.workoutManager = new SaveWorkoutDialogManager(this);
         this.libraryManager = new LibraryWorkoutDialogManager(this);
         this.macroManager = new MacroManager(this);
+        this.textExerciseManager = new TextExerciseBuilder(this);
         this.loginManager = new LoginManager();
     }
 
@@ -1409,8 +1410,11 @@ class SchemaEditor {
         if (!tab) return;
 
         tab.background = document.getElementById('backgroundSelect').value;
-        tab.gridVisible = document.getElementsByClassName('gridToggle')[0].classList.contains('active');
-        tab.bwMode = document.getElementsByClassName('bwToggle')[0].classList.contains('active');
+        // I toggle della barra di stato hanno id (non classe) gridToggle/bwToggle
+        const gridEl = document.getElementById('gridToggle') || document.getElementsByClassName('gridToggle')[0];
+        const bwEl = document.getElementById('bwToggle') || document.getElementsByClassName('bwToggle')[0];
+        if (gridEl) tab.gridVisible = gridEl.classList.contains('active');
+        if (bwEl) tab.bwMode = bwEl.classList.contains('active');
         tab.zoom = this.zoom;
 
         // SALVA DIMENSIONE E BORDI
@@ -9350,8 +9354,11 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         if (!tab) return;
 
         tab.background = document.getElementById('backgroundSelect').value;
-        tab.gridVisible = document.getElementsByClassName('gridToggle')[0].classList.contains('active');
-        tab.bwMode = document.getElementsByClassName('bwToggle')[0].classList.contains('active');
+        // I toggle della barra di stato hanno id (non classe) gridToggle/bwToggle
+        const gridEl = document.getElementById('gridToggle') || document.getElementsByClassName('gridToggle')[0];
+        const bwEl = document.getElementById('bwToggle') || document.getElementsByClassName('bwToggle')[0];
+        if (gridEl) tab.gridVisible = gridEl.classList.contains('active');
+        if (bwEl) tab.bwMode = bwEl.classList.contains('active');
         tab.zoom = this.zoom;
 
         // AGGIUNGI SALVATAGGIO DIMENSIONE E BORDI
