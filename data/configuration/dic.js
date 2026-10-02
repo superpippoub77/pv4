@@ -778,3 +778,9 @@ Object.assign(translations.fr, { "btn_add": "Ajouter", "btn_clear": "Vider l'éq
 Object.assign(translations.it, { "rail_text_exercise": "Crea da testo", "dlg_title_text_exercise": "Crea esercizio da testo", "btn_create_exercise": "Crea esercizio", "btn_learn_changes": "Impara dalle modifiche" });
 Object.assign(translations.en, { "rail_text_exercise": "Create from text", "dlg_title_text_exercise": "Create exercise from text", "btn_create_exercise": "Create exercise", "btn_learn_changes": "Learn from my changes" });
 Object.assign(translations.fr, { "rail_text_exercise": "Créer depuis texte", "dlg_title_text_exercise": "Créer un exercice depuis un texte", "btn_create_exercise": "Créer l'exercice", "btn_learn_changes": "Apprendre de mes modifications" });
+Object.assign(translations.it, { "rail_workout_generator": "Genera allenamento", "dlg_title_workout_generator": "Genera allenamento", "btn_generate_workout": "Genera allenamento", "btn_save_workout": "Salva allenamento…" });
+Object.assign(translations.en, { "rail_workout_generator": "Generate training", "dlg_title_workout_generator": "Generate training session", "btn_generate_workout": "Generate training", "btn_save_workout": "Save training…" });
+Object.assign(translations.fr, { "rail_workout_generator": "Générer l'entraînement", "dlg_title_workout_generator": "Générer l'entraînement", "btn_generate_workout": "Générer", "btn_save_workout": "Enregistrer l'entraînement…" });
+Object.assign(translations.it, { "st_reset3d": "⟲ 3D" });
+Object.assign(translations.en, { "st_reset3d": "⟲ 3D" });
+Object.assign(translations.fr, { "st_reset3d": "⟲ 3D" });

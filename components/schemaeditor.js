@@ -123,6 +123,7 @@ class SchemaEditor {
         this.libraryManager = new LibraryWorkoutDialogManager(this);
         this.macroManager = new MacroManager(this);
         this.textExerciseManager = new TextExerciseBuilder(this);
+        this.workoutGenerator = new WorkoutGenerator(this);
         // Unico gestore del login, creato in index.html (crearne un altro aggiungeva una seconda finestra di accesso)
         this.loginManager = window.loginManager;
     }
@@ -513,7 +514,7 @@ class SchemaEditor {
             // Salva in storage con chiave unica
             this.saveUserPref('autosave', JSON.stringify(autoSaveData));
             this.lastAutoSave = Date.now();
-            this.showAutoSaveIndicator('💾 Salvato automaticamente', '#27ae60');
+            // nessun messaggio a video quando il salvataggio automatico riesce (solo in caso di errore)
 
             console.log(`✅ AutoSave completato: ${autoSaveData.tabs.length} tab salvati`);
 
@@ -5414,6 +5415,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 sphere.appendChild(indicator);
 
                 canvasContainer.appendChild(sphere);
+                // doppio clic sulla sfera: la vista 3D torna piatta
+                sphere.addEventListener('dblclick', (e) => { e.preventDefault(); e.stopPropagation(); this.resetCanvasPlaneRotation(true); });
 
                 // Create toggle button to show/hide the sphere
                 // const toggleBtn = document.createElement('button');
@@ -5920,8 +5923,10 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         try { this.updateAllObjectTransforms(); } catch (err) { /* ignore */ }
     }
 
-    resetCanvasPlaneRotation() {
+    resetCanvasPlaneRotation(record = false) {
         this.canvasRotation = { X: 0, Y: 0, Z: 0 };
+        const tab = this.getCurrentTab();
+        if (tab) tab.canvasRotation = { X: 0, Y: 0, Z: 0 };
         const planeEl = document.querySelector('.canvas-plane');
         if (planeEl) {
             planeEl.style.transform = '';
@@ -5934,6 +5939,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         }
         // Update existing objects so their transforms reflect the reset (if they inherit plane rotation)
         try { this.updateAllObjectTransforms(); } catch (err) { /* ignore */ }
+        if (record) this.saveState('Vista 3D azzerata');
     }
 
     // Update only the CSS transform of all rendered objects (fast path, does not rebuild DOM)

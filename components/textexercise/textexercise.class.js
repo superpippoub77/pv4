@@ -597,6 +597,7 @@ class TextExerciseBuilder {
             const steps = [];
 
             let ball = null;
+            const passPairs = new Set();
             let arrowNumber = 0;
             const passColor = '#e74c3c';
             const moveColor = '#2c3e50';
@@ -633,7 +634,11 @@ class TextExerciseBuilder {
                         if (!a || !b) break;
                         ballSide = b.side;
                         addBallNear(a);
-                        arrow(a, b, false, passColor, false);
+                        // passaggio di ritorno tra le stesse posizioni: freccia curva, per non sovrapporla all'andata
+                        const fromObj = (a.cur || a.obj).id, toObj = (b.cur || b.obj).id;
+                        const back = passPairs.has(toObj + '>' + fromObj);
+                        passPairs.add(fromObj + '>' + toObj);
+                        arrow(a, b, false, passColor, back);
                         steps.push({ text: `${act.from} passa la palla ${this.toWord(act.to)} ${act.to}`, name: act.text });
                         break;
                     }
