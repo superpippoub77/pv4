@@ -1939,7 +1939,8 @@ window.Pv4Library = {
   load: (id)=> loadFromLibrary(id, {silent:true}),
   isAvailable: ()=> !!currentUser,
   admin: openAdmin,
-  toast: showToast
+  toast: showToast,
+  contextMenu: showContextMenu
 };
 }
 

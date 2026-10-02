@@ -9350,14 +9350,39 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     }
 
     closeTab(id) {
-        if (this.tabs.size <= 1) return;
+        if (!this.tabs.has(id)) return;
+        // Chiudendo l'ultima scheda resta uno schema nuovo e vuoto (l'editor ha sempre una scheda attiva)
+        if (this.tabs.size <= 1) this.addNewTab();
         this.tabs.delete(id);
-        document.querySelector(`[data-tab-id="${id}"]`).remove();
+        document.querySelector(`.tab[data-tab-id="${id}"]`)?.remove();
         if (this.activeTabId === id) {
             const firstTabId = this.tabs.keys().next().value;
             this.switchToTab(firstTabId);
         }
     }
+
+    /** Schede con del lavoro (oggetti sul foglio o step) */
+    tabHasWork(tab) {
+        return !!tab && (tab.objects.size > 0 || (tab.exerciseSteps || []).length > 0);
+    }
+
+    /** Chiude tutte le schede tranne keepId (se indicato); con del lavoro aperto chiede conferma una volta sola */
+    closeTabs(keepId = null) {
+        const ids = [...this.tabs.keys()].filter(id => id !== keepId);
+        if (!ids.length) return;
+        const withWork = ids.filter(id => this.tabHasWork(this.tabs.get(id))).length;
+        if (withWork && !confirm(keepId === null
+            ? `Chiudere tutte le schede? ${withWork} contengono del lavoro: quello non salvato in libreria o su file andrà perso.`
+            : `Chiudere le altre schede? ${withWork} contengono del lavoro: quello non salvato in libreria o su file andrà perso.`)) return;
+        if (keepId === null) this.addNewTab(); // resta uno schema nuovo e vuoto
+        else if (this.activeTabId !== keepId) this.switchToTab(keepId);
+        ids.forEach(id => {
+            this.tabs.delete(id);
+            document.querySelector(`.tab[data-tab-id="${id}"]`)?.remove();
+        });
+    }
+
+    closeAllTabs() { this.closeTabs(null); }
 
     // MODIFICA saveTabState per salvare z-index
     saveTabState() {
@@ -10751,6 +10776,26 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         let yOffset = 15;
         let isFirstTab = true;
 
+        // Intestazione dell'allenamento: nome e obiettivo (se indicati, es. da "Genera allenamento")
+        if (this.currentWorkoutName || this.currentWorkoutObjective) {
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text(this.currentWorkoutName || 'Allenamento', margin, yOffset);
+            yOffset += lineSpacing * 1.4;
+            if (this.currentWorkoutObjective) {
+                doc.setFontSize(fontNormalSize + 1);
+                doc.setFont(undefined, 'normal');
+                const objLines = doc.splitTextToSize('Obiettivo: ' + this.currentWorkoutObjective, 180);
+                doc.text(objLines, margin, yOffset);
+                yOffset += objLines.length * lineSpacing;
+            }
+            doc.setLineWidth(0.5);
+            doc.line(margin, yOffset, 195, yOffset);
+            yOffset += lineSpacing * 1.6;
+        }
+        const PART_LABEL = { ANA: 'Parte analitica', SIN: 'Parte sintetica', GLO: 'Parte globale' };
+        const firstTabIdForPdf = this.activeTabId;
+
         for (const [tabId, tab] of this.tabs) {
             const previousActiveTab = this.activeTabId;
             if (this.activeTabId !== tabId) {
@@ -10792,6 +10837,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             doc.text(`Data: ${date}`, margin, yOffset);
             doc.text(`Categoria: ${category}`, margin + 45, yOffset);
             doc.text(`Genere: ${genre}`, margin + 100, yOffset);
+            if (PART_LABEL[tab.tipologia]) doc.text(PART_LABEL[tab.tipologia], margin + 145, yOffset);
             yOffset += lineSpacing * 1.2;
 
             // Descrizione/Obiettivo (più compatta)
@@ -10862,8 +10908,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 const originalState = this.prepareCanvasForExport();
                 await new Promise(resolve => setTimeout(resolve, 300));
 
-                const exportWidth = 1200;
-                const exportHeight = 800;
+                // si cattura il foglio alla sua misura reale (prima era fisso 1200×800: disegno piccolo in un riquadro vuoto)
+                const exportWidth = Math.max(100, Math.round(canvasElement.offsetWidth));
+                const exportHeight = Math.max(100, Math.round(canvasElement.offsetHeight));
 
                 const canvasImage = await html2canvas(canvasElement, {
                     scale: 2,
@@ -10918,7 +10965,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 const stepsArray = tab.exerciseSteps || [];
                 let stepsText = '';
                 stepsArray.forEach((step, index) => {
-                    stepsText += `${index + 1}. ${step}\n`;
+                    const text = typeof step === 'string' ? step : (step && (step.text || step.name)) || '';
+                    stepsText += `${index + 1}. ${text}\n`;
                 });
 
                 if (stepsText === '') {
@@ -10965,6 +11013,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             String(now.getHours()).padStart(2, '0') +
             String(now.getMinutes()).padStart(2, '0');
 
+        if (this.tabs.has(firstTabIdForPdf)) this.switchToTab(firstTabIdForPdf); // si torna alla scheda di partenza
         doc.save(`Allenamento_${timestamp}.pdf`);
         alert('Esportazione PDF completata con successo!');
     }

@@ -105,6 +105,30 @@ class SpikeLayout {
             add.title = "Nuovo schema";
             add.removeAttribute("data-i18n");
         }
+
+        // ✕ Chiudi tutte (come in SpikeCut)
+        const closeAll = document.createElement("button");
+        closeAll.type = "button";
+        closeAll.id = "closeAllTabsBtn";
+        closeAll.className = "close-all-tabs";
+        closeAll.textContent = "✕ Chiudi tutte";
+        closeAll.title = "Chiudi tutte le schede (resta uno schema nuovo vuoto)";
+        closeAll.addEventListener("click", () => this.editor.closeAllTabs());
+        bar.appendChild(closeAll);
+
+        // Tasto destro su una scheda: Chiudi scheda / Chiudi le altre / Chiudi tutte
+        tabs.addEventListener("contextmenu", (e) => {
+            const t = e.target.closest(".tab");
+            if (!t || t.classList.contains("add-tab") || !t.dataset.tabId || !window.Pv4Library?.contextMenu) return;
+            e.preventDefault();
+            const id = parseInt(t.dataset.tabId, 10);
+            const ed = this.editor;
+            window.Pv4Library.contextMenu(e.clientX, e.clientY, [
+                { label: "✕ Chiudi scheda", action: () => ed.closeTab(id) },
+                { label: "Chiudi le altre", disabled: ed.tabs.size < 2, action: () => ed.closeTabs(id) },
+                { label: "Chiudi tutte", action: () => ed.closeAllTabs() }
+            ]);
+        });
     }
 
     // ------------------------------------------------------------------ rail

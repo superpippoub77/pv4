@@ -75,6 +75,7 @@ class WorkoutGenerator {
             visible: false,
             buttons: [
                 { label: 'btn_save_workout', align: 'left', close: false, color: 'secondary', onClick: () => this.editor.workoutManager?.show() },
+                { label: 'btn_workout_pdf', align: 'left', close: false, color: 'secondary', onClick: () => this.editor.exportWorkoutToPDF() },
                 { label: 'btn_generate_workout', close: false, color: 'success', onClick: () => this.onGenerate() },
                 { label: 'btn_close', color: 'secondary', onClick: () => this.hide() }
             ]
@@ -122,7 +123,7 @@ class WorkoutGenerator {
             return `<tr><td>${this.escape(it.part.short)}</td><td>${this.escape(it.text)}</td><td>${src}</td></tr>`;
         }).join('');
         let html = `<div class="tx-ex-ok">✅ Allenamento pronto: ${r.items.length} esercizi in altrettante schede.
-            Per salvarlo usa «Salva allenamento…», per stamparlo Stampa → Scheda allenamento (PDF).</div>
+            Per salvarlo usa «Salva allenamento…», per stamparlo «📄 Scheda PDF».</div>
             <table class="wg-table"><tr><th>Parte</th><th>Richiesta</th><th>Esercizio</th></tr>${rows}</table>`;
         if (r.notes.length) html += `<div class="tx-ex-note">${r.notes.map(n => '• ' + this.escape(n)).join('<br>')}</div>`;
         this.setReport(html);

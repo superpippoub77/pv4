@@ -79,7 +79,7 @@ html:`<p>Lo schermo è diviso in zone:</p>
 <li><b>Barra di stato</b> in basso: coordinate, interruttori per griglia, bianco e nero, numeri degli oggetti, nomi dei giocatori, bordi del foglio e sfera 3D, il pulsante <b>⟲ 3D</b> che azzera la vista 3D e, a destra, mese di rilascio e versione del programma.</li></ul>` },
 
 { id:'schede', cat:'Per iniziare', title:'Schede e foglio', keys:'tab nuovo schema più schemi chiudi scheda foglio dimensione formato personalizzato maniglia sfondo zoom',
-html:`<p>Con <b>＋</b> accanto alle schede (o nella barra in alto) crei un nuovo schema; la × su una scheda la chiude. Ogni scheda ha i suoi oggetti, i suoi step e la sua cronologia annulla/ripeti. Il nome si cambia scrivendo direttamente sulla scheda o nel titolo in alto.</p>
+html:`<p>Con <b>＋</b> accanto alle schede (o nella barra in alto) crei un nuovo schema; la × su una scheda la chiude (anche l'ultima: resta uno schema nuovo vuoto). <b>✕ Chiudi tutte</b> a destra della barra, o il tasto destro su una scheda (Chiudi scheda, Chiudi le altre, Chiudi tutte), chiude più schede insieme, con una sola conferma se c'è del lavoro aperto. Ogni scheda ha i suoi oggetti, i suoi step e la sua cronologia annulla/ripeti. Il nome si cambia scrivendo direttamente sulla scheda o nel titolo in alto.</p>
 <ul><li><b>Dimensione del foglio</b>: dal pannello Proprietà (senza selezione) scegli un formato (A5, A4, A3, A2, verticale o orizzontale) oppure <b>Personalizzato</b>; trascinando la maniglia ⇲ nell'angolo del foglio lo ridimensioni a mano. Il nuovo schema parte da 560 × 400.</li>
 <li><b>Sfondo</b>: dal pannello Proprietà.</li>
 <li><b>Zoom</b>: pulsanti – e + nella barra in alto, ⤢ per tornare al 100%.</li></ul>
@@ -204,7 +204,7 @@ html:`<p>Gli amministratori (il primo utente registrato, se non è indicato dive
 /* ---------------- STAMPA ---------------- */
 { id:'stampa', cat:'Stampa ed esportazione', title:'Stampa ed esportazione', keys:'stampa pdf scheda allenamento immagine png formazioni scout datavolley esporta',
 html:`<p>Dal menu <b>Stampa</b>:</p>
-<ul><li><b>Scheda allenamento (PDF)</b>: lo schema con step e dati dell'esercizio.</li>
+<ul><li><b>Scheda allenamento (PDF)</b> — anche con il pulsante <b>📄 Scheda PDF</b> nella barra a sinistra (Allenamento) o nella finestra <a data-topic="genera-allenamento">Genera allenamento</a>: tutte le schede aperte, una dopo l'altra, con nome e obiettivo dell'allenamento in testa, e per ogni esercizio parte (analitica, sintetica, globale), dati, descrizione, disegno e step.</li>
 <li><b>Esporta immagine</b>: lo schema come immagine.</li>
 <li><b>Foglio formazioni</b>: i campi dei set con le rotazioni, sostituzioni e note.</li>
 <li><b>Foglio scout</b>: il foglio per raccogliere i dati durante la partita.</li></ul>
@@ -238,6 +238,7 @@ html:`<dl class="guide-faq">
 
 { id:'novita', cat:'Riferimento', title:'Novità', keys:'novità versioni changelog aggiornamenti',
 html:`<ul>
+<li><b>1.3.1</b> — Chiudi tutte le schede e chiusura dell'ultima scheda; pulsante 📄 Scheda PDF; PDF dell'allenamento con intestazione, parti, disegno a misura e step leggibili.</li>
 <li><b>1.3</b> (ottobre 2026) — <a data-topic="genera-allenamento">Genera allenamento</a> dalle parti analitica, sintetica e globale, con esercizi presi dalla libreria o creati in automatico; pulsante <b>⟲ 3D</b> per azzerare la vista 3D; nessun messaggio a video per il salvataggio automatico; profilo nell'account; mese di rilascio e versione nella barra di stato.</li>
 <li><b>1.2</b> — Account veri (registrazione, accesso, recupero password, sessione ricordata), <a data-topic="libreria">libreria online</a> come Esplora file con esercizi privati e pubblici, <a data-topic="versioni">versioni</a>, <a data-topic="cestino">Cestino</a> e <a data-topic="amministrazione">amministrazione</a>; questa guida con ricerca (F1).</li>
 <li><b>1.1</b> — <a data-topic="crea-da-testo">Crea da testo</a> con apprendimento e spostamenti disegnati come copie trasparenti e tratteggiate; il foglio iniziale parte a 560 × 400; il login resta ricordato.</li>

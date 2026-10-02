@@ -721,3 +721,20 @@ body.sc-theme .context-menu-separator { background: var(--line-soft); margin: 5p
     .menu-bar #zoomDisplay { display: none; }
     .menu-bar #schemaTitle { width: 96px; }
 }
+
+/* "✕ Chiudi tutte" a destra della barra delle schede */
+#tabBar .tabs-container { flex: 1; min-width: 0; }
+#tabBar .close-all-tabs {
+    flex: none;
+    align-self: center;
+    margin: 0 0 4px 8px;
+    padding: 3px 10px;
+    font-size: 11.5px;
+    color: var(--ink-dim);
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+#tabBar .close-all-tabs:hover { color: var(--ink); border-color: var(--brass-dim); }
