@@ -147,8 +147,21 @@ html:`<p><b>Lavagna</b> (barra a sinistra, sezione Allenamento; File → Lavagna
 <li><b>Rotazione</b>: P1…P6, dalla zona del palleggiatore (P1 = palleggiatore in zona 1), oppure tutte.</li>
 <li><b>Fase</b>: posizioni di partenza (zone); <b>break point</b>: partenza in battuta, muro e difesa, contrattacco; <b>side out</b>: ricezione (a 3, libero e schiacciatori) e attacco dopo la ricezione. Si possono chiedere anche tutte le fasi.</li>
 <li><b>Spostamenti</b>: la posizione della fase precedente resta come copia semitrasparente e tratteggiata con la freccia verso la nuova.</li></ul>
-<p>Puoi anche <b>chiederlo a parole</b> e premere Invio: «P3 ricezione a metà campo», «tutte le rotazioni in break point», «difesa P5 con avversari», «attacco dopo la ricezione P2 verticale».</p>
+<p><b>Sistemi</b> (si sceglie anche «tutti»):</p>
+<ul><li><b>Ricezione</b> a 5 (W, tutti tranne il palleggiatore), a 4 (libero, schiacciatori e opposto), a 3 (libero e schiacciatori), a 2 (libero e schiacciatore di seconda linea): per ogni rotazione viene calcolata una disposizione <b>regolare</b>, con chi non riceve nascosto a rete o dietro al compagno e il palleggiatore vicino al punto di alzata.</li>
+<li><b>Muro e difesa</b> in break point (i tre numeri sono: giocatori a muro · sul pallonetto · sulle palle lunghe): posizioni di base, <b>2-0-4</b> perimetrale, <b>2-1-3</b> con 6 avanzato, <b>2-1-3 rotazionale</b> (1 avanzato), <b>3-0-3</b>, <b>3-1-2</b>, <b>3-2-1</b> e <b>1-2-3</b> (muro a 1), contro l'attacco avversario da posto 4, al centro o da posto 2. Le frecce partono dalle posizioni di base.</li>
+<li><b>Copertura dell'attacco</b> (side out): attacco da posto 4, primo tempo, posto 2 o pipe, con tre giocatori vicini all'attaccante e due profondi.</li></ul>
+<p>«<b>tutte le combinazioni</b>» crea ogni rotazione × fase × sistema (oltre 200 schede: viene chiesta conferma).</p>
+<p>Puoi anche <b>chiederlo a parole</b> e premere Invio: «P3 ricezione a 4 a metà campo», «difesa 2-1-3 attacco da posto 4», «tutte le difese in P1», «copertura pipe P6», «tutte le rotazioni in ricezione a 5», «difesa P5 con avversari».</p>
 <p>L'anteprima mostra la disposizione e controlla le <b>regole di posizione</b> al momento della battuta (davanti/dietro e sinistra/destra): le ricezioni proposte sono tutte regolari. Ogni disposizione diventa una scheda con nome (es. «P1 · Side out · Ricezione»), descrizione e step; i giocatori si spostano liberamente e lo schema si salva in <a data-topic="libreria">libreria</a>.</p>` },
+
+{ id:'condividi', cat:'Esercizi', title:'Condividere con un link', keys:'condividi link slug url whatsapp facebook telegram email sola lettura consultazione allenamento esercizio anteprima visite i miei link apri in volleyprow4 copia',
+html:`<p><b>🔗 Condividi</b> (barra in alto, barra a sinistra, File → Condividi allenamento / esercizio, Piano allenamento, Genera allenamento) crea un <b>link di sola consultazione</b> del tipo <code>…/pvw4/v/allenamento-n-12-under-16-k3f9q2</code>.</p>
+<ul><li><b>Allenamento</b>: dal <a data-topic="piano-allenamento">Piano allenamento</a> (intestazione, obiettivo, caratteristiche, materiale, fasi con blocchi, esercizi con i disegni annessi, gruppi) oppure dalle <b>schede aperte</b> (per esempio dopo <a data-topic="genera-allenamento">Genera allenamento</a>), divise in fase analitica, sintetica e globale.</li>
+<li><b>Esercizio</b>: solo la scheda attuale.</li></ul>
+<p>Chi apre il link vede <b>solo</b> quello, dal telefono o dal computer e senza account: titolo, indice con i link ai singoli esercizi (il simbolo # copia il link del singolo esercizio), disegni ingrandibili, descrizione, step, durata, video. Può stamparlo o salvarlo in PDF e, se lo permetti, aprirne una <b>copia nel suo editor</b> («Apri in VolleyProW4»).</p>
+<p>Incollato su WhatsApp, Facebook, Telegram o X il link mostra l'<b>anteprima</b> con titolo, descrizione e il primo disegno. Lo slug contiene una parte casuale: il link non si indovina e le pagine non vengono indicizzate dai motori di ricerca.</p>
+<p>Ricondividendo lo stesso allenamento o esercizio puoi <b>aggiornare il link già creato</b> (stesso indirizzo). In <b>I miei link condivisi…</b> vedi tutti i tuoi link con le visite, li copi o li elimini (chi li apre vedrà «Link non disponibile»). Serve l'accesso con il tuo account.</p>` },
 
 { id:'piano-allenamento', cat:'Esercizi', title:'Piano allenamento', keys:'piano scheda seduta allenamento intestazione obiettivo caratteristiche materiale fase analitica sintetica globale blocco gruppi importa pdf disegni annessi json',
 html:`<p><b>Piano allenamento</b> (barra a sinistra, sezione Allenamento, o File → Piano allenamento…) è la scheda completa della seduta, come quelle delle società:</p>
@@ -264,6 +277,7 @@ html:`<dl class="guide-faq">
 
 { id:'novita', cat:'Riferimento', title:'Novità', keys:'novità versioni changelog aggiornamenti',
 html:`<ul>
+<li><b>1.6.0</b> — <a data-topic="condividi">Link condivisi</a> di allenamenti ed esercizi (pagina di sola consultazione con anteprima sui social); <a data-topic="lavagna">Lavagna</a> con ricezione a 5/4/3/2, difese 2-0-4, 2-1-3, 3-0-3, 3-1-2, 3-2-1, 1-2-3 e coperture.</li>
 <li><b>1.5.0</b> — <a data-topic="lavagna">Lavagna</a>: i 6 giocatori in ogni rotazione (P1…P6) e fase (partenza, break point, side out) su campo intero o metà campo, anche chiedendolo a parole.</li>
 <li><b>1.4.1</b> — Anteprima completa (titolo, descrizione, immagine) quando condividi il link dell'app su Facebook, WhatsApp e altri social.</li>
 <li><b>1.4.0</b> — <a data-topic="piano-allenamento">Piano allenamento</a> con importazione da PDF, disegni degli esercizi (a mano o automatici) e PDF con disegni annessi; <a data-topic="video">video nel disegno</a> con anteprima.</li>

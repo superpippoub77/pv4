@@ -97,6 +97,7 @@ class WorkoutPlan {
             modal: true,
             visible: false,
             buttons: [
+                { label: 'btn_share_link', align: 'left', close: false, color: 'secondary', onClick: () => window.Pv4Share?.shareWorkout() },
                 { label: 'btn_close', color: 'secondary', onClick: () => this.hide() }
             ]
         });

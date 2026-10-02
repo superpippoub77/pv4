@@ -1,0 +1,11 @@
+# Link condivisi: …/v/<slug> → index.php?s=<slug>
+DirectoryIndex index.php
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /projects/pvw4/v/
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^([a-z0-9-]+)/?$ index.php?s=$1 [QSA,L]
+</IfModule>
+# Senza mod_rewrite la pagina risponde comunque (legge lo slug dall'indirizzo)
+ErrorDocument 404 /projects/pvw4/v/index.php

@@ -124,3 +124,18 @@
         grid-template-columns: 1fr;
     }
 }
+
+.rb .rb-ring {
+    fill: none;
+    stroke: #f1c40f;
+    stroke-width: 1.1;
+}
+
+.rb .rb-ring.att { stroke: #e74c3c; }
+
+.rb .rb-desc {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.4;
+    opacity: .85;
+}

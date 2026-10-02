@@ -76,6 +76,7 @@ class WorkoutGenerator {
             buttons: [
                 { label: 'btn_save_workout', align: 'left', close: false, color: 'secondary', onClick: () => this.editor.workoutManager?.show() },
                 { label: 'btn_workout_pdf', align: 'left', close: false, color: 'secondary', onClick: () => this.editor.exportWorkoutToPDF() },
+                { label: 'btn_share_link', align: 'left', close: false, color: 'secondary', onClick: () => window.Pv4Share?.shareWorkout() },
                 { label: 'btn_generate_workout', close: false, color: 'success', onClick: () => this.onGenerate() },
                 { label: 'btn_close', color: 'secondary', onClick: () => this.hide() }
             ]
