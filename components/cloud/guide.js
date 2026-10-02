@@ -141,6 +141,15 @@ html:`<p><b>Genera allenamento</b> (barra a sinistra, sezione Allenamento, o Fil
 <li>Durata, serie e recupero scritti nella riga («10 minuti», «3 serie», «recupero 60 secondi») finiscono nei <a data-topic="dati-esercizio">dati dell'esercizio</a>; la tipologia (analitico, sintetico, globale) viene impostata da sola.</li></ul>
 <p>Ogni esercizio diventa una scheda, nell'ordine analitica → sintetica → globale. La finestra mostra da dove arriva ciascuno; poi «Salva allenamento…» lo salva e Stampa → Scheda allenamento (PDF) lo stampa.</p>` },
 
+{ id:'lavagna', cat:'Esercizi', title:'Lavagna: rotazioni e fasi di gioco', keys:'lavagna rotazione rotazioni p1 p2 p3 p4 p5 p6 partenza break point fase punto side out cambio palla ricezione battuta muro difesa contrattacco attacco libero 5-1 posizioni fallo di posizione campo intero metà avversari',
+html:`<p><b>Lavagna</b> (barra a sinistra, sezione Allenamento; File → Lavagna; schermata «Nessuno schema aperto») dispone in automatico i 6 giocatori del sistema 5-1: <b>P</b> palleggiatore, <b>O</b> opposto, <b>S1 S2</b> schiacciatori, <b>C1 C2</b> centrali e <b>L</b> libero (al posto del centrale in seconda linea; in break point, se il centrale è in zona 1, batte lui).</p>
+<ul><li><b>Campo</b>: intero (anche con la <b>squadra avversaria</b> nella fase corrispondente) o metà campo con la rete; orizzontale o verticale.</li>
+<li><b>Rotazione</b>: P1…P6, dalla zona del palleggiatore (P1 = palleggiatore in zona 1), oppure tutte.</li>
+<li><b>Fase</b>: posizioni di partenza (zone); <b>break point</b>: partenza in battuta, muro e difesa, contrattacco; <b>side out</b>: ricezione (a 3, libero e schiacciatori) e attacco dopo la ricezione. Si possono chiedere anche tutte le fasi.</li>
+<li><b>Spostamenti</b>: la posizione della fase precedente resta come copia semitrasparente e tratteggiata con la freccia verso la nuova.</li></ul>
+<p>Puoi anche <b>chiederlo a parole</b> e premere Invio: «P3 ricezione a metà campo», «tutte le rotazioni in break point», «difesa P5 con avversari», «attacco dopo la ricezione P2 verticale».</p>
+<p>L'anteprima mostra la disposizione e controlla le <b>regole di posizione</b> al momento della battuta (davanti/dietro e sinistra/destra): le ricezioni proposte sono tutte regolari. Ogni disposizione diventa una scheda con nome (es. «P1 · Side out · Ricezione»), descrizione e step; i giocatori si spostano liberamente e lo schema si salva in <a data-topic="libreria">libreria</a>.</p>` },
+
 { id:'piano-allenamento', cat:'Esercizi', title:'Piano allenamento', keys:'piano scheda seduta allenamento intestazione obiettivo caratteristiche materiale fase analitica sintetica globale blocco gruppi importa pdf disegni annessi json',
 html:`<p><b>Piano allenamento</b> (barra a sinistra, sezione Allenamento, o File → Piano allenamento…) è la scheda completa della seduta, come quelle delle società:</p>
 <ul><li><b>intestazione</b>: squadra, stagione, categoria, campionato, periodo, palestra, numero dell'allenamento, durata;</li>
@@ -255,6 +264,7 @@ html:`<dl class="guide-faq">
 
 { id:'novita', cat:'Riferimento', title:'Novità', keys:'novità versioni changelog aggiornamenti',
 html:`<ul>
+<li><b>1.5.0</b> — <a data-topic="lavagna">Lavagna</a>: i 6 giocatori in ogni rotazione (P1…P6) e fase (partenza, break point, side out) su campo intero o metà campo, anche chiedendolo a parole.</li>
 <li><b>1.4.1</b> — Anteprima completa (titolo, descrizione, immagine) quando condividi il link dell'app su Facebook, WhatsApp e altri social.</li>
 <li><b>1.4.0</b> — <a data-topic="piano-allenamento">Piano allenamento</a> con importazione da PDF, disegni degli esercizi (a mano o automatici) e PDF con disegni annessi; <a data-topic="video">video nel disegno</a> con anteprima.</li>
 <li><b>1.3.2</b> — Schermata «Nessuno schema aperto»; tratteggio sugli oggetti già inseriti.</li>

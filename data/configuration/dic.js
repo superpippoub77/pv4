@@ -793,3 +793,6 @@ Object.assign(translations.fr, { "rail_workout_plan": "Plan d'entraînement", "d
 Object.assign(translations.it, { "rail_video": "Video…", "dlg_title_video": "Video", "btn_video_apply": "Inserisci nel disegno", "btn_video_open_tab": "Apri in una nuova scheda" });
 Object.assign(translations.en, { "rail_video": "Video…", "dlg_title_video": "Video", "btn_video_apply": "Insert in drawing", "btn_video_open_tab": "Open in new tab" });
 Object.assign(translations.fr, { "rail_video": "Vidéo…", "dlg_title_video": "Vidéo", "btn_video_apply": "Insérer dans le dessin", "btn_video_open_tab": "Ouvrir dans un nouvel onglet" });
+Object.assign(translations.it, { "rail_rotation_board": "Lavagna", "dlg_title_rotation_board": "Lavagna — rotazioni e fasi di gioco", "btn_rotation_place": "Disponi sulla lavagna" });
+Object.assign(translations.en, { "rail_rotation_board": "Board", "dlg_title_rotation_board": "Board — rotations and game phases", "btn_rotation_place": "Place on the board" });
+Object.assign(translations.fr, { "rail_rotation_board": "Tableau", "dlg_title_rotation_board": "Tableau — rotations et phases de jeu", "btn_rotation_place": "Placer sur le tableau" });
