@@ -35,6 +35,7 @@ const LAYOUT_ICONS = {
     animation: SC_ICON("M3 5h16v12H3z M7 5v12 M15 5v12 M3 9h4 M3 13h4 M15 9h4 M15 13h4"),
     macro: SC_ICON("M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z", `<circle cx="11" cy="11" r="3" fill="currentColor" stroke="none"/>`),
     team: SC_ICON("M4 19v-1a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v1 M11 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"),
+    magic: SC_ICON("M4 18L14 8 M12 6l4 4 M16 3v3 M14.5 4.5h3 M19 8v2 M18 9h2 M8 3v2 M7 4h2"),
     trash: SC_ICON("M4 6h14 M9 6V4h4v2 M6 6l1 13h8l1-13 M9.5 9.5v6 M12.5 9.5v6")
 };
 
@@ -95,6 +96,7 @@ const layoutConfig = {
         { id: "snapToGridBtn", icon: "snap", label: "Allinea a griglia", i18n: "rail_snap", title: "Allinea gli oggetti alla griglia", onClick: (ed) => ed.snapObjectsToGrid() },
 
         { section: "Allenamento", i18n: "rail_sec_training" },
+        { id: "textExerciseBtn", icon: "magic", label: "Crea da testo", i18n: "rail_text_exercise", title: "Descrivi l'esercizio a parole: campo, giocatori, frecce e step vengono creati in automatico", onClick: (ed) => ed.textExerciseManager.show() },
         { id: "showAnimationControls", icon: "animation", label: "Animazione", i18n: "rail_animation", title: "Pannello animazione", onClick: (ed) => ed.showAnimationControls() },
         { id: "recordMacroBtn", icon: "macro", label: "Macro", i18n: "rail_macro", title: "Registra e riproduci macro", onClick: (ed) => ed.macroManager.showDialog() },
         { id: "manageTeamBtn", icon: "team", label: "Squadra", i18n: "rail_team", title: "Gestisci la rosa della squadra", onClick: (ed) => ed.teamManager.show() },
