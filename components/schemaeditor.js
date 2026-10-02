@@ -265,7 +265,12 @@ class SchemaEditor {
         this.updateUI();
         this.showMainApp();
         this.initAutoSave();
-        if (!this.restoreStatusAutoSave()) {
+        const restored = this.restoreStatusAutoSave();
+        // Schede chiuse tutte l'ultima volta: si riparte dalla schermata "Nessuno schema aperto"
+        if (this.loadUserPref('noDocs') === '1' && this.tabs.size === 1 && !this.tabHasWork(this.getCurrentTab())) {
+            this.setNoDocs(true);
+        }
+        if (!restored) {
             // Nessun autosave: applica la dimensione di default al foglio,
             // altrimenti il canvas resta al minimo CSS (100x100, un quadrato)
             this.applyCustomCanvasSize(this.getCurrentTab());
@@ -504,6 +509,7 @@ class SchemaEditor {
                     customWidth: tabData.customWidth,
                     customHeight: tabData.customHeight,
                     lib: tabData.lib || null, // collegamento all'esercizio nella libreria online
+                    uid: tabData.uid || null, // identificativo stabile (Piano allenamento)
                     showBorder: tabData.showBorder,
                     maxZIndex: tabData.maxZIndex,
                     canvasRotation: tabData.canvasRotation,
@@ -591,6 +597,7 @@ class SchemaEditor {
                 tab.canvasSize = tabData.canvasSize;
                 if (tabData.customWidth) tab.customWidth = tabData.customWidth;
                 tab.lib = tabData.lib || null;
+                tab.uid = tabData.uid || null;
                 if (tabData.customHeight) tab.customHeight = tabData.customHeight;
                 tab.showBorder = tabData.showBorder;
                 tab.maxZIndex = tabData.maxZIndex;
@@ -676,6 +683,7 @@ class SchemaEditor {
                     customWidth: tabData.customWidth || tab.customWidth,
                     customHeight: tabData.customHeight || tab.customHeight,
                     lib: tabData.lib || null,
+                    uid: tabData.uid || null,
                     showBorder: tabData.showBorder,
                     maxZIndex: tabData.maxZIndex,
                     canvasRotation: tabData.canvasRotation,
@@ -5846,7 +5854,38 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     }
 
     /** Attiva/disattiva il tratteggio per i nuovi oggetti/frecce */
+    /**
+     * Tratteggio degli oggetti (e della freccia) selezionati: se almeno uno è continuo diventano tutti
+     * tratteggiati, altrimenti tornano tutti continui. Restituisce false se non c'è nulla di selezionato.
+     */
+    toggleSelectedObjectsDashed() {
+        const tab = this.getCurrentTab();
+        if (!tab) return false;
+        const objs = [...this.selectedObjects.keys()].map(id => tab.objects.get(id)).filter(Boolean);
+        const selId = this.selectedObject && (this.selectedObject.id || this.selectedObject);
+        if (selId && !objs.some(o => o.id === selId)) {
+            const o = tab.objects.get(selId);
+            if (o) objs.push(o);
+        }
+        const arrow = this.selectedArrow ? tab.arrows.get(this.selectedArrow) : null;
+        if (!objs.length && !arrow) return false;
+        const items = arrow ? [...objs, arrow] : objs;
+        const dashed = items.some(it => !it.dashed);
+        objs.forEach(o => {
+            o.dashed = dashed;
+            this.renderObject(o);
+            if (this.selectedObjects.has(o.id)) document.getElementById(o.id)?.classList.add('selected');
+        });
+        if (arrow) { arrow.dashed = dashed; this.renderArrow(arrow); }
+        document.getElementById('dashedObjectToggle')?.classList.toggle('active', dashed);
+        this.saveState(dashed ? 'Bordo tratteggiato' : 'Bordo continuo');
+        return true;
+    }
+
     toggleDashedMode(force) {
+        // Con qualcosa selezionato il tratteggio si applica alla selezione (come ci si aspetta);
+        // senza selezione vale per i nuovi oggetti e le nuove frecce
+        if (typeof force !== 'boolean' && this.toggleSelectedObjectsDashed()) return;
         this.dashedMode = typeof force === 'boolean' ? force : !this.dashedMode;
         document.getElementById('dashedToggle')?.classList.toggle('active', this.dashedMode);
         this.syncMenuCheckboxes?.();
@@ -9144,12 +9183,61 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     }
 
     addNewTab() {
+        // dopo il ripristino delle schede il contatore può essere indietro: mai riusare un numero già in uso
+        while (this.tabs.has(this.nextTabId)) this.nextTabId++;
         const id = this.nextTabId++;
         const name = `Schema ${id}`;
 
         this.initializeTab(id, name);
         this.createTabElement(id, name);
         this.switchToTab(id);
+        if (this.noDocs) this.setNoDocs(false);
+    }
+
+    // ------------------------------------------------------------------
+    // NESSUNO SCHEMA APERTO (come SpikeCut): chiudendo l'ultima scheda compare
+    // una schermata con le scelte possibili. Dietro resta una scheda vuota
+    // nascosta, così il resto dell'editor ha sempre una scheda attiva.
+    // ------------------------------------------------------------------
+    buildEmptyState() {
+        if (document.getElementById('emptyState')) return;
+        const host = document.querySelector('.canvas-container');
+        if (!host) return;
+        const el = document.createElement('div');
+        el.id = 'emptyState';
+        el.className = 'empty-state';
+        el.innerHTML = `
+            <div class="es-box">
+                <div class="es-icon">🏐</div>
+                <h2>Nessuno schema aperto</h2>
+                <p>Crea un nuovo schema oppure apri un esercizio o un allenamento esistente.</p>
+                <button class="btn primary" data-es="new">＋ Nuovo schema</button>
+                <button class="btn" data-es="library">☁ Apri dalla libreria</button>
+                <button class="btn" data-es="file">📂 Apri uno schema da file (.json)</button>
+                <button class="btn" data-es="text">✨ Crea un esercizio da testo</button>
+                <button class="btn" data-es="workout">🗓 Genera un allenamento</button>
+            </div>`;
+        el.addEventListener('click', (e) => {
+            const b = e.target.closest('[data-es]');
+            if (!b) return;
+            const actions = {
+                new: () => this.setNoDocs(false),
+                library: () => window.Pv4Library?.open(),
+                file: () => document.getElementById('fileInput')?.click(),
+                text: () => this.textExerciseManager?.show(),
+                workout: () => this.workoutGenerator?.show(),
+                plan: () => this.workoutPlan?.show()
+            };
+            actions[b.dataset.es]?.();
+        });
+        host.appendChild(el);
+    }
+
+    setNoDocs(on) {
+        this.noDocs = !!on;
+        if (on) this.buildEmptyState();
+        document.body.classList.toggle('no-docs', this.noDocs);
+        this.saveUserPref('noDocs', this.noDocs ? '1' : '0'); // resta così anche ricaricando la pagina
     }
 
     createTabElement(id, name) {
@@ -9351,14 +9439,16 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
     closeTab(id) {
         if (!this.tabs.has(id)) return;
-        // Chiudendo l'ultima scheda resta uno schema nuovo e vuoto (l'editor ha sempre una scheda attiva)
-        if (this.tabs.size <= 1) this.addNewTab();
+        // Chiudendo l'ultima scheda compare la schermata "Nessuno schema aperto"
+        const last = this.tabs.size <= 1;
+        if (last) this.addNewTab();
         this.tabs.delete(id);
         document.querySelector(`.tab[data-tab-id="${id}"]`)?.remove();
         if (this.activeTabId === id) {
             const firstTabId = this.tabs.keys().next().value;
             this.switchToTab(firstTabId);
         }
+        if (last) this.setNoDocs(true);
     }
 
     /** Schede con del lavoro (oggetti sul foglio o step) */
@@ -9374,12 +9464,13 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         if (withWork && !confirm(keepId === null
             ? `Chiudere tutte le schede? ${withWork} contengono del lavoro: quello non salvato in libreria o su file andrà perso.`
             : `Chiudere le altre schede? ${withWork} contengono del lavoro: quello non salvato in libreria o su file andrà perso.`)) return;
-        if (keepId === null) this.addNewTab(); // resta uno schema nuovo e vuoto
+        if (keepId === null) this.addNewTab();
         else if (this.activeTabId !== keepId) this.switchToTab(keepId);
         ids.forEach(id => {
             this.tabs.delete(id);
             document.querySelector(`.tab[data-tab-id="${id}"]`)?.remove();
         });
+        if (keepId === null) this.setNoDocs(true); // nessuno schema aperto: schermata con le scelte
     }
 
     closeAllTabs() { this.closeTabs(null); }
@@ -9578,6 +9669,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         // (prima "Impostata dimensione canvas" cancellava il Ripeti)
         if (this._restoringState) return;
         const tab = this.getCurrentTab();
+        // qualcosa è stato aggiunto o caricato nella scheda nascosta: lo schema torna visibile
+        if (this.noDocs && tab && tab.objects.size > 0) this.setNoDocs(false);
 
         // Copie degli oggetti: senza copia, modifiche successive (es. colore)
         // alteravano anche gli stati già salvati e l'Annulla non le ripristinava
@@ -10751,6 +10844,62 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         if (path) {
             const pathData = this.generateArrowPath(fromPos, toPos, arrow.type, arrow.controlPoint);
             path.setAttribute('d', pathData);
+        }
+    }
+
+    /** Identificativo stabile di una scheda (resta uguale dopo il salvataggio automatico e la ricarica) */
+    tabUid(tab) {
+        if (!tab) return null;
+        if (!tab.uid) tab.uid = 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+        return tab.uid;
+    }
+
+    findTabByUid(uid) {
+        if (!uid) return null;
+        for (const [id, t] of this.tabs) if (t.uid === uid) return id;
+        return null;
+    }
+
+    /**
+     * Immagine del disegno di una scheda (senza maniglie né griglia), per i PDF.
+     * Restituisce { dataUrl, width, height } in pixel.
+     */
+    async captureTabImage(tabId) {
+        if (tabId != null && this.activeTabId !== tabId) {
+            this.switchToTab(tabId);
+            await new Promise(r => setTimeout(r, 120));
+        }
+        const tab = this.getCurrentTab();
+        const canvasElement = document.getElementById('canvas');
+        const hidden = [];
+        canvasElement.querySelectorAll('.resize-handle, .rotate-handle, .connection-point, .control-point, .endpoint-control, .group-rotation-center, .object-label')
+            .forEach(el => { if (el.style.display !== 'none') { hidden.push(el); el.style.display = 'none'; } });
+        const originalState = this.prepareCanvasForExport();
+        try {
+            await new Promise(r => setTimeout(r, 250));
+            const w = Math.max(100, Math.round(canvasElement.offsetWidth));
+            const h = Math.max(100, Math.round(canvasElement.offsetHeight));
+            const img = await html2canvas(canvasElement, {
+                scale: 2, useCORS: true, allowTaint: true, logging: false,
+                backgroundColor: tab.bwMode ? null : '#ffffff',
+                width: w, height: h, windowWidth: w, windowHeight: h, scrollX: 0, scrollY: 0,
+                onclone: (clonedDoc) => {
+                    const c = clonedDoc.getElementById('canvas');
+                    if (!c) return;
+                    c.style.transform = 'none';
+                    c.style.position = 'relative';
+                    c.querySelectorAll('.arrow-svg').forEach(svg => { svg.style.position = 'absolute'; svg.style.left = '0'; svg.style.top = '0'; });
+                }
+            });
+            return { dataUrl: img.toDataURL('image/jpeg', 0.9), width: img.width, height: img.height };
+        } finally {
+            canvasElement.style.transform = originalState.transform;
+            canvasElement.style.overflow = originalState.overflow;
+            canvasElement.style.position = originalState.position;
+            canvasElement.style.backgroundColor = originalState.backgroundColor;
+            if (originalState.hasGridVisible) canvasElement.classList.add('grid-visible');
+            tab.arrows.forEach(arrow => this.renderArrow(arrow));
+            hidden.forEach(el => el.style.display = '');
         }
     }
 

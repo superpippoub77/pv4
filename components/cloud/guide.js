@@ -79,7 +79,7 @@ html:`<p>Lo schermo è diviso in zone:</p>
 <li><b>Barra di stato</b> in basso: coordinate, interruttori per griglia, bianco e nero, numeri degli oggetti, nomi dei giocatori, bordi del foglio e sfera 3D, il pulsante <b>⟲ 3D</b> che azzera la vista 3D e, a destra, mese di rilascio e versione del programma.</li></ul>` },
 
 { id:'schede', cat:'Per iniziare', title:'Schede e foglio', keys:'tab nuovo schema più schemi chiudi scheda foglio dimensione formato personalizzato maniglia sfondo zoom',
-html:`<p>Con <b>＋</b> accanto alle schede (o nella barra in alto) crei un nuovo schema; la × su una scheda la chiude (anche l'ultima: resta uno schema nuovo vuoto). <b>✕ Chiudi tutte</b> a destra della barra, o il tasto destro su una scheda (Chiudi scheda, Chiudi le altre, Chiudi tutte), chiude più schede insieme, con una sola conferma se c'è del lavoro aperto. Ogni scheda ha i suoi oggetti, i suoi step e la sua cronologia annulla/ripeti. Il nome si cambia scrivendo direttamente sulla scheda o nel titolo in alto.</p>
+html:`<p>Con <b>＋</b> accanto alle schede (o nella barra in alto) crei un nuovo schema; la × su una scheda la chiude. Chiudendo l'ultima (o tutte) compare <b>Nessuno schema aperto</b> con i pulsanti per creare un nuovo schema, aprire dalla libreria o da file, creare un esercizio da testo o generare un allenamento; resta così anche ricaricando la pagina. <b>✕ Chiudi tutte</b> a destra della barra, o il tasto destro su una scheda (Chiudi scheda, Chiudi le altre, Chiudi tutte), chiude più schede insieme, con una sola conferma se c'è del lavoro aperto. Ogni scheda ha i suoi oggetti, i suoi step e la sua cronologia annulla/ripeti. Il nome si cambia scrivendo direttamente sulla scheda o nel titolo in alto.</p>
 <ul><li><b>Dimensione del foglio</b>: dal pannello Proprietà (senza selezione) scegli un formato (A5, A4, A3, A2, verticale o orizzontale) oppure <b>Personalizzato</b>; trascinando la maniglia ⇲ nell'angolo del foglio lo ridimensioni a mano. Il nuovo schema parte da 560 × 400.</li>
 <li><b>Sfondo</b>: dal pannello Proprietà.</li>
 <li><b>Zoom</b>: pulsanti – e + nella barra in alto, ⤢ per tornare al 100%.</li></ul>
@@ -96,7 +96,7 @@ html:`<ul><li><b>Giocatori…</b> (G) apre la galleria dei giocatori: Squadra A 
 html:`<ul><li><b>Frecce</b> (A): clicca un punto di aggancio di un oggetto e poi un altro punto (di un oggetto o del foglio). Le frecce agganciate seguono gli oggetti quando li sposti.</li>
 <li>Selezionando una freccia, nel pannello Proprietà scegli colore, tipo (lineare, curva, zigzag), spessore, opacità, punte all'inizio e alla fine, tratteggio. Nelle frecce curve il punto arancione ne regola la curvatura.</li>
 <li><b>Matita libera</b> (B): disegno a mano libera, con colore, spessore e opacità.</li>
-<li><b>Tratteggio</b> (D): i nuovi oggetti e le nuove frecce vengono creati tratteggiati. Per convenzione: freccia continua = palla, tratteggiata = spostamento del giocatore.</li></ul>` },
+<li><b>Tratteggio</b> (D): con oggetti o una freccia selezionati ne tratteggia il bordo (di nuovo per tornare continuo, come «⚡ Tratteggiato» nel pannello Proprietà); senza selezione, i nuovi oggetti e le nuove frecce vengono creati tratteggiati. Per convenzione: freccia continua = palla, tratteggiata = spostamento del giocatore.</li></ul>` },
 
 { id:'modificare', cat:'Disegnare', title:'Selezionare e modificare', keys:'seleziona sposta ruota specchia primo piano sfondo griglia allinea elimina colore opacità etichetta copia incolla annulla',
 html:`<ul><li><b>Selezione</b> (V): clic su un oggetto per selezionarlo, trascinamento sull'area vuota per selezionarne più di uno. Si spostano trascinandoli o con le frecce della tastiera (Maiusc per passi più lunghi).</li>
@@ -238,6 +238,7 @@ html:`<dl class="guide-faq">
 
 { id:'novita', cat:'Riferimento', title:'Novità', keys:'novità versioni changelog aggiornamenti',
 html:`<ul>
+<li><b>1.3.2</b> — Schermata «Nessuno schema aperto»; tratteggio sugli oggetti già inseriti.</li>
 <li><b>1.3.1</b> — Chiudi tutte le schede e chiusura dell'ultima scheda; pulsante 📄 Scheda PDF; PDF dell'allenamento con intestazione, parti, disegno a misura e step leggibili.</li>
 <li><b>1.3</b> (ottobre 2026) — <a data-topic="genera-allenamento">Genera allenamento</a> dalle parti analitica, sintetica e globale, con esercizi presi dalla libreria o creati in automatico; pulsante <b>⟲ 3D</b> per azzerare la vista 3D; nessun messaggio a video per il salvataggio automatico; profilo nell'account; mese di rilascio e versione nella barra di stato.</li>
 <li><b>1.2</b> — Account veri (registrazione, accesso, recupero password, sessione ricordata), <a data-topic="libreria">libreria online</a> come Esplora file con esercizi privati e pubblici, <a data-topic="versioni">versioni</a>, <a data-topic="cestino">Cestino</a> e <a data-topic="amministrazione">amministrazione</a>; questa guida con ricerca (F1).</li>

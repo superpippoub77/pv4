@@ -5,6 +5,16 @@ e compaiono nella barra di stato ("VBProW4 by SpikeCode AI · Ott 2026 · Ver: 1
 Informazioni e nella guida (Riferimento → Novità). A ogni rilascio vanno aggiornati insieme a questo file
 e a `package.json`.
 
+## 1.3.2 — Ott 2026
+
+- **Nessuno schema aperto** (come SpikeCut): chiudendo l'ultima scheda o tutte le schede compare una schermata
+  con Nuovo schema, Apri dalla libreria, Apri da file, Crea da testo, Genera allenamento; resta anche
+  ricaricando la pagina.
+- **Tratteggio sugli oggetti già inseriti**: «⚡ Tratteggiato» nel pannello Proprietà non faceva nulla (funzione
+  mancante); ora tratteggia o rende continuo il bordo degli oggetti (e della freccia) selezionati. Anche
+  «Tratteggio» nella barra a sinistra (D) agisce sulla selezione; senza selezione vale per i nuovi oggetti.
+- Dopo il ripristino delle schede un nuovo schema poteva ricevere lo stesso numero di una scheda esistente.
+
 ## 1.3.1 — Ott 2026
 
 - Si può chiudere anche l'ultima scheda (resta uno schema nuovo vuoto); pulsante **✕ Chiudi tutte** a destra

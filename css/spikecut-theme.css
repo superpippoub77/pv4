@@ -738,3 +738,21 @@ body.sc-theme .context-menu-separator { background: var(--line-soft); margin: 5p
     white-space: nowrap;
 }
 #tabBar .close-all-tabs:hover { color: var(--ink); border-color: var(--brass-dim); }
+
+/* Nessuno schema aperto (come SpikeCut) */
+.canvas-container { position: relative; }
+.empty-state { position: absolute; inset: 0; z-index: 60; display: none; align-items: center; justify-content: center; background: var(--bg-0, #17181a); }
+body.no-docs .empty-state { display: flex; }
+body.no-docs .tabs-container .tab:not(.add-tab) { display: none; }
+body.no-docs #closeAllTabsBtn { display: none; }
+body.no-docs .tabs-container .add-tab { border-color: var(--brass); color: var(--brass); }
+body.no-docs #rightSidebar { opacity: .35; pointer-events: none; }
+body.no-docs #planeRotationSphere { display: none !important; }
+.empty-state .es-box { width: min(380px, 90%); text-align: center; color: var(--ink, #e9e6df); }
+.empty-state .es-icon { font-size: 40px; opacity: .7; }
+.empty-state h2 { margin: 8px 0 4px; font-size: 18px; color: var(--ink, #e9e6df); }
+.empty-state p { margin: 0 0 16px; color: var(--ink-dim, #a9a49a); font-size: 13px; }
+.empty-state .btn { display: block; width: 100%; margin: 0 0 8px; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--line, #3a3b3e); background: var(--bg-2, #28292c); color: var(--ink, #e9e6df); font-size: 12.5px; cursor: pointer; }
+.empty-state .btn:hover { border-color: var(--brass-dim, #8a6a30); }
+.empty-state .btn.primary { background: var(--brass, #c9973f); border-color: var(--brass, #c9973f); color: #1c1200; font-weight: 600; }
+body.no-docs #canvasResizeHandle { display: none !important; }
