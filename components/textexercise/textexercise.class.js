@@ -64,7 +64,8 @@ class TextExerciseBuilder {
         <em>metti P1 in zona 1</em> · <em>A in zona 2 del campo avversario</em> ·
         <em>P1 passa la palla ad A</em> · <em>da A a P2</em> ·
         <em>P2 manda la palla oltre la rete in zona 5</em> · <em>P1 si sposta in zona 6</em> ·
-        <em>A torna in zona 2</em> · <em>P1 batte in zona 1</em> · <em>cono in zona 3</em>.
+        <em>A torna in posizione</em> · <em>P1 batte in zona 1</em> · <em>cono in zona 3</em>.
+        Ogni spostamento dello stesso giocatore viene disegnato come una sua copia semitrasparente e tratteggiata.
     </p>
     <textarea id="txExText" class="tx-ex-text" rows="7"
         placeholder="Aggiungi il campo intero in orizzontale. Metti il giocatore P1 in zona 1 e il giocatore A in zona 2. P1 passa la palla ad A, A passa a P2 che manda la palla oltre la rete in zona 6. Poi P1 si sposta in zona 6."></textarea>
@@ -694,9 +695,24 @@ class TextExerciseBuilder {
                             result.unknown.push(act.text);
                             break;
                         }
-                        arrow(a, target, true, moveColor, false);
+                        if (act.back) {
+                            // Ritorno: la freccia arriva al giocatore nella posizione iniziale
+                            arrow(a, { obj: a.obj, pos: a.home }, true, moveColor, true);
+                            a.cur = a.obj;
+                        } else {
+                            // Ogni nuova posizione dello stesso giocatore è una sua copia
+                            // semitrasparente e tratteggiata ("fantasma"), sempre più chiara
+                            a.moves = (a.moves || 0) + 1;
+                            const size = ed.getDefaultSize('player');
+                            const ghost = ed.addObject('player', target.x - size.width / 2, target.y - size.height / 2,
+                                a.obj.color, a.obj.text, 0, true);
+                            ghost.opacity = Math.max(0.3, 0.6 - (a.moves - 1) * 0.1);
+                            ed.renderObject(ghost);
+                            arrow(a, { obj: ghost, pos: target }, true, moveColor, false);
+                            a.cur = ghost;
+                        }
                         a.pos = { x: target.x, y: target.y };
-                        a.moved = true;
+                        a.moved = !act.back;
                         steps.push({ text: label, name: act.text });
                         break;
                     }
@@ -749,14 +765,14 @@ class TextExerciseBuilder {
         return e;
     }
 
-    /** Punto di partenza/arrivo di una freccia: il punto di aggancio del giocatore, o la posizione libera se si è già spostato */
+    /** Punto di partenza/arrivo di una freccia: il punto di aggancio del giocatore (o della sua ultima copia dopo uno spostamento) */
     endpoint(entry, towards) {
-        if (entry.moved) return { x: entry.pos.x, y: entry.pos.y };
+        const obj = entry.cur || entry.obj;
         const dx = towards.x - entry.pos.x, dy = towards.y - entry.pos.y;
         const angle = Math.atan2(dy, dx) * 180 / Math.PI; // 0 = destra, 90 = giù
         const dirs = ['right', 'bottom-right', 'bottom', 'bottom-left', 'left', 'top-left', 'top', 'top-right'];
         const idx = ((Math.round(angle / 45) % 8) + 8) % 8;
-        return { objectId: entry.obj.id, position: dirs[idx] };
+        return { objectId: obj.id, position: dirs[idx] };
     }
 
     moveObjectCenter(obj, p) {
