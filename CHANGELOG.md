@@ -5,6 +5,26 @@ e compaiono nella barra di stato ("VBProW4 by SpikeCode AI · Ott 2026 · Ver: 1
 Informazioni e nella guida (Riferimento → Novità). A ogni rilascio vanno aggiornati insieme a questo file
 e a `package.json`.
 
+## 1.4.0 — Ott 2026
+
+- **Piano allenamento** (barra a sinistra → Allenamento, File → Piano allenamento…, schermata iniziale): la scheda
+  completa della seduta come quelle delle società — intestazione (squadra, stagione, categoria, campionato, periodo,
+  palestra, n° allenamento, durata), obiettivo, caratteristiche prestative, materiale occorrente, Fase Analitica /
+  Sintetica / Globale con blocchi a titolo ed esercizi (Nr · Esercizio · G · R · quantità · Dettagli), gruppi.
+  - **Importa da PDF**: legge un piano con questa struttura (colonne dalle intestazioni, righe, elenchi puntati,
+    blocchi, tabelle che continuano sulla pagina dopo, gruppi).
+  - **Disegni degli esercizi**: «✏️ Disegna» apre una scheda collegata da disegnare a mano; «✨ Auto» e
+    «Disegna tutti gli esercizi» li prendono dalla libreria se corrispondono, altrimenti li creano in automatico;
+    si può anche collegare una scheda già aperta.
+  - **PDF dell'allenamento** con la stessa impaginazione (tabelle, fasi colorate, blocchi grigi, gruppi) e i
+    **disegni annessi** (ritagliati sul contenuto, con il rimando «disegno D1» nella tabella e i link dei video).
+  - **Salva / Apri (.json)** del piano insieme ai suoi disegni; il piano è anche salvato da solo nel browser.
+- **Video nel disegno** (barra a sinistra → Video…): YouTube (anche Shorts e minuto di partenza), Vimeo, file
+  dal computer o qualunque link, con anteprima, titolo e ▶; doppio clic per guardarlo; il link compare nei PDF.
+- Genera allenamento: schema tipo scelto in base al maggior numero di parole chiave; nuovi schemi «minicampo»
+  e «rincorsa»; «difesa senza muro» ora dà la difesa.
+- Crea da testo: due passaggi uguali tra gli stessi giocatori non si sovrappongono più.
+
 ## 1.3.2 — Ott 2026
 
 - **Nessuno schema aperto** (come SpikeCut): chiudendo l'ultima scheda o tutte le schede compare una schermata

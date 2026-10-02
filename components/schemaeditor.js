@@ -124,6 +124,8 @@ class SchemaEditor {
         this.macroManager = new MacroManager(this);
         this.textExerciseManager = new TextExerciseBuilder(this);
         this.workoutGenerator = new WorkoutGenerator(this);
+        this.workoutPlan = new WorkoutPlan(this);
+        if (window.VideoObjects) VideoObjects.init(this);
         // Unico gestore del login, creato in index.html (crearne un altro aggiungeva una seconda finestra di accesso)
         this.loginManager = window.loginManager;
     }
@@ -6136,6 +6138,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             'local-svg': { width: 60, height: 60 },
             'object': { width: 60, height: 60 },
             'sprite': { width: 64, height: 64 },
+            'video': { width: 168, height: 108 },
             'brick': { width: 250, height: 10 },
         };
         return sizes[type] || { width: 40, height: 40 };
@@ -6212,6 +6215,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
         element.addEventListener('dblclick', (e) => {
             e.stopPropagation();
+            // video: doppio clic per guardarlo (e cambiarne il link)
+            if (object.type === 'video' && window.VideoObjects) { VideoObjects.open(object); return; }
             this.startInlineEdit(object.id);
         });
 
@@ -6531,6 +6536,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
 
     createObjectContent(object) {
+        if (object.type === 'video' && window.VideoObjects) return VideoObjects.content(object);
         const content = document.createElement('div');
         content.className = object.type + '-object';
         if (object.type === 'player' && object.text) {
@@ -9216,6 +9222,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 <button class="btn" data-es="file">📂 Apri uno schema da file (.json)</button>
                 <button class="btn" data-es="text">✨ Crea un esercizio da testo</button>
                 <button class="btn" data-es="workout">🗓 Genera un allenamento</button>
+                <button class="btn" data-es="plan">📋 Piano allenamento (anche da PDF)</button>
             </div>`;
         el.addEventListener('click', (e) => {
             const b = e.target.closest('[data-es]');
@@ -10864,7 +10871,31 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
      * Immagine del disegno di una scheda (senza maniglie né griglia), per i PDF.
      * Restituisce { dataUrl, width, height } in pixel.
      */
-    async captureTabImage(tabId) {
+    /** Riquadro (coordinate del foglio) che contiene oggetti, frecce e disegni a mano della scheda attiva */
+    contentBounds(margin = 24) {
+        const tab = this.getCurrentTab();
+        let x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity;
+        const add = (x, y) => { if (!isFinite(x) || !isFinite(y)) return; x1 = Math.min(x1, x); y1 = Math.min(y1, y); x2 = Math.max(x2, x); y2 = Math.max(y2, y); };
+        tab.objects.forEach(o => {
+            const cx = o.x + o.width / 2, cy = o.y + o.height / 2;
+            const r = (o.rotation || 0) * Math.PI / 180;
+            const hw = (Math.abs(o.width * Math.cos(r)) + Math.abs(o.height * Math.sin(r))) / 2;
+            const hh = (Math.abs(o.width * Math.sin(r)) + Math.abs(o.height * Math.cos(r))) / 2;
+            add(cx - hw, cy - hh); add(cx + hw, cy + hh);
+        });
+        tab.arrows.forEach(a => {
+            try {
+                const f = this.getArrowPoint(a.from), t = this.getArrowPoint(a.to);
+                add(f.x, f.y); add(t.x, t.y);
+                if (a.controlPoint && a.type === 'curved') add(a.controlPoint.x, a.controlPoint.y);
+            } catch (err) { /* ignore */ }
+        });
+        (tab.freehands || new Map()).forEach(fh => (fh.points || []).forEach(pt => add(pt.x, pt.y)));
+        if (!isFinite(x1)) return null;
+        return { x: x1 - margin, y: y1 - margin, w: x2 - x1 + 2 * margin, h: y2 - y1 + 2 * margin };
+    }
+
+    async captureTabImage(tabId, opts = {}) {
         if (tabId != null && this.activeTabId !== tabId) {
             this.switchToTab(tabId);
             await new Promise(r => setTimeout(r, 120));
@@ -10891,6 +10922,23 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     c.querySelectorAll('.arrow-svg').forEach(svg => { svg.style.position = 'absolute'; svg.style.left = '0'; svg.style.top = '0'; });
                 }
             });
+            // ritaglio sul contenuto (niente spazio vuoto intorno al disegno)
+            if (opts.crop) {
+                const bb = this.contentBounds();
+                if (bb) {
+                    const k = img.width / w;
+                    const sx = Math.max(0, Math.floor(bb.x * k)), sy = Math.max(0, Math.floor(bb.y * k));
+                    const sw = Math.min(img.width - sx, Math.ceil(bb.w * k)), sh = Math.min(img.height - sy, Math.ceil(bb.h * k));
+                    if (sw > 20 && sh > 20) {
+                        const c = document.createElement('canvas');
+                        c.width = sw; c.height = sh;
+                        const g = c.getContext('2d');
+                        g.fillStyle = '#ffffff'; g.fillRect(0, 0, sw, sh);
+                        g.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+                        return { dataUrl: c.toDataURL('image/jpeg', 0.9), width: sw, height: sh };
+                    }
+                }
+            }
             return { dataUrl: img.toDataURL('image/jpeg', 0.9), width: img.width, height: img.height };
         } finally {
             canvasElement.style.transform = originalState.transform;
@@ -11106,7 +11154,16 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
                 doc.addImage(canvasImage.toDataURL('image/jpeg', 0.9), 'JPEG', drawingX, yOffset, imgWidth, finalImgHeight);
 
-                const nextDrawingY = yOffset + finalImgHeight + lineSpacing;
+                let nextDrawingY = yOffset + finalImgHeight + lineSpacing;
+                // link dei video inseriti nel disegno (cliccabili nel PDF)
+                const videoLinks = window.VideoObjects ? VideoObjects.linksOf(tab) : [];
+                videoLinks.forEach(v => {
+                    const label = `Video: ${v.title}${v.url ? ' - ' + v.url : (v.file ? ' (file ' + v.file + ')' : '')}`.slice(0, 95);
+                    doc.setFontSize(fontNormalSize);
+                    if (v.url) { doc.setTextColor(30, 90, 180); doc.textWithLink(label, drawingX, nextDrawingY, { url: v.url }); doc.setTextColor(0); }
+                    else doc.text(label, drawingX, nextDrawingY);
+                    nextDrawingY += lineSpacing;
+                });
 
                 let currentStepsY = startYSection + lineSpacing;
 

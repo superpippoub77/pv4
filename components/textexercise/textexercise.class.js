@@ -636,7 +636,8 @@ class TextExerciseBuilder {
                         addBallNear(a);
                         // passaggio di ritorno tra le stesse posizioni: freccia curva, per non sovrapporla all'andata
                         const fromObj = (a.cur || a.obj).id, toObj = (b.cur || b.obj).id;
-                        const back = passPairs.has(toObj + '>' + fromObj);
+                        // (o di nuovo nello stesso verso: altrimenti le due frecce si sovrappongono)
+                        const back = passPairs.has(toObj + '>' + fromObj) || passPairs.has(fromObj + '>' + toObj);
                         passPairs.add(fromObj + '>' + toObj);
                         arrow(a, b, false, passColor, back);
                         steps.push({ text: `${act.from} passa la palla ${this.toWord(act.to)} ${act.to}`, name: act.text });
