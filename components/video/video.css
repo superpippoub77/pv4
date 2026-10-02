@@ -1,0 +1,73 @@
+/* Oggetto video sul foglio */
+.video-object {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #1f2123 center / cover no-repeat;
+    border: 2px solid #2c3e50;
+    box-sizing: border-box;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, .25);
+}
+
+.video-object.dashed { border-style: dashed; }
+
+.video-object .video-badge {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    padding: 1px 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #fff;
+    background: rgba(204, 0, 0, .9);
+    border-radius: 3px;
+}
+
+.video-object .video-play {
+    position: absolute;
+    left: 50%;
+    top: 46%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0, 0, 0, .65);
+    color: #fff;
+    font-size: 17px;
+    line-height: 40px;
+    padding: 0 0 0 3px;
+    cursor: pointer;
+}
+
+.video-object .video-play:hover { background: rgba(204, 0, 0, .9); }
+
+.video-object .video-title {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 3px 6px;
+    font-size: 11px;
+    color: #fff;
+    background: linear-gradient(transparent, rgba(0, 0, 0, .8));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Finestra del video */
+.vd { padding: 12px; display: flex; flex-direction: column; gap: 12px; font-size: 13px; }
+.vd-player { width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.vd-player iframe, .vd-player video { width: 100%; height: 100%; border: 0; }
+.vd-empty { color: #bbb; text-align: center; padding: 16px; line-height: 1.6; }
+.vd-empty img { max-width: 60%; max-height: 160px; border-radius: 4px; }
+.vd-empty a { color: #8ecbff; word-break: break-all; }
+.vd-form { display: flex; flex-direction: column; gap: 6px; }
+.vd-label { font-weight: 600; font-size: 12px; }
+.vd-input { width: 100%; box-sizing: border-box; padding: 7px 9px; font: inherit; border-radius: 6px; border: 1px solid var(--line, #ccc); background: var(--bg-0, #fff); color: var(--ink, #222); }
+.vd-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.vd-btn { padding: 6px 10px; font: inherit; border-radius: 6px; border: 1px solid var(--line, #ccc); background: var(--bg-2, #f3f3f3); color: var(--ink, #222); cursor: pointer; }
+.vd-hint { font-size: 12px; color: var(--ink-dim, #777); }

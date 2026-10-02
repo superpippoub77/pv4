@@ -11,7 +11,7 @@
 
 // Versione e mese di rilascio (come in SpikeCut): da aggiornare a ogni rilascio,
 // insieme a CHANGELOG.md, package.json e alla sezione "Novità" della guida.
-const APP_VERSION = "1.3.2";
+const APP_VERSION = "1.4.0";
 const APP_RELEASE = "Ott 2026";
 
 // Icone in stile SpikeCut (viewBox 22, tratto 1.6)
@@ -38,6 +38,8 @@ const LAYOUT_ICONS = {
     animation: SC_ICON("M3 5h16v12H3z M7 5v12 M15 5v12 M3 9h4 M3 13h4 M15 9h4 M15 13h4"),
     macro: SC_ICON("M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z", `<circle cx="11" cy="11" r="3" fill="currentColor" stroke="none"/>`),
     team: SC_ICON("M4 19v-1a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v1 M11 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"),
+    video: SC_ICON("M3 6h12v10H3z M15 9l4-2.5v9L15 13", `<path d="M7.5 9v4l3.5-2z" fill="currentColor" stroke="none"/>`),
+    plan: SC_ICON("M6 4h10v15H6z M9 3h4v2H9z M8.5 9h5 M8.5 12h5 M8.5 15h3"),
     pdf: SC_ICON("M6 3h7l4 4v12H6z M13 3v4h4 M8.5 12h6 M8.5 15h6"),
     calendar: SC_ICON("M4 6h14v13H4z M4 10h14 M8 3v5 M14 3v5 M7.5 13.5h2 M12.5 13.5h2 M7.5 16.5h2"),
     magic: SC_ICON("M4 18L14 8 M12 6l4 4 M16 3v3 M14.5 4.5h3 M19 8v2 M18 9h2 M8 3v2 M7 4h2"),
@@ -92,6 +94,7 @@ const layoutConfig = {
 
         { section: "Inserisci", i18n: "rail_sec_insert" },
         { id: "railPlayers", icon: "players", label: "Giocatori…", i18n: "rail_players", key: "G", title: "Galleria giocatori: clic per aggiungere, trascina per posizionare", onClick: (ed) => ed.layout.toggleFlyout("players") },
+        { id: "railVideo", icon: "video", label: "Video…", i18n: "rail_video", title: "Inserisci un video (YouTube, Vimeo, file dal computer o un link) con anteprima; doppio clic per guardarlo", onClick: () => window.VideoObjects?.add() },
         { id: "railElements", icon: "court", label: "Campo e oggetti…", i18n: "rail_elements", key: "E", title: "Campo, materiale, figure, testo e icone", onClick: (ed) => ed.layout.toggleFlyout("elements") },
 
         { section: "Modifica", i18n: "rail_sec_edit" },
@@ -104,6 +107,7 @@ const layoutConfig = {
         { id: "snapToGridBtn", icon: "snap", label: "Allinea a griglia", i18n: "rail_snap", title: "Allinea gli oggetti alla griglia", onClick: (ed) => ed.snapObjectsToGrid() },
 
         { section: "Allenamento", i18n: "rail_sec_training" },
+        { id: "workoutPlanBtn", icon: "plan", label: "Piano allenamento", i18n: "rail_workout_plan", title: "Scheda completa della seduta: intestazione, obiettivo, fasi con esercizi e disegni, gruppi; importa da PDF ed esporta in PDF", onClick: (ed) => ed.workoutPlan.show() },
         { id: "workoutGenBtn", icon: "calendar", label: "Genera allenamento", i18n: "rail_workout_generator", title: "Descrivi parte analitica, sintetica e globale: l'allenamento viene composto con gli esercizi della libreria o creati in automatico", onClick: (ed) => ed.workoutGenerator.show() },
         { id: "workoutPdfBtn", icon: "pdf", label: "Scheda PDF", i18n: "rail_workout_pdf", title: "Scheda PDF dell'allenamento: tutte le schede aperte, con disegno, step e dati (anche da Stampa → Scheda allenamento)", onClick: (ed) => ed.exportWorkoutToPDF() },
         { id: "textExerciseBtn", icon: "magic", label: "Crea da testo", i18n: "rail_text_exercise", title: "Descrivi l'esercizio a parole: campo, giocatori, frecce e step vengono creati in automatico", onClick: (ed) => ed.textExerciseManager.show() },

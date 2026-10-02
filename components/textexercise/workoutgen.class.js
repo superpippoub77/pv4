@@ -132,67 +132,76 @@ class WorkoutGenerator {
     // ============================================================
     // GENERAZIONE
     // ============================================================
-    async generate(requests, opts = {}) {
-        const ed = this.editor;
-        const result = { items: [], notes: [] };
+    /** Testi degli esercizi della libreria (vuoto se non disponibile; il motivo va in notes) */
+    async loadLibraryIndex(notes) {
+        if (!(window.Pv4Library && window.Pv4Library.isAvailable())) {
+            notes.push('Libreria non disponibile (accesso senza account o server non raggiungibile): gli esercizi sono stati creati in automatico.');
+            return [];
+        }
+        try {
+            return (await CloudApi.get('search_index.php')).items || [];
+        } catch (err) {
+            notes.push('Libreria non raggiungibile (' + err.message + '): gli esercizi sono stati creati in automatico.');
+            return [];
+        }
+    }
 
-        let library = [];
-        if (opts.useLibrary) {
-            if (window.Pv4Library && window.Pv4Library.isAvailable()) {
-                try {
-                    library = (await CloudApi.get('search_index.php')).items || [];
-                } catch (err) {
-                    result.notes.push('Libreria non raggiungibile (' + err.message + '): tutti gli esercizi sono stati creati in automatico.');
-                }
-            } else {
-                result.notes.push('Libreria non disponibile (accesso senza account o server non raggiungibile): tutti gli esercizi sono stati creati in automatico.');
+    /**
+     * Crea (in una scheda) l'esercizio per una richiesta: dalla libreria se corrisponde,
+     * altrimenti disegnato in automatico. ctx = { library, used, title, contextText }.
+     * Restituisce { source, libraryName, owner, template, tabId }.
+     */
+    async createExercise(req, opts, ctx) {
+        const ed = this.editor;
+        const item = { part: req.part, text: req.text };
+        const match = ctx.library && ctx.library.length ? this.findInLibrary(req, ctx.library, ctx.used) : null;
+
+        if (match) {
+            ctx.used.add(match.id);
+            const ok = await window.Pv4Library.load(match.id);
+            if (ok) {
+                item.source = 'library';
+                item.libraryName = match.name;
+                item.owner = match.mine ? '' : match.ownerName;
+                const tab = ed.getCurrentTab();
+                if (!tab.tipologia || tab.tipologia === 'GEN') tab.tipologia = req.part.key;
+                this.applyParams(tab, req.text, opts, false);
             }
         }
 
+        if (!item.source) {
+            let script = req.text;
+            if (this.isDrawable(req.text)) {
+                item.source = 'text';
+            } else {
+                const tpl = this.pickTemplate(req.text, req.part.key, ctx.contextText);
+                script = tpl.script;
+                item.source = 'template';
+                item.template = tpl.name;
+            }
+            this.textExercise().build(script, { newTab: true, numbers: opts.numbers !== false });
+            const tab = ed.getCurrentTab();
+            tab.tipologia = req.part.key;
+            this.renameTab(ctx.title || this.titleOf(req.text));
+            this.applyParams(tab, req.text, opts, true);
+        }
+        item.tabId = ed.activeTabId;
+        return item;
+    }
+
+    async generate(requests, opts = {}) {
+        const ed = this.editor;
+        const result = { items: [], notes: [] };
+        const library = opts.useLibrary ? await this.loadLibraryIndex(result.notes) : [];
         const used = new Set();
         let firstTabId = null;
         const counters = {};
 
         for (const req of requests) {
             counters[req.part.key] = (counters[req.part.key] || 0) + 1;
-            const item = { part: req.part, text: req.text };
-            const match = library.length ? this.findInLibrary(req, library, used) : null;
-
-            if (match) {
-                used.add(match.id);
-                const ok = await window.Pv4Library.load(match.id);
-                if (ok) {
-                    item.source = 'library';
-                    item.libraryName = match.name;
-                    item.owner = match.mine ? '' : match.ownerName;
-                    const tab = ed.getCurrentTab();
-                    if (!tab.tipologia || tab.tipologia === 'GEN') tab.tipologia = req.part.key;
-                    this.applyParams(tab, req.text, opts, false);
-                } else {
-                    item.source = null; // caricamento fallito: si genera
-                }
-            }
-
-            if (!item.source) {
-                const drawable = this.isDrawable(req.text);
-                let script = req.text;
-                if (drawable) {
-                    item.source = 'text';
-                } else {
-                    const tpl = this.pickTemplate(req.text, req.part.key);
-                    script = tpl.script;
-                    item.source = 'template';
-                    item.template = tpl.name;
-                }
-                this.textExercise().build(script, { newTab: true, numbers: opts.numbers !== false });
-                const tab = ed.getCurrentTab();
-                tab.tipologia = req.part.key;
-                const title = this.titleOf(req.text);
-                this.renameTab(`${req.part.short} ${counters[req.part.key]} · ${title}`);
-                this.applyParams(tab, req.text, opts, true);
-            }
-
-            if (firstTabId === null) firstTabId = ed.activeTabId;
+            const title = `${req.part.short} ${counters[req.part.key]} · ${this.titleOf(req.text)}`;
+            const item = await this.createExercise(req, opts, { library, used, title });
+            if (firstTabId === null) firstTabId = item.tabId;
             result.items.push(item);
         }
 
@@ -210,7 +219,7 @@ class WorkoutGenerator {
         const plan = this.textExercise().parse(text);
         const placed = plan.placements.filter(p => p.id && p.zone).length;
         const actions = plan.actions.filter(a => a.from || a.who).length;
-        return placed > 0 || actions >= 2;
+        return placed > 0 || (actions >= 2 && plan.unknown.length === 0);
     }
 
     textExercise() {
@@ -308,18 +317,21 @@ class WorkoutGenerator {
         { name: '2 contro 2', keys: /\b(2\s*(?:c|contro|vs|v)\s*2|due contro due)\b/,
           script: 'Campo intero orizzontale. A in zona 1, B in zona 5. C in zona 1 del campo avversario, D in zona 5 del campo avversario. ' +
                   'A passa la palla oltre la rete in zona 6. C passa a D. D attacca in zona 1.' },
-        { name: 'muro', keys: /\b(mur\w*)\b/,
-          script: 'Campo intero orizzontale. S1 in zona 4. C1 in zona 3. P2 in zona 3 del campo avversario. S2 in zona 4 del campo avversario. ' +
-                  'P2 passa a S2. S2 attacca in zona 1. S1 va a rete. C1 si sposta in zona 4.' },
         { name: 'difesa sull\'attacco dell\'allenatore', keys: /\b(difes\w*|difend\w*|copertur\w*)\b/,
           script: 'Campo intero orizzontale. A in zona 5, B in zona 6, C in zona 1. L\'allenatore in zona 3 del campo avversario. ' +
                   'L\'allenatore attacca in zona 6. B passa ad A. A passa a C.' },
+        { name: 'minicampo', keys: /\b(minicamp\w*|mini campo)\b/,
+          script: 'Metà campo con la rete. A in zona 6. B in zona 4. C in zona 6 del campo avversario. D in zona 4 del campo avversario. ' +
+                  'A passa a B. B passa la palla oltre la rete in zona 5. C passa a D. D passa la palla oltre la rete.' },
+        { name: 'muro', keys: /\b(mur\w*)\b/,
+          script: 'Campo intero orizzontale. S1 in zona 4. C1 in zona 3. P2 in zona 3 del campo avversario. S2 in zona 4 del campo avversario. ' +
+                  'P2 passa a S2. S2 attacca in zona 1. S1 va a rete. C1 si sposta in zona 4.' },
         { name: 'ricezione e alzata', keys: /\b(ricezion\w*|ricev\w*)\b/,
           script: 'Campo intero orizzontale. A batte in zona 5. L1 in zona 5 del campo avversario. P1 in zona 2 del campo avversario. S1 in zona 4 del campo avversario. ' +
                   'L1 riceve. L1 passa a P1. P1 passa a S1.' },
         { name: 'battuta', keys: /\b(battut\w*|batt\w*|serviz\w*)\b/,
           script: 'Campo intero orizzontale. A batte in zona 1. B batte in zona 5. C in zona 6 del campo avversario. C riceve.' },
-        { name: 'attacco', keys: /\b(attacc\w*|schiacc\w*|pallonett\w*|ricostruzion\w*)\b/,
+        { name: 'attacco', keys: /\b(attacc\w*|schiacc\w*|pallonett\w*|ricostruzion\w*|rincors\w*)\b/,
           script: 'Metà campo verticale con la rete. Il palleggiatore in zona 3. S1 in zona 4. A in zona 6. ' +
                   'A passa al palleggiatore che alza per S1. S1 attacca in zona 1.' },
         { name: 'alzata', keys: /\b(alzat\w*|palleggiator\w*|alzator\w*|regia)\b/,
@@ -336,10 +348,19 @@ class WorkoutGenerator {
 
     static DEFAULT_BY_PART = { ANA: 'palleggio a coppie', SIN: 'attacco', GLO: 'partita 6 contro 6' };
 
-    pickTemplate(text, partKey) {
-        const t = WorkoutGenerator.norm(text);
-        const found = WorkoutGenerator.TEMPLATES.find(tp => tp.keys.test(t));
-        if (found) return found;
+    pickTemplate(text, partKey, contextText) {
+        // prima la richiesta, poi il contesto (es. il titolo del blocco nel Piano allenamento)
+        for (const src of [text, contextText]) {
+            if (!src) continue;
+            const t = WorkoutGenerator.norm(src);
+            // lo schema con più parole chiave nel testo (a parità, quello che viene prima nell'elenco)
+            let best = null, bestHits = 0;
+            WorkoutGenerator.TEMPLATES.forEach(tp => {
+                const hits = (t.match(new RegExp(tp.keys.source, 'g')) || []).length;
+                if (hits > bestHits) { best = tp; bestHits = hits; }
+            });
+            if (best) return best;
+        }
         const def = WorkoutGenerator.DEFAULT_BY_PART[partKey] || 'palleggio a coppie';
         return WorkoutGenerator.TEMPLATES.find(tp => tp.name === def);
     }

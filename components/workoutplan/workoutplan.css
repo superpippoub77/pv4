@@ -1,0 +1,138 @@
+/* Finestra "Piano allenamento" */
+.wp {
+    padding: 12px 14px 20px;
+    font-size: 13px;
+    color: var(--ink, #222);
+    box-sizing: border-box;
+}
+
+.wp * { box-sizing: border-box; }
+
+.wp-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    position: sticky;
+    top: -12px;
+    z-index: 2;
+    padding: 8px 0;
+    background: var(--bg-1, #fff);
+    border-bottom: 1px solid var(--line, #ddd);
+}
+
+.wp button {
+    font: inherit;
+    font-size: 12px;
+    padding: 5px 9px;
+    border-radius: 5px;
+    border: 1px solid var(--line, #ccc);
+    background: var(--bg-2, #f3f3f3);
+    color: var(--ink, #222);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.wp button:hover { border-color: var(--brass-dim, #999); }
+.wp button.wp-primary { background: var(--brass, #c9973f); border-color: var(--brass, #c9973f); color: #1c1200; font-weight: 600; }
+.wp .wp-sep { flex: 1; }
+
+.wp-status { margin: 8px 0 0; padding: 0; }
+.wp-status:empty { display: none; }
+.wp-status.tx-ex-ok, .wp-status.tx-ex-note, .wp-status.tx-ex-warn { padding: 8px 10px; border-radius: 6px; line-height: 1.5; }
+
+.wp-in, .wp-ta {
+    width: 100%;
+    font: inherit;
+    font-size: 12.5px;
+    padding: 5px 7px;
+    border-radius: 5px;
+    border: 1px solid var(--line, #ccc);
+    background: var(--bg-0, #fff);
+    color: var(--ink, #222);
+}
+
+.wp-ta { resize: vertical; line-height: 1.45; }
+.wp-in:focus, .wp-ta:focus { outline: none; border-color: var(--brass, #3498db); }
+
+.wp-field { display: flex; flex-direction: column; gap: 3px; font-size: 11px; color: var(--ink-dim, #666); }
+
+.wp-head {
+    display: grid;
+    grid-template-columns: 2fr repeat(3, 1fr) repeat(4, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.wp-grid6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+.wp-grid8 { display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; }
+
+.wp-h { margin: 16px 0 6px; font-size: 15px; color: var(--ink, #222); }
+
+.wp-phase {
+    margin: 22px 0 8px;
+    font-size: 18px;
+}
+
+.wp-phase .wp-phase-title {
+    font-size: 17px;
+    font-weight: 700;
+    width: auto;
+    min-width: 260px;
+    background: var(--ph);
+    color: #111;
+    border-color: transparent;
+}
+
+.wp-phase:not(:has(input)) {
+    display: inline-block;
+    padding: 2px 8px;
+    background: var(--ph);
+    color: #111;
+    border-radius: 3px;
+}
+
+.wp-block {
+    margin: 8px 0 14px;
+    border: 1px solid var(--line, #ccc);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.wp-block-head {
+    display: flex;
+    gap: 6px;
+    padding: 6px;
+    background: #666;
+}
+
+.wp-block-head .wp-in { flex: 1; font-weight: 700; text-align: center; background: #777; color: #fff; border-color: #888; }
+.wp-block-head .wp-in::placeholder { color: #ddd; }
+
+.wp-table { width: 100%; border-collapse: collapse; }
+.wp-table th { font-size: 11px; font-weight: 600; color: var(--ink-dim, #666); padding: 4px; border-bottom: 1px solid var(--line, #ddd); background: var(--bg-2, #f3f3f3); }
+.wp-table td { padding: 4px; vertical-align: top; border-bottom: 1px solid var(--line-soft, #eee); }
+.wp-table .wp-nr { width: 46px; text-align: center; }
+.wp-table .wp-small { width: 52px; text-align: center; }
+.wp-table .wp-qty { width: 62px; text-align: center; }
+.wp-table td:nth-child(2) { width: 38%; }
+.wp-table:not(.glo) td:nth-child(6), .wp-table.glo td:nth-child(4) { width: 24%; }
+.wp-table .wp-det { font-style: italic; }
+
+.wp-drawcell { width: 150px; }
+.wp-drawcell button, .wp-drawcell select { margin: 0 2px 3px 0; font-size: 11px; padding: 3px 6px; }
+.wp-drawcell select { max-width: 140px; border-radius: 5px; border: 1px solid var(--line, #ccc); background: var(--bg-2, #f3f3f3); color: var(--ink, #222); }
+.wp-draw { font-size: 11px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+.wp-draw.ok { color: #2e9e5a; font-weight: 600; }
+.wp-rowbtn { width: 34px; }
+.wp-rowbtn button { display: block; margin-bottom: 3px; padding: 2px 6px; }
+
+.wp-add { margin: 2px 0 6px; }
+
+.wp-groups { display: flex; flex-direction: column; gap: 8px; margin-bottom: 6px; }
+.wp-group { display: grid; grid-template-columns: 220px 1fr auto; gap: 8px; align-items: start; }
+
+@media (max-width: 900px) {
+    .wp-head, .wp-grid6, .wp-grid8 { grid-template-columns: repeat(2, 1fr); }
+    .wp-group { grid-template-columns: 1fr; }
+}

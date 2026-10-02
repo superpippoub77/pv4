@@ -141,6 +141,23 @@ html:`<p><b>Genera allenamento</b> (barra a sinistra, sezione Allenamento, o Fil
 <li>Durata, serie e recupero scritti nella riga («10 minuti», «3 serie», «recupero 60 secondi») finiscono nei <a data-topic="dati-esercizio">dati dell'esercizio</a>; la tipologia (analitico, sintetico, globale) viene impostata da sola.</li></ul>
 <p>Ogni esercizio diventa una scheda, nell'ordine analitica → sintetica → globale. La finestra mostra da dove arriva ciascuno; poi «Salva allenamento…» lo salva e Stampa → Scheda allenamento (PDF) lo stampa.</p>` },
 
+{ id:'piano-allenamento', cat:'Esercizi', title:'Piano allenamento', keys:'piano scheda seduta allenamento intestazione obiettivo caratteristiche materiale fase analitica sintetica globale blocco gruppi importa pdf disegni annessi json',
+html:`<p><b>Piano allenamento</b> (barra a sinistra, sezione Allenamento, o File → Piano allenamento…) è la scheda completa della seduta, come quelle delle società:</p>
+<ul><li><b>intestazione</b>: squadra, stagione, categoria, campionato, periodo, palestra, numero dell'allenamento, durata;</li>
+<li><b>obiettivo</b>, <b>caratteristiche prestative</b> (categoria, età, campionato, livello tecnico e tattico, % fattibilità) e <b>materiale occorrente</b>;</li>
+<li><b>Fase Analitica</b>, <b>Fase Sintetica</b> e <b>Fase Globale</b>: ognuna con <b>blocchi</b> a titolo (es. «Riscaldamento e Mobilità») e i loro <b>esercizi</b> con Nr, descrizione (le righe che iniziano con «• » diventano un elenco), G (gruppi), R (ruoli), quantità (10’, x20…) e dettagli;</li>
+<li><b>gruppi</b> di lavoro con i nomi dei giocatori.</li></ul>
+<p><b>Disegni</b>: per ogni esercizio «✏️ Disegna» apre una nuova scheda collegata da disegnare a mano (con tipologia, descrizione e step già compilati); «✨ Auto» lo prende dalla <a data-topic="libreria">libreria</a> se corrisponde, altrimenti lo crea in automatico come <a data-topic="genera-allenamento">Genera allenamento</a>; «🔗 Collega scheda…» usa una scheda già aperta. «✨ Disegna tutti gli esercizi» lo fa per tutti quelli senza disegno. «Apri» porta al disegno; per tornare al piano si riapre «Piano allenamento».</p>
+<p><b>Importa da PDF</b> legge un piano con questa struttura (per esempio quello esportato dal documento della società): intestazione, obiettivo, tabelle, fasi con blocchi ed esercizi, gruppi. Controlla poi i campi.</p>
+<p><b>📄 PDF dell'allenamento</b> crea il PDF con la stessa impaginazione, più i <b>disegni annessi</b> (D1, D2… richiamati nella tabella) e i link dei <a data-topic="video">video</a>. <b>Salva (.json)</b> e <b>Apri (.json)</b> conservano il piano insieme ai suoi disegni; il piano resta comunque salvato nel browser.</p>` },
+
+{ id:'video', cat:'Disegnare', title:'Video nel disegno', keys:'video youtube vimeo filmato link anteprima mp4 file riproduci guarda',
+html:`<p><b>Video…</b> (barra a sinistra, sezione Inserisci) mette nel disegno un riquadro con l'<b>anteprima</b> del video, il titolo e ▶:</p>
+<ul><li><b>YouTube</b> (anche Shorts; con <code>&amp;t=1m30s</code> nel link parte da quel minuto) e <b>Vimeo</b>: si guardano dentro VolleyProW4;</li>
+<li><b>file dal computer</b> (mp4, webm…): l'anteprima viene salvata nel disegno; il file resta collegato finché la pagina è aperta, dopo una ricarica va scelto di nuovo per guardarlo;</li>
+<li><b>qualunque altro link</b>: i file .mp4/.webm si guardano nella finestra, gli altri si aprono in una nuova scheda del browser.</li></ul>
+<p><b>Doppio clic</b> sul riquadro (o ▶) apre il video; dalla stessa finestra si cambiano link e titolo. Il riquadro si sposta, ridimensiona e tratteggia come gli altri oggetti. Nei PDF, sotto il disegno, compare il link del video (cliccabile).</p>` },
+
 { id:'step', cat:'Esercizi', title:'Step dell\'esercizio', keys:'step passi sequenza descrizione ordine trascina azioni preimpostate',
 html:`<p>Nella scheda <b>Step</b> del pannello a destra scrivi le fasi dell'esercizio in ordine. Le azioni preimpostate vengono riconosciute mentre scrivi; gli step si riordinano trascinandoli e compaiono nella scheda stampata.</p>
 <p><a data-topic="crea-da-testo">Crea da testo</a> compila gli step da solo: la disposizione iniziale e un passo per ogni passaggio, spostamento o azione.</p>` },
@@ -238,6 +255,7 @@ html:`<dl class="guide-faq">
 
 { id:'novita', cat:'Riferimento', title:'Novità', keys:'novità versioni changelog aggiornamenti',
 html:`<ul>
+<li><b>1.4.0</b> — <a data-topic="piano-allenamento">Piano allenamento</a> con importazione da PDF, disegni degli esercizi (a mano o automatici) e PDF con disegni annessi; <a data-topic="video">video nel disegno</a> con anteprima.</li>
 <li><b>1.3.2</b> — Schermata «Nessuno schema aperto»; tratteggio sugli oggetti già inseriti.</li>
 <li><b>1.3.1</b> — Chiudi tutte le schede e chiusura dell'ultima scheda; pulsante 📄 Scheda PDF; PDF dell'allenamento con intestazione, parti, disegno a misura e step leggibili.</li>
 <li><b>1.3</b> (ottobre 2026) — <a data-topic="genera-allenamento">Genera allenamento</a> dalle parti analitica, sintetica e globale, con esercizi presi dalla libreria o creati in automatico; pulsante <b>⟲ 3D</b> per azzerare la vista 3D; nessun messaggio a video per il salvataggio automatico; profilo nell'account; mese di rilascio e versione nella barra di stato.</li>
