@@ -784,3 +784,6 @@ Object.assign(translations.fr, { "rail_workout_generator": "Générer l'entraîn
 Object.assign(translations.it, { "st_reset3d": "⟲ 3D" });
 Object.assign(translations.en, { "st_reset3d": "⟲ 3D" });
 Object.assign(translations.fr, { "st_reset3d": "⟲ 3D" });
+Object.assign(translations.it, { "rail_workout_pdf": "Scheda PDF", "btn_workout_pdf": "📄 Scheda PDF" });
+Object.assign(translations.en, { "rail_workout_pdf": "PDF sheet", "btn_workout_pdf": "📄 PDF sheet" });
+Object.assign(translations.fr, { "rail_workout_pdf": "Fiche PDF", "btn_workout_pdf": "📄 Fiche PDF" });

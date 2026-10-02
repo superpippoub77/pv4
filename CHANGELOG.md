@@ -5,6 +5,17 @@ e compaiono nella barra di stato ("VBProW4 by SpikeCode AI · Ott 2026 · Ver: 1
 Informazioni e nella guida (Riferimento → Novità). A ogni rilascio vanno aggiornati insieme a questo file
 e a `package.json`.
 
+## 1.3.1 — Ott 2026
+
+- Si può chiudere anche l'ultima scheda (resta uno schema nuovo vuoto); pulsante **✕ Chiudi tutte** a destra
+  delle schede e tasto destro su una scheda (Chiudi scheda, Chiudi le altre, Chiudi tutte), con una sola
+  conferma se c'è del lavoro aperto.
+- **Scheda PDF** dell'allenamento di nuovo a portata di mano: pulsante nella barra a sinistra (Allenamento) e
+  nella finestra Genera allenamento, oltre a Stampa → Scheda allenamento (PDF).
+- PDF dell'allenamento: intestazione con nome e obiettivo, parte (analitica/sintetica/globale) di ogni
+  esercizio, disegno catturato alla misura reale del foglio (prima piccolo in un riquadro vuoto), step
+  stampati come testo (prima «[object Object]»).
+
 ## 1.3.0 — Ott 2026
 
 - **Genera allenamento**: si descrive cosa si vuole nella parte analitica, sintetica e globale (un esercizio
