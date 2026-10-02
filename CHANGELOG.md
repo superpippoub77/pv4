@@ -1,5 +1,34 @@
 # Changelog
 
+La versione e il mese di rilascio si trovano in `data/configuration/layout.js` (`APP_VERSION`, `APP_RELEASE`)
+e compaiono nella barra di stato ("VBProW4 by SpikeCode AI · Ott 2026 · Ver: 1.3.0"), nella finestra
+Informazioni e nella guida (Riferimento → Novità). A ogni rilascio vanno aggiornati insieme a questo file
+e a `package.json`.
+
+## 1.3.0 — Ott 2026
+
+- **Genera allenamento**: si descrive cosa si vuole nella parte analitica, sintetica e globale (un esercizio
+  per riga); per ogni richiesta si usa l'esercizio della libreria che corrisponde (nome, descrizione, step),
+  altrimenti viene creato in automatico con il disegno (Crea da testo o schema tipo per parola chiave).
+  Durata, serie e recupero vengono letti dalla riga; la tipologia è impostata da sola. Nuova API
+  `cloud/search_index.php`.
+- Pulsante **⟲ 3D** nella barra di stato (e doppio clic sulla sfera) per azzerare la vista 3D.
+- Il salvataggio automatico non mostra più messaggi quando riesce (solo in caso di errore).
+- Mese di rilascio e versione nella barra di stato, come in SpikeCut; versione allineata in guida,
+  Informazioni e `package.json`.
+- Profilo utente nell'account (`cloud/profile.php`); ruolo e voce Amministrazione visibili.
+
+## 1.2.0 — Ott 2026
+
+- Account veri come SpikeCut (registrazione, accesso, recupero password, sessione ricordata).
+- Libreria esercizi online in stile Esplora file: esercizi privati e pubblici, cartelle, Cestino,
+  appunti, Sposta in…/Copia in…, Proprietà, versioni con versioni fissate, amministrazione.
+- Guida con ricerca (F1).
+- Crea da testo: esercizio disegnato da una descrizione, con apprendimento; spostamenti dello stesso
+  giocatore come copie trasparenti e tratteggiate.
+- Correzioni: login non ricordato, foglio iniziale 100×100, nuovo schema in errore, metà campo con le linee
+  del campo intero.
+
 ## 1.1.0 — Interfaccia in stile SpikeCut
 
 ### Layout

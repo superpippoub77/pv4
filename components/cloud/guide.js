@@ -44,7 +44,7 @@ function setupOverlayClickClose(overlayEl, closeFn){
    del programma (anche la sezione "Novità" e GUIDE_VERSION).
    Collegamenti tra argomenti: <a data-topic="id">testo</a>
 ============================================================ */
-const GUIDE_VERSION = '1.2.0';
+const GUIDE_VERSION = (typeof APP_VERSION !== 'undefined') ? APP_VERSION : '';
 const GUIDE_TOPICS = [
 /* ---------------- PER INIZIARE ---------------- */
 { id:'intro', cat:'Per iniziare', title:'Cos\'è VolleyProW4', keys:'panoramica introduzione cosa fa allenatore pallavolo schema esercizio allenamento',
@@ -76,7 +76,7 @@ html:`<p>Lo schermo è diviso in zone:</p>
 <li><b>Barra degli strumenti</b> a sinistra, a sezioni: Seleziona, Disegna, Inserisci, Modifica, Allenamento. Il pulsante ☰ la comprime o la espande.</li>
 <li><b>Foglio</b> al centro: il campo con giocatori, oggetti e frecce.</li>
 <li><b>Pannello a destra</b> con tre schede: <b>Proprietà</b> (del foglio o dell'oggetto selezionato), <b>Step</b> (vedi <a data-topic="step">Step</a>) ed <b>Esercizio</b> (vedi <a data-topic="dati-esercizio">Dati dell'esercizio</a>).</li>
-<li><b>Barra di stato</b> in basso: coordinate e interruttori per griglia, bianco e nero, numeri degli oggetti, nomi dei giocatori, bordi del foglio e sfera 3D.</li></ul>` },
+<li><b>Barra di stato</b> in basso: coordinate, interruttori per griglia, bianco e nero, numeri degli oggetti, nomi dei giocatori, bordi del foglio e sfera 3D, il pulsante <b>⟲ 3D</b> che azzera la vista 3D e, a destra, mese di rilascio e versione del programma.</li></ul>` },
 
 { id:'schede', cat:'Per iniziare', title:'Schede e foglio', keys:'tab nuovo schema più schemi chiudi scheda foglio dimensione formato personalizzato maniglia sfondo zoom',
 html:`<p>Con <b>＋</b> accanto alle schede (o nella barra in alto) crei un nuovo schema; la × su una scheda la chiude. Ogni scheda ha i suoi oggetti, i suoi step e la sua cronologia annulla/ripeti. Il nome si cambia scrivendo direttamente sulla scheda o nel titolo in alto.</p>
@@ -111,6 +111,7 @@ html:`<ul><li><b>Selezione</b> (V): clic su un oggetto per selezionarlo, trascin
 { id:'vista-3d', cat:'Disegnare', title:'Vista 3D', keys:'3d sfera rotazione piano inclinazione profondità prospettiva modelli glb',
 html:`<p>Il foglio si può inclinare per una vista in prospettiva del campo:</p>
 <ul><li>la <b>sfera 3D</b> (interruttore nella barra di stato) si trascina per ruotare il piano;</li>
+<li><b>⟲ 3D</b> nella barra di stato (o doppio clic sulla sfera) <b>azzera la vista</b>: il foglio torna piatto;</li>
 <li>nel pannello Proprietà, <b>Rotazione piano</b> con i pulsanti X−/X+, Y−/Y+, Z−/Z+ e ⟲ per azzerare;</li>
 <li><b>Oggetti allineati al piano</b> fa seguire agli oggetti l'inclinazione; <b>Profondità</b> li solleva dal piano (fissa o automatica in base alla dimensione).</li></ul>
 <p>Dal menu File puoi registrare modelli 3D (.glb) da usare come oggetti.</p>` },
@@ -131,6 +132,14 @@ html:`<p><b>Crea da testo</b> (barra a sinistra, sezione Allenamento) costruisce
 <li>Le frasi non capite vengono elencate nella finestra.</li>
 <li>Tutto l'esercizio si toglie con un solo Annulla.</li></ul>
 <p><b>Apprendimento</b>: se sposti a mano un giocatore creato da testo, la nuova posizione della zona viene ricordata (all'apertura della finestra o con «Impara dalle modifiche»). In «Insegnami una frase» puoi dire che una parola tua significa un'altra (es. «la palleggiatrice» → «P1»).</p>` },
+
+{ id:'genera-allenamento', cat:'Esercizi', title:'Genera allenamento', keys:'allenamento automatico genera parte analitica sintetica globale seduta programma libreria esercizi',
+html:`<p><b>Genera allenamento</b> (barra a sinistra, sezione Allenamento, o File → Genera allenamento…) compone un allenamento intero partendo da cosa vuoi in ogni parte:</p>
+<ul><li><b>Parte analitica</b>, <b>parte sintetica</b> e <b>parte globale</b>: scrivi <b>un esercizio per riga</b> (es. «Palleggio a coppie 10 minuti», «Ricezione e alzata per lo schiacciatore di posto 4», «Partita 6 contro 6»).</li>
+<li>Per ogni riga si cerca nella <a data-topic="libreria">libreria</a> (i tuoi esercizi e quelli pubblici) un esercizio che corrisponda per nome, descrizione e step: se c'è, viene usato quello.</li>
+<li>Se non c'è, l'esercizio viene <b>creato in automatico con il disegno</b>: se la riga descrive già campo e giocatori («P1 in zona 1, A in zona 2, P1 passa ad A») la disegna come <a data-topic="crea-da-testo">Crea da testo</a>, altrimenti sceglie uno schema tipo dalle parole chiave (palleggio, bagher, battuta, ricezione, alzata, attacco, muro, difesa, riscaldamento, 2/3/6 contro…).</li>
+<li>Durata, serie e recupero scritti nella riga («10 minuti», «3 serie», «recupero 60 secondi») finiscono nei <a data-topic="dati-esercizio">dati dell'esercizio</a>; la tipologia (analitico, sintetico, globale) viene impostata da sola.</li></ul>
+<p>Ogni esercizio diventa una scheda, nell'ordine analitica → sintetica → globale. La finestra mostra da dove arriva ciascuno; poi «Salva allenamento…» lo salva e Stampa → Scheda allenamento (PDF) lo stampa.</p>` },
 
 { id:'step', cat:'Esercizi', title:'Step dell\'esercizio', keys:'step passi sequenza descrizione ordine trascina azioni preimpostate',
 html:`<p>Nella scheda <b>Step</b> del pannello a destra scrivi le fasi dell'esercizio in ordine. Le azioni preimpostate vengono riconosciute mentre scrivi; gli step si riordinano trascinandoli e compaiono nella scheda stampata.</p>
@@ -229,6 +238,7 @@ html:`<dl class="guide-faq">
 
 { id:'novita', cat:'Riferimento', title:'Novità', keys:'novità versioni changelog aggiornamenti',
 html:`<ul>
+<li><b>1.3</b> (ottobre 2026) — <a data-topic="genera-allenamento">Genera allenamento</a> dalle parti analitica, sintetica e globale, con esercizi presi dalla libreria o creati in automatico; pulsante <b>⟲ 3D</b> per azzerare la vista 3D; nessun messaggio a video per il salvataggio automatico; profilo nell'account; mese di rilascio e versione nella barra di stato.</li>
 <li><b>1.2</b> — Account veri (registrazione, accesso, recupero password, sessione ricordata), <a data-topic="libreria">libreria online</a> come Esplora file con esercizi privati e pubblici, <a data-topic="versioni">versioni</a>, <a data-topic="cestino">Cestino</a> e <a data-topic="amministrazione">amministrazione</a>; questa guida con ricerca (F1).</li>
 <li><b>1.1</b> — <a data-topic="crea-da-testo">Crea da testo</a> con apprendimento e spostamenti disegnati come copie trasparenti e tratteggiate; il foglio iniziale parte a 560 × 400; il login resta ricordato.</li>
 </ul>` },

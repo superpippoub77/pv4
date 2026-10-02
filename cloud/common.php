@@ -475,6 +475,6 @@ function site_base_url() {
 // Le richieste che modificano dati passano una alla volta; quelle di sola lettura
 // non aspettano (grazie alla scrittura atomica non leggono mai un file a metà).
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'OPTIONS'
-    && !in_array(basename($_SERVER['SCRIPT_NAME'] ?? ''), ['list.php', 'load.php', 'load_version.php', 'versions.php', 'me.php', 'admin_status.php', 'admin_users.php', 'admin_projects.php'], true)) {
+    && !in_array(basename($_SERVER['SCRIPT_NAME'] ?? ''), ['list.php', 'load.php', 'load_version.php', 'versions.php', 'me.php', 'search_index.php', 'admin_status.php', 'admin_users.php', 'admin_projects.php'], true)) {
     acquire_data_lock();
 }

@@ -397,11 +397,11 @@ class MenuManager {
             <h2 style="color: #3498db; margin-bottom: 10px;">Volleyball Coach Pro W4</h2>
             <p style="color: #7f8c8d; margin-bottom: 20px;">Editor Professionale per Allenatori di Pallavolo</p>
             <div style="border-top: 2px solid #ecf0f1; padding-top: 20px; margin-top: 20px;">
-                <p><strong>Versione:</strong> 4.0.0</p>
+                <p><strong>Versione:</strong> ${typeof APP_VERSION !== 'undefined' ? APP_VERSION : ''}${typeof APP_RELEASE !== 'undefined' ? ' · ' + APP_RELEASE : ''}</p>
                 <p><strong>Autore:</strong> Filippo Morano</p>
                 <p><strong>Web:</strong> <a href="https://www.filippomorano.com" target="_blank">filippomorano.com</a></p>
                 <p style="margin-top: 20px; color: #95a5a6; font-size: 12px;">
-                    © 2025 SpikeCode - Tutti i diritti riservati
+                    © 2026 SpikeCode AI - Tutti i diritti riservati
                 </p>
             </div>
         </div>

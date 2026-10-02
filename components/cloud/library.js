@@ -1935,6 +1935,9 @@ window.Pv4Library = {
   },
   pinVersion: pinCurrentVersion,
   account: openAccountModal,
+  // apre un esercizio della libreria (nella scheda attuale se vuota, altrimenti in una nuova)
+  load: (id)=> loadFromLibrary(id, {silent:true}),
+  isAvailable: ()=> !!currentUser,
   admin: openAdmin,
   toast: showToast
 };

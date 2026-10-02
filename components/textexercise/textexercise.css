@@ -136,3 +136,51 @@
 .tx-ex-empty {
     color: var(--ink-dim, #888);
 }
+
+/* Finestra "Genera allenamento" */
+.wg .wg-label {
+    display: block;
+    font-weight: 600;
+    margin: 4px 0 4px;
+}
+
+.wg .wg-text {
+    min-height: 70px;
+}
+
+.wg .wg-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 10px;
+}
+
+.wg .wg-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 7px 9px;
+    font: inherit;
+    border-radius: 6px;
+    border: 1px solid var(--line, #ccc);
+    background: var(--bg-0, #fff);
+    color: var(--ink, #222);
+}
+
+.wg-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 6px;
+    font-size: 12.5px;
+}
+
+.wg-table th,
+.wg-table td {
+    text-align: left;
+    vertical-align: top;
+    padding: 5px 8px;
+    border-bottom: 1px solid var(--line, #ddd);
+}
+
+.wg-table th {
+    color: var(--ink-dim, #666);
+    font-weight: 600;
+}

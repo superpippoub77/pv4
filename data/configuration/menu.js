@@ -20,6 +20,7 @@ const menuData = [
             { icon: "📌", label: "Fissa questa versione…", onClick: () => window.Pv4Library.pinVersion() },
             { icon: "🗄", label: "Archivio esercizi (precedente)", onClick: (editor) => editor.libraryManager.show() },
             { separator: true },
+            { icon: "🗓", label: "Genera allenamento…", onClick: (editor) => editor.workoutGenerator.show() },
             { icon: "💾", label: "Salva allenamento…", onClick: (editor) => editor.workoutManager.show() },
             { icon: "📂", label: "Carica allenamento (.json)", action: "loadWorkout" },
             { separator: true },

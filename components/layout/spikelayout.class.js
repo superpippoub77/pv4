@@ -401,7 +401,7 @@ class SpikeLayout {
         });
         st.insertAdjacentHTML("beforeend", `
             <span class="spacer"></span>
-            <span class="status-sign">VBProW4 by <a href="https://www.filippomorano.com" target="_blank" rel="noopener">SpikeCode AI</a> · Ver: ${typeof APP_VERSION !== "undefined" ? APP_VERSION : ""}</span>`);
+            <span class="status-sign">VBProW4 by <a href="https://www.filippomorano.com" target="_blank" rel="noopener">SpikeCode AI</a> · ${typeof APP_RELEASE !== "undefined" ? APP_RELEASE + " · " : ""}Ver: ${typeof APP_VERSION !== "undefined" ? APP_VERSION : ""}</span>`);
         const container = document.getElementById("container");
         container.after(st);
 
