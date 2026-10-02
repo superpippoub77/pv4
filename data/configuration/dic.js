@@ -796,3 +796,6 @@ Object.assign(translations.fr, { "rail_video": "Vidéo…", "dlg_title_video": "
 Object.assign(translations.it, { "rail_rotation_board": "Lavagna", "dlg_title_rotation_board": "Lavagna — rotazioni e fasi di gioco", "btn_rotation_place": "Disponi sulla lavagna" });
 Object.assign(translations.en, { "rail_rotation_board": "Board", "dlg_title_rotation_board": "Board — rotations and game phases", "btn_rotation_place": "Place on the board" });
 Object.assign(translations.fr, { "rail_rotation_board": "Tableau", "dlg_title_rotation_board": "Tableau — rotations et phases de jeu", "btn_rotation_place": "Placer sur le tableau" });
+Object.assign(translations.it, { "rail_share": "Condividi (link)", "dlg_title_share": "Condividi con un link", "dlg_title_share_list": "I miei link condivisi", "btn_share_create": "Crea il link", "btn_share_link": "🔗 Link condiviso" });
+Object.assign(translations.en, { "rail_share": "Share (link)", "dlg_title_share": "Share with a link", "dlg_title_share_list": "My shared links", "btn_share_create": "Create link", "btn_share_link": "🔗 Shared link" });
+Object.assign(translations.fr, { "rail_share": "Partager (lien)", "dlg_title_share": "Partager avec un lien", "dlg_title_share_list": "Mes liens partagés", "btn_share_create": "Créer le lien", "btn_share_link": "🔗 Lien partagé" });

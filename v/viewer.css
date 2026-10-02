@@ -1,0 +1,346 @@
+/* Pagina di consultazione di un allenamento / esercizio condiviso */
+:root {
+    --bg: #f3f5f8;
+    --card: #ffffff;
+    --ink: #1c2430;
+    --muted: #5d6a7a;
+    --line: #dfe4ea;
+    --brand: #0b1d3a;
+    --accent: #e8a33a;
+    --ana: #fff2cc;
+    --sin: #cfe2f3;
+    --glo: #d9ead3;
+    --ana-ink: #7a5a00;
+    --sin-ink: #1d4f7a;
+    --glo-ink: #2e6b25;
+    --shadow: 0 1px 2px rgba(16, 24, 40, .06), 0 4px 14px rgba(16, 24, 40, .06);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #11161d;
+        --card: #1a212b;
+        --ink: #e8edf3;
+        --muted: #9aa7b6;
+        --line: #2c3644;
+        --ana: #4a3d12;
+        --sin: #173651;
+        --glo: #1f3d1c;
+        --ana-ink: #ffe08a;
+        --sin-ink: #a9d1f5;
+        --glo-ink: #b5e3aa;
+        --shadow: none;
+    }
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-text-size-adjust: 100%;
+}
+
+a { color: inherit; }
+
+.vw-top {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 16px;
+    background: var(--brand);
+    color: #fff;
+}
+
+.vw-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.vw-brand img { width: 22px; height: 22px; border-radius: 4px; }
+
+.vw-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+
+.vw-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 34px;
+    padding: 6px 12px;
+    border: 1px solid rgba(255, 255, 255, .25);
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 13.5px;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.vw-btn:hover { background: rgba(255, 255, 255, .1); }
+.vw-btn.primary { background: var(--accent); border-color: var(--accent); color: #1c1c1c; font-weight: 600; }
+
+.vw-main { max-width: 980px; margin: 0 auto; padding: 20px 16px 40px; }
+
+.vw-hero { margin: 6px 0 18px; }
+
+.vw-kind {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #1c1c1c;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.vw-hero h1 { margin: 10px 0 4px; font-size: clamp(24px, 4vw, 34px); line-height: 1.2; }
+.vw-meta { color: var(--muted); }
+
+.vw-objective {
+    margin-top: 14px;
+    padding: 12px 14px;
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    background: var(--card);
+    box-shadow: var(--shadow);
+}
+
+.vw-objective b { display: block; margin-bottom: 2px; }
+.vw-objective p { margin: 0; }
+
+.vw-panel, .vw-toc {
+    margin-bottom: 18px;
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--card);
+    box-shadow: var(--shadow);
+}
+
+.vw-kv {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px 16px;
+    margin: 0 0 6px;
+}
+
+.vw-kv dt { color: var(--muted); font-size: 12px; }
+.vw-kv dd { margin: 0; font-weight: 600; }
+
+.vw-sub {
+    margin: 12px 0 6px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+}
+
+.vw-panel > .vw-sub:first-child, .vw-toc > .vw-sub:first-child { margin-top: 0; }
+
+.vw-toc ul { margin: 0; padding: 0; list-style: none; columns: 2 260px; column-gap: 24px; }
+.vw-toc li { break-inside: avoid; padding: 2px 0; }
+.vw-toc a { text-decoration: none; }
+.vw-toc a:hover { text-decoration: underline; }
+.vw-toc-phase { margin-top: 6px; font-weight: 700; }
+.vw-toc-block { color: var(--muted); font-size: 13px; }
+
+.vw-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; vertical-align: middle; }
+.vw-dot.ana { background: #e9c44b; }
+.vw-dot.sin { background: #5b9bd5; }
+.vw-dot.glo { background: #6aa84f; }
+
+.vw-section { margin-top: 24px; }
+
+.vw-phase {
+    display: inline-block;
+    margin: 0 0 10px;
+    padding: 4px 12px;
+    border-radius: 8px;
+    font-size: 20px;
+    background: var(--line);
+}
+
+.vw-phase.ana { background: var(--ana); color: var(--ana-ink); }
+.vw-phase.sin { background: var(--sin); color: var(--sin-ink); }
+.vw-phase.glo { background: var(--glo); color: var(--glo-ink); }
+
+.vw-block {
+    margin: 14px 0 8px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: #666;
+    color: #fff;
+    font-size: 14px;
+    text-align: center;
+}
+
+.vw-card {
+    margin-bottom: 14px;
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--card);
+    box-shadow: var(--shadow);
+    scroll-margin-top: 70px;
+}
+
+.vw-card:target { outline: 2px solid var(--accent); }
+
+.vw-card-head { display: flex; align-items: center; gap: 10px; }
+.vw-card-head h3 { flex: 1; margin: 0; font-size: 17px; line-height: 1.3; }
+
+.vw-num {
+    flex: 0 0 auto;
+    min-width: 30px;
+    height: 30px;
+    padding: 0 6px;
+    border-radius: 8px;
+    background: var(--brand);
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.vw-anchor { color: var(--muted); text-decoration: none; font-weight: 700; padding: 4px 6px; border-radius: 6px; }
+.vw-anchor:hover { background: var(--bg); }
+
+.vw-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+
+.vw-chip {
+    padding: 2px 9px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-size: 12.5px;
+    color: var(--muted);
+}
+
+.vw-chip b { color: var(--ink); font-weight: 600; }
+.vw-chip.part { border: 0; font-weight: 700; }
+.vw-chip.part.ana { background: var(--ana); color: var(--ana-ink); }
+.vw-chip.part.sin { background: var(--sin); color: var(--sin-ink); }
+.vw-chip.part.glo { background: var(--glo); color: var(--glo-ink); }
+
+.vw-card-body { margin-top: 10px; }
+.vw-card-body.with-img { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 18px; align-items: start; }
+
+.vw-text p { margin: 0 0 8px; }
+.vw-text ul { margin: 0 0 8px; padding-left: 20px; }
+.vw-details { color: var(--muted); font-style: italic; }
+
+.vw-steps { margin: 0; padding-left: 22px; }
+.vw-steps li { margin-bottom: 4px; }
+
+.vw-figure { margin: 0; }
+.vw-figure figcaption { margin-top: 4px; color: var(--muted); font-size: 12px; text-align: center; }
+
+.vw-img-btn {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fff;
+    cursor: zoom-in;
+    overflow: hidden;
+}
+
+.vw-img-btn img { display: block; width: 100%; height: auto; }
+
+.vw-videos { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+
+.vw-video { display: block; text-decoration: none; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.vw-video-thumb { position: relative; display: block; aspect-ratio: 16 / 9; background: #222 center / cover no-repeat; }
+.vw-video-thumb.none { background: linear-gradient(135deg, #1c2a40, #34495e); }
+
+.vw-play {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, .6);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
+.vw-video-title { display: block; padding: 6px 8px; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.vw-groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.vw-group { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); }
+.vw-group p { margin: 4px 0 0; }
+
+.vw-foot { padding: 20px 16px 30px; color: var(--muted); font-size: 13px; text-align: center; }
+
+.vw-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(0, 0, 0, .85);
+    cursor: zoom-out;
+}
+
+.vw-lightbox[hidden] { display: none; }
+.vw-lightbox img { max-width: 100%; max-height: 100%; border-radius: 8px; background: #fff; }
+.vw-close { position: absolute; top: 10px; right: 14px; border: 0; background: none; color: #fff; font-size: 34px; cursor: pointer; }
+
+.vw-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 22px;
+    transform: translateX(-50%);
+    z-index: 60;
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: #222;
+    color: #fff;
+    font-size: 14px;
+}
+
+.vw-toast[hidden] { display: none; }
+
+.vw-missing { max-width: 520px; margin: 12vh auto; padding: 0 16px; text-align: center; }
+.vw-missing-icon { font-size: 48px; }
+.vw-missing .vw-btn { color: #1c1c1c; }
+
+@media (max-width: 720px) {
+    .vw-card-body.with-img { grid-template-columns: 1fr; }
+    .vw-card-body.with-img .vw-figure { order: -1; }
+    .vw-btn span { display: none; }
+    .vw-btn { padding: 6px 10px; }
+}
+
+@media print {
+    :root { --bg: #fff; --card: #fff; --shadow: none; }
+    .vw-top, .vw-anchor, .vw-lightbox, .vw-toast { display: none !important; }
+    .vw-main { max-width: none; padding: 0; }
+    .vw-card { break-inside: avoid; }
+    .vw-video-thumb { display: none; }
+    .vw-video::after { content: " " attr(href); font-size: 11px; }
+}

@@ -5,6 +5,21 @@ e compaiono nella barra di stato ("VBProW4 by SpikeCode AI · Ott 2026 · Ver: 1
 Informazioni e nella guida (Riferimento → Novità). A ogni rilascio vanno aggiornati insieme a questo file
 e a `package.json`.
 
+## 1.6.0 — Ott 2026
+
+- **Link condivisi (slug)**: 🔗 Condividi (barra in alto e a sinistra, File, Piano allenamento, Genera allenamento) crea un
+  link di sola consultazione `…/v/<slug>` dell'allenamento (dal Piano allenamento o dalle schede aperte) o del singolo
+  esercizio. Chi lo apre vede solo quello, senza account: indice con i link agli esercizi, disegni ingrandibili,
+  descrizione, step, durata, video, intestazione e gruppi del piano; stampa; «Apri in VolleyProW4» ne copia gli esercizi
+  nel proprio editor. Anteprima del link sui social (titolo, descrizione, primo disegno), pagine non indicizzate.
+  Aggiornamento dello stesso link, «I miei link condivisi» con visite, copia ed eliminazione.
+  - Server: `cloud/share_save.php`, `share_upload_image.php`, `share_get.php`, `share_image.php`, `share_list.php`,
+    `share_delete.php`; dati in `library/shares/`; pagina `v/index.php` (con `v/.htaccess` per gli indirizzi `/v/<slug>`).
+- **Lavagna — sistemi di gioco**: ricezione a 5 (W), a 4, a 3, a 2 (disposizioni regolari calcolate per ogni rotazione);
+  muro e difesa in break point 2-0-4, 2-1-3 (6 avanzato), 2-1-3 rotazionale, 3-0-3, 3-1-2, 3-2-1, 1-2-3 contro l'attacco
+  avversario da posto 4, al centro o da posto 2; copertura dell'attacco (posto 4, primo tempo, posto 2, pipe);
+  «tutte le combinazioni»; spiegazione del sistema nell'anteprima e negli step.
+
 ## 1.5.0 — Ott 2026
 
 - **Lavagna** (barra a sinistra → Allenamento, File → Lavagna, schermata «Nessuno schema aperto»): dispone in automatico
