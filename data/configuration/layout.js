@@ -11,7 +11,7 @@
 
 // Versione e mese di rilascio (come in SpikeCut): da aggiornare a ogni rilascio,
 // insieme a CHANGELOG.md, package.json e alla sezione "Novità" della guida.
-const APP_VERSION = "1.4.1";
+const APP_VERSION = "1.5.0";
 const APP_RELEASE = "Ott 2026";
 
 // Icone in stile SpikeCut (viewBox 22, tratto 1.6)
@@ -26,6 +26,7 @@ const LAYOUT_ICONS = {
     dashed: SC_ICON("M3 11h3 M9.5 11h3 M16 11h3"),
     text: SC_ICON("M5 4h12M11 4v14"),
     players: SC_ICON("M8 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M2.5 19c.6-3.5 2.8-5.5 5.5-5.5s4.9 2 5.5 5.5 M15 9.5a2.5 2.5 0 1 0 0-5 M16.5 13.5c1.9.5 3.1 2.4 3.5 5.5"),
+    board: SC_ICON("M3 4h16v11H3z M7 19l4-4 4 4 M7 8.5h.01 M11 8.5h.01 M15 8.5h.01 M7 11.5h.01 M11 11.5h.01 M15 11.5h.01"),
     court: SC_ICON("M3 5h16v12H3z M11 5v12 M3 9h4 M15 9h4 M3 13h4 M15 13h4"),
     rotate: SC_ICON("M5.5 8.5A6.5 6.5 0 1 1 5 14 M5 4v4.5h4.5"),
     rotate90: SC_ICON("M4 11a7 7 0 0 1 12-5 M16 2v4h-4 M8 11h10v8H8z"),
@@ -107,6 +108,7 @@ const layoutConfig = {
         { id: "snapToGridBtn", icon: "snap", label: "Allinea a griglia", i18n: "rail_snap", title: "Allinea gli oggetti alla griglia", onClick: (ed) => ed.snapObjectsToGrid() },
 
         { section: "Allenamento", i18n: "rail_sec_training" },
+        { id: "rotationBoardBtn", icon: "board", label: "Lavagna", i18n: "rail_rotation_board", title: "Apri la lavagna: i 6 giocatori in ogni rotazione (P1…P6) e fase (partenza, break point, side out) su campo intero o metà campo", onClick: (ed) => ed.rotationBoard.show() },
         { id: "workoutPlanBtn", icon: "plan", label: "Piano allenamento", i18n: "rail_workout_plan", title: "Scheda completa della seduta: intestazione, obiettivo, fasi con esercizi e disegni, gruppi; importa da PDF ed esporta in PDF", onClick: (ed) => ed.workoutPlan.show() },
         { id: "workoutGenBtn", icon: "calendar", label: "Genera allenamento", i18n: "rail_workout_generator", title: "Descrivi parte analitica, sintetica e globale: l'allenamento viene composto con gli esercizi della libreria o creati in automatico", onClick: (ed) => ed.workoutGenerator.show() },
         { id: "workoutPdfBtn", icon: "pdf", label: "Scheda PDF", i18n: "rail_workout_pdf", title: "Scheda PDF dell'allenamento: tutte le schede aperte, con disegno, step e dati (anche da Stampa → Scheda allenamento)", onClick: (ed) => ed.exportWorkoutToPDF() },

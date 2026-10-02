@@ -1,0 +1,126 @@
+/* Finestra "Lavagna" (rotazioni e fasi di gioco) */
+.rb .rb-ask {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.rb .rb-ask .wg-input {
+    flex: 1;
+}
+
+.rb .rb-ask .btn {
+    flex: 0 0 auto;
+    width: auto;
+    padding: 0 16px;
+}
+
+.rb .rb-form .wg-label {
+    margin-top: 8px;
+}
+
+.rb .rb-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 240px;
+    gap: 16px;
+    align-items: start;
+}
+
+.rb .rb-seg {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 4px;
+}
+
+.rb .rb-seg label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+}
+
+.rb .rb-options {
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.rb .rb-preview-box {
+    border: 1px solid var(--line, #ccc);
+    border-radius: 8px;
+    padding: 8px;
+    background: var(--bg-1, #f7f7f7);
+}
+
+.rb .rb-preview-title {
+    font-weight: 600;
+    font-size: 12.5px;
+    margin-bottom: 4px;
+    text-align: center;
+}
+
+.rb .rb-preview {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.rb .rb-court {
+    fill: #e8a35c;
+    stroke: #fff;
+    stroke-width: 1;
+}
+
+.rb .rb-line {
+    stroke: #fff;
+    stroke-width: 0.8;
+}
+
+.rb .rb-net {
+    stroke: #2c3e50;
+    stroke-width: 2;
+}
+
+.rb .rb-player {
+    stroke: #fff;
+    stroke-width: 0.8;
+}
+
+.rb .rb-label {
+    fill: #fff;
+    font-size: 5.6px;
+    font-weight: 700;
+    text-anchor: middle;
+    font-family: system-ui, sans-serif;
+}
+
+.rb .rb-ghost {
+    fill: none;
+    stroke: #2c3e50;
+    stroke-width: 0.6;
+    stroke-dasharray: 1.5 1.2;
+    opacity: 0.7;
+}
+
+.rb .rb-move {
+    stroke: #2c3e50;
+    stroke-width: 0.7;
+    stroke-dasharray: 2 1.5;
+}
+
+.rb .rb-check {
+    font-size: 12px;
+    margin-top: 6px;
+    text-align: center;
+}
+
+.rb .rb-ok { color: #1e8449; }
+.rb .rb-bad { color: #c0392b; }
+.rb .rb-muted { opacity: 0.7; }
+
+@media (max-width: 640px) {
+    .rb .rb-grid {
+        grid-template-columns: 1fr;
+    }
+}

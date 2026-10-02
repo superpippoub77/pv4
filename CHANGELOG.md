@@ -5,6 +5,18 @@ e compaiono nella barra di stato ("VBProW4 by SpikeCode AI · Ott 2026 · Ver: 1
 Informazioni e nella guida (Riferimento → Novità). A ogni rilascio vanno aggiornati insieme a questo file
 e a `package.json`.
 
+## 1.5.0 — Ott 2026
+
+- **Lavagna** (barra a sinistra → Allenamento, File → Lavagna, schermata «Nessuno schema aperto»): dispone in automatico
+  i 6 giocatori del sistema 5-1 (P, O, S1, S2, C1, C2 e libero al posto del centrale in seconda linea) per ogni
+  rotazione P1…P6 e fase di gioco: posizioni di partenza, break point (partenza in battuta, muro e difesa,
+  contrattacco) e side out (ricezione a 3, attacco dopo la ricezione).
+  - Campo intero (anche con la squadra avversaria nella fase corrispondente) o metà campo, orizzontale o verticale.
+  - Spostamenti dalla fase precedente con copie tratteggiate e frecce; tutte le rotazioni e/o tutte le fasi in
+    altrettante schede, con nome, descrizione e step.
+  - Anteprima con controllo delle regole di posizione (le ricezioni proposte sono tutte regolari).
+  - Richiesta a parole: «P3 ricezione a metà campo», «tutte le rotazioni in break point», «difesa P5 con avversari».
+
 ## 1.4.1 — Ott 2026
 
 - **Anteprima dei link**: condividendo l'indirizzo dell'app su Facebook, WhatsApp, LinkedIn, Telegram, X ecc.

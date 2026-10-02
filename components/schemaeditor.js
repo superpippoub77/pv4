@@ -124,6 +124,7 @@ class SchemaEditor {
         this.macroManager = new MacroManager(this);
         this.textExerciseManager = new TextExerciseBuilder(this);
         this.workoutGenerator = new WorkoutGenerator(this);
+        this.rotationBoard = new RotationBoard(this);
         this.workoutPlan = new WorkoutPlan(this);
         if (window.VideoObjects) VideoObjects.init(this);
         // Unico gestore del login, creato in index.html (crearne un altro aggiungeva una seconda finestra di accesso)
@@ -9220,6 +9221,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 <button class="btn primary" data-es="new">＋ Nuovo schema</button>
                 <button class="btn" data-es="library">☁ Apri dalla libreria</button>
                 <button class="btn" data-es="file">📂 Apri uno schema da file (.json)</button>
+                <button class="btn" data-es="board">🏐 Apri la lavagna (rotazioni P1…P6, break point, side out)</button>
                 <button class="btn" data-es="text">✨ Crea un esercizio da testo</button>
                 <button class="btn" data-es="workout">🗓 Genera un allenamento</button>
                 <button class="btn" data-es="plan">📋 Piano allenamento (anche da PDF)</button>
@@ -9231,6 +9233,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 new: () => this.setNoDocs(false),
                 library: () => window.Pv4Library?.open(),
                 file: () => document.getElementById('fileInput')?.click(),
+                board: () => this.rotationBoard?.show(),
                 text: () => this.textExerciseManager?.show(),
                 workout: () => this.workoutGenerator?.show(),
                 plan: () => this.workoutPlan?.show()
