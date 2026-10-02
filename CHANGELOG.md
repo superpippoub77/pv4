@@ -5,6 +5,12 @@ e compaiono nella barra di stato ("VBProW4 by SpikeCode AI · Ott 2026 · Ver: 1
 Informazioni e nella guida (Riferimento → Novità). A ogni rilascio vanno aggiornati insieme a questo file
 e a `package.json`.
 
+## 1.4.1 — Ott 2026
+
+- **Anteprima dei link**: condividendo l'indirizzo dell'app su Facebook, WhatsApp, LinkedIn, Telegram, X ecc.
+  compaiono titolo, descrizione e immagine (meta Open Graph e Twitter completi, URL canonico, lingua, colore del
+  tema). Nuova immagine di anteprima `data/images/og-image.jpg` (1200×630).
+
 ## 1.4.0 — Ott 2026
 
 - **Piano allenamento** (barra a sinistra → Allenamento, File → Piano allenamento…, schermata iniziale): la scheda

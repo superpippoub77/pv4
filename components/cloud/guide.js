@@ -255,6 +255,7 @@ html:`<dl class="guide-faq">
 
 { id:'novita', cat:'Riferimento', title:'Novità', keys:'novità versioni changelog aggiornamenti',
 html:`<ul>
+<li><b>1.4.1</b> — Anteprima completa (titolo, descrizione, immagine) quando condividi il link dell'app su Facebook, WhatsApp e altri social.</li>
 <li><b>1.4.0</b> — <a data-topic="piano-allenamento">Piano allenamento</a> con importazione da PDF, disegni degli esercizi (a mano o automatici) e PDF con disegni annessi; <a data-topic="video">video nel disegno</a> con anteprima.</li>
 <li><b>1.3.2</b> — Schermata «Nessuno schema aperto»; tratteggio sugli oggetti già inseriti.</li>
 <li><b>1.3.1</b> — Chiudi tutte le schede e chiusura dell'ultima scheda; pulsante 📄 Scheda PDF; PDF dell'allenamento con intestazione, parti, disegno a misura e step leggibili.</li>
