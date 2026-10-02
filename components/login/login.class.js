@@ -63,15 +63,22 @@ class LoginManager {
      */
     async init() {
         await this.createLogin();
+
+        // La sessione è salvata in localStorage per sopravvivere alla chiusura
+        // del browser/scheda (sessionStorage veniva perso ad ogni riapertura)
+        const savedUser = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
+        // Evita che la finestra di login compaia mentre si caricano gli utenti
+        if (savedUser) this.hideLoginModal();
+
         await this.loadUsers();
         this.setupEventListeners();
 
-        const savedUser = sessionStorage.getItem('currentUser');
-
         if (savedUser) {
             this.currentUser = savedUser;
+            localStorage.setItem('currentUser', savedUser);
             this.hideLoginModal();
             this.showApp();
+            this.showUserInfo(savedUser);
             this.onLoginSuccess(savedUser);
         } else {
             this.hideApp();
@@ -194,7 +201,7 @@ class LoginManager {
 
         if (user) {
             this.currentUser = username;
-            sessionStorage.setItem('currentUser', username);
+            localStorage.setItem('currentUser', username);
 
             // Nascondi errore
             if (errorDiv) {
@@ -223,6 +230,7 @@ class LoginManager {
         if (!confirm('Sei sicuro di voler uscire?')) return;
 
         this.currentUser = null;
+        localStorage.removeItem('currentUser');
         sessionStorage.removeItem('currentUser');
 
         this.hideApp();              // ✅ NASCONDE APP
@@ -279,6 +287,7 @@ class LoginManager {
      */
     reset() {
         this.currentUser = null;
+        localStorage.removeItem('currentUser');
         sessionStorage.removeItem('currentUser');
     }
 
@@ -307,7 +316,7 @@ class LoginManager {
             username: this.currentUser,
             isAdmin: this.isAdmin(),
             loginTime: new Date(),
-            sessionId: sessionStorage.getItem('currentUser')
+            sessionId: localStorage.getItem('currentUser')
         };
     }
 
