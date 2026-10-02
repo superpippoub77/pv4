@@ -29,6 +29,7 @@ class Sidebar {
 
         // Init
         this.initAccordion();
+        this.initSearch();
         this.initEvents();
         this.initControlEvents();
 
@@ -69,6 +70,16 @@ class Sidebar {
         this.container.appendChild(handle);
         this.sidebarHandle = handle;
 
+        // Ricerca rapida (solo se la sidebar contiene elementi da aggiungere al foglio)
+        const hasItems = this.config.some(c => (c.controlType || "grid") === "accordion" && c.items?.some(i => i.type));
+        if (hasItems) {
+            this.container.insertAdjacentHTML("beforeend", `
+                <div class="sidebar-search">
+                    <input type="search" class="sidebar-search-input" placeholder="🔍 Cerca elemento..." data-i18n-placeholder="sb_search_placeholder">
+                </div>
+                <div class="sidebar-hint" data-i18n="sb_hint">Clic per aggiungere · trascina per posizionare</div>`);
+        }
+
         // Categorie
         const categoriesHTML = this.config.map(cat => this.renderCategory(cat)).join("");
         this.container.insertAdjacentHTML("beforeend", categoriesHTML);
@@ -106,7 +117,6 @@ class Sidebar {
             return `
                 <div class="component-category no-accordion" data-control-type="${controlType}">
                     <div class="category-title">
-                        <span class="title-small" data-i18n="${cat.i18ncategory || ""}">${cat.category}</span>
                         <span class="category-big" data-i18n="${cat.i18ntitle || ""}">${cat.title}</span>
                     </div>
                     <div class="category-content">
@@ -119,8 +129,8 @@ class Sidebar {
             <div class="component-category" data-control-type="${controlType}">
                 <h3 class="accordion-header ${cat.active ? "active" : ""}">
                     <div class="accordion-title">
-                        <span class="title-small" data-i18n="${cat.i18ncategory || ""}">${cat.category}</span>
                         <span class="category-big" data-i18n="${cat.i18ntitle || ""}">${cat.title}</span>
+                        <span class="category-count">${(cat.items || []).length}</span>
                     </div>
                 </h3>
                 <div class="accordion-content ${cat.active ? "active" : ""}">
@@ -134,8 +144,9 @@ class Sidebar {
             case "buttons":
                 return `<div class="control-buttons">${cat.items.map(i => this.renderControl(i)).join("")}</div>`;
             case "controls":
-            case "accordion":
                 return `<div class="control-container">${cat.items.map(i => this.renderControl(i)).join("")}</div>`;
+            case "accordion":
+                return `<div class="component-grid">${cat.items.map(i => this.renderControl(i)).join("")}</div>`;
             case "custom":
                 return cat.render(this.schemaEditor);
             default:
@@ -229,7 +240,8 @@ class Sidebar {
 
     renderItem(item) {
         const classes = ["component-item"];
-        if (item.color) classes.push(item.color);
+        if (item.color) classes.push("has-color");
+        const style = item.color ? `style="--item-color:${item.color}"` : "";
 
         const attributes = [
             item.id ? `id="${item.id}"` : "",
@@ -245,10 +257,16 @@ class Sidebar {
             item.cols ? `data-sprite-cols="${item.cols}"` : "",
             item.rows ? `data-sprite-rows="${item.rows}"` : "",
             item.frame !== undefined ? `data-sprite-frame="${item.frame}"` : "",
+            item.width ? `data-sprite-width="${item.width}"` : "",
+            item.height ? `data-sprite-height="${item.height}"` : "",
             item.special ? `data-special="${item.special}"` : ""
         ].filter(Boolean).join(" ");
 
-        let iconHTML = item.iconHTML || (item.src ? `<img src="${item.src}" style="width:20px;height:20px;">` : (item.icon ? `<i class="${item.icon}"></i>` : "🃏"));
+        let iconHTML = item.iconHTML || (item.src ? `<img src="${item.src}" style="width:22px;height:22px;object-fit:contain;">` : (item.icon ? `<i class="${item.icon}"></i>` : "🃏"));
+        // Per i giocatori mostra la sigla dentro il cerchio colorato
+        if (item.type === "player") {
+            iconHTML = `<span class="player-chip">${item.text || ""}</span>`;
+        }
         if (item.spriteSheet) {
             iconHTML = `
                 <div class="sprite-preview" style="
@@ -260,9 +278,9 @@ class Sidebar {
         }
 
         return `
-            <div class="${classes.join(" ")}" ${attributes}>
+            <div class="${classes.join(" ")}" ${attributes} ${style} title="${item.text || item.label || ""}">
                 <div class="component-icon">${iconHTML}</div>
-                <div class="component-text" data-i18n="${item.label}">${item.text || ""}</div>
+                <div class="component-text" data-i18n="${item.label}">${item.text || item.label || ""}</div>
             </div>`;
     }
 
@@ -298,9 +316,34 @@ class Sidebar {
                         sheet: item.dataset.spriteSheet,
                         cols: +item.dataset.spriteCols,
                         rows: +item.dataset.spriteRows,
-                        frame: +item.dataset.spriteFrame
+                        frame: +item.dataset.spriteFrame,
+                        width: +item.dataset.spriteWidth || 64,
+                        height: +item.dataset.spriteHeight || 64
                     }
                     : null
+            });
+        });
+    }
+
+    initSearch() {
+        const input = this.container.querySelector(".sidebar-search-input");
+        if (!input) return;
+        input.addEventListener("input", () => {
+            const q = input.value.trim().toLowerCase();
+            this.container.querySelectorAll(".component-category").forEach(cat => {
+                let visible = 0;
+                cat.querySelectorAll(".component-item").forEach(it => {
+                    const text = (it.textContent + " " + (it.dataset.text || "") + " " + (it.getAttribute("title") || "")).toLowerCase();
+                    const match = !q || text.includes(q);
+                    it.style.display = match ? "" : "none";
+                    if (match) visible++;
+                });
+                cat.style.display = (!q || visible > 0) ? "" : "none";
+                // Durante la ricerca apri le categorie che contengono risultati
+                if (q && visible > 0) {
+                    cat.querySelector(".accordion-header")?.classList.add("active");
+                    cat.querySelector(".accordion-content")?.classList.add("active");
+                }
             });
         });
     }

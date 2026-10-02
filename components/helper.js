@@ -9,6 +9,31 @@ function setDefaultDate(fieldName) {
     dateField.value = `${yyyy}-${mm}-${dd}`;
 }
 
+/**
+ * Converte qualsiasi colore CSS ("orange", "rgb(...)", "#abc", "") in formato #rrggbb.
+ * Necessario perché <input type="color"> accetta SOLO #rrggbb: con un nome
+ * come "orange" il picker mostrava nero e il colore non si poteva cambiare.
+ */
+function toHexColor(color, fallback = '#3498db') {
+    if (!color || typeof color !== 'string') return fallback;
+    const c = color.trim();
+    if (/^#[0-9a-f]{6}$/i.test(c)) return c.toLowerCase();
+    if (/^#[0-9a-f]{3}$/i.test(c)) {
+        return ('#' + c[1] + c[1] + c[2] + c[2] + c[3] + c[3]).toLowerCase();
+    }
+    try {
+        const ctx = toHexColor._ctx || (toHexColor._ctx = document.createElement('canvas').getContext('2d'));
+        ctx.fillStyle = '#010203';           // sentinella per riconoscere colori non validi
+        ctx.fillStyle = c;
+        const out = ctx.fillStyle;           // il browser normalizza in #rrggbb o rgba(...)
+        if (out === '#010203' && c.toLowerCase() !== '#010203') return fallback;
+        if (out.startsWith('#')) return out.toLowerCase();
+        const m = out.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+        if (m) return '#' + [m[1], m[2], m[3]].map(n => (+n).toString(16).padStart(2, '0')).join('');
+    } catch (e) { /* ignore */ }
+    return fallback;
+}
+
 function getHue(hex) {
     const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
     hex = hex.replace(shorthandRegex, (m, r, g, b) => r + r + g + g + b + b);
@@ -138,6 +163,17 @@ function createWindow({
     rounded = rounded ?? tpl.rounded ?? true;
     shadow = shadow ?? tpl.shadow ?? "0 10px 25px rgba(0,0,0,0.2)";
 
+    // Tema SpikeCut: finestre scure con bordo sottile e pulsanti ottone (come i .modal-box di SpikeCut)
+    const scTheme = document.body.classList.contains('sc-theme');
+    if (scTheme) {
+        headerBg = '#1f2123';
+        contentBg = '#1f2123';
+        contentColor = '#e9e6df';
+        footerBg = '#1f2123';
+        footerBorder = '1px solid #3a3b3e';
+        shadow = '0 20px 60px rgba(0,0,0,.6)';
+    }
+
     const percentSizes = {
         sm: { w: 0.35, h: 0.35 },
         md: { w: 0.45, h: 0.45 },
@@ -181,6 +217,7 @@ function createWindow({
     // ==================== Finestra ====================
     const win = document.createElement('div');
     if (effect === "windows") win.classList.add('win-effect-resize');
+    if (scTheme) win.classList.add('sc-window');
     win.id = id;
     Object.assign(win.style, {
         position: 'absolute', width: dimensions.w + 'px', height: dimensions.h + 'px',
@@ -326,6 +363,14 @@ function createWindow({
                 case 'warning': btn.style.backgroundColor = '#eab308'; break;
                 case 'secondary': btn.style.backgroundColor = '#6b7280'; break;
                 case 'primary': btn.style.backgroundColor = '#2563eb'; break;
+            }
+            if (scTheme) {
+                // Pulsanti in stile SpikeCut: primario ottone, gli altri grigi con bordo
+                const isPrimary = !b.color || b.color === 'primary' || b.color === 'success';
+                btn.style.backgroundColor = isPrimary ? '#c9973f' : (b.color === 'danger' ? 'transparent' : '#28292c');
+                btn.style.color = isPrimary ? '#1c1200' : (b.color === 'danger' ? '#d1402c' : '#e9e6df');
+                btn.style.border = isPrimary ? '1px solid #c9973f' : '1px solid #3a3b3e';
+                btn.style.fontWeight = isPrimary ? '600' : '400';
             }
 
             if (b.class) btn.className = b.class;

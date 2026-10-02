@@ -292,7 +292,7 @@
     <script defer src="data/configuration/preset-actions.js"></script>
     <script defer src="data/configuration/template.js"></script>
     <script defer src="data/configuration/menu.js"></script>
-    <script defer src="data/configuration/toolbar.js"></script>
+    <script defer src="data/configuration/layout.js"></script>
     <script defer src="data/configuration/sidebar.js"></script>
 
     <!-- CLASS -->
@@ -312,10 +312,11 @@
     
     <!-- JWT & PROFILE MANAGEMENT -->
     <script defer src="components/api-client.js"></script>
-    <script defer src="components/login-manager.js"></script>
+    <!-- login-manager.js rimosso: ridichiarava la classe LoginManager (errore in console); si usa components/login/login.class.js -->
     <script defer src="components/profile-manager.js"></script>
 
     <!-- CORE COMPONENTS -->
+    <script defer src="components/layout/spikelayout.class.js"></script>
     <script defer src="components/schemaeditor.js"></script>
     <script defer src="components/helper.js"></script>
     <script defer src="components/components.js"></script>

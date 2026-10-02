@@ -8,6 +8,11 @@ class MenuManager {
         this.editor = schemaEditor;
     }
 
+    /**
+     * Crea la topbar in stile SpikeCut:
+     *   [.topbar-left (riempita da SpikeLayout)] [File ▾] [Stampa ▾] [Strumenti ▾] [⋯]
+     * Mantiene id="menu" e la classe "menu-bar" usati da SchemaEditor (mostra/nascondi al login).
+     */
     createMenu(menuData) {
         return new Promise((resolve, reject) => {
             try {
@@ -16,74 +21,72 @@ class MenuManager {
                 menuBar.className = "menu-bar";
                 menuBar.style.display = "none";
 
-                menuData.forEach(menu => {
-                    const item = document.createElement("div");
-                    item.className = "menu-item" + (menu.meta && menu.meta.align === "right" ? " right" : "");
+                const left = document.createElement("div");
+                left.className = "topbar-left";
+                menuBar.appendChild(left);
 
-                    const label = document.createElement("span");
-                    label.className = "menu-label";
-                    label.textContent = menu.label;
-                    item.appendChild(label);
+                menuData.forEach(menu => menuBar.appendChild(this.buildDropdown(menu)));
 
-                    const dropdown = document.createElement("div");
-                    dropdown.className = "menu-dropdown";
-
-                    menu.items.forEach(entry => {
-
-                        if (entry.separator) {
-                            const sep = document.createElement("div");
-                            sep.className = "menu-dropdown-separator";
-                            dropdown.appendChild(sep);
-                            return;
-                        }
-
-                        const row = document.createElement("div");
-                        row.className = "menu-dropdown-item";
-
-                        if (entry.html) {
-                            row.innerHTML = entry.html;
-                            dropdown.appendChild(row);
-                            return;
-                        }
-
-                        if (entry.onClick) {
-                            row.onClick = entry.onClick;
-                        }
-
-                        // Salva action solo se esiste
-                        if (entry.action) row.dataset.action = entry.action;
-
-                        if (entry.checkbox) {
-                            row.classList.add("checkbox");
-                            row.innerHTML = `<input type="checkbox" id="${entry.checkbox}"> ${entry.icon} ${entry.label}`;
-                        } else {
-                            row.innerHTML = `${entry.icon} ${entry.label}`;
-                        }
-
-                        if (entry.shortcut) {
-                            const sc = document.createElement("span");
-                            sc.className = "shortcut";
-                            sc.textContent = entry.shortcut;
-                            row.appendChild(sc);
-                        }
-
-                        dropdown.appendChild(row);
-                    });
-
-                    item.appendChild(dropdown);
-                    menuBar.appendChild(item);
-                });
-
-                // ⬅️ QUI: appendi all'inizio del body
                 document.body.prepend(menuBar);
-
-                console.log("Menu creato con successo!");
                 resolve();
             } catch (err) {
                 console.error("Errore nella creazione del menu:", err);
                 reject(err);
             }
         });
+    }
+
+    /** Crea un pulsante con menu a tendina (usato anche per il menu utente) */
+    buildDropdown(menu) {
+        const item = document.createElement("div");
+        item.className = "menu-item grp" + (menu.pill ? " pill" : "") + (menu.more ? " more" : "") + (menu.cls ? " " + menu.cls : "");
+
+        const label = document.createElement("button");
+        label.type = "button";
+        label.className = "menu-label " + (menu.pill ? "btn primary" : "iconbtn");
+        if (menu.id) label.id = menu.id;
+        label.textContent = menu.label;
+        if (menu.i18n) label.setAttribute("data-i18n", menu.i18n);
+        if (menu.title) label.title = menu.title;
+        item.appendChild(label);
+
+        const dropdown = document.createElement("div");
+        dropdown.className = "menu-dropdown";
+
+        menu.items.forEach(entry => {
+            if (entry.separator) {
+                const sep = document.createElement("div");
+                sep.className = "menu-dropdown-separator";
+                dropdown.appendChild(sep);
+                return;
+            }
+            const row = document.createElement("div");
+            row.className = "menu-dropdown-item";
+            if (entry.html) {
+                row.classList.add("menu-html");
+                row.innerHTML = entry.html;
+                dropdown.appendChild(row);
+                return;
+            }
+            if (entry.onClick) row.onClick = entry.onClick;
+            if (entry.action) row.dataset.action = entry.action;
+            if (entry.checkbox) {
+                row.classList.add("checkbox");
+                row.innerHTML = `<input type="checkbox" id="${entry.checkbox}"> <span class="mi-icon">${entry.icon || ""}</span> <span class="mi-label">${entry.label}</span>`;
+            } else {
+                row.innerHTML = `<span class="mi-icon">${entry.icon || ""}</span><span class="mi-label">${entry.label}</span>`;
+            }
+            if (entry.shortcut) {
+                const sc = document.createElement("span");
+                sc.className = "shortcut";
+                sc.textContent = entry.shortcut;
+                row.appendChild(sc);
+            }
+            dropdown.appendChild(row);
+        });
+
+        item.appendChild(dropdown);
+        return item;
     }
     /**
      * Inizializza il manager del menu
@@ -94,60 +97,51 @@ class MenuManager {
         this.bindMenuActions();
     }
 
-    /**
-     * Inizializza la barra dei menu
-     * Gli eventi possono essere contraddistinti da data-action negli item oppure con onClick direttamente sull'item
-     */
-    initMenuBar() {
-        const menuItems = document.querySelectorAll('.menu-dropdown-item');
-
-        menuItems.forEach(item => {
+    /** Collega click su voci e apertura/chiusura dei menu (anche per menu aggiunti dopo) */
+    initMenuBar(root = document) {
+        root.querySelectorAll('.menu-dropdown-item:not(.menu-html)').forEach(item => {
+            if (item._menuBound) return;
+            item._menuBound = true;
             item.addEventListener('click', (e) => {
                 e.stopPropagation();
-
                 const action = item.dataset.action;
-                const size = item.dataset.size;
-                const bg = item.dataset.bg;
-
-                // Se esiste onClick lo esegue
-                if (item.onClick) {
-                    item.onClick(this.editor);
-                }
-
-                // Se esiste action la chiama comunque
-                if (action) {
-                    this.executeMenuAction(action, size, bg);
-                }
-
-                // Chiudi i menu
-                document.querySelectorAll('.menu-item')
-                    .forEach(m => m.classList.remove('active'));
+                if (item.onClick) item.onClick(this.editor);
+                if (action) this.executeMenuAction(action, item.dataset.size, item.dataset.bg);
+                this.closeAllMenus();
             });
-        })
+        });
 
-        // Gestione apertura/chiusura menu
-        document.querySelectorAll('.menu-item').forEach(menuItem => {
-            menuItem.addEventListener('click', (e) => {
+        // Le voci con controlli (es. lingua) non chiudono il menu
+        root.querySelectorAll('.menu-dropdown-item.menu-html').forEach(row => {
+            row.addEventListener('click', (e) => e.stopPropagation());
+        });
+
+        root.querySelectorAll('.menu-item').forEach(menuItem => {
+            if (menuItem._menuBound) return;
+            menuItem._menuBound = true;
+            menuItem.querySelector('.menu-label').addEventListener('click', (e) => {
                 e.stopPropagation();
                 const isActive = menuItem.classList.contains('active');
-
-                // Chiudi tutti i menu
-                document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-
-                // Apri/chiudi il menu corrente
+                this.closeAllMenus();
                 if (!isActive) {
                     menuItem.classList.add('active');
+                    this.syncMenuCheckboxes();
                 }
             });
         });
 
-        // Chiudi menu al click fuori
-        document.addEventListener('click', () => {
-            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-        });
+        if (!this._outsideBound) {
+            this._outsideBound = true;
+            document.addEventListener('click', () => this.closeAllMenus());
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') this.closeAllMenus(); });
+        }
 
         // Sincronizza checkbox con stato corrente
         this.syncMenuCheckboxes();
+    }
+
+    closeAllMenus() {
+        document.querySelectorAll('.menu-item.active').forEach(m => m.classList.remove('active'));
     }
 
     /**
@@ -194,8 +188,7 @@ class MenuManager {
                 this.syncMenuCheckboxes();
             },
             'toggleDashed': () => {
-                this.editor.dashedMode = !this.editor.dashedMode;
-                document.getElementById('dashedToggle').classList.toggle('active', this.editor.dashedMode);
+                this.editor.toggleDashedMode();
                 this.syncMenuCheckboxes();
             },
             'toggleLabels': () => {
@@ -213,18 +206,8 @@ class MenuManager {
             // ========== OGGETTI ==========
             'bringToFront': () => this.editor.bringToFront(),
             'sendToBack': () => this.editor.sendToBack(),
-            'arrowMode': () => {
-                this.editor.arrowMode = !this.editor.arrowMode;
-                document.getElementById('arrowModeBtn').classList.toggle('active', this.editor.arrowMode);
-                document.getElementById('canvas').style.cursor = this.editor.arrowMode ? 'crosshair' : 'default';
-                this.editor.deselectAll();
-            },
-            'freehandMode': () => {
-                this.editor.freehandMode = !this.editor.freehandMode;
-                document.getElementById('freehandModeBtn').classList.toggle('active', this.editor.freehandMode);
-                document.getElementById('canvas').style.cursor = this.editor.freehandMode ? 'crosshair' : 'default';
-                this.editor.deselectAll();
-            },
+            'arrowMode': () => this.editor.toggleArrowMode(),
+            'freehandMode': () => this.editor.toggleFreehandMode(),
             'showAnimation': () => this.editor.showAnimationControls(),
 
             // ========== CANVAS ==========
@@ -279,6 +262,7 @@ class MenuManager {
      */
     syncMenuCheckboxes() {
         const tab = this.editor.getCurrentTab();
+        if (!tab) return;
 
         // Grid
         const gridCheck = document.getElementById('menu-grid-check');
@@ -301,6 +285,11 @@ class MenuManager {
         // Border
         const borderCheck = document.getElementById('menu-border-check');
         if (borderCheck) borderCheck.checked = this.editor.showCanvasBorder;
+
+        // Allinea anche lo stato dei pulsanti toolbar
+        document.getElementById('gridToggle')?.classList.toggle('active', !!tab.gridVisible);
+        document.getElementById('bwToggle')?.classList.toggle('active', !!tab.bwMode);
+        document.getElementById('dashedToggle')?.classList.toggle('active', !!this.editor.dashedMode);
     }
 
     /**

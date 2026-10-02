@@ -113,7 +113,8 @@ class SchemaEditor {
         this.toolbarManager = new ToolbarDialogManager(this, toolbarTopConfig, storage);
         this.footerbarManager = new ToolbarDialogManager(this, toolbarBottomConfig, storage, "footerbar", "bottom");
 
-        this.sidebarManager = new Sidebar(this, sidebarConfig, "#sidebar");
+        // La sidebar sinistra è la "rail" degli strumenti (SpikeLayout); gli elementi stanno nella galleria
+        this.sidebarManager = new Sidebar(this, [], "#sidebar");
         this.rightSidebarManager = new Sidebar(this, rightSidebarConfig, "#rightSidebar", "right");
         this.historyManager = new HistoryDialogManager(this);
         this.teamManager = new TeamManagementDialog(this);
@@ -262,6 +263,7 @@ class SchemaEditor {
         this.showMainApp();
         this.initAutoSave();
         this.restoreStatusAutoSave();
+        this.layout?.afterInit();
     }
 
     // NOTE: removed createCanvasPlane() - the grid/background plane is the main `#canvas` element.
@@ -270,6 +272,9 @@ class SchemaEditor {
         await this.menuManager.init(this.menuData);
         await this.toolbarManager.init();
         await this.footerbarManager.init("container");
+        // Interfaccia in stile SpikeCut (topbar, rail, pannello a schede, status bar)
+        this.layout = new SpikeLayout(this);
+        this.layout.build();
     }
 
     async createWindows() {
@@ -1006,8 +1011,7 @@ class SchemaEditor {
                 this.syncMenuCheckboxes();
             },
             'toggleDashed': () => {
-                this.dashedMode = !this.dashedMode;
-                document.getElementById('dashedToggle').classList.toggle('active', this.dashedMode);
+                this.toggleDashedMode();
                 this.syncMenuCheckboxes();
             },
             'toggleLabels': () => {
@@ -1025,18 +1029,8 @@ class SchemaEditor {
             // Oggetti
             'bringToFront': () => this.bringToFront(),
             'sendToBack': () => this.sendToBack(),
-            'arrowMode': () => {
-                this.arrowMode = !this.arrowMode;
-                document.getElementById('arrowModeBtn').classList.toggle('active', this.arrowMode);
-                document.getElementById('canvas').style.cursor = this.arrowMode ? 'crosshair' : 'default';
-                this.deselectAll();
-            },
-            'freehandMode': () => {
-                this.freehandMode = !this.freehandMode;
-                document.getElementById('freehandModeBtn').classList.toggle('active', this.freehandMode);
-                document.getElementById('canvas').style.cursor = this.freehandMode ? 'crosshair' : 'default';
-                this.deselectAll();
-            },
+            'arrowMode': () => this.toggleArrowMode(),
+            'freehandMode': () => this.toggleFreehandMode(),
             'showAnimation': () => this.showAnimationControls(),
 
             // Canvas
@@ -1091,6 +1085,7 @@ class SchemaEditor {
 
     syncMenuCheckboxes() {
         const tab = this.getCurrentTab();
+        if (!tab) return;
 
         // Grid
         const gridCheck = document.getElementById('menu-grid-check');
@@ -3409,7 +3404,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         this.saveState(`Modificato frame sprite a ${frameNumber}`);
 
         // Aggiorna l'info
-        document.getElementById('objectInfo').textContent = `Sprite selezionato (Frame ${frameNumber}/${maxFrame})`;
+        (document.getElementById('objectInfoText') || document.getElementById('objectInfo')).textContent = `Sprite selezionato (Frame ${frameNumber}/${maxFrame})`;
     }
 
     playSpriteAnimation() {
@@ -3451,7 +3446,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         // Aggiorna UI
         document.getElementById('spritePlayAnimation').style.display = 'none';
         document.getElementById('spriteStopAnimation').style.display = 'inline-block';
-        document.getElementById('objectInfo').textContent = `Sprite animato (${frames.length} frame @ ${fps}fps)`;
+        (document.getElementById('objectInfoText') || document.getElementById('objectInfo')).textContent = `Sprite animato (${frames.length} frame @ ${fps}fps)`;
     }
 
     stopSpriteAnimation() {
@@ -3470,7 +3465,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         document.getElementById('spriteStopAnimation').style.display = 'none';
 
         const maxFrame = (objectData.spriteData.cols * objectData.spriteData.rows) - 1;
-        document.getElementById('objectInfo').textContent = `Sprite selezionato (Frame ${objectData.spriteData.frame}/${maxFrame})`;
+        (document.getElementById('objectInfoText') || document.getElementById('objectInfo')).textContent = `Sprite selezionato (Frame ${objectData.spriteData.frame}/${maxFrame})`;
     }
 
     applySpriteFrameSize() {
@@ -3877,13 +3872,13 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     updateFreehandControls() {
         if (this.selectedFreehand) {
             const freehand = this.getCurrentTab().freehands.get(this.selectedFreehand);
-            document.getElementById('freehandColor').value = freehand.color;
+            document.getElementById('freehandColor').value = toHexColor(freehand.color, '#000000');
             document.getElementById('freehandThickness').value = freehand.thickness;
             document.getElementById('freehandThicknessValue').textContent = freehand.thickness;
             document.getElementById('freehandOpacity').value = freehand.opacity || 1;
             document.getElementById('freehandOpacityValue').textContent = (freehand.opacity || 1).toFixed(2);
 
-            document.getElementById('objectInfo').textContent = 'Disegno selezionato';
+            (document.getElementById('objectInfoText') || document.getElementById('objectInfo')).textContent = 'Disegno selezionato';
             document.getElementById('objectControls').style.display = 'none';
             document.getElementById('arrowControls').style.display = 'none';
             document.getElementById('freehandControls').style.display = 'flex';
@@ -4586,12 +4581,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             item.draggable = true;
         });
 
-        document.getElementById('arrowModeBtn').addEventListener('click', (e) => {
-            this.arrowMode = !this.arrowMode;
-            e.currentTarget.classList.toggle('active', this.arrowMode);
-            document.getElementById('canvas').style.cursor = this.arrowMode ? 'crosshair' : 'default';
-            this.deselectAll();
-        });
+        // Il pulsante Frecce (arrowModeBtn) è configurato in toolbar.js -> editor.toggleArrowMode()
 
         // Chiudi context menu quando si clicca sul canvas
         const canvas = document.getElementById('canvas');
@@ -5237,9 +5227,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         // });
         this.initAnimationDialog();
 
-        document.getElementById('showAnimationControls').addEventListener('click', () => {
-            this.showAnimationControls();
-        });
+        // Pulsante animazione: gestito dalla configurazione toolbar (evita doppio listener)
 
         //document.getElementById('addStepBtn').addEventListener('click', () => this.addStep());
         document.getElementById('addStepBtn').addEventListener('click', () => {
@@ -5350,58 +5338,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         //this.initTeamDialogDrag();
 
         this.initTabDragDrop();
-        // Add a quick UI button to register local .glb files (file-picker).
-        try {
-            const menuBar = document.querySelector('.menu-bar') || document.body;
-            if (menuBar && !document.getElementById('registerGlbBtn')) {
-                const btn = document.createElement('button');
-                btn.id = 'registerGlbBtn';
-                btn.type = 'button';
-                btn.className = 'sidebar-button';
-                btn.textContent = 'Registra .glb';
-                btn.title = 'Carica e registra file .glb locali';
-                btn.style.marginLeft = '8px';
-                menuBar.appendChild(btn);
-
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.accept = '.glb,application/octet-stream,model/gltf-binary';
-                input.multiple = true;
-                input.style.display = 'none';
-                document.body.appendChild(input);
-
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    input.click();
-                });
-
-                input.addEventListener('change', async (e) => {
-                    const files = e.target.files;
-                    if (!files || files.length === 0) return;
-                    let registered = 0;
-                    for (let i = 0; i < files.length; i++) {
-                        const f = files[i];
-                        try {
-                            const ab = await f.arrayBuffer();
-                            const name = f.name;
-                            // Register under multiple keys to match likely references
-                            this.registerAsset(name, ab);
-                            this.registerAsset('data/images/' + name, ab);
-                            this.registerAsset('./data/images/' + name, ab);
-                            this.registerAsset('images/' + name, ab);
-                            registered++;
-                            console.log('Registered .glb asset', name);
-                        } catch (err) {
-                            console.error('Failed to register asset', f.name, err);
-                        }
-                    }
-                    try { alert(`Registrati ${registered} file .glb`); } catch (_) {}
-                    input.value = '';
-                });
-            }
-        } catch (err) {
-            console.warn('Could not create Register .glb button', err);
-        }
+        // Registrazione file .glb: menu File → "Registra modelli .glb" (registerGlbFiles)
         // E aggiungi il listener
         // document.getElementById('historyBtn').addEventListener('click', () => {
         //     this.historyManager.show();
@@ -5741,6 +5678,14 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             y -= data.offsetY / this.getCurrentTab().zoom;
         }
 
+        this.createObjectFromComponent(data, x, y);
+    }
+
+    /**
+     * Crea un oggetto a partire dai dati di un elemento della sidebar
+     * (usato sia dal drag&drop sia dal click).
+     */
+    createObjectFromComponent(data, x, y) {
         if (data.type === 'sprite') {
             const spriteData = {
                 sheet: data.spriteSheet,
@@ -5750,16 +5695,125 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 frameWidth: data.spriteWidth,
                 frameHeight: data.spriteHeight
             };
-            this.addObject(data.type, x, y, data.color, data.text, 0, this.dashedMode, null, null, spriteData);
+            return this.addObject(data.type, x, y, data.color, data.text, 0, this.dashedMode, null, null, spriteData);
         } else if (data.type === 'icon') {
-            this.addObject(data.type, x, y, data.color, data.text, 0, this.dashedMode, data.icon);
+            return this.addObject(data.type, x, y, data.color, data.text, 0, this.dashedMode, data.icon);
         } else if (data.type === 'local-svg') {
-            this.addObject(data.type, x, y, data.color, data.text, 0, this.dashedMode, null, data.src);
+            return this.addObject(data.type, x, y, data.color, data.text, 0, this.dashedMode, null, data.src);
         } else if (data.type === 'object') {
-            this.addObject(data.type, x, y, data.color, data.text, 0, this.dashedMode, null, null, null, data.model3d, true);
+            return this.addObject(data.type, x, y, data.color, data.text, 0, this.dashedMode, null, null, null, data.model3d, true);
         } else {
-            this.addObject(data.type, x, y, data.color, data.text);
+            return this.addObject(data.type, x, y, data.color, data.text);
         }
+    }
+
+    /**
+     * Click su un elemento della sidebar: aggiunge l'oggetto al centro dell'area visibile
+     * (con un piccolo sfalsamento per click ripetuti) e lo seleziona.
+     */
+    addComponent(opts = {}) {
+        if (!opts.type) return;
+        const container = document.querySelector('.canvas-container');
+        const canvas = document.getElementById('canvas');
+        if (!container || !canvas) return;
+
+        const cRect = container.getBoundingClientRect();
+        const kRect = canvas.getBoundingClientRect();
+        // centro dell'intersezione tra area visibile e canvas
+        let left = Math.max(cRect.left, kRect.left);
+        const right = Math.min(cRect.right, kRect.right);
+        // Se la galleria è aperta, il centro è calcolato sulla parte di foglio ancora visibile
+        const flyout = document.querySelector('.shapes-flyout.open');
+        if (flyout) left = Math.max(left, flyout.getBoundingClientRect().right);
+        const top = Math.max(cRect.top, kRect.top), bottom = Math.min(cRect.bottom, kRect.bottom);
+        const clientX = right > left ? (left + right) / 2 : kRect.left + 40;
+        const clientY = bottom > top ? (top + bottom) / 2 : kRect.top + 40;
+        const p = this.getCanvasLocalPoint({ clientX, clientY });
+
+        this._clickAddOffset = ((this._clickAddOffset || 0) + 1) % 8;
+        const off = this._clickAddOffset * 12;
+        const size = this.getDefaultSize(opts.type);
+        const x = Math.round(p.x - size.width / 2 + off);
+        const y = Math.round(p.y - size.height / 2 + off);
+
+        const sprite = opts.sprite || null;
+        const obj = this.createObjectFromComponent({
+            type: opts.type,
+            color: opts.color || '',
+            text: opts.text || '',
+            icon: opts.icon || null,
+            src: opts.src || null,
+            model3d: opts.model3d || null,
+            spriteSheet: sprite ? sprite.sheet : null,
+            spriteCols: sprite ? (sprite.cols || 1) : 1,
+            spriteRows: sprite ? (sprite.rows || 1) : 1,
+            spriteFrame: sprite ? (sprite.frame || 0) : 0,
+            spriteWidth: sprite ? (sprite.width || 64) : 64,
+            spriteHeight: sprite ? (sprite.height || 64) : 64
+        }, x, y);
+
+        if (obj && obj.id) {
+            const el = document.getElementById(obj.id);
+            if (el) this.selectObject(el);
+        }
+        return obj;
+    }
+
+    /** Chiede uno o più file .glb e li registra come asset (prima era un pulsante in toolbar) */
+    registerGlbFiles() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.glb,application/octet-stream,model/gltf-binary';
+        input.multiple = true;
+        input.style.display = 'none';
+        document.body.appendChild(input);
+        input.addEventListener('change', async (e) => {
+            const files = e.target.files || [];
+            let count = 0;
+            for (const f of files) {
+                try {
+                    const ab = await f.arrayBuffer();
+                    ['', 'data/images/', './data/images/', 'images/'].forEach(prefix => this.registerAsset(prefix + f.name, ab));
+                    count++;
+                } catch (err) {
+                    console.error('registerGlbFiles: impossibile registrare', f.name, err);
+                }
+            }
+            alert(`Registrati ${count} file .glb`);
+            input.remove();
+        });
+        input.click();
+    }
+
+    /** Ruota: con più oggetti selezionati ruota il gruppo attorno al centro, altrimenti il singolo oggetto */
+    rotateSmart(degrees) {
+        if (this.selectedObjects.size > 1) this.rotateGroup(degrees);
+        else this.rotateSelected(degrees);
+    }
+
+    /** Attiva/disattiva la modalità frecce (usato da toolbar, menu e scorciatoie) */
+    toggleArrowMode(force) {
+        this.arrowMode = typeof force === 'boolean' ? force : !this.arrowMode;
+        if (this.arrowMode && this.freehandMode) this.toggleFreehandMode(false);
+        document.getElementById('arrowModeBtn')?.classList.toggle('active', this.arrowMode);
+        document.getElementById('canvas').style.cursor = this.arrowMode ? 'crosshair' : 'default';
+        this.deselectAll();
+    }
+
+    /** Attiva/disattiva il disegno a mano libera */
+    toggleFreehandMode(force) {
+        this.freehandMode = typeof force === 'boolean' ? force : !this.freehandMode;
+        if (this.freehandMode && this.arrowMode) this.toggleArrowMode(false);
+        document.getElementById('freehandModeBtn')?.classList.toggle('active', this.freehandMode);
+        document.getElementById('canvas').style.cursor = this.freehandMode ? 'crosshair' : 'default';
+        this.deselectAll();
+    }
+
+    /** Attiva/disattiva il tratteggio per i nuovi oggetti/frecce */
+    toggleDashedMode(force) {
+        this.dashedMode = typeof force === 'boolean' ? force : !this.dashedMode;
+        document.getElementById('dashedToggle')?.classList.toggle('active', this.dashedMode);
+        this.syncMenuCheckboxes?.();
     }
 
     rotateGroup(degrees) {
@@ -5939,6 +5993,10 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         const id = 'obj-' + tab.nextObjectId++;
 
         const objectNumber = tab.objects.size + 1;
+
+        // Colore sempre in formato #rrggbb (il color picker non accetta nomi come "orange")
+        if (color) color = toHexColor(color, color);
+        else if (type === 'player') color = '#3498db';
 
         const object = {
             id: id,
@@ -7647,7 +7705,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 document.getElementById('spritePlayAnimation').style.display = isAnimating ? 'none' : 'inline-block';
                 document.getElementById('spriteStopAnimation').style.display = isAnimating ? 'inline-block' : 'none';
 
-                document.getElementById('objectInfo').textContent = `Sprite selezionato (Frame ${sprite.frame}/${maxFrame})`;
+                (document.getElementById('objectInfoText') || document.getElementById('objectInfo')).textContent = `Sprite selezionato (Frame ${sprite.frame}/${maxFrame})`;
             } else if (objectData.is3d && objectData.mesh) {
                 objectData.mesh.position.x = objectData.x;
                 objectData.mesh.position.z = objectData.y;
@@ -7669,12 +7727,12 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 }
 
 
-                document.getElementById('objectColor').value = objectData.color;
+                document.getElementById('objectColor').value = toHexColor(objectData.color);
                 document.getElementById('objectText').value = objectData.text;
                 document.getElementById('objectNumber').value = objectData.objectNumber || '';
                 document.getElementById('objectOpacity').value = objectData.opacity || 1;
                 document.getElementById('objectOpacityValue').textContent = (objectData.opacity || 1).toFixed(2);
-                document.getElementById('objectInfo').textContent = `Selezionati: ${this.selectedObjects.size} oggetti`;
+                (document.getElementById('objectInfoText') || document.getElementById('objectInfo')).textContent = `Selezionati: ${this.selectedObjects.size} oggetti`;
 
                 const dashedObjectToggleBtn = document.getElementById('dashedObjectToggle');
                 dashedObjectToggleBtn.style.display = 'inline-block';
@@ -7694,19 +7752,16 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 document.getElementById('rotationZValue').textContent = (objectData.rotation || 0) + '°';
 
             }
-            // NUOVO: Aggiungi pulsante animazione
-            const animButton = document.getElementById('showAnimationControls');
-            if (animButton) {
-                animButton.style.display = 'inline-block';
-            }
+            // Il pulsante Animazione è sempre disponibile nella barra strumenti
 
         } else {
-            document.getElementById('objectInfo').textContent = 'Nessun oggetto selezionato';
+            (document.getElementById('objectInfoText') || document.getElementById('objectInfo')).textContent = 'Nessun oggetto selezionato';
             document.getElementById('objectText').value = '';
             document.getElementById('dashedObjectToggle').style.display = 'none';
             document.getElementById('spriteControls').style.display = 'none';
 
-            document.getElementById('objectControls').style.display = 'flex';
+            // Nessuna selezione: il pannello oggetto resta nascosto
+            document.getElementById('objectControls').style.display = 'none';
             document.getElementById('arrowControls').style.display = 'none';
             document.getElementById('freehandControls').style.display = 'none';
         }
@@ -7715,7 +7770,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     updateArrowControls() {
         if (this.selectedArrow) {
             const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
-            document.getElementById('arrowColor').value = arrowData.color;
+            document.getElementById('arrowColor').value = toHexColor(arrowData.color, '#000000');
             document.getElementById('arrowThickness').value = arrowData.thickness;
             document.getElementById('thicknessValue').textContent = arrowData.thickness;
 
@@ -7730,7 +7785,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             dashedBtn.style.display = 'inline-block';
             dashedBtn.classList.toggle('active', arrowData.dashed);
 
-            document.getElementById('objectInfo').textContent = 'Freccia selezionata';
+            (document.getElementById('objectInfoText') || document.getElementById('objectInfo')).textContent = 'Freccia selezionata';
             document.getElementById('objectControls').style.display = 'none';
             document.getElementById('arrowControls').style.display = 'flex';
 
@@ -7803,10 +7858,10 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             // ignore
         }
 
-        document.getElementById('objectInfo').textContent = 'Nessun oggetto selezionato';
+        (document.getElementById('objectInfoText') || document.getElementById('objectInfo')).textContent = 'Nessun oggetto selezionato';
         document.getElementById('objectText').value = '';
         document.getElementById('dashedObjectToggle').style.display = 'none';
-        document.getElementById('objectControls').style.display = 'flex';
+        document.getElementById('objectControls').style.display = 'none';
         document.getElementById('arrowControls').style.display = 'none';
         document.querySelectorAll('.freehand-path.selected').forEach(path => {
             path.classList.remove('selected');
@@ -8360,8 +8415,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         }
     }
     // Nel metodo changeSelectedObjectsColor(), aggiungi alla fine:
-    changeSelectedObjectsColor(color) {
+    changeSelectedObjectsColor(color, commit = true) {
         if (this.selectedObjects.size === 0) return;
+        color = toHexColor(color);
 
         const tab = this.getCurrentTab();
         this.selectedObjects.forEach((pos, id) => {
@@ -8388,6 +8444,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             this.renderObject(objectData);
         });
 
+        // Durante il trascinamento nel picker (commit=false) aggiorna solo la vista
+        if (!commit) return;
         this.saveState(`Modificato colore di ${this.selectedObjects.size} oggetti`);
         this.updateCurrentFrame();
     }
@@ -8541,6 +8599,17 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             this.renderArrow(arrowData);
             this.saveState(`Modificato colore freccia ${arrowData.from.objectId}-${arrowData.from.position} a ${arrowData.to.objectId}-${arrowData.to.position}`);
         }
+    }
+
+    /** Mostra/nasconde la punta della freccia selezionata ('start' | 'end') */
+    setArrowMarker(which, enabled) {
+        if (!this.selectedArrow) return;
+        const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
+        if (!arrowData) return;
+        if (which === 'start') arrowData.markerStart = enabled;
+        else arrowData.markerEnd = enabled;
+        this.renderArrow(arrowData);
+        this.saveState(`Modificata punta ${which} freccia ${this.selectedArrow}`);
     }
 
     changeArrowThickness(thickness) {
@@ -8997,6 +9066,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         const canvas = document.getElementById('canvas');
         // Keep canvas element as the plane that renders background/grid
         canvas.className = 'canvas';
+        // Mantieni il formato del foglio (prima griglia/sfondo/B-N lo riportavano a 100x100)
+        if (tab.canvasSize && tab.canvasSize !== 'custom') canvas.classList.add(`size-${tab.canvasSize}`);
         // Apply grid / BW on the canvas itself
         if (tab.gridVisible) canvas.classList.add('grid-visible');
         if (tab.bwMode) canvas.classList.add('bw-mode');
@@ -9436,12 +9507,17 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     }
 
     saveState(description = 'Modifica') {
+        // Durante undo/redo il ripristino non deve creare nuovi stati
+        // (prima "Impostata dimensione canvas" cancellava il Ripeti)
+        if (this._restoringState) return;
         const tab = this.getCurrentTab();
 
+        // Copie degli oggetti: senza copia, modifiche successive (es. colore)
+        // alteravano anche gli stati già salvati e l'Annulla non le ripristinava
         const state = {
-            objects: Array.from(tab.objects.entries()),
-            arrows: Array.from(tab.arrows.entries()),
-            freehands: Array.from(tab.freehands.entries()),
+            objects: Array.from(tab.objects.entries()).map(([id, o]) => [id, this.cloneForHistory(o)]),
+            arrows: Array.from(tab.arrows.entries()).map(([id, a]) => [id, this.cloneForHistory(a)]),
+            freehands: Array.from(tab.freehands.entries()).map(([id, f]) => [id, this.cloneForHistory(f)]),
             timestamp: Date.now(),
             description: description
         };
@@ -9478,6 +9554,19 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         }
     }
 
+    /** Copia "leggera" per lo storico: duplica i sotto-oggetti modificabili, mantiene i riferimenti 3D (mesh) */
+    cloneForHistory(item) {
+        if (!item || typeof item !== 'object') return item;
+        const copy = { ...item };
+        ['spriteData', 'from', 'to', 'controlPoint'].forEach(k => {
+            if (copy[k] && typeof copy[k] === 'object') copy[k] = { ...copy[k] };
+        });
+        ['animations', 'points'].forEach(k => {
+            if (Array.isArray(copy[k])) copy[k] = copy[k].map(v => (v && typeof v === 'object') ? { ...v } : v);
+        });
+        return copy;
+    }
+
     undo() {
         const tab = this.getCurrentTab();
         if (tab.historyIndex > 0) {
@@ -9505,27 +9594,32 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         // Ripristina gli oggetti
         if (state.objects && Array.isArray(state.objects)) {
             state.objects.forEach(([id, obj]) => {
-                tab.objects.set(id, obj);
+                tab.objects.set(id, this.cloneForHistory(obj));
             });
         }
 
         // Ripristina le frecce
         if (state.arrows && Array.isArray(state.arrows)) {
             state.arrows.forEach(([id, arrow]) => {
-                tab.arrows.set(id, arrow);
+                tab.arrows.set(id, this.cloneForHistory(arrow));
             });
         }
 
         // Ripristina i freehands
         if (state.freehands && Array.isArray(state.freehands)) {
             state.freehands.forEach(([id, freehand]) => {
-                tab.freehands.set(id, freehand);
+                tab.freehands.set(id, this.cloneForHistory(freehand));
             });
         }
 
         // Ricaricare la visualizzazione del tab
-        this.loadTabState();
-        this.deselectAll();
+        this._restoringState = true;
+        try {
+            this.loadTabState();
+            this.deselectAll();
+        } finally {
+            this._restoringState = false;
+        }
 
         // ✅ NUOVO: Aggiorna il display del manager se visibile
         if (this.historyManager && this.historyManager.isVisible()) {

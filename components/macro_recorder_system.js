@@ -1014,15 +1014,15 @@ class MacroManager {
             ],
             listeners: {
                 domReady: (win) => {
-                    win.querySelector('#btnStartRecord').addEventListener('click', () => {
+                    win.querySelector('#btnStartRecord')?.addEventListener('click', () => {
                         this.startRecording();
                     });
 
-                    win.querySelector('#btnStopRecord').addEventListener('click', () => {
+                    win.querySelector('#btnStopRecord')?.addEventListener('click', () => {
                         this.stopRecording();
                     });
 
-                    win.querySelector('#btnPlayMacro').addEventListener('click', () => {
+                    win.querySelector('#btnPlayMacro')?.addEventListener('click', () => {
                         const abortBtn = win.querySelector('#btnAbortPlay');
                         if (abortBtn) abortBtn.style.display = 'inline-block';
 
@@ -1074,23 +1074,23 @@ class MacroManager {
                         });
                     }
 
-                    win.querySelector('#btnExportMacro').addEventListener('click', () => {
+                    win.querySelector('#btnExportMacro')?.addEventListener('click', () => {
                         if (this.selectedMacro) {
                             this.exportMacro(this.selectedMacro.name);
                         }
                     });
 
-                    win.querySelector('#btnDeleteMacro').addEventListener('click', () => {
+                    win.querySelector('#btnDeleteMacro')?.addEventListener('click', () => {
                         if (this.selectedMacro && confirm(`Eliminare la macro "${this.selectedMacro.name}"?`)) {
                             this.deleteMacro(this.selectedMacro.name);
                         }
                     });
 
-                    win.querySelector('#btnImportMacro').addEventListener('click', () => {
+                    win.querySelector('#btnImportMacro')?.addEventListener('click', () => {
                         win.querySelector('#importMacroFile').click();
                     });
 
-                    win.querySelector('#importMacroFile').addEventListener('change', (e) => {
+                    win.querySelector('#importMacroFile')?.addEventListener('change', (e) => {
                         if (e.target.files[0]) {
                             app.macroRecorder.importMacro(e.target.files[0]);
                             app.loadMacros();
@@ -1100,7 +1100,7 @@ class MacroManager {
                     });
 
                     // 🎚️ Velocità riproduzione
-                    win.querySelector('#playbackSpeedSlider').addEventListener('input', (e) => {
+                    win.querySelector('#playbackSpeedSlider')?.addEventListener('input', (e) => {
                         app.playbackSpeed = parseFloat(e.target.value);
                         app.macroRecorder.setPlaybackSpeed(app.playbackSpeed);
                         win.querySelector('#speedValue').textContent = app.playbackSpeed.toFixed(1) + 'x';

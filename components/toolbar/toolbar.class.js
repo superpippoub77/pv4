@@ -303,6 +303,8 @@ class ToolbarDialogManager {
                     if (group.fieldsetId) fs.id = group.fieldsetId;
                     if (group.fieldsetClass) fs.className = group.fieldsetClass;
                     else fs.className = "toolbar-group";
+                    // Gruppi contestuali (es. pannello oggetto) nascosti finché non servono
+                    if (group.hidden) fs.style.display = "none";
 
                     const legend = document.createElement("legend");
                     legend.textContent = group.legend;
@@ -429,6 +431,9 @@ class ToolbarDialogManager {
                     el.title = item.title;
                     el.setAttribute("data-i18n-title", item.titleI18n || item.title);
                 }
+                if (item.onChange) {
+                    el.addEventListener("change", (event) => item.onChange?.(this.editor, event.target.value, event));
+                }
                 item.options.forEach(([value, text, i18nKey]) => {
                     const opt = document.createElement("option");
                     opt.value = value;
@@ -481,7 +486,19 @@ class ToolbarDialogManager {
                 if (item.max !== undefined) el.max = item.max;
                 if (item.step !== undefined) el.step = item.step;
                 if (item.value !== undefined) el.value = item.value;
+                if (item.checked) el.checked = true;
 
+                // Checkbox con testo: avvolta in una <label> cliccabile
+                if (item.inputType === "checkbox" && item.text) {
+                    el.removeAttribute("data-i18n");
+                    const wrap = document.createElement("label");
+                    wrap.className = "toolbar-check";
+                    const span = document.createElement("span");
+                    span.textContent = item.text;
+                    if (item.i18n) span.setAttribute("data-i18n", item.i18n);
+                    wrap.append(el, span);
+                    return wrap;
+                }
                 break;
 
             case "file":
@@ -508,6 +525,10 @@ class ToolbarDialogManager {
                 el.className = item.class ?? "";
                 el.style = item.style ?? "";
                 el.innerHTML = item.html ?? "";
+                if (item.onClick) {
+                    el.addEventListener("click", (event) => item.onClick?.(this.editor, event));
+                }
+                if (item.title) el.title = item.title;
                 // Aggiungi data-i18n se presente
                 if (item.i18n) {
                     el.setAttribute("data-i18n", item.i18n);
@@ -532,8 +553,11 @@ class ToolbarDialogManager {
         // Determine tooltip text: prefer explicit i18n/title on the tooltip element,
         // then the button-level data-i18n-title, then the tooltip's existing text,
         // finally fall back to the button text.
-        const text = tooltip.getAttribute('data-i18n')
-            || button.getAttribute('data-i18n-title')
+        // Usa il testo tradotto della chiave (non la chiave stessa)
+        const key = tooltip.getAttribute('data-i18n') || button.getAttribute('data-i18n-title');
+        const lang = (typeof currentLanguage !== 'undefined' && currentLanguage) || document.getElementById('languageSelector')?.value || 'it';
+        const dict = (typeof translations !== 'undefined' && translations[lang]) || {};
+        const text = (key && dict[key])
             || tooltip.textContent
             || button.textContent || '';
         tooltip.textContent = text;
