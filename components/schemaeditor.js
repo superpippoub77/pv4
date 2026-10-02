@@ -262,7 +262,11 @@ class SchemaEditor {
         this.updateUI();
         this.showMainApp();
         this.initAutoSave();
-        this.restoreStatusAutoSave();
+        if (!this.restoreStatusAutoSave()) {
+            // Nessun autosave: applica la dimensione di default al foglio,
+            // altrimenti il canvas resta al minimo CSS (100x100, un quadrato)
+            this.applyCustomCanvasSize(this.getCurrentTab());
+        }
         this.layout?.afterInit();
     }
 
@@ -288,6 +292,11 @@ class SchemaEditor {
     initThreeJS() {
         const canvas = document.getElementById('three-canvas');
         if (!canvas) return;
+        if (typeof THREE === 'undefined') {
+            // Libreria non caricata (es. CDN irraggiungibile): non bloccare l'avvio dell'editor
+            console.warn('Three.js non disponibile: vista 3D disattivata');
+            return;
+        }
 
         // 1. Creazione della Scena
         this.threeScene = new THREE.Scene();
@@ -489,6 +498,8 @@ class SchemaEditor {
                         objects: Array.from(frame.objects.entries())
                     })) || [],
                     canvasSize: tabData.canvasSize,
+                    customWidth: tabData.customWidth,
+                    customHeight: tabData.customHeight,
                     showBorder: tabData.showBorder,
                     maxZIndex: tabData.maxZIndex,
                     canvasRotation: tabData.canvasRotation,
@@ -574,6 +585,8 @@ class SchemaEditor {
                 tab.rec = tabData.rec;
                 tab.exerciseSteps = tabData.exerciseSteps || [];
                 tab.canvasSize = tabData.canvasSize;
+                if (tabData.customWidth) tab.customWidth = tabData.customWidth;
+                if (tabData.customHeight) tab.customHeight = tabData.customHeight;
                 tab.showBorder = tabData.showBorder;
                 tab.maxZIndex = tabData.maxZIndex;
                 tab.canvasRotation = tabData.canvasRotation;
@@ -655,6 +668,8 @@ class SchemaEditor {
                     rec: tabData.rec,
                     exerciseSteps: tabData.exerciseSteps || [],
                     canvasSize: tabData.canvasSize,
+                    customWidth: tabData.customWidth || tab.customWidth,
+                    customHeight: tabData.customHeight || tab.customHeight,
                     showBorder: tabData.showBorder,
                     maxZIndex: tabData.maxZIndex,
                     canvasRotation: tabData.canvasRotation,
@@ -3150,6 +3165,15 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             maxZIndex: 1000
         });
     }
+    applyCustomCanvasSize(tab) {
+        const canvas = document.getElementById('canvas');
+        if (!canvas || !tab) return;
+        tab.customWidth = tab.customWidth || this.defaultCustomCanvasWidth;
+        tab.customHeight = tab.customHeight || this.defaultCustomCanvasHeight;
+        canvas.style.width = tab.customWidth + 'px';
+        canvas.style.height = tab.customHeight + 'px';
+    }
+
     setCanvasSize(size) {
         const tab = this.getCurrentTab();
         tab.canvasSize = size;
