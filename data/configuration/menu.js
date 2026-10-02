@@ -12,7 +12,13 @@ const menuData = [
             { icon: "🆕", label: "Nuovo schema", action: "newSchema" },
             { icon: "💾", label: "Salva schema (.json)", action: "saveSchema" },
             { icon: "📂", label: "Apri schema da file (.json)", action: "loadSchema" },
-            { icon: "☁", label: "Libreria esercizi", onClick: (editor) => editor.libraryManager.show() },
+            { separator: true },
+            { icon: "☁", label: "Libreria esercizi…", onClick: () => window.Pv4Library.open() },
+            { icon: "☁", label: "Salva in libreria", onClick: () => window.Pv4Library.quickSave() },
+            { icon: "☁", label: "Salva in libreria con nome…", onClick: () => window.Pv4Library.saveAs() },
+            { icon: "🕐", label: "Versioni dell'esercizio…", onClick: () => window.Pv4Library.versions() },
+            { icon: "📌", label: "Fissa questa versione…", onClick: () => window.Pv4Library.pinVersion() },
+            { icon: "🗄", label: "Archivio esercizi (precedente)", onClick: (editor) => editor.libraryManager.show() },
             { separator: true },
             { icon: "💾", label: "Salva allenamento…", onClick: (editor) => editor.workoutManager.show() },
             { icon: "📂", label: "Carica allenamento (.json)", action: "loadWorkout" },
@@ -70,7 +76,8 @@ const menuData = [
 
 // Voci del menu utente (pulsante 👤 nella topbar)
 const userMenuData = [
-    { icon: "👤", label: "Profilo", action: "showUserProfile" },
+    { icon: "👤", label: "Account…", onClick: () => window.Pv4Library.account() },
+    { icon: "🪪", label: "Profilo", action: "showUserProfile" },
     { separator: true },
     { icon: "🚪", label: "Esci", action: "logout" }
 ];

@@ -1,0 +1,11 @@
+# Alcune configurazioni di Apache/PHP (Aruba compreso) scartano l'header
+# "Authorization" prima che arrivi agli script: senza queste righe il login
+# con JWT non funziona (nessun errore chiaro, semplicemente non si resta collegati).
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+</IfModule>
+<IfModule mod_setenvif.c>
+    SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+</IfModule>

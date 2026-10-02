@@ -494,6 +494,8 @@ class SpikeLayout {
             if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || t.isContentEditable) return;
             if (e.ctrlKey || e.metaKey || e.altKey) return;
             if (!this.editor.getCurrentTab()) return;
+            // una finestra della libreria, dell'account o della guida è aperta: i tasti non comandano il disegno
+            if (document.querySelector(".modal-overlay.scx.open")) return;
             const ed = this.editor;
             const k = e.key.toLowerCase();
             const map = {

@@ -107,3 +107,89 @@
     0% { transform: scale(0.8); opacity: 0; }
     100% { transform: scale(1); opacity: 1; }
 }
+
+/* --- Account: registrazione, recupero password, viste aggiuntive --- */
+.login-checking {
+    color: #bdc3c7;
+    font-size: 14px;
+    padding: 10px 0;
+}
+
+.login-pw {
+    position: relative;
+}
+
+.login-pw input {
+    padding-right: 40px;
+}
+
+.login-eye {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+    padding: 4px 6px;
+}
+
+.login-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: -6px 0 16px;
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.login-check input {
+    width: auto;
+}
+
+.login-links {
+    margin-top: 16px;
+    font-size: 13px;
+    line-height: 1.8;
+    color: #bdc3c7;
+}
+
+.login-links a {
+    color: #5dade2;
+}
+
+.login-info {
+    font-size: 13px;
+    color: #d5dbdb;
+    text-align: left;
+    margin: 0 0 16px;
+}
+
+.login-error {
+    margin-bottom: 12px;
+}
+
+.login-ok,
+.login-error.login-ok {
+    color: #2ecc71;
+    font-size: 13px;
+    margin: 0 0 12px;
+    display: none;
+    text-align: center;
+}
+
+.login-offline {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    font-size: 13px;
+    color: #d5dbdb;
+}
+
+.login-button-ghost {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    font-size: 14px;
+}
