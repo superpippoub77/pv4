@@ -709,3 +709,15 @@ body.sc-theme .context-menu-item:hover { background: var(--bg-1); }
 body.sc-theme .context-menu-item .shortcut,
 body.sc-theme .context-menu-shortcut { color: var(--ink-dim); font-family: var(--mono); font-size: 10.5px; }
 body.sc-theme .context-menu-separator { background: var(--line-soft); margin: 5px 2px; }
+
+/* Barra in alto su schermi non molto larghi: i gruppi a sinistra non devono finire sotto i menu File/Stampa/Strumenti */
+@media (max-width: 1560px) {
+    .menu-bar .brand .brand-name { display: none; }
+    .menu-bar #schemaTitle { width: 120px; min-width: 0; }
+    .menu-bar .topbar-left { gap: 4px; }
+    .menu-bar .grp { padding: 0 4px; }
+}
+@media (max-width: 1360px) {
+    .menu-bar #zoomDisplay { display: none; }
+    .menu-bar #schemaTitle { width: 96px; }
+}

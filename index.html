@@ -300,7 +300,10 @@
     <script defer src="components/menu/menu.class.js"></script>
     <script defer src="components/toolbar/toolbar.class.js"></script>
     <script defer src="components/sidebar/sidebar.class.js"></script>
+    <script defer src="components/cloud/cloud-api.js"></script>
     <script defer src="components/login/login.class.js"></script>
+    <script defer src="components/cloud/library.js"></script>
+    <script defer src="components/cloud/guide.js"></script>
     <script defer src="components/history/history.class.js"></script>
     <script defer src="components/teammanagement/teammanagement.class.js"></script>
     <script defer src="components/workout/libraryworkout.class.js"></script>
@@ -334,7 +337,6 @@
 
             // Inizializza loginManager
             loginManager = new LoginManager({
-                userDataUrl: 'data/users.json',
                 onLoginSuccess: async (username) => {
                     // Controlla di nuovo se l'editor esiste
                     if (!window.editor) {

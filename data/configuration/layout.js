@@ -9,7 +9,7 @@
 // Ogni comando compare in UN solo posto.
 // =======================================================================
 
-const APP_VERSION = "1.1.0";
+const APP_VERSION = "1.2.0";
 
 // Icone in stile SpikeCut (viewBox 22, tratto 1.6)
 const SC_ICON = (d, extra = "") =>
@@ -48,7 +48,10 @@ const layoutConfig = {
         [{ type: "brand", html: `<span class="brand-mark">🏐</span><span class="brand-name">VolleyPro<b>W4</b></span>` }],
         [{ type: "input", id: "schemaTitle", placeholder: "Titolo schema", i18nPlaceholder: "placeholder_schema_title", title: "Nome dello schema" }],
         [{ type: "button", id: "btnSaveStatus", text: "✓ Salvato", title: "Salva lo schema (il lavoro viene salvato anche in automatico)", onClick: (ed) => ed.saveSchema() }],
-        [{ type: "button", id: "loadFromLibrary", text: "☁ Libreria", title: "Libreria esercizi", onClick: (ed) => ed.libraryManager.show() }],
+        [
+            { type: "button", id: "loadFromLibrary", text: "☁ Libreria", title: "Libreria esercizi online: i tuoi esercizi e quelli condivisi da altri utenti", onClick: () => window.Pv4Library.open() },
+            { type: "button", id: "btnSaveLibraryTop", text: "☁ Salva", title: "Salva subito in libreria: sovrascrive l'esercizio se è già collegato, altrimenti chiede nome e cartella", onClick: () => window.Pv4Library.quickSave() }
+        ],
         [
             { type: "button", id: "undoBtn", text: "↶", title: "Annulla (Ctrl+Z)", onClick: (ed) => ed.undo() },
             { type: "button", id: "redoBtn", text: "↷", title: "Ripeti (Ctrl+Y)", onClick: (ed) => ed.redo() },
@@ -64,7 +67,7 @@ const layoutConfig = {
         [
             { type: "button", id: "btnNewTab", text: "＋", title: "Nuovo schema", onClick: (ed) => ed.addNewTab() },
             { type: "button", id: "btnLoadTop", text: "⇪", title: "Carica uno schema (.json)", onClick: () => document.getElementById("fileInput").click() },
-            { type: "button", id: "btnHelpTop", text: "?", title: "Guida", onClick: (ed) => ed.menuManager.showHelpDialog?.() }
+            { type: "button", id: "btnHelpTop", text: "?", title: "Guida (F1)", onClick: (ed) => ed.menuManager.showHelpDialog?.() }
         ],
         [{ type: "user" }]
     ],

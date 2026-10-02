@@ -35,3 +35,7 @@ data/app.db
 # Temporary files
 tmp/
 temp/
+
+# Dati della libreria online (creati dal server: account, esercizi, database)
+library/
+users/

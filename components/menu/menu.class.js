@@ -414,6 +414,8 @@ class MenuManager {
      * Dialog Guida
      */
     showHelpDialog() {
+        // Guida completa con ricerca (components/cloud/guide.js)
+        if (window.Pv4Guide) return window.Pv4Guide.open();
         const html = `
         <div style="padding: 20px; max-height: 500px; overflow-y: auto;">
             <h3>📖 Guida Rapida</h3>

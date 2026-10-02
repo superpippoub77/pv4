@@ -123,7 +123,8 @@ class SchemaEditor {
         this.libraryManager = new LibraryWorkoutDialogManager(this);
         this.macroManager = new MacroManager(this);
         this.textExerciseManager = new TextExerciseBuilder(this);
-        this.loginManager = new LoginManager();
+        // Unico gestore del login, creato in index.html (crearne un altro aggiungeva una seconda finestra di accesso)
+        this.loginManager = window.loginManager;
     }
 
     startDrag3D(objectId, e) {
@@ -501,6 +502,7 @@ class SchemaEditor {
                     canvasSize: tabData.canvasSize,
                     customWidth: tabData.customWidth,
                     customHeight: tabData.customHeight,
+                    lib: tabData.lib || null, // collegamento all'esercizio nella libreria online
                     showBorder: tabData.showBorder,
                     maxZIndex: tabData.maxZIndex,
                     canvasRotation: tabData.canvasRotation,
@@ -587,6 +589,7 @@ class SchemaEditor {
                 tab.exerciseSteps = tabData.exerciseSteps || [];
                 tab.canvasSize = tabData.canvasSize;
                 if (tabData.customWidth) tab.customWidth = tabData.customWidth;
+                tab.lib = tabData.lib || null;
                 if (tabData.customHeight) tab.customHeight = tabData.customHeight;
                 tab.showBorder = tabData.showBorder;
                 tab.maxZIndex = tabData.maxZIndex;
@@ -671,6 +674,7 @@ class SchemaEditor {
                     canvasSize: tabData.canvasSize,
                     customWidth: tabData.customWidth || tab.customWidth,
                     customHeight: tabData.customHeight || tab.customHeight,
+                    lib: tabData.lib || null,
                     showBorder: tabData.showBorder,
                     maxZIndex: tabData.maxZIndex,
                     canvasRotation: tabData.canvasRotation,
@@ -1211,6 +1215,7 @@ class SchemaEditor {
 
     // Dialog Guida
     showHelpDialog() {
+        if (window.Pv4Guide) return window.Pv4Guide.open();
         const html = `
         <div style="padding: 20px; max-height: 500px; overflow-y: auto;">
             <h3>📖 Guida Rapida</h3>
@@ -9997,14 +10002,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     }
 
 
-    saveSchema() {
+    /** Dati completi dello schema attivo (gli stessi del file .json): usati anche dalla libreria online */
+    getSchemaData() {
         const tab = this.getCurrentTab();
-        tab.objects.forEach(obj => {
-            if (obj.type === 'sprite' && obj.animationInterval) {
-                clearInterval(obj.animationInterval);
-                delete obj.animationInterval;
-            }
-        });
 
         const data = {
             title: tab.name || 'schema',
@@ -10020,7 +10020,12 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             place: tab.place,
             date: tab.date,
             groups: tab.groups,
-            objects: Array.from(tab.objects.entries()),
+            // senza il timer dell'animazione degli sprite (non va salvato)
+            objects: Array.from(tab.objects.entries()).map(([id, obj]) => {
+                if (!obj.animationInterval && !obj.mesh) return [id, obj];
+                const { animationInterval, mesh, ...rest } = obj;
+                return [id, rest];
+            }),
             arrows: Array.from(tab.arrows.entries()),
             background: tab.background,
             gridVisible: tab.gridVisible,
@@ -10041,6 +10046,18 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             // Persist canvas plane rotation so reload preserves inclination
             canvasRotation: tab.canvasRotation || this.canvasRotation || { X: 0, Y: 0, Z: 0 }
         };
+        return data;
+    }
+
+    saveSchema() {
+        const tab = this.getCurrentTab();
+        tab.objects.forEach(obj => {
+            if (obj.type === 'sprite' && obj.animationInterval) {
+                clearInterval(obj.animationInterval);
+                delete obj.animationInterval;
+            }
+        });
+        const data = this.getSchemaData();
 
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
