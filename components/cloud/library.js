@@ -21,6 +21,7 @@ const CLOUD_MARKUP = `<div id="accountModal" class="modal-overlay scx">
 
       <div id="acctViewLoggedIn" style="display:none;">
         <div class="hint" style="margin-bottom:12px;">Sei collegato come <b id="acctLoggedUsername"></b> (<span id="acctLoggedEmail"></span>).</div>
+        <div class="hint" id="acctRole" style="margin:-6px 0 12px;"></div>
         <div class="hint" id="acctOffline" style="margin-bottom:12px;color:var(--cut);display:none;">Il server non risponde o sei entrato senza account: la libreria online non è disponibile. Esci e accedi di nuovo quando sei collegato a internet.</div>
         <button class="btn primary" id="btnAdminOpen" style="display:none;margin-bottom:8px;">🛠 Amministrazione</button>
         <button class="btn" id="logoutSubmit">Esci</button>
@@ -412,7 +413,8 @@ const adminState = { users:[], sort:'created', dir:1 };
 function fmtDateTime(iso){ if(!iso) return '—'; const d = new Date(iso); if(isNaN(d)) return '—'; return d.toLocaleDateString(currentLang==='zh'?'zh-CN':currentLang, {day:'2-digit', month:'2-digit', year:'numeric'}) + ' ' + d.toLocaleTimeString(currentLang==='zh'?'zh-CN':currentLang, {hour:'2-digit', minute:'2-digit'}); }
 function fmtBytes(n){ if(n==null) return '—'; if(n < 1024) return n + ' B'; if(n < 1048576) return (n/1024).toFixed(1).replace('.', ',') + ' KB'; return (n/1048576).toFixed(1).replace('.', ',') + ' MB'; }
 async function openAdmin(){
-  if(!currentUser || !currentUser.isAdmin){ showToast('Questa funzione è riservata agli amministratori.', true); return; }
+  if(!currentUser){ openAccountModal(); return; }
+  if(!currentUser.isAdmin){ showToast('L\'amministrazione è riservata agli amministratori: è amministratore il primo account registrato su questo sito, oppure chi è indicato in ADMIN_USERS nel file cloud/config.php.', true); return; }
   closeAccountModal();
   openModal('adminModal');
   await refreshAdmin();
@@ -1895,6 +1897,8 @@ async function checkAuthStatus(){
   updateAccountUI();
 }
 function showAccountView(view){
+  // accesso e registrazione sono nella schermata iniziale: qui c'è solo la vista "collegato"
+  document.getElementById('acctViewLoggedIn').style.display = '';
   document.getElementById('accountModalTitle').textContent = translate('Account');
 }
 function openAccountModal(view){
@@ -1904,6 +1908,9 @@ function openAccountModal(view){
   document.getElementById('acctLoggedUsername').textContent = u.username || '';
   document.getElementById('acctLoggedEmail').textContent = u.email || '';
   document.getElementById('acctOffline').style.display = currentUser ? 'none' : '';
+  document.getElementById('acctRole').innerHTML = u.isAdmin
+    ? '🛠 Sei <b>amministratore</b>: usa il pulsante qui sotto.'
+    : 'Ruolo: utente. ' + escapeHTML('È amministratore il primo account registrato su questo sito, oppure chi è indicato in ADMIN_USERS nel file cloud/config.php.');
   updateAccountUI();
   openModal('accountModal');
 }

@@ -62,7 +62,11 @@ html:`<p>All'apertura compare la schermata di accesso. Ogni allenatore usa il <b
 <li><b>Accedi</b>: con il nome utente <i>oppure</i> l'email, e la password.</li>
 <li><b>Ricordami su questo dispositivo</b>: resti collegato per 30 giorni, anche chiudendo il browser; senza la spunta l'accesso dura 24 ore.</li>
 <li><b>Password dimenticata?</b>: inserisci l'email del tuo account e riceverai un link, valido un'ora, per sceglierne una nuova.</li></ul>
-<p>Dal menu utente in alto a destra (👤): <b>Account…</b> mostra con chi sei collegato e, per gli amministratori, il pulsante <a data-topic="amministrazione">Amministrazione</a>; <b>Esci</b> chiude la sessione su questo dispositivo.</p>
+<p>Dal menu utente in alto a destra (👤):</p>
+<ul><li><b>Account…</b> mostra con chi sei collegato e il tuo ruolo (utente o amministratore);</li>
+<li><b>Profilo</b>: nome, cognome, email, telefono, ruolo, squadra e bio, salvati nel tuo account;</li>
+<li><b>Amministrazione</b>: solo per gli amministratori, vedi <a data-topic="amministrazione">Amministrazione</a>;</li>
+<li><b>Esci</b> chiude la sessione su questo dispositivo.</li></ul>
 <p>Se il server non risponde (nessuna connessione) puoi entrare con l'ultimo account usato o <b>senza account</b>: l'editor funziona normalmente, ma la <a data-topic="libreria">libreria online</a> resta disattivata finché non accedi di nuovo.</p>` },
 
 { id:'interfaccia', cat:'Per iniziare', title:'L\'interfaccia', keys:'barra menu pannello laterale topbar schermo zone finestra rail strumenti stato',
@@ -182,7 +186,8 @@ html:`<p>Un esercizio eliminato dalla libreria va nel <b>Cestino</b> (in fondo a
 <li>Maiusc+Canc nella libreria elimina definitivamente senza passare dal Cestino.</li></ul>` },
 
 { id:'amministrazione', cat:'Salvare e condividere', title:'Amministrazione', keys:'amministratore admin database utenti esercizi pubblici privati stato server',
-html:`<p>Gli amministratori (il primo utente registrato, se non è indicato diversamente in <code>cloud/config.php</code>) trovano <b>Amministrazione</b> in Account…:</p>
+html:`<p>Gli amministratori (il primo utente registrato, se non è indicato diversamente in <code>cloud/config.php</code>) trovano <b>Amministrazione</b> nel menu 👤 e in Account…. Per sapere se lo sei, apri Account…: c'è scritto il tuo ruolo. Per aggiungere altri amministratori si scrivono i loro nomi utente in <code>ADMIN_USERS</code>, per esempio <code>define('ADMIN_USERS', ['mario', 'giulia']);</code> (con l'elenco compilato sono amministratori solo quelli indicati).</p>
+<p>La finestra mostra:</p>
 <ul><li>lo <b>stato del database</b> (SQLite, file, copie di sicurezza giornaliere, numero di utenti, esercizi e cartelle);</li>
 <li>l'elenco degli <b>utenti</b> con registrazione, ultimo accesso e ultimo salvataggio, ed esercizi pubblici e privati di ognuno;</li>
 <li>l'elenco di tutti gli <b>esercizi</b>, con la possibilità di renderli pubblici o privati (resta traccia di chi ha fatto l'ultimo cambio).</li></ul>` },

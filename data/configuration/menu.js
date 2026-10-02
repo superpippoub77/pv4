@@ -78,6 +78,7 @@ const menuData = [
 const userMenuData = [
     { icon: "👤", label: "Account…", onClick: () => window.Pv4Library.account() },
     { icon: "🪪", label: "Profilo", action: "showUserProfile" },
+    { icon: "🛠", label: "Amministrazione", onClick: () => window.Pv4Library.admin() },
     { separator: true },
     { icon: "🚪", label: "Esci", action: "logout" }
 ];
