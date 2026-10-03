@@ -5,6 +5,12 @@ e compaiono nella barra di stato ("VBProW4 by SpikeCode AI · Ott 2026 · Ver: 1
 Informazioni e nella guida (Riferimento → Novità). A ogni rilascio vanno aggiornati insieme a questo file
 e a `package.json`.
 
+## 1.6.3 — Ott 2026
+
+- **Avvio pulito**: ricaricando la pagina (anche con Ctrl+F5) non compare più per un attimo la vecchia impaginazione
+  dell'HTML (sfondo blu, scheda «Schema 1 / + Nuovo», quadratino al centro) prima della grafica vera: finché l'app non
+  è pronta si vede una schermata di caricamento scura con il pallone. La finestra di accesso resta visibile come prima.
+
 ## 1.6.2 — Ott 2026
 
 - **Finestre ridotte a icona**: il pulsante «−» manda la finestra in una barra in basso a sinistra (icona e titolo);

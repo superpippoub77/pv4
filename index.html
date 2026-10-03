@@ -4,6 +4,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Avvio: finché la grafica non è pronta si vede solo una schermata di caricamento
+         (prima compariva per un attimo la vecchia impaginazione dell'HTML) -->
+    <style id="pv4BootStyle">
+        html.pv4-booting, html.pv4-booting body { background: #17181a !important; }
+        html.pv4-booting body > *:not(#pv4Boot):not(#login) { visibility: hidden !important; }
+        #pv4Boot { display: none; }
+        html.pv4-booting #pv4Boot {
+            position: fixed; inset: 0; z-index: 9990; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 14px; background: #17181a;
+            color: #c9973f; font: 13px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; letter-spacing: .04em;
+        }
+        #pv4Boot .b-ball { font-size: 42px; animation: pv4BootSpin 1.1s linear infinite; }
+        #pv4Boot .b-name { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 14px; }
+        #pv4Boot .b-name b { color: #e9e6df; }
+        #pv4Boot .b-sub { color: #8d8a83; font-size: 12px; }
+        @keyframes pv4BootSpin { to { transform: rotate(360deg); } }
+        @media (prefers-reduced-motion: reduce) { #pv4Boot .b-ball { animation: none; } }
+    </style>
+    <script>
+        document.documentElement.classList.add('pv4-booting');
+        window.pv4BootDone = function () { document.documentElement.classList.remove('pv4-booting'); };
+        setTimeout(window.pv4BootDone, 15000); // in ogni caso, dopo 15 s si mostra la pagina
+    </script>
     
     <!-- API Configuration -->
     <script>
@@ -76,6 +99,11 @@
 </head>
 
 <body style="display: flex; flex-direction: column;">
+    <div id="pv4Boot" role="status" aria-live="polite">
+        <div class="b-ball">🏐</div>
+        <div class="b-name">VolleyPro<b>W4</b></div>
+        <div class="b-sub">Caricamento…</div>
+    </div>
     <!-- MAIN CONTENT -->
     <div id="container" class="container">
 

@@ -279,6 +279,8 @@ class SchemaEditor {
             this.applyCustomCanvasSize(this.getCurrentTab());
         }
         this.layout?.afterInit();
+        // grafica pronta: via la schermata di caricamento (al frame dopo, a impaginazione fatta)
+        requestAnimationFrame(() => window.pv4BootDone?.());
     }
 
     // NOTE: removed createCanvasPlane() - the grid/background plane is the main `#canvas` element.
