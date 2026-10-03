@@ -39,3 +39,6 @@ temp/
 # Dati della libreria online (creati dal server: account, esercizi, database)
 library/
 users/
+
+# Vecchio elenco utenti (sistema di accesso precedente): mai nel repository né sul sito
+data/users.json

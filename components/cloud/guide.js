@@ -277,6 +277,7 @@ html:`<dl class="guide-faq">
 
 { id:'novita', cat:'Riferimento', title:'Novità', keys:'novità versioni changelog aggiornamenti',
 html:`<ul>
+<li><b>1.6.1</b> — Sicurezza: rimosso dal sito un vecchio file con l'elenco degli utenti del sistema di accesso precedente.</li>
 <li><b>1.6.0</b> — <a data-topic="condividi">Link condivisi</a> di allenamenti ed esercizi (pagina di sola consultazione con anteprima sui social); <a data-topic="lavagna">Lavagna</a> con ricezione a 5/4/3/2, difese 2-0-4, 2-1-3, 3-0-3, 3-1-2, 3-2-1, 1-2-3 e coperture.</li>
 <li><b>1.5.0</b> — <a data-topic="lavagna">Lavagna</a>: i 6 giocatori in ogni rotazione (P1…P6) e fase (partenza, break point, side out) su campo intero o metà campo, anche chiedendolo a parole.</li>
 <li><b>1.4.1</b> — Anteprima completa (titolo, descrizione, immagine) quando condividi il link dell'app su Facebook, WhatsApp e altri social.</li>
