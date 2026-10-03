@@ -65,40 +65,81 @@ const minHeight = 80;
 function bringToFront(win) { win.style.zIndex = ++zCounter; }
 
 
+/**
+ * Barra delle finestre ridotte a icona: in basso a sinistra, sopra la barra di stato.
+ * (Prima l'icona finiva nel vecchio #footer, che nel nuovo layout non esiste più:
+ * la finestra ridotta spariva senza modo di riaprirla.)
+ */
+function getWindowTaskbar() {
+    let bar = document.getElementById('winTaskbar');
+    if (!bar) {
+        bar = document.createElement('div');
+        bar.id = 'winTaskbar';
+        Object.assign(bar.style, {
+            position: 'fixed', left: '12px', bottom: '34px', zIndex: '10050',
+            display: 'flex', flexWrap: 'wrap-reverse', gap: '6px',
+            maxWidth: 'calc(100vw - 24px)', pointerEvents: 'none'
+        });
+        document.body.appendChild(bar);
+    }
+    return bar;
+}
+
+function windowTitleText(title) {
+    try {
+        const lang = (typeof currentLanguage !== 'undefined' && currentLanguage) || 'it';
+        const dict = (typeof translations !== 'undefined' && (translations[lang] || translations.it)) || {};
+        return dict[title] || title;
+    } catch (e) { return title; }
+}
+
+/** Riporta la finestra dentro lo schermo (utile su schermi 4:3 o dopo aver ridimensionato il browser) */
+function keepWindowOnScreen(win) {
+    const w = Math.min(win.offsetWidth, window.innerWidth - 16);
+    const h = Math.min(win.offsetHeight, window.innerHeight - 16);
+    if (win.offsetWidth > w) win.style.width = w + 'px';
+    if (win.offsetHeight > h) win.style.height = h + 'px';
+    const left = Math.max(8, Math.min(win.offsetLeft, window.innerWidth - w - 8));
+    const top = Math.max(8, Math.min(win.offsetTop, window.innerHeight - h - 8));
+    win.style.left = left + 'px';
+    win.style.top = top + 'px';
+}
+
 function createTaskbarIcon(win, icon, title, overlay, effect) {
-    const iconDiv = document.createElement('div');
-
+    if (win._taskIcon) win._taskIcon.remove();
+    const label = windowTitleText(title);
+    const iconDiv = document.createElement('button');
+    iconDiv.type = 'button';
+    iconDiv.className = 'win-task';
     Object.assign(iconDiv.style, {
-        width: '32px',
-        height: '32px',
-        background: '#4b5563',
-        color: '#fff',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: '6px',
-        cursor: 'pointer',
-        marginRight: '6px',
-        boxShadow: '0 0 5px rgba(0,0,0,0.3)'
+        pointerEvents: 'auto', display: 'flex', alignItems: 'center', gap: '6px',
+        maxWidth: '220px', height: '32px', padding: '0 10px',
+        background: '#28292c', color: '#e9e6df', border: '1px solid #c9973f',
+        borderRadius: '8px', cursor: 'pointer', font: '13px system-ui, sans-serif',
+        boxShadow: '0 4px 14px rgba(0,0,0,.45)'
     });
+    const ic = document.createElement('span'); ic.textContent = icon;
+    const tx = document.createElement('span'); tx.textContent = label;
+    Object.assign(tx.style, { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' });
+    iconDiv.append(ic, tx);
+    iconDiv.title = 'Riapri: ' + label;
 
-    iconDiv.textContent = icon;
-    iconDiv.title = title;
-
-    // Click → Restore
+    // Click → ripristina
     iconDiv.onclick = () => {
         win.style.display = 'flex';
         if (overlay) overlay.style.display = 'flex';
-
+        if (typeof bringToFront === 'function') bringToFront(win);
+        keepWindowOnScreen(win);
         if (effect === "windows") {
             win.classList.add('win-effect-restore');
             setTimeout(() => win.classList.remove('win-effect-restore'), 260);
         }
-
         iconDiv.remove();
+        win._taskIcon = null;
     };
 
-    document.querySelector('#footer')?.appendChild(iconDiv);
+    win._taskIcon = iconDiv;
+    getWindowTaskbar().appendChild(iconDiv);
 }
 
 function setButtonState(btn, disabled) {
@@ -148,7 +189,9 @@ function createWindow({
     const existing = document.getElementById(id);
     if (existing) {
         existing.style.display = 'flex';
+        if (existing._taskIcon) { existing._taskIcon.remove(); existing._taskIcon = null; }
         bringToFront(existing);
+        keepWindowOnScreen(existing);
         const existingOverlay = document.querySelector(`.overlay-for-${id}`);
         if (existingOverlay) existingOverlay.style.display = 'flex';
         return existing;
@@ -191,6 +234,7 @@ function createWindow({
     // ==================== Overlay ====================
     let overlay;
     let closeWindow = () => {
+        if (win._taskIcon) { win._taskIcon.remove(); win._taskIcon = null; }
         win.style.display = 'none';
         if (overlay) overlay.style.display = 'none';
         onClose?.();
@@ -551,7 +595,11 @@ function createWindow({
     createResizeGrips(win);
 
     translateElements(lang);
-    win.showDialog = () => { win.style.display = 'flex'; if (overlay) overlay.style.display = 'flex'; bringToFront(win); translateElements(lang); };
+    win.showDialog = () => {
+        win.style.display = 'flex'; if (overlay) overlay.style.display = 'flex';
+        if (win._taskIcon) { win._taskIcon.remove(); win._taskIcon = null; }
+        bringToFront(win); keepWindowOnScreen(win); translateElements(lang);
+    };
     win.hideDialog = () => closeWindow();
     if (typeof listeners.domReady === "function") listeners.domReady(win);
 

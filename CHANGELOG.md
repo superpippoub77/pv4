@@ -5,6 +5,19 @@ e compaiono nella barra di stato ("VBProW4 by SpikeCode AI · Ott 2026 · Ver: 1
 Informazioni e nella guida (Riferimento → Novità). A ogni rilascio vanno aggiornati insieme a questo file
 e a `package.json`.
 
+## 1.6.2 — Ott 2026
+
+- **Finestre ridotte a icona**: il pulsante «−» manda la finestra in una barra in basso a sinistra (icona e titolo);
+  un clic la riapre, dentro lo schermo. Prima l'icona finiva nella vecchia barra in fondo, che non esiste più, e la
+  finestra spariva. Riaprendo la finestra dal menu l'icona sparisce; ogni finestra viene tenuta dentro lo schermo.
+- **Pannelli laterali come SpikeCut**: maniglia di ridimensionamento tra barra strumenti e foglio e tra foglio e
+  pannello (trascina = larghezza, doppio clic = nascondi; le larghezze restano dopo la ricarica); la barra strumenti
+  stretta passa da sola alla modalità a icone. Le linguette ‹ › sono attaccate al bordo del pannello, lo seguono
+  mentre lo ridimensioni o lo chiudi e restano sotto le finestre.
+- **Schermi 4:3 e non molto larghi** (1024×768, 1280×1024, 1366×768…): la barra in alto non si sovrappone più ai
+  menu File/Stampa/Strumenti (zoom, storico e «Carica» restano nei menu e nelle scorciatoie), la firma con la
+  versione nella barra di stato resta leggibile.
+
 ## 1.6.1 — Ott 2026
 
 - **Sicurezza**: tolto dal repository e dal sito `data/users.json`, il vecchio elenco utenti del sistema di accesso

@@ -34,6 +34,7 @@ class SpikeLayout {
         this.buildFlyout();
         this.buildPanel();
         this.buildStatus();
+        this.buildSideControls();
         this.bindShortcuts();
         this.patchEditor();
         this.observeSelection();
@@ -168,14 +169,107 @@ class SpikeLayout {
         this.setRailExpanded(expanded);
     }
 
-    setRailExpanded(expanded) {
+    setRailExpanded(expanded, width) {
         const side = document.getElementById("sidebar");
         this.rail.classList.toggle("expanded", expanded);
         side.classList.toggle("rail-compact", !expanded);
-        side.style.width = expanded ? "188px" : "52px";
+        let w = width;
+        if (w == null) {
+            let saved = 0;
+            try { saved = parseInt(localStorage.getItem("vbp-rail-w"), 10) || 0; } catch (e) { }
+            w = expanded ? (saved >= SpikeLayout.RAIL_EXPANDED_MIN ? saved : 188) : 52;
+        }
+        side.style.width = w + "px";
         document.getElementById("btnSidebar")?.classList.toggle("on", expanded);
         try { localStorage.setItem("vbp-rail-expanded", expanded ? "1" : "0"); } catch (e) { }
         this.editor.sidebarManager?.updateSidebarSwitchPosition?.();
+    }
+
+    // ------------------------------------------------- pannelli laterali (come SpikeCut)
+    // Maniglia di 6 px tra barra e foglio e tra foglio e pannello (trascina = larghezza,
+    // doppio clic = nascondi); linguette ‹ › dentro l'area del foglio, attaccate al bordo
+    // del pannello: seguono larghezza e chiusura e restano sotto le finestre.
+    static RAIL_EXPANDED_MIN = 130;
+
+    buildSideControls() {
+        const main = document.querySelector(".main-content");
+        const side = document.getElementById("sidebar");
+        const panel = document.getElementById("rightSidebar");
+        if (!main || !side || !panel) return;
+        const mk = (id) => {
+            const d = document.createElement("div");
+            d.id = id;
+            d.className = "sc-resizer";
+            d.title = "Trascina per ridimensionare · doppio clic per nascondere";
+            return d;
+        };
+        const railR = mk("railResizer");
+        const panelR = mk("panelResizer");
+        side.after(railR);
+        panel.before(panelR);
+
+        // barra strumenti: stretta = icone, larga = icone con i nomi
+        this.makeResizable(railR, side, 52, 340, 1, (w, end) => {
+            const expanded = w >= SpikeLayout.RAIL_EXPANDED_MIN;
+            if (expanded !== this.rail.classList.contains("expanded")) this.setRailExpanded(expanded, w);
+            if (end && expanded) { try { localStorage.setItem("vbp-rail-w", String(Math.round(w))); } catch (e) { } }
+        });
+        this.makeResizable(panelR, panel, 220, 560, -1, (w, end) => {
+            if (end) { try { localStorage.setItem("vbp-panel-w", String(Math.round(w))); } catch (e) { } }
+        });
+        railR.addEventListener("dblclick", () => this.editor.sidebarManager?.toggleSidebar());
+        panelR.addEventListener("dblclick", () => this.editor.rightSidebarManager?.toggleSidebar());
+
+        // larghezza del pannello salvata
+        try {
+            const pw = parseInt(localStorage.getItem("vbp-panel-w"), 10);
+            if (pw >= 220 && pw <= 560) panel.style.width = pw + "px";
+        } catch (e) { }
+
+        // linguette ‹ › agganciate al bordo dell'area del foglio
+        [[this.editor.sidebarManager, "left"], [this.editor.rightSidebarManager, "right"]].forEach(([m, pos]) => {
+            const b = m?.sidebarSwitch;
+            if (!b) return;
+            m.docked = true;
+            b.style.left = b.style.right = "";
+            b.classList.add("sidetoggle", pos);
+            b.title = pos === "left" ? "Mostra/nascondi la barra degli strumenti" : "Mostra/nascondi il pannello";
+            main.appendChild(b);
+        });
+
+        // con la barra nascosta sparisce anche la sua maniglia
+        const sync = () => {
+            railR.style.display = side.classList.contains("hidden") ? "none" : "";
+            panelR.style.display = panel.classList.contains("hidden") ? "none" : "";
+            window.dispatchEvent(new Event("resize"));
+        };
+        document.addEventListener("sidebar-toggle", sync);
+        sync();
+    }
+
+    makeResizable(handle, target, minW, maxW, sign, onChange) {
+        handle.addEventListener("mousedown", (e) => {
+            if (e.button !== 0) return;
+            e.preventDefault();
+            const startX = e.clientX, startW = target.getBoundingClientRect().width;
+            handle.classList.add("active");
+            document.body.classList.add("resizing-sidebar");
+            const onMove = (ev) => {
+                const w = Math.max(minW, Math.min(maxW, startW + (ev.clientX - startX) * sign));
+                target.style.width = w + "px";
+                onChange?.(w, false);
+            };
+            const onUp = () => {
+                handle.classList.remove("active");
+                document.body.classList.remove("resizing-sidebar");
+                document.removeEventListener("mousemove", onMove);
+                document.removeEventListener("mouseup", onUp);
+                onChange?.(parseFloat(target.style.width) || target.getBoundingClientRect().width, true);
+                window.dispatchEvent(new Event("resize"));
+            };
+            document.addEventListener("mousemove", onMove);
+            document.addEventListener("mouseup", onUp);
+        });
     }
 
     toggleRailExpanded() {
@@ -425,7 +519,7 @@ class SpikeLayout {
         });
         st.insertAdjacentHTML("beforeend", `
             <span class="spacer"></span>
-            <span class="status-sign">VBProW4 by <a href="https://www.filippomorano.com" target="_blank" rel="noopener">SpikeCode AI</a> · ${typeof APP_RELEASE !== "undefined" ? APP_RELEASE + " · " : ""}Ver: ${typeof APP_VERSION !== "undefined" ? APP_VERSION : ""}</span>`);
+            <span class="status-sign"><span class="sign-by">VBProW4 by <a href="https://www.filippomorano.com" target="_blank" rel="noopener">SpikeCode AI</a> · </span>${typeof APP_RELEASE !== "undefined" ? APP_RELEASE + " · " : ""}Ver: ${typeof APP_VERSION !== "undefined" ? APP_VERSION : ""}</span>`);
         const container = document.getElementById("container");
         container.after(st);
 
