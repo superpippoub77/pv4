@@ -47,7 +47,9 @@ class Sidebar {
 
         this.savedWidth = this.sidebar.offsetWidth || 280;
         this.sidebar.classList.add("hidden");
-        this.sidebarSwitch.textContent = this.position === "right" ? "◀" : "▶";
+        this.sidebarSwitch.textContent = this.position === "right" ? "‹" : "›";
+        this.sidebar.dispatchEvent(new CustomEvent("sidebar-toggle", { bubbles: true }));
+        if (this.docked) return;
 
         if (this.position === "right") {
             this.sidebarSwitch.style.right = "0px";
@@ -89,7 +91,7 @@ class Sidebar {
         const toggleBtn = document.createElement("button");
         toggleBtn.id = switchId;
         toggleBtn.className = this.position === "right" ? "right-sidebar-switch" : "sidebar-switch";
-        toggleBtn.textContent = this.position === "right" ? "▶" : "◀";
+        toggleBtn.textContent = this.position === "right" ? "›" : "‹";
         document.body.appendChild(toggleBtn);
         this.sidebarSwitch = toggleBtn;
 
@@ -103,6 +105,7 @@ class Sidebar {
 
 
     updateSidebarSwitchPosition() {
+        if (this.docked) return; // linguetta dentro l'area del foglio: segue da sola il pannello
         if (this.position === "right") {
             this.sidebarSwitch.style.right = this.container.offsetWidth + "px";
         } else {
@@ -390,13 +393,15 @@ class Sidebar {
         if (isHidden) {
             this.sidebar.classList.remove("hidden");
             this.sidebar.style.width = this.savedWidth ? this.savedWidth + "px" : "280px";
-            this.sidebarSwitch.textContent = this.position === "right" ? "▶" : "◀";
+            this.sidebarSwitch.textContent = this.position === "right" ? "›" : "‹";
         } else {
             this.savedWidth = this.sidebar.offsetWidth;
             this.sidebar.classList.add("hidden");
-            this.sidebarSwitch.textContent = this.position === "right" ? "◀" : "▶";
+            this.sidebarSwitch.textContent = this.position === "right" ? "‹" : "›";
         }
 
+        this.sidebar.dispatchEvent(new CustomEvent("sidebar-toggle", { bubbles: true }));
+        if (this.docked) return;
         if (this.position === "right") {
             this.sidebarSwitch.style.right = isHidden ? this.sidebar.offsetWidth + "px" : "0px";
         } else {

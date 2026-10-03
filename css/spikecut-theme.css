@@ -339,6 +339,40 @@ body.sc-theme .right-sidebar-switch { border-radius: 7px 0 0 7px; }
 body.sc-theme .sidebar-switch:hover,
 body.sc-theme .right-sidebar-switch:hover { color: var(--ink); border-color: var(--brass-dim); background: var(--bg-1); }
 
+/* Maniglie e linguette come SpikeCut (sostituiscono le vecchie maniglie interne e le linguette sulla pagina) */
+body.sc-theme .sidebar-handle,
+body.sc-theme .right-sidebar-handle { display: none; }
+body.sc-theme #sidebar,
+body.sc-theme #rightSidebar { transition: none; flex-shrink: 0; }
+body.sc-theme .sc-resizer { width: 6px; flex: none; cursor: col-resize; background: transparent; position: relative; z-index: 10; }
+body.sc-theme .sc-resizer:hover,
+body.sc-theme .sc-resizer.active { background: rgba(201, 151, 63, .3); }
+body.resizing-sidebar,
+body.resizing-sidebar * { cursor: col-resize !important; user-select: none !important; }
+body.sc-theme .main-content > .sidetoggle {
+    position: absolute;
+    top: 30px;
+    z-index: 35;               /* sopra il foglio, sotto finestre (200+), menu e galleria */
+    width: 20px;
+    height: 42px;
+    padding: 0;
+    margin: 0;
+    transform: none;
+    opacity: 1;
+    border: 1px solid var(--line);
+    background: var(--bg-1);
+    color: var(--ink-dim);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    line-height: 1;
+}
+body.sc-theme .main-content > .sidetoggle.left { left: 0; right: auto; border-left: none; border-radius: 0 7px 7px 0; }
+body.sc-theme .main-content > .sidetoggle.right { right: 0; left: auto; border-right: none; border-radius: 7px 0 0 7px; }
+body.sc-theme .main-content > .sidetoggle:hover { color: var(--ink); border-color: var(--brass-dim); background: var(--bg-1); }
+
 /* ----------------------------------------------------------- AREA FOGLIO */
 body.sc-theme .main-content { position: relative; background: transparent; }
 body.sc-theme .canvas-container {
@@ -721,6 +755,25 @@ body.sc-theme .context-menu-separator { background: var(--line-soft); margin: 5p
     .menu-bar #zoomDisplay { display: none; }
     .menu-bar #schemaTitle { width: 96px; }
 }
+/* Schermi 4:3 (1024×768) e simili: zoom, storico e «Carica» restano nei menu, il resto si stringe */
+@media (max-width: 1720px) {
+    .menu-bar .grp:has(#zoomOut) { display: none; }
+    .menu-bar #historyBtn,
+    .menu-bar #btnLoadTop { display: none; }
+    .menu-bar #schemaTitle { width: 84px; }
+    .menu-bar .user-menu .menu-label { max-width: 110px; overflow: hidden; text-overflow: ellipsis; display: block; }
+    .menu-bar .menu-item.pill .btn { padding-left: 10px; padding-right: 10px; }
+    body.sc-theme .menu-bar { gap: 6px; padding: 0 8px; }
+}
+@media (max-width: 920px) {
+    .menu-bar .grp:has(#btnSaveStatus),
+    .menu-bar #redoBtn,
+    .menu-bar #btnNewTab { display: none; }
+    .menu-bar #btnShareTop,
+    .menu-bar #btnSaveLibraryTop { font-size: 12px; padding: 0 5px; }
+    .menu-bar .menu-item.pill .btn { font-size: 12px; padding-left: 8px; padding-right: 8px; }
+    .menu-bar .user-menu .menu-label { max-width: 70px; }
+}
 
 /* "✕ Chiudi tutte" a destra della barra delle schede */
 #tabBar .tabs-container { flex: 1; min-width: 0; }
@@ -756,3 +809,13 @@ body.no-docs #planeRotationSphere { display: none !important; }
 .empty-state .btn:hover { border-color: var(--brass-dim, #8a6a30); }
 .empty-state .btn.primary { background: var(--brass, #c9973f); border-color: var(--brass, #c9973f); color: #1c1200; font-weight: 600; }
 body.no-docs #canvasResizeHandle { display: none !important; }
+
+/* Barra di stato su schermi 4:3: firma e versione sempre leggibili */
+@media (max-width: 1200px) {
+    #status { gap: 8px; padding: 0 8px; }
+    #status #statusCoords { min-width: 84px; }
+    #status .toggle { padding: 2px 4px; }
+}
+@media (max-width: 920px) {
+    #status .status-sign .sign-by { display: none; }
+}
