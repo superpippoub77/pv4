@@ -5,6 +5,13 @@ e compaiono nella barra di stato ("VBProW4 by SpikeCode AI · Ott 2026 · Ver: 1
 Informazioni e nella guida (Riferimento → Novità). A ogni rilascio vanno aggiornati insieme a questo file
 e a `package.json`.
 
+## 1.6.4 — Ott 2026
+
+- **Barre di scorrimento a scomparsa** (come macOS, VS Code, Office): sottili e invisibili finché non passi con il
+  mouse sul riquadro, non ci stai lavorando dentro (focus) o non stai scorrendo; poco dopo spariscono di nuovo.
+  Lo spazio resta riservato, quindi il contenuto non si sposta. Vale per barra strumenti, pannello, finestre, menu e
+  liste (Chrome, Edge, Safari e Firefox).
+
 ## 1.6.3 — Ott 2026
 
 - **Avvio pulito**: ricaricando la pagina (anche con Ctrl+F5) non compare più per un attimo la vecchia impaginazione

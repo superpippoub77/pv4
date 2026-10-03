@@ -277,6 +277,7 @@ html:`<dl class="guide-faq">
 
 { id:'novita', cat:'Riferimento', title:'Novità', keys:'novità versioni changelog aggiornamenti',
 html:`<ul>
+<li><b>1.6.4</b> — Barre di scorrimento a scomparsa: compaiono solo passando con il mouse sul riquadro, lavorandoci dentro o scorrendo.</li>
 <li><b>1.6.3</b> — Avvio pulito: al caricamento una schermata scura con il pallone invece della vecchia impaginazione per un attimo.</li>
 <li><b>1.6.2</b> — Finestre ridotte a icona in una barra in basso (un clic le riapre); pannelli laterali ridimensionabili come in SpikeCut con le linguette ‹ › attaccate; barra in alto adatta agli schermi 4:3.</li>
 <li><b>1.6.1</b> — Sicurezza: rimosso dal sito un vecchio file con l'elenco degli utenti del sistema di accesso precedente.</li>
