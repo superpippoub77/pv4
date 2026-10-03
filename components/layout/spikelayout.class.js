@@ -35,6 +35,7 @@ class SpikeLayout {
         this.buildPanel();
         this.buildStatus();
         this.buildSideControls();
+        this.bindScrollbarReveal();
         this.bindShortcuts();
         this.patchEditor();
         this.observeSelection();
@@ -245,6 +246,17 @@ class SpikeLayout {
         };
         document.addEventListener("sidebar-toggle", sync);
         sync();
+    }
+
+    /** Mentre scorri (rotellina, trascinamento, tastiera) la barra di scorrimento resta visibile per un attimo */
+    bindScrollbarReveal() {
+        document.addEventListener("scroll", (e) => {
+            const t = e.target === document ? document.scrollingElement : e.target;
+            if (!t || !t.classList) return;
+            t.classList.add("is-scrolling");
+            clearTimeout(t._scrollHideT);
+            t._scrollHideT = setTimeout(() => t.classList.remove("is-scrolling"), 900);
+        }, { capture: true, passive: true });
     }
 
     makeResizable(handle, target, minW, maxW, sign, onChange) {
