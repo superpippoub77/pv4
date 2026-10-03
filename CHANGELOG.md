@@ -5,6 +5,12 @@ e compaiono nella barra di stato ("VBProW4 by SpikeCode AI · Ott 2026 · Ver: 1
 Informazioni e nella guida (Riferimento → Novità). A ogni rilascio vanno aggiornati insieme a questo file
 e a `package.json`.
 
+## 1.6.1 — Ott 2026
+
+- **Sicurezza**: tolto dal repository e dal sito `data/users.json`, il vecchio elenco utenti del sistema di accesso
+  precedente (non più usato dall'app), che veniva pubblicato ed era scaricabile da chiunque. Aggiunto a `.gitignore`.
+  La pubblicazione successiva lo cancella anche dal server.
+
 ## 1.6.0 — Ott 2026
 
 - **Link condivisi (slug)**: 🔗 Condividi (barra in alto e a sinistra, File, Piano allenamento, Genera allenamento) crea un
