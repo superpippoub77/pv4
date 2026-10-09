@@ -35,6 +35,8 @@ class SpikeLayout {
         this.buildPanel();
         this.buildStatus();
         this.buildSideControls();
+        this.buildPriorityBar();
+        this.bindTouch();
         this.bindScrollbarReveal();
         this.bindShortcuts();
         this.patchEditor();
@@ -51,7 +53,13 @@ class SpikeLayout {
         this.syncTools();
         this.syncStatusToggles();
         this.updateEmptySections();
+        this.topbarBar?.layout();
+        // schermi piccoli: il foglio entra tutto nello schermo
+        if (SpikeLayout.isSmall(1024)) setTimeout(() => this.fitToScreen(), 60);
     }
+
+    /** Schermo piccolo: stretto, oppure telefono girato (poco alto) */
+    static isSmall(px = 820) { return window.innerWidth <= px || window.innerHeight <= 500; }
 
     // ---------------------------------------------------------------- topbar
     buildTopbar() {
@@ -242,10 +250,211 @@ class SpikeLayout {
         const sync = () => {
             railR.style.display = side.classList.contains("hidden") ? "none" : "";
             panelR.style.display = panel.classList.contains("hidden") ? "none" : "";
+            document.body.classList.toggle("panel-open", !panel.classList.contains("hidden"));
+            document.body.classList.toggle("rail-open", !side.classList.contains("hidden"));
             window.dispatchEvent(new Event("resize"));
         };
         document.addEventListener("sidebar-toggle", sync);
+
+        // avvio su schermi piccoli (come spikeengine): la barra strumenti resta (a icone),
+        // il pannello sul telefono è un cassetto sopra il foglio, chiuso all'avvio
+        if (side.classList.contains("hidden")) this.editor.sidebarManager?.toggleSidebar();
+        const panelHidden = panel.classList.contains("hidden");
+        if (SpikeLayout.isSmall() !== panelHidden) this.editor.rightSidebarManager?.toggleSidebar();
+        // larghezze giuste dopo la riapertura (le vecchie regole "a cassetto" le avevano cambiate)
+        this.setRailExpanded(this.rail.classList.contains("expanded"));
+        let pw = 272;
+        try { const v = parseInt(localStorage.getItem("vbp-panel-w"), 10); if (v >= 220 && v <= 560) pw = v; } catch (e) { }
+        panel.style.width = pw + "px";
+        if (this.editor.rightSidebarManager) this.editor.rightSidebarManager.savedWidth = pw;
         sync();
+
+        // sul telefono, toccare il foglio richiude il cassetto del pannello
+        document.querySelector(".canvas-container")?.addEventListener("pointerdown", () => {
+            if (SpikeLayout.isSmall() && !panel.classList.contains("hidden")) this.editor.rightSidebarManager?.toggleSidebar();
+        });
+    }
+
+    // ------------------------------------------------- barra in alto adattabile (come SpikeCut/spikeengine)
+    // I gruppi che non ci stanno escono dalla barra ed entrano nel menu «»», dal meno importante;
+    // quando lo spazio torna, tornano al loro posto. Si spostano gli elementi veri (stessi gestori).
+    buildPriorityBar() {
+        const bar = document.querySelector("#menu .topbar-left");
+        if (!bar) return;
+        const grpOf = (sel) => { const e = typeof sel === "string" ? document.querySelector(sel) : sel; return e ? e.closest(".topbar-left > *") : null; };
+        const items = [
+            { el: bar.querySelector(":scope > .brand"), prio: 5, hideOnly: true },
+            { el: grpOf("#zoomOut"), prio: 10 },
+            { el: grpOf("#btnSaveStatus"), prio: 15 },
+            { el: grpOf("#btnNewTab"), prio: 20 },
+            { el: grpOf("#schemaTitle"), prio: 30 },
+            { el: grpOf("#undoBtn"), prio: 40 },
+            { el: grpOf("#loadFromLibrary"), prio: 50 },
+            { el: grpOf(".user-menu"), prio: 60 }
+        ].filter(it => it.el);
+
+        const moreWrap = document.createElement("div");
+        moreWrap.className = "grp more-grp";
+        moreWrap.style.display = "none";
+        const moreBtn = document.createElement("button");
+        moreBtn.type = "button";
+        moreBtn.className = "iconbtn more-btn";
+        moreBtn.textContent = "»";
+        moreBtn.title = "Altri comandi";
+        moreWrap.appendChild(moreBtn);
+        bar.appendChild(moreWrap);
+        const panel = document.createElement("div");
+        panel.className = "overflow-panel";
+        document.body.appendChild(panel);
+        items.forEach((it, i) => { it.idx = i; it.home = document.createComment("posto"); it.el.parentNode.insertBefore(it.home, it.el); });
+
+        const fits = () => bar.scrollWidth <= bar.clientWidth + 1;
+        const close = () => panel.classList.remove("open");
+        const place = () => {
+            const r = moreBtn.getBoundingClientRect();
+            panel.style.left = Math.max(6, Math.min(Math.round(r.left), window.innerWidth - panel.offsetWidth - 6)) + "px";
+            panel.style.top = Math.round(r.bottom + 6) + "px";
+        };
+        const layout = () => {
+            items.forEach(it => {
+                if (it.hidden) { it.el.style.display = it.prevDisplay || ""; it.hidden = false; }
+                if (it.el.previousSibling !== it.home) it.home.parentNode.insertBefore(it.el, it.home.nextSibling);
+            });
+            moreWrap.style.display = "none";
+            if (fits()) { close(); return; }
+            moreWrap.style.display = "";
+            const moved = [];
+            for (const it of items.slice().sort((a, b) => a.prio - b.prio)) {
+                if (fits()) break;
+                if (it.hideOnly) { it.prevDisplay = it.el.style.display; it.el.style.display = "none"; it.hidden = true; }
+                else { moved.push(it); panel.appendChild(it.el); }
+            }
+            moved.sort((a, b) => a.idx - b.idx).forEach(it => panel.appendChild(it.el)); // nel menu nell'ordine originale
+            if (!moved.length) { moreWrap.style.display = "none"; close(); }
+            else if (panel.classList.contains("open")) place();
+        };
+        moreBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            if (panel.classList.contains("open")) close();
+            else { panel.classList.add("open"); place(); }
+        });
+        panel.addEventListener("click", (e) => {
+            // un comando chiude il menu; campi e menu a tendina lo lasciano aperto
+            const b = e.target.closest("button");
+            if (b && !b.closest(".menu-item")) setTimeout(close, 0);
+            if (e.target.closest(".menu-dropdown-item")) setTimeout(close, 0);
+        });
+        document.addEventListener("click", (e) => { if (!panel.contains(e.target) && e.target !== moreBtn) close(); });
+        document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
+        let t = null;
+        const relayout = () => { clearTimeout(t); t = setTimeout(layout, 60); };
+        window.addEventListener("resize", relayout);
+        if (window.ResizeObserver) new ResizeObserver(relayout).observe(document.getElementById("menu"));
+        document.fonts?.ready?.then(layout);
+        layout();
+        this.topbarBar = { layout, close, panel, moreBtn };
+    }
+
+    // ------------------------------------------------- foglio adattato allo schermo
+    /** Zoom che fa entrare tutto il foglio nell'area disponibile (mai oltre il 100%) */
+    fitToScreen() {
+        const ed = this.editor, tab = ed.getCurrentTab?.();
+        const host = document.querySelector(".canvas-container"), canvas = document.getElementById("canvas");
+        if (!tab || !host || !canvas || !canvas.offsetWidth) return;
+        const pad = SpikeLayout.isSmall(600) ? 16 : 32;
+        const z = Math.min(1, (host.clientWidth - pad) / canvas.offsetWidth, (host.clientHeight - pad) / canvas.offsetHeight);
+        if (!(z > 0)) return;
+        tab.zoom = Math.max(0.2, Math.round(z * 100) / 100);
+        ed.zoom = tab.zoom;
+        ed.updateZoom();
+        host.scrollLeft = 0; host.scrollTop = 0;
+    }
+
+    // ------------------------------------------------- tocco (come SpikeCut)
+    // - un dito sul foglio, sulle intestazioni e sui bordi delle finestre e sulle maniglie = mouse
+    // - due dita sul foglio = zoom e spostamento; pressione lunga = tasto destro; doppio tocco = doppio clic
+    bindTouch() {
+        const ZONE = ".canvas-container, .win-titlebar, .win-grip, .sc-resizer";
+        const NATIVE = "button, a, input, select, textarea, label, [contenteditable=true], .empty-state, .video-play";
+        const zoneOf = (t) => t && t.closest && t.closest(ZONE);
+        const fire = (type, target, x, y) => target && target.dispatchEvent(new MouseEvent(type, {
+            bubbles: true, cancelable: true, view: window, clientX: x, clientY: y,
+            button: type === "contextmenu" ? 2 : 0, buttons: type === "mouseup" || type === "click" || type === "dblclick" ? 0 : 1, detail: type === "dblclick" ? 2 : 1
+        }));
+        const at = (x, y, fallback) => document.elementFromPoint(x, y) || fallback;
+        let one = null, pinch = null, longT = null, lastTap = null;
+        const clearLong = () => { if (longT) { clearTimeout(longT); longT = null; } };
+
+        document.addEventListener("touchstart", (e) => {
+            const zone = zoneOf(e.target);
+            if (!zone || (e.target.closest(NATIVE) && e.touches.length === 1)) return; // pulsanti e campi restano normali
+            e.preventDefault();
+            if (e.touches.length === 1) {
+                const t = e.touches[0], target = at(t.clientX, t.clientY, e.target);
+                one = { x: t.clientX, y: t.clientY, target, moved: false };
+                fire("mousedown", target, t.clientX, t.clientY);
+                clearLong();
+                longT = setTimeout(() => { // pressione lunga: menu del tasto destro
+                    if (one && !one.moved) { fire("mouseup", one.target, one.x, one.y); fire("contextmenu", one.target, one.x, one.y); one = null; }
+                }, 600);
+            } else if (e.touches.length === 2 && zone.classList.contains("canvas-container")) {
+                clearLong();
+                if (one) { fire("mouseup", one.target, one.x, one.y); one = null; } // il secondo dito annulla il trascinamento
+                const [a, b] = e.touches;
+                const tab = this.editor.getCurrentTab?.();
+                pinch = { d0: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) || 1, mid0: [(a.clientX + b.clientX) / 2, (a.clientY + b.clientY) / 2], z0: tab?.zoom || 1, sl: zone.scrollLeft, st: zone.scrollTop, host: zone };
+            }
+        }, { passive: false });
+
+        document.addEventListener("touchmove", (e) => {
+            if (!one && !pinch) return;
+            e.preventDefault();
+            if (pinch && e.touches.length >= 2) {
+                const [a, b] = e.touches;
+                const d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) || 1;
+                const mid = [(a.clientX + b.clientX) / 2, (a.clientY + b.clientY) / 2];
+                const tab = this.editor.getCurrentTab?.();
+                if (tab) {
+                    tab.zoom = Math.max(0.2, Math.min(3, pinch.z0 * d / pinch.d0));
+                    this.editor.zoom = tab.zoom;
+                    this.editor.updateZoom();
+                }
+                // le dita spostano anche la vista
+                pinch.host.scrollLeft = pinch.sl - (mid[0] - pinch.mid0[0]);
+                pinch.host.scrollTop = pinch.st - (mid[1] - pinch.mid0[1]);
+                return;
+            }
+            if (one && e.touches.length === 1) {
+                const t = e.touches[0];
+                if (Math.hypot(t.clientX - one.x, t.clientY - one.y) > 6) { one.moved = true; clearLong(); }
+                fire("mousemove", at(t.clientX, t.clientY, one.target), t.clientX, t.clientY);
+            }
+        }, { passive: false });
+
+        const end = (e) => {
+            clearLong();
+            if (pinch && e.touches.length < 2) { pinch = null; return; }
+            if (one && e.touches.length === 0) {
+                const t = e.changedTouches[0];
+                const target = at(t.clientX, t.clientY, one.target);
+                fire("mouseup", target, t.clientX, t.clientY);
+                if (!one.moved) {
+                    fire("click", target, t.clientX, t.clientY);
+                    const now = Date.now();
+                    if (lastTap && now - lastTap.t < 350 && Math.hypot(t.clientX - lastTap.x, t.clientY - lastTap.y) < 25) {
+                        fire("dblclick", target, t.clientX, t.clientY);
+                        lastTap = null;
+                    } else lastTap = { t: now, x: t.clientX, y: t.clientY };
+                }
+                one = null;
+            }
+        };
+        document.addEventListener("touchend", end, { passive: false });
+        document.addEventListener("touchcancel", end, { passive: false });
+
+        // girando il telefono o il tablet il foglio si riadatta
+        let rt = null;
+        window.addEventListener("orientationchange", () => { clearTimeout(rt); rt = setTimeout(() => this.fitToScreen(), 300); });
     }
 
     /** Mentre scorri (rotellina, trascinamento, tastiera) la barra di scorrimento resta visibile per un attimo */

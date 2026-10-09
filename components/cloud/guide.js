@@ -141,6 +141,19 @@ html:`<p><b>Genera allenamento</b> (barra a sinistra, sezione Allenamento, o Fil
 <li>Durata, serie e recupero scritti nella riga («10 minuti», «3 serie», «recupero 60 secondi») finiscono nei <a data-topic="dati-esercizio">dati dell'esercizio</a>; la tipologia (analitico, sintetico, globale) viene impostata da sola.</li></ul>
 <p>Ogni esercizio diventa una scheda, nell'ordine analitica → sintetica → globale. La finestra mostra da dove arriva ciascuno; poi «Salva allenamento…» lo salva e Stampa → Scheda allenamento (PDF) lo stampa.</p>` },
 
+{ id:'telefono-tablet', cat:'Per iniziare', title:'Telefono e tablet', keys:'telefono tablet ipad cellulare smartphone tocco dito dita gesti zoom pizzico pressione lunga doppio tocco cassetto pannello responsive schermo piccolo verticale orizzontale',
+html:`<p>VolleyProW4 si adatta allo schermo, come SpikeCut e spikeengine:</p>
+<ul><li><b>Barra in alto</b>: i comandi che non ci stanno (zoom, titolo, annulla, libreria, account…) passano nel menu <b>»</b>, dal meno importante; quando lo spazio torna, tornano al loro posto.</li>
+<li><b>Tablet in verticale e telefono</b> (anche girato): la barra degli strumenti mostra solo le icone; il <b>pannello</b> di destra (Proprietà, Step, Esercizio) è un <b>cassetto</b> che si apre con la linguetta ‹ sopra il foglio e si richiude con la stessa linguetta o toccando il foglio.</li>
+<li><b>Telefono</b>: ogni finestra (Lavagna, Piano allenamento, Libreria, Guida…) occupa tutto lo schermo; all'avvio e girando il telefono il foglio viene adattato allo schermo.</li></ul>
+<p><b>Con le dita sul foglio</b>:</p>
+<table class="guide-table"><tr><th>Gesto</th><th>Come il mouse</th></tr>
+<tr><td>un dito</td><td>clic e trascinamento: seleziona, sposta giocatori e oggetti, disegna frecce e a mano libera</td></tr>
+<tr><td>due dita</td><td>avvicina/allontana = zoom; spostale insieme = sposta la vista</td></tr>
+<tr><td>pressione lunga</td><td>tasto destro (menu dell'oggetto)</td></tr>
+<tr><td>doppio tocco</td><td>doppio clic (per esempio apre un video)</td></tr></table>
+<p>Anche le intestazioni delle finestre e le maniglie dei pannelli si trascinano con il dito; pulsanti e campi funzionano come sempre. Sui dispositivi touch i pulsanti sono più grandi.</p>` },
+
 { id:'lavagna', cat:'Esercizi', title:'Lavagna: rotazioni e fasi di gioco', keys:'lavagna rotazione rotazioni p1 p2 p3 p4 p5 p6 partenza break point fase punto side out cambio palla ricezione battuta muro difesa contrattacco attacco libero 5-1 posizioni fallo di posizione campo intero metà avversari',
 html:`<p><b>Lavagna</b> (barra a sinistra, sezione Allenamento; File → Lavagna; schermata «Nessuno schema aperto») dispone in automatico i 6 giocatori del sistema 5-1: <b>P</b> palleggiatore, <b>O</b> opposto, <b>S1 S2</b> schiacciatori, <b>C1 C2</b> centrali e <b>L</b> libero (al posto del centrale in seconda linea; in break point, se il centrale è in zona 1, batte lui).</p>
 <ul><li><b>Campo</b>: intero (anche con la <b>squadra avversaria</b> nella fase corrispondente) o metà campo con la rete; orizzontale o verticale.</li>
@@ -277,6 +290,7 @@ html:`<dl class="guide-faq">
 
 { id:'novita', cat:'Riferimento', title:'Novità', keys:'novità versioni changelog aggiornamenti',
 html:`<ul>
+<li><b>1.7.0</b> — <a data-topic="telefono-tablet">Telefono e tablet</a>: barra in alto adattabile (menu »), pannello a cassetto, finestre a tutto schermo, gesti con le dita (trascina, zoom a due dita, pressione lunga, doppio tocco).</li>
 <li><b>1.6.4</b> — Barre di scorrimento a scomparsa: compaiono solo passando con il mouse sul riquadro, lavorandoci dentro o scorrendo.</li>
 <li><b>1.6.3</b> — Avvio pulito: al caricamento una schermata scura con il pallone invece della vecchia impaginazione per un attimo.</li>
 <li><b>1.6.2</b> — Finestre ridotte a icona in una barra in basso (un clic le riapre); pannelli laterali ridimensionabili come in SpikeCut con le linguette ‹ › attaccate; barra in alto adatta agli schermi 4:3.</li>

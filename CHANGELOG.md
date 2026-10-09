@@ -5,6 +5,22 @@ e compaiono nella barra di stato ("VBProW4 by SpikeCode AI · Ott 2026 · Ver: 1
 Informazioni e nella guida (Riferimento → Novità). A ogni rilascio vanno aggiornati insieme a questo file
 e a `package.json`.
 
+## 1.7.0 — Ott 2026
+
+- **Responsive come spikeengine / SpikeCut** (telefono, tablet, schermi piccoli):
+  - **barra in alto adattabile**: i gruppi che non ci stanno passano nel menu **»** dal meno importante (zoom, stato
+    di salvataggio, nuovo/carica/guida, titolo, annulla, libreria, account) e tornano al loro posto quando c'è spazio;
+    prima su schermi stretti alcuni comandi (zoom, storico, Carica) sparivano;
+  - **≤ 820 px o telefono girato**: barra degli strumenti a sole icone, pannello di destra a **cassetto** sopra il foglio
+    (chiuso all'avvio, si apre con la linguetta, si richiude con la linguetta o toccando il foglio);
+  - **telefono**: tutte le finestre a tutto schermo (anche Libreria e Guida, con cartelle sopra ed elenco sotto),
+    griglie su una colonna, barra di stato scorrevole, foglio adattato allo schermo all'avvio e girando il telefono;
+  - **tocco** sul foglio: un dito = mouse (seleziona, trascina, disegna), due dita = zoom e spostamento, pressione lunga
+    = menu del tasto destro, doppio tocco = doppio clic; intestazioni delle finestre e maniglie dei pannelli si
+    trascinano con il dito; pulsanti più grandi con il dito;
+  - la pagina occupa l'altezza visibile del telefono (`100dvh`): la barra di stato non finisce più fuori schermo.
+- Guida: nuovo argomento «Telefono e tablet».
+
 ## 1.6.4 — Ott 2026
 
 - **Barre di scorrimento a scomparsa** (come macOS, VS Code, Office): sottili e invisibili finché non passi con il

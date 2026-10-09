@@ -94,7 +94,38 @@ function windowTitleText(title) {
 }
 
 /** Riporta la finestra dentro lo schermo (utile su schermi 4:3 o dopo aver ridimensionato il browser) */
+/** Schermo da telefono: le finestre vanno a tutto schermo */
+function isPhoneWindowSize() {
+    return window.innerWidth <= 720;
+}
+
+/** Adatta una finestra allo schermo: tutto schermo sul telefono, altrimenti dentro lo schermo */
+function fitWindowToScreen(win) {
+    if (isPhoneWindowSize()) {
+        win.classList.add('phone-full');
+        Object.assign(win.style, { left: '0px', top: '0px', width: window.innerWidth + 'px', height: window.innerHeight + 'px', borderRadius: '0px' });
+        return;
+    }
+    if (win.classList.contains('phone-full')) {
+        // tornando a uno schermo grande: finestra normale al centro
+        win.classList.remove('phone-full');
+        const w = Math.round(window.innerWidth * 0.7), h = Math.round(window.innerHeight * 0.7);
+        Object.assign(win.style, { width: w + 'px', height: h + 'px', left: Math.round((window.innerWidth - w) / 2) + 'px', top: Math.round((window.innerHeight - h) / 2) + 'px', borderRadius: '10px' });
+        return;
+    }
+    keepWindowOnScreen(win);
+}
+
+let pv4WinResizeT = null;
+window.addEventListener('resize', () => {
+    clearTimeout(pv4WinResizeT);
+    pv4WinResizeT = setTimeout(() => {
+        document.querySelectorAll('.pv4-win').forEach(w => { if (w.style.display !== 'none') fitWindowToScreen(w); });
+    }, 120);
+});
+
 function keepWindowOnScreen(win) {
+    if (win.classList.contains('phone-full')) { fitWindowToScreen(win); return; }
     const w = Math.min(win.offsetWidth, window.innerWidth - 16);
     const h = Math.min(win.offsetHeight, window.innerHeight - 16);
     if (win.offsetWidth > w) win.style.width = w + 'px';
@@ -129,7 +160,7 @@ function createTaskbarIcon(win, icon, title, overlay, effect) {
         win.style.display = 'flex';
         if (overlay) overlay.style.display = 'flex';
         if (typeof bringToFront === 'function') bringToFront(win);
-        keepWindowOnScreen(win);
+        fitWindowToScreen(win);
         if (effect === "windows") {
             win.classList.add('win-effect-restore');
             setTimeout(() => win.classList.remove('win-effect-restore'), 260);
@@ -191,7 +222,7 @@ function createWindow({
         existing.style.display = 'flex';
         if (existing._taskIcon) { existing._taskIcon.remove(); existing._taskIcon = null; }
         bringToFront(existing);
-        keepWindowOnScreen(existing);
+        fitWindowToScreen(existing);
         const existingOverlay = document.querySelector(`.overlay-for-${id}`);
         if (existingOverlay) existingOverlay.style.display = 'flex';
         return existing;
@@ -228,8 +259,12 @@ function createWindow({
         ? { w: window.innerWidth * 0.95, h: window.innerHeight * 0.95 }
         : { w: window.innerWidth * (percentSizes[size]?.w ?? percentSizes.md.w), h: window.innerHeight * (percentSizes[size]?.h ?? percentSizes.md.h) };
 
-    const centerX = (window.innerWidth - dimensions.w) / 2;
-    const centerY = (window.innerHeight - dimensions.h) / 2;
+    // Telefono: ogni finestra a tutto schermo (come spikeengine)
+    const phoneFull = isPhoneWindowSize();
+    if (phoneFull) { dimensions.w = window.innerWidth; dimensions.h = window.innerHeight; }
+
+    const centerX = phoneFull ? 0 : (window.innerWidth - dimensions.w) / 2;
+    const centerY = phoneFull ? 0 : (window.innerHeight - dimensions.h) / 2;
 
     // ==================== Overlay ====================
     let overlay;
@@ -263,6 +298,8 @@ function createWindow({
     if (effect === "windows") win.classList.add('win-effect-resize');
     if (scTheme) win.classList.add('sc-window');
     win.id = id;
+    win.classList.add('pv4-win');
+    if (phoneFull) { win.classList.add('phone-full'); rounded = false; }
     Object.assign(win.style, {
         position: 'absolute', width: dimensions.w + 'px', height: dimensions.h + 'px',
         left: centerX + 'px', top: centerY + 'px',
@@ -279,6 +316,7 @@ function createWindow({
 
     // ==================== Titlebar ====================
     const titlebar = document.createElement('div');
+    titlebar.className = 'win-titlebar';
     Object.assign(titlebar.style, {
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         padding: '8px 12px', cursor: 'grab', background: headerBg, color: '#fff', userSelect: 'none'
@@ -560,7 +598,7 @@ function createWindow({
             { pos: 'bottom-left', cursor: 'sw-resize' }, { pos: 'bottom-right', cursor: 'se-resize' }
         ];
         grips.forEach(g => {
-            const div = document.createElement('div'); div.dataset.pos = g.pos;
+            const div = document.createElement('div'); div.dataset.pos = g.pos; div.className = 'win-grip';
             Object.assign(div.style, { position: 'absolute', cursor: g.cursor, zIndex: 10000, background: 'transparent' });
             if (g.pos.includes('top') || g.pos.includes('bottom')) div.style.height = '8px'; else div.style.height = '100%';
             if (g.pos.includes('left') || g.pos.includes('right')) div.style.width = '8px'; else div.style.width = '100%';
@@ -598,7 +636,7 @@ function createWindow({
     win.showDialog = () => {
         win.style.display = 'flex'; if (overlay) overlay.style.display = 'flex';
         if (win._taskIcon) { win._taskIcon.remove(); win._taskIcon = null; }
-        bringToFront(win); keepWindowOnScreen(win); translateElements(lang);
+        bringToFront(win); fitWindowToScreen(win); translateElements(lang);
     };
     win.hideDialog = () => closeWindow();
     if (typeof listeners.domReady === "function") listeners.domReady(win);
