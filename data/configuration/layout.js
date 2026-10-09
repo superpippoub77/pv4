@@ -11,7 +11,7 @@
 
 // Versione e mese di rilascio (come in SpikeCut): da aggiornare a ogni rilascio,
 // insieme a CHANGELOG.md, package.json e alla sezione "Novità" della guida.
-const APP_VERSION = "1.6.4";
+const APP_VERSION = "1.7.0";
 const APP_RELEASE = "Ott 2026";
 
 // Icone in stile SpikeCut (viewBox 22, tratto 1.6)

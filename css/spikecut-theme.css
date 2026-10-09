@@ -780,20 +780,14 @@ body.sc-theme .context-menu-separator { background: var(--line-soft); margin: 5p
     .menu-bar #zoomDisplay { display: none; }
     .menu-bar #schemaTitle { width: 96px; }
 }
-/* Schermi 4:3 (1024×768) e simili: zoom, storico e «Carica» restano nei menu, il resto si stringe */
+/* Schermi non molto larghi: elementi un po' più stretti (quello che non ci sta va nel menu «»») */
 @media (max-width: 1720px) {
-    .menu-bar .grp:has(#zoomOut) { display: none; }
-    .menu-bar #historyBtn,
-    .menu-bar #btnLoadTop { display: none; }
     .menu-bar #schemaTitle { width: 84px; }
     .menu-bar .user-menu .menu-label { max-width: 110px; overflow: hidden; text-overflow: ellipsis; display: block; }
     .menu-bar .menu-item.pill .btn { padding-left: 10px; padding-right: 10px; }
     body.sc-theme .menu-bar { gap: 6px; padding: 0 8px; }
 }
 @media (max-width: 920px) {
-    .menu-bar .grp:has(#btnSaveStatus),
-    .menu-bar #redoBtn,
-    .menu-bar #btnNewTab { display: none; }
     .menu-bar #btnShareTop,
     .menu-bar #btnSaveLibraryTop { font-size: 12px; padding: 0 5px; }
     .menu-bar .menu-item.pill .btn { font-size: 12px; padding-left: 8px; padding-right: 8px; }
@@ -843,4 +837,104 @@ body.no-docs #canvasResizeHandle { display: none !important; }
 }
 @media (max-width: 920px) {
     #status .status-sign .sign-by { display: none; }
+}
+
+/* =====================================================================
+   RESPONSIVE: TABLET E TELEFONO (come spikeengine / SpikeCut)
+   - barra in alto adattabile: quello che non ci sta va nel menu «»»
+   - ≤ 820 px: barra strumenti a icone; il pannello è un cassetto sopra il foglio
+   - ≤ 720 px: finestre a tutto schermo (helper.js), griglie su una colonna
+   - dito al posto del mouse: bersagli più grandi
+   ===================================================================== */
+body.sc-theme { height: 100vh; height: 100dvh; }          /* barra di stato sempre visibile sui telefoni */
+body.sc-theme #container,
+body.sc-theme .main-content { min-height: 0; }
+body.sc-theme .canvas-container { touch-action: none; }    /* i gesti sul foglio li gestisce l'app */
+body.sc-theme .win-titlebar,
+body.sc-theme .win-grip,
+body.sc-theme .sc-resizer { touch-action: none; }
+
+/* menu «»» della barra in alto */
+.menu-bar .more-grp { padding: 0 4px !important; border-right: none !important; flex: none; }
+.menu-bar .more-btn { font-size: 17px; font-weight: 700; color: var(--ink) !important; background: var(--bg-2) !important; border: 1px solid var(--line) !important; padding: 0 10px; }
+.overflow-panel {
+    position: fixed; display: none; flex-direction: column; gap: 2px; z-index: 1500;
+    background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 14px 34px rgba(0, 0, 0, .55);
+    padding: 6px; min-width: 220px; max-width: min(94vw, 440px); max-height: 80vh; overflow-y: auto;
+}
+.overflow-panel.open { display: flex; }
+.overflow-panel > * { display: flex !important; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 4px !important; border-right: none !important; border-bottom: 1px solid var(--line-soft); height: auto !important; }
+.overflow-panel > *:last-child { border-bottom: none; }
+.overflow-panel .iconbtn { width: auto; min-width: 34px; padding: 0 9px; }
+.overflow-panel #schemaTitle { width: 100% !important; flex: 1; }
+.overflow-panel .pagelabel { display: inline-block !important; }
+.overflow-panel .user-menu .menu-label { max-width: none !important; }
+.overflow-panel .menu-dropdown { position: static !important; box-shadow: none !important; margin-top: 4px; }
+
+/* fino al tablet in verticale i pannelli restano affiancati al foglio (annulla le vecchie regole "a cassetto") */
+@media (max-width: 900px) {
+    body.sc-theme #sidebar,
+    body.sc-theme #rightSidebar { position: relative; top: auto; bottom: auto; left: auto; right: auto; box-shadow: none; z-index: auto; }
+    body.sc-theme .canvas-container { padding: 0; justify-content: center; align-items: center; }
+}
+
+/* ≤ 820 px (o telefono girato): barra strumenti a icone, pannello a cassetto */
+@media (max-width: 820px), (max-height: 500px) {
+    #rail.expanded { flex-direction: row; flex-wrap: wrap; padding: 8px 0 8px 7px; gap: 3px; }
+    #rail.expanded .tool { width: 38px; height: 38px; padding: 0; justify-content: center; }
+    #rail.expanded .tool .tlabel,
+    #rail.expanded .rail-title { display: none !important; }
+    #rail.expanded .tool .kbd { position: absolute; font-size: 8px; }
+    #rail .kbd-long { display: none; }
+    body.sc-theme #sidebar { width: 52px !important; min-width: 52px; }
+    body.sc-theme #railResizer,
+    body.sc-theme #panelResizer { display: none !important; }
+    body.sc-theme #rightSidebar {
+        position: absolute; right: 0; top: 0; bottom: 0; left: auto;
+        width: min(340px, calc(100vw - 84px)) !important; z-index: 80;
+        box-shadow: -10px 0 26px rgba(0, 0, 0, .45);
+    }
+    /* linguetta del pannello aperto: sul bordo del cassetto, sopra di lui */
+    body.sc-theme.panel-open .main-content > .sidetoggle.right { right: min(340px, calc(100vw - 84px)); z-index: 81; }
+    body.sc-theme .shapes-flyout { width: min(318px, calc(100vw - 70px)); }
+}
+
+/* ≤ 760 px: telefono */
+@media (max-width: 760px) {
+    #status { overflow-x: auto; gap: 8px; padding: 0 8px; }
+    #status #statusCoords { display: none; }
+    #tabBar .close-all-tabs { padding: 3px 7px; }
+    body.sc-theme .tab { padding: 0 10px; }
+    .menu-bar .menu-item.pill .btn { font-size: 12px; padding: 6px 8px; }
+    .menu-bar .menu-item.more .menu-label { padding: 0 8px; }
+}
+@media (max-width: 720px) {
+    .wg .wg-row { grid-template-columns: 1fr; }
+    .tx-ex-options { flex-direction: column; gap: 8px; }
+    .pv4-win.phone-full .win-titlebar { padding: 10px 12px; }
+    .empty-state .es-box { width: calc(100vw - 32px); max-width: 420px; }
+}
+@media (max-width: 480px) {
+    body.sc-theme .menu-bar { gap: 3px; padding: 0 4px; }
+    .menu-bar .menu-item.pill,
+    .menu-bar .menu-item.more { padding: 0 1px; }
+    .menu-bar .more-btn { padding: 0 7px; }
+    #btnSidebar { width: 32px; }
+    #status .status-sign { display: none; }
+    #tabBar .close-all-tabs { font-size: 0; }
+    #tabBar .close-all-tabs::before { content: "✕"; font-size: 13px; }
+    .menu-bar .menu-item.pill .btn { padding: 6px 7px; }
+}
+
+/* dito al posto del mouse: bersagli più grandi */
+@media (pointer: coarse) {
+    .iconbtn { min-width: 36px; height: 36px; }
+    .tool { width: 42px; height: 42px; }
+    #rail.expanded .tool { height: 38px; }
+    body.sc-theme .tab { height: 34px; }
+    body.sc-theme .main-content > .sidetoggle { width: 26px; height: 54px; font-size: 18px; }
+    body.sc-theme .sc-resizer { width: 10px; }
+    #status .toggle { padding: 5px 8px; }
+    .menu-dropdown-item { min-height: 40px; }
+    .win-titlebar button { width: 32px !important; height: 32px !important; }
 }
