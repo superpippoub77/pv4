@@ -11,8 +11,8 @@
 
 // Versione e mese di rilascio (come in SpikeCut): da aggiornare a ogni rilascio,
 // insieme a CHANGELOG.md, package.json e alla sezione "Novità" della guida.
-const APP_VERSION = "1.7.0";
-const APP_RELEASE = "Ott 2026";
+const APP_VERSION = "1.8.0";
+const APP_RELEASE = "Nov 2026";
 
 // Icone in stile SpikeCut (viewBox 22, tratto 1.6)
 const SC_ICON = (d, extra = "") =>
@@ -196,6 +196,8 @@ const layoutConfig = {
                     ]
                 },
                 { label: "Testo", i18n: "panel_text", item: { type: "input", inputType: "text", id: "objectText", placeholder: "Testo...", i18nPlaceholder: "placeholder_edit_text", onInput: (ed, ev) => ed.changeSelectedObjectsText(ev.target.value) } },
+                { label: "Carattere", i18n: "panel_font", item: { type: "select", id: "objectFont", options: [["", "font_default"], ["Nanum Pen Script", "Nanum Pen Script"], ["Schoolbell", "Schoolbell"], ["Architects Daughter", "Architects Daughter"]], onChange: (ed, value) => ed.changeSelectedObjectsTextStyle('fontFamily', value) } },
+                { label: "Evidenziatore", i18n: "panel_highlight", item: { type: "select", id: "objectHighlight", options: [["", "highlight_none"], ["#ffd84d", "highlight_yellow"], ["#9be38f", "highlight_green"], ["#8fd0ff", "highlight_blue"], ["#ffa3d1", "highlight_pink"], ["#ffbd7a", "highlight_orange"]], onChange: (ed, value) => ed.changeSelectedObjectsTextStyle('highlight', value) } },
                 {
                     label: "Numero etichetta", i18n: "panel_number", row: [
                         { type: "input", inputType: "number", id: "objectNumber", min: "1", onInput: (ed, ev) => ed.changeSelectedObjectsNumber(parseInt(ev.target.value)) },
@@ -242,6 +244,7 @@ const layoutConfig = {
                         { type: "input", inputType: "checkbox", id: "arrowMarkerEnd", text: "Fine ▶", i18n: "tb_marker_end", checked: true, onChange: (ed, ev) => ed.setArrowMarker('end', ev.target.checked) }
                     ]
                 },
+                { label: "Evidenziatore", i18n: "panel_highlight", item: { type: "select", id: "arrowHighlight", options: [["", "highlight_none"], ["auto", "highlight_auto"], ["#ffd84d", "highlight_yellow"], ["#9be38f", "highlight_green"], ["#8fd0ff", "highlight_blue"], ["#ffa3d1", "highlight_pink"], ["#ffbd7a", "highlight_orange"]], onChange: (ed, value) => ed.changeArrowHighlight(value) } },
                 { item: { type: "button", id: "dashedArrowToggle", text: "⚡ Freccia tratteggiata", onClick: (ed) => ed.toggleDashedArrow() } }
             ]
         },

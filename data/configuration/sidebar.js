@@ -12,6 +12,16 @@ const TEAM_B_COLOR = "#2ecc71";   // verde
 const GENERIC_COLOR = "#e67e22";  // arancione
 const STAFF_COLOR = "#7f8c8d";    // grigio
 
+// Dimensioni naturali (px) dei disegni "schizzo": l'oggetto nasce in scala 0,5
+const SKETCH_SIZES = {
+    "campo.svg": [764, 848], "attaccante.svg": [88, 134], "muro.svg": [86, 91],
+    "difensore-1.svg": [64, 61], "difensore-2.svg": [72, 58], "difensore-3.svg": [57, 73], "difensore-4.svg": [54, 70],
+    "pallone.svg": [50, 33]
+};
+const SKETCH_SCALE = 0.5;
+// miniatura su carta chiara (il disegno è a inchiostro scuro, invisibile sul tema scuro)
+const sketchIcon = (name) => `<img src="data/images/sketch/${name}.svg" alt="" style="width:28px;height:28px;object-fit:contain;background:#f5f1e6;border-radius:4px;padding:1px">`;
+
 const sidebarConfig = [
     {
         title: "🔵 Squadra A",
@@ -94,6 +104,23 @@ const sidebarConfig = [
                 type: "sprite", spriteSheet: "data/images/sprites/volleyball-actions.png",
                 cols: 4, rows: 2, frame: 1, width: 32, height: 32, label: "local_sprite_bagher"
             }
+        ]
+    },
+    {
+        // Disegni a mano in stile "schizzo" (SVG vettoriali, senza filtro colore)
+        title: "✍️ Stile schizzo",
+        controlType: "accordion",
+        category: "volleyball-figures",
+        i18ntitle: "sb_sketch",
+        items: [
+            { type: "sketch", src: "data/images/sketch/campo.svg", label: "sketch_court", iconHTML: sketchIcon("campo") },
+            { type: "sketch", src: "data/images/sketch/attaccante.svg", label: "sketch_spiker", iconHTML: sketchIcon("attaccante") },
+            { type: "sketch", src: "data/images/sketch/muro.svg", label: "sketch_block", iconHTML: sketchIcon("muro") },
+            { type: "sketch", src: "data/images/sketch/difensore-1.svg", label: "sketch_defender_1", iconHTML: sketchIcon("difensore-1") },
+            { type: "sketch", src: "data/images/sketch/difensore-2.svg", label: "sketch_defender_2", iconHTML: sketchIcon("difensore-2") },
+            { type: "sketch", src: "data/images/sketch/difensore-3.svg", label: "sketch_defender_3", iconHTML: sketchIcon("difensore-3") },
+            { type: "sketch", src: "data/images/sketch/difensore-4.svg", label: "sketch_defender_4", iconHTML: sketchIcon("difensore-4") },
+            { type: "sketch", src: "data/images/sketch/pallone.svg", label: "sketch_ball", iconHTML: sketchIcon("pallone") }
         ]
     },
     {

@@ -1429,3 +1429,54 @@ body.dragging-endpoint .canvas-object .connection-point {
     background-image: none;
     border: none;
 }
+
+/* Disegni in stile "schizzo": SVG a tutta area, proporzioni mantenute */
+.sketch-object {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+}
+
+.sketch-object img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    pointer-events: none;
+    user-select: none;
+}
+
+/* Caratteri a mano (stile schizzo) — file locali in data/fonts, licenze OFL / Apache */
+@font-face {
+    font-family: 'Nanum Pen Script';
+    src: url('../data/fonts/nanum-pen-script-latin.woff2') format('woff2');
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Schoolbell';
+    src: url('../data/fonts/schoolbell-latin.woff2') format('woff2');
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Architects Daughter';
+    src: url('../data/fonts/architects-daughter-latin.woff2') format('woff2');
+    font-display: swap;
+}
+
+/* Evidenziatore: pennellata irregolare dietro le parole */
+.text-style {
+    line-height: 1.15;
+}
+
+.text-highlight {
+    --hl: rgba(255, 216, 77, .72);
+    padding: 0 .3em;
+    border-radius: .55em .2em .6em .25em / .35em .6em .3em .5em;
+    background: linear-gradient(176deg, transparent 18%, var(--hl) 22%, var(--hl) 86%, transparent 90%);
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+}

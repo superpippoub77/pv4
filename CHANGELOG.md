@@ -5,6 +5,17 @@ e compaiono nella barra di stato ("VBProW4 by SpikeCode AI · Ott 2026 · Ver: 1
 Informazioni e nella guida (Riferimento → Novità). A ogni rilascio vanno aggiornati insieme a questo file
 e a `package.json`.
 
+## 1.8.0 — Nov 2026
+
+- **Stile schizzo** (nuova categoria in *Campo e oggetti…*): disegni a mano vettoriali (SVG) ricavati da un'illustrazione,
+  con i tratti originali: campo completo con la rete, attaccante, giocatore a muro (rete tolta, gambe, maglietta e
+  pantaloncini ricalcati sul disegno), quattro difensori e pallone. Sfondo trasparente, nessun filtro colore; il campo
+  si adatta al foglio e resta sotto agli altri oggetti.
+- **Caratteri a mano per i testi**: Nanum Pen Script, Schoolbell e Architects Daughter (file locali in `data/fonts`,
+  licenze OFL / Apache), scelti dal pannello Proprietà.
+- **Evidenziatore**: pennellata colorata dietro i testi e alone trasparente sotto le frecce (colore della freccia o a
+  scelta), dal pannello Proprietà; resta salvato nello schema e si annulla con Ctrl+Z.
+
 ## 1.7.0 — Ott 2026
 
 - **Responsive come spikeengine / SpikeCut** (telefono, tablet, schermi piccoli):
