@@ -279,6 +279,11 @@ html:`<table class="guide-table"><tr><th>Tasti</th><th>Comando</th></tr>
 <tr><td>F1</td><td>questa guida</td></tr></table>
 <p>I tasti della libreria sono in <a data-topic="esplora">La libreria come Esplora file</a>.</p>` },
 
+{ id:'stile-schizzo', cat:'Disegnare', title:'Stile schizzo, caratteri a mano ed evidenziatore', keys:'schizzo disegno a mano matita giocatori muro difensore attaccante pallone campo rete svg vettoriale font carattere nanum pen schoolbell architects daughter evidenziatore sottolineatura alone pennellata',
+html:`<p>In <b>Campo e oggetti…</b> la categoria <b>✍️ Stile schizzo</b> contiene disegni a mano vettoriali (restano nitidi a ogni zoom e in stampa): campo completo con la rete, attaccante, giocatore a muro, quattro difensori e pallone. Il campo si adatta al foglio e resta sotto agli altri oggetti; i disegni mantengono i colori originali.</p>
+<p><b>Carattere</b> (pannello Proprietà, con un testo selezionato): <i>Nanum Pen Script</i>, <i>Schoolbell</i> o <i>Architects Daughter</i>, scritture a mano adatte allo stile schizzo; <i>Predefinito</i> torna al carattere normale.</p>
+<p><b>Evidenziatore</b>: per i testi è una pennellata colorata dietro le parole (giallo, verde, azzurro, rosa, arancione); per le frecce è un alone largo e trasparente sotto il tratto, nel colore della freccia o in uno a scelta.</p>` },
+
 { id:'problemi', cat:'Riferimento', title:'Problemi frequenti', keys:'problemi errore non funziona login server accesso scaduto non trovo libreria disattivata vecchia versione cache',
 html:`<dl class="guide-faq">
 <dt>La libreria dice di accedere anche se sono entrato.</dt><dd>Sei entrato senza account o il server non rispondeva, oppure l'accesso è scaduto. Esci dal menu 👤 e accedi di nuovo.</dd>
@@ -290,6 +295,7 @@ html:`<dl class="guide-faq">
 
 { id:'novita', cat:'Riferimento', title:'Novità', keys:'novità versioni changelog aggiornamenti',
 html:`<ul>
+<li><b>1.8.0</b> — <a data-topic="stile-schizzo">Stile schizzo</a>: disegni a mano vettoriali (campo con rete, attaccante, muro, difensori, pallone), caratteri a mano per i testi, evidenziatore per testi e frecce.</li>
 <li><b>1.7.0</b> — <a data-topic="telefono-tablet">Telefono e tablet</a>: barra in alto adattabile (menu »), pannello a cassetto, finestre a tutto schermo, gesti con le dita (trascina, zoom a due dita, pressione lunga, doppio tocco).</li>
 <li><b>1.6.4</b> — Barre di scorrimento a scomparsa: compaiono solo passando con il mouse sul riquadro, lavorandoci dentro o scorrendo.</li>
 <li><b>1.6.3</b> — Avvio pulito: al caricamento una schermata scura con il pallone invece della vecchia impaginazione per un attimo.</li>

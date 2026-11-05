@@ -1,4 +1,7 @@
 class SchemaEditor {
+    // Fattore di scala dei caratteri a mano (occhio più piccolo dei caratteri di sistema)
+    static FONT_SCALE = { 'Nanum Pen Script': 1.35, 'Schoolbell': 1, 'Architects Daughter': 0.95 };
+
     constructor(configuration, menuData, username, storage) {
         this.typeOfSport = 'volleyball';
         this.storage = storage;
@@ -5747,7 +5750,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             return this.addObject(data.type, x, y, data.color, data.text, 0, this.dashedMode, null, null, spriteData);
         } else if (data.type === 'icon') {
             return this.addObject(data.type, x, y, data.color, data.text, 0, this.dashedMode, data.icon);
-        } else if (data.type === 'local-svg') {
+        } else if (data.type === 'local-svg' || data.type === 'sketch') {
             return this.addObject(data.type, x, y, data.color, data.text, 0, this.dashedMode, null, data.src);
         } else if (data.type === 'object') {
             return this.addObject(data.type, x, y, data.color, data.text, 0, this.dashedMode, null, null, null, data.model3d, true);
@@ -5781,7 +5784,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
         this._clickAddOffset = ((this._clickAddOffset || 0) + 1) % 8;
         const off = this._clickAddOffset * 12;
-        const size = this.getDefaultSize(opts.type);
+        const size = this.getDefaultSize(opts.type, opts.src);
         const x = Math.round(p.x - size.width / 2 + off);
         const y = Math.round(p.y - size.height / 2 + off);
 
@@ -6086,8 +6089,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             type: type,
             x: x,
             y: y,
-            width: this.getDefaultSize(type).width,
-            height: this.getDefaultSize(type).height,
+            width: this.getDefaultSize(type, src).width,
+            height: this.getDefaultSize(type, src).height,
             color: color,
             rotation: rotation,  // Rotazione Z (esistente)
             rotationX: 0,        // ✅ NUOVO: Rotazione asse X
@@ -6096,7 +6099,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             dashed: dashed,
             opacity: 1,
             // Campo (court) deve rimanere sotto a tutti gli altri oggetti
-            zIndex: (type === 'court' || type === 'half-court' || type === 'full-field' || type === 'full-court') ? 0 : this.maxZIndex++,
+            zIndex: (type === 'court' || type === 'half-court' || type === 'full-field' || type === 'full-court' || (type === 'sketch' && /campo\.svg$/.test(src || ''))) ? 0 : this.maxZIndex++,
             icon: icon,
             src: src,
             spriteData: spriteData,
@@ -6126,7 +6129,19 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         return object;
     }
 
-    getDefaultSize(type) {
+    getDefaultSize(type, src) {
+        // Disegni "schizzo": dimensioni naturali dell'SVG in scala, proporzioni mantenute
+        if (type === 'sketch') {
+            const name = String(src || '').split('/').pop();
+            const nat = (typeof SKETCH_SIZES !== 'undefined' && SKETCH_SIZES[name]) || [80, 80];
+            let k = typeof SKETCH_SCALE !== 'undefined' ? SKETCH_SCALE : 0.6;
+            // il campo entra sempre nel foglio
+            const cv = document.getElementById('canvas');
+            if (name === 'campo.svg' && cv && cv.offsetWidth && cv.offsetHeight) {
+                k = Math.min(cv.offsetWidth * 0.95 / nat[0], cv.offsetHeight * 0.95 / nat[1]);
+            }
+            return { width: Math.round(nat[0] * k), height: Math.round(nat[1] * k) };
+        }
         const sizes = {
             'player': { width: 40, height: 40 },
             'ball': { width: 20, height: 20 },
@@ -6612,6 +6627,16 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             return content;
         }
 
+        if (object.type === 'sketch') {
+            // Disegno vettoriale a tutta area, nessun filtro colore: resta identico all'originale
+            const img = document.createElement('img');
+            img.src = object.src;
+            img.alt = '';
+            img.draggable = false;
+            content.appendChild(img);
+            return content;
+        }
+
         if (object.type === 'object') {
             content.innerHTML = `<img src="${object.src}" alt="${object.alt || ''}" />`;
             content.style.color = object.color;
@@ -6635,6 +6660,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             editableDiv.textContent = object.text;
             editableDiv.contentEditable = 'false';
             editableDiv.style.color = 'black';
+            this.applyTextStyle(object, editableDiv);
             content.appendChild(editableDiv);
 
             editableDiv.addEventListener('input', () => {
@@ -7816,6 +7842,10 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
                 document.getElementById('objectColor').value = toHexColor(objectData.color);
                 document.getElementById('objectText').value = objectData.text;
+                const fontSel = document.getElementById('objectFont');
+                if (fontSel) fontSel.value = objectData.fontFamily || '';
+                const hlSel = document.getElementById('objectHighlight');
+                if (hlSel) hlSel.value = objectData.highlight || '';
                 document.getElementById('objectNumber').value = objectData.objectNumber || '';
                 document.getElementById('objectOpacity').value = objectData.opacity || 1;
                 document.getElementById('objectOpacityValue').textContent = (objectData.opacity || 1).toFixed(2);
@@ -7867,6 +7897,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             // Checkbox terminali
             document.getElementById('arrowMarkerStart').checked = arrowData.markerStart || false;
             document.getElementById('arrowMarkerEnd').checked = arrowData.markerEnd !== false;
+            const arrowHl = document.getElementById('arrowHighlight');
+            if (arrowHl) arrowHl.value = arrowData.highlight || '';
 
             const dashedBtn = document.getElementById('dashedArrowToggle');
             dashedBtn.style.display = 'inline-block';
@@ -8274,6 +8306,22 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         // Genera il path in base al tipo
         let pathData = this.generateArrowPath(fromPos, toPos, arrow.type, arrow.controlPoint);
 
+        // Evidenziatore: pennellata larga e trasparente sotto la freccia
+        if (arrow.highlight) {
+            const hl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            hl.classList.add('arrow-highlight');
+            hl.setAttribute('d', pathData);
+            hl.setAttribute('fill', 'none');
+            hl.setAttribute('stroke', arrow.highlight === 'auto' ? arrow.color : arrow.highlight);
+            hl.setAttribute('stroke-width', (arrow.thickness || 3) * 3 + 8);
+            hl.setAttribute('stroke-linecap', 'round');
+            hl.setAttribute('stroke-linejoin', 'round');
+            hl.setAttribute('stroke-opacity', arrow.highlight === 'auto' ? 0.22 : 0.5);
+            hl.style.pointerEvents = 'none';
+            hl.style.opacity = arrow.opacity || 1;
+            svg.appendChild(hl);
+        }
+
         path.setAttribute('d', pathData);
         path.style.stroke = arrow.color;
         path.style.strokeWidth = arrow.thickness + 'px';
@@ -8535,6 +8583,53 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         if (!commit) return;
         this.saveState(`Modificato colore di ${this.selectedObjects.size} oggetti`);
         this.updateCurrentFrame();
+    }
+
+    /**
+     * Carattere e evidenziatore del testo di un oggetto.
+     * Il testo va in uno <span> così la pennellata segue solo le parole, non tutto il riquadro.
+     */
+    applyTextStyle(object, editableDiv) {
+        const font = object.fontFamily || '';
+        const hl = object.highlight || '';
+        if (!font && !hl) return;
+        const span = document.createElement('span');
+        span.className = 'text-style' + (hl ? ' text-highlight' : '');
+        span.textContent = object.text || '';
+        if (font) {
+            span.style.fontFamily = `'${font}', cursive`;
+            // i caratteri a mano hanno un occhio più piccolo: stessa altezza visiva del testo normale
+            span.style.fontSize = (SchemaEditor.FONT_SCALE[font] || 1) + 'em';
+        }
+        if (hl) {
+            const n = parseInt(hl.slice(1), 16);
+            span.style.setProperty('--hl', `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, .72)`);
+        }
+        editableDiv.textContent = '';
+        editableDiv.appendChild(span);
+    }
+
+    changeSelectedObjectsTextStyle(prop, value) {
+        if (this.selectedObjects.size === 0) return;
+        const tab = this.getCurrentTab();
+        this.selectedObjects.forEach((pos, id) => {
+            const objectData = tab.objects.get(id);
+            if (!objectData) return;
+            if (value) objectData[prop] = value; else delete objectData[prop];
+            this.renderObject(objectData);
+        });
+        this.saveState(`Modificato ${prop === 'fontFamily' ? 'carattere' : 'evidenziatore'} di ${this.selectedObjects.size} oggetti`);
+        this.updateCurrentFrame();
+    }
+
+    /** Evidenziatore sotto la freccia selezionata: '' nessuno, 'auto' colore della freccia, oppure #rrggbb */
+    changeArrowHighlight(value) {
+        if (!this.selectedArrow) return;
+        const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
+        if (!arrowData) return;
+        if (value) arrowData.highlight = value; else delete arrowData.highlight;
+        this.renderArrow(arrowData);
+        this.saveState(`Modificato evidenziatore freccia ${this.selectedArrow}`);
     }
 
     // Nel metodo changeSelectedObjectsText(), aggiungi alla fine:
@@ -9114,6 +9209,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     arrowData.opacity = arrow.opacity || 1;
                     arrowData.markerStart = arrow.markerStart || false;
                     arrowData.markerEnd = arrow.markerEnd !== false;
+                    if (arrow.highlight) arrowData.highlight = arrow.highlight;
                     this.renderArrow(arrowData);
                 }
             }

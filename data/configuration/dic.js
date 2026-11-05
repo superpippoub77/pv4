@@ -521,6 +521,8 @@ Object.assign(translations.it, {
   "local_svg_volleyball_ball": "Pallone SVG", "local_m3_volleyball_ball": "Pallone 3D",
   "local_svg_player_bagher": "Bagher", "local_svg_player_bagher_front": "Bagher fronte", "local_svg_player_spike": "Schiacciata",
   "local_svg_player_upball": "Palleggio", "local_sprite_spike": "Sprite attacco", "local_sprite_bagher": "Sprite bagher",
+  "sb_sketch": "✍️ Stile schizzo", "sketch_court": "Campo schizzo", "sketch_spiker": "Attaccante", "sketch_block": "Muro", "sketch_defender_1": "Difensore 1", "sketch_defender_2": "Difensore 2", "sketch_defender_3": "Difensore 3", "sketch_defender_4": "Difensore 4", "sketch_ball": "Pallone schizzo",
+  "panel_font": "Carattere", "font_default": "Predefinito", "panel_highlight": "Evidenziatore", "highlight_none": "Nessuno", "highlight_auto": "Colore freccia", "highlight_yellow": "Giallo", "highlight_green": "Verde", "highlight_blue": "Azzurro", "highlight_pink": "Rosa", "highlight_orange": "Arancione",
   "icon_ball": "Pallone", "icon_stopwatch": "Cronometro", "icon_times": "Errore", "icon_hands_holding": "Mano",
   "icon_arrow_up": "Su", "icon_arrow_down": "Giù", "icon_arrow_left": "Sinistra", "icon_arrow_right": "Destra"
 });
@@ -553,6 +555,8 @@ Object.assign(translations.en, {
   "local_svg_volleyball_ball": "SVG ball", "local_m3_volleyball_ball": "3D ball",
   "local_svg_player_bagher": "Dig", "local_svg_player_bagher_front": "Dig front", "local_svg_player_spike": "Spike",
   "local_svg_player_upball": "Set", "local_sprite_spike": "Spike sprite", "local_sprite_bagher": "Dig sprite",
+  "sb_sketch": "✍️ Sketch style", "sketch_court": "Sketch court", "sketch_spiker": "Spiker", "sketch_block": "Block", "sketch_defender_1": "Defender 1", "sketch_defender_2": "Defender 2", "sketch_defender_3": "Defender 3", "sketch_defender_4": "Defender 4", "sketch_ball": "Sketch ball",
+  "panel_font": "Font", "font_default": "Default", "panel_highlight": "Highlighter", "highlight_none": "None", "highlight_auto": "Arrow colour", "highlight_yellow": "Yellow", "highlight_green": "Green", "highlight_blue": "Light blue", "highlight_pink": "Pink", "highlight_orange": "Orange",
   "icon_ball": "Ball", "icon_stopwatch": "Stopwatch", "icon_times": "Error", "icon_hands_holding": "Hand",
   "icon_arrow_up": "Up", "icon_arrow_down": "Down", "icon_arrow_left": "Left", "icon_arrow_right": "Right"
 });
@@ -585,6 +589,8 @@ Object.assign(translations.fr, {
   "local_svg_volleyball_ball": "Ballon SVG", "local_m3_volleyball_ball": "Ballon 3D",
   "local_svg_player_bagher": "Manchette", "local_svg_player_bagher_front": "Manchette face", "local_svg_player_spike": "Attaque",
   "local_svg_player_upball": "Passe", "local_sprite_spike": "Sprite attaque", "local_sprite_bagher": "Sprite manchette",
+  "sb_sketch": "✍️ Style croquis", "sketch_court": "Terrain croquis", "sketch_spiker": "Attaquant", "sketch_block": "Contre", "sketch_defender_1": "Défenseur 1", "sketch_defender_2": "Défenseur 2", "sketch_defender_3": "Défenseur 3", "sketch_defender_4": "Défenseur 4", "sketch_ball": "Ballon croquis",
+  "panel_font": "Police", "font_default": "Par défaut", "panel_highlight": "Surligneur", "highlight_none": "Aucun", "highlight_auto": "Couleur de la flèche", "highlight_yellow": "Jaune", "highlight_green": "Vert", "highlight_blue": "Bleu clair", "highlight_pink": "Rose", "highlight_orange": "Orange",
   "icon_ball": "Ballon", "icon_stopwatch": "Chrono", "icon_times": "Erreur", "icon_hands_holding": "Main",
   "icon_arrow_up": "Haut", "icon_arrow_down": "Bas", "icon_arrow_left": "Gauche", "icon_arrow_right": "Droite"
 });
