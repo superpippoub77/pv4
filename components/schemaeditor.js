@@ -4626,9 +4626,15 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                         spriteHeight: parseInt(item.dataset.spriteHeight) || 64
                     };
                     e.dataTransfer.setData('text/plain', JSON.stringify(dragData));
+                    // tipo dedicato: il rilascio riconosce l'elemento della galleria anche se il
+                    // browser aggiunge l'immagine della miniatura come file
+                    try { e.dataTransfer.setData('application/x-pv4-component', JSON.stringify(dragData)); } catch (err) { }
+                    e.dataTransfer.effectAllowed = 'copy';
                 }
             });
             item.draggable = true;
+            // la miniatura non deve essere trascinata come immagine a sé
+            item.querySelectorAll('img').forEach(img => { img.draggable = false; });
         });
 
         // Il pulsante Frecce (arrowModeBtn) è configurato in toolbar.js -> editor.toggleArrowMode()
@@ -4636,8 +4642,10 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         // Chiudi context menu quando si clicca sul canvas
         const canvas = document.getElementById('canvas');
         canvas.addEventListener('click', () => this.hideContextMenu());
-        canvas.addEventListener('dragover', (e) => e.preventDefault());
-        canvas.addEventListener('drop', (e) => this.handleCanvasDrop(e));
+        // Rilascio dalla galleria: sul foglio e anche sulla zona scura attorno (l'oggetto entra nel foglio)
+        const dropZone = document.querySelector('.canvas-container') || canvas;
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy'; });
+        dropZone.addEventListener('drop', (e) => this.handleCanvasDrop(e));
         canvas.addEventListener('mousedown', (e) => this.handleCanvasMouseDown(e));
         canvas.addEventListener('mousemove', (e) => this.handleCanvasMouseMove(e));
         canvas.addEventListener('mouseup', (e) => this.handleCanvasMouseUp(e));
@@ -5669,7 +5677,14 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
     handleCanvasDrop(e) {
         e.preventDefault();
-        // Preferisci file locali (es. .glb) se presenti in dataTransfer.files
+        // Elemento della galleria: ha sempre la precedenza. Trascinando dalla miniatura, Chrome e
+        // Firefox aggiungono l'immagine come file e prima il rilascio veniva scartato ("Unsupported file").
+        const component = this.readComponentDragData(e);
+        if (component) {
+            this.dropComponent(component, e);
+            return;
+        }
+        // File locali (es. .glb) trascinati dal computer
         const files = e.dataTransfer && e.dataTransfer.files ? e.dataTransfer.files : null;
         if (files && files.length > 0) {
             // Handle each file; if it's a .glb, read as ArrayBuffer and load directly
@@ -5707,19 +5722,27 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             return;
         }
 
-        let data;
-        try {
-            const rawData = e.dataTransfer.getData('text/plain');
-            if (!rawData) {
-                console.error('Nessun dato nel drag');
-                return;
-            }
-            data = JSON.parse(rawData);
-        } catch (error) {
-            console.error('Errore nel parsing dei dati drag:', error);
-            return;
-        }
+        console.warn('Rilascio senza un elemento della galleria');
+    }
 
+    /** Dati dell'elemento della galleria trascinato, oppure null */
+    readComponentDragData(e) {
+        const dt = e.dataTransfer;
+        if (!dt) return null;
+        for (const type of ['application/x-pv4-component', 'text/plain']) {
+            let raw = '';
+            try { raw = dt.getData(type); } catch (err) { raw = ''; }
+            if (!raw) continue;
+            try {
+                const data = JSON.parse(raw);
+                if (data && typeof data === 'object' && data.type) return data;
+            } catch (err) { /* testo qualsiasi: non è un elemento della galleria */ }
+        }
+        return null;
+    }
+
+    /** Crea l'oggetto nel punto di rilascio, tenendolo dentro il foglio */
+    dropComponent(data, e) {
         const p = this.getCanvasLocalPoint(e);
         let x = p.x;
         let y = p.y;
@@ -5728,6 +5751,16 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         if (data.offsetX !== undefined && data.offsetY !== undefined) {
             x -= data.offsetX / this.getCurrentTab().zoom;
             y -= data.offsetY / this.getCurrentTab().zoom;
+        }
+
+        // Rilasciato fuori dal foglio (zona scura): l'oggetto entra dal bordo più vicino
+        const canvas = document.getElementById('canvas');
+        if (canvas && canvas.offsetWidth && canvas.offsetHeight) {
+            const size = this.getDefaultSize(data.type, data.src);
+            const maxX = Math.max(0, canvas.offsetWidth - size.width);
+            const maxY = Math.max(0, canvas.offsetHeight - size.height);
+            x = Math.min(Math.max(x, 0), maxX);
+            y = Math.min(Math.max(y, 0), maxY);
         }
 
         this.createObjectFromComponent(data, x, y);

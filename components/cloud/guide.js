@@ -295,6 +295,7 @@ html:`<dl class="guide-faq">
 
 { id:'novita', cat:'Riferimento', title:'Novità', keys:'novità versioni changelog aggiornamenti',
 html:`<ul>
+<li><b>1.8.1</b> — Trascinamento dalla galleria sempre funzionante, anche prendendo l'elemento dalla miniatura o rilasciandolo sulla zona scura attorno al foglio.</li>
 <li><b>1.8.0</b> — <a data-topic="stile-schizzo">Stile schizzo</a>: disegni a mano vettoriali (campo con rete, attaccante, muro, difensori, pallone), caratteri a mano per i testi, evidenziatore per testi e frecce.</li>
 <li><b>1.7.0</b> — <a data-topic="telefono-tablet">Telefono e tablet</a>: barra in alto adattabile (menu »), pannello a cassetto, finestre a tutto schermo, gesti con le dita (trascina, zoom a due dita, pressione lunga, doppio tocco).</li>
 <li><b>1.6.4</b> — Barre di scorrimento a scomparsa: compaiono solo passando con il mouse sul riquadro, lavorandoci dentro o scorrendo.</li>
