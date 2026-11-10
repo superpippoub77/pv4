@@ -1480,3 +1480,10 @@ body.dragging-endpoint .canvas-object .connection-point {
     -webkit-box-decoration-break: clone;
     box-decoration-break: clone;
 }
+
+/* Le miniature della galleria non si trascinano come immagini: si trascina l'elemento intero */
+.component-item img {
+    -webkit-user-drag: none;
+    user-select: none;
+    pointer-events: none;
+}

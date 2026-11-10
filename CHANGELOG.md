@@ -5,6 +5,13 @@ e compaiono nella barra di stato ("VBProW4 by SpikeCode AI · Ott 2026 · Ver: 1
 Informazioni e nella guida (Riferimento → Novità). A ogni rilascio vanno aggiornati insieme a questo file
 e a `package.json`.
 
+## 1.8.1 — Nov 2026
+
+- **Trascinamento dalla galleria più affidabile**: prendendo un elemento dalla miniatura (es. i disegni dello stile
+  schizzo) il browser trascinava l'immagine come file e il foglio la scartava, quindi a volte il rilascio non inseriva
+  nulla. Ora l'elemento viene sempre riconosciuto, e si può rilasciare anche sulla zona scura attorno al foglio
+  (l'oggetto entra dal bordo più vicino).
+
 ## 1.8.0 — Nov 2026
 
 - **Stile schizzo** (nuova categoria in *Campo e oggetti…*): disegni a mano vettoriali (SVG) ricavati da un'illustrazione,

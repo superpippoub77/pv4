@@ -265,7 +265,7 @@ class Sidebar {
             item.special ? `data-special="${item.special}"` : ""
         ].filter(Boolean).join(" ");
 
-        let iconHTML = item.iconHTML || (item.src ? `<img src="${item.src}" style="width:22px;height:22px;object-fit:contain;">` : (item.icon ? `<i class="${item.icon}"></i>` : "🃏"));
+        let iconHTML = item.iconHTML || (item.src ? `<img src="${item.src}" draggable="false" style="width:22px;height:22px;object-fit:contain;">` : (item.icon ? `<i class="${item.icon}"></i>` : "🃏"));
         // Per i giocatori mostra la sigla dentro il cerchio colorato
         if (item.type === "player") {
             iconHTML = `<span class="player-chip">${item.text || ""}</span>`;
