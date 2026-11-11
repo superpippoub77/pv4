@@ -5,6 +5,13 @@ e compaiono nella barra di stato ("VBProW4 by SpikeCode AI · Ott 2026 · Ver: 1
 Informazioni e nella guida (Riferimento → Novità). A ogni rilascio vanno aggiornati insieme a questo file
 e a `package.json`.
 
+## 1.9.1 — Nov 2026
+
+- **⟲ Vista** sotto la sfera 3D: un clic rimette la vista 3D standard (foglio inclinato di 40°). Il ritorno alla vista
+  c'era già (doppio clic sulla sfera, ⟲ 3D nella barra in basso, ⟲ nel pannello Vista 3D) ma non si vedeva; ora tutti
+  riportano alla vista 3D standard invece che al foglio piatto (il foglio piatto è il 2D).
+- La modalità 2D/3D è applicata già all'avvio (prima la galleria e la sfera si aggiornavano solo aprendo la galleria).
+
 ## 1.9.0 — Nov 2026
 
 - **Disegno 2D o 3D** per ogni schema, con i pulsanti **2D · 3D** nella barra in alto:

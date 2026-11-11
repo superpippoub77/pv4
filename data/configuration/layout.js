@@ -11,7 +11,7 @@
 
 // Versione e mese di rilascio (come in SpikeCut): da aggiornare a ogni rilascio,
 // insieme a CHANGELOG.md, package.json e alla sezione "Novità" della guida.
-const APP_VERSION = "1.9.0";
+const APP_VERSION = "1.9.1";
 const APP_RELEASE = "Nov 2026";
 
 // Icone in stile SpikeCut (viewBox 22, tratto 1.6)
@@ -173,7 +173,7 @@ const layoutConfig = {
                         { type: "button", id: "rotatePlaneYPlus", text: "Y+", onClick: (ed) => ed.rotateCanvasPlane('Y', 15) },
                         { type: "button", id: "rotatePlaneZMinus", text: "Z−", onClick: (ed) => ed.rotateCanvasPlane('Z', -15) },
                         { type: "button", id: "rotatePlaneZPlus", text: "Z+", onClick: (ed) => ed.rotateCanvasPlane('Z', 15) },
-                        { type: "button", id: "rotatePlaneReset", text: "⟲", title: "Azzera", onClick: (ed) => ed.resetCanvasPlaneRotation() }
+                        { type: "button", id: "rotatePlaneReset", text: "⟲", title: "Vista 3D standard", onClick: (ed) => ed.resetView3D() }
                     ]
                 },
                 { item: { type: "input", inputType: "checkbox", id: "inheritPlaneRotation", text: "Oggetti allineati al piano", i18n: "btn_inherit_plane", onChange: (ed, ev) => { ed.inheritPlaneRotationEnabled = ev.target.checked; try { ed.updateAllObjectTransforms(); } catch (e) { } } } },
@@ -304,7 +304,7 @@ const layoutConfig = {
                 ed.saveState('Toggle sfera rotazione piano');
             }
         },
-        { id: "resetPlane3dBtn", text: "⟲ 3D", i18n: "st_reset3d", title: "Azzera la vista 3D: il foglio torna piatto (anche doppio clic sulla sfera)", onClick: (ed) => ed.resetCanvasPlaneRotation(true) }
+        { id: "resetPlane3dBtn", text: "⟲ 3D", i18n: "st_reset3d", title: "Vista 3D standard (anche ⟲ Vista sotto la sfera o doppio clic sulla sfera)", onClick: (ed) => ed.resetView3D() }
     ]
 };
 

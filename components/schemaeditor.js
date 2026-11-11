@@ -285,6 +285,8 @@ class SchemaEditor {
             this.applyCustomCanvasSize(this.getCurrentTab());
         }
         this.layout?.afterInit();
+        // modalità 2D/3D della scheda aperta (galleria, sfera, pulsanti) già all'avvio
+        try { this.applyDrawModeUI(); } catch (e) { /* ignore */ }
         // grafica pronta: via la schermata di caricamento (al frame dopo, a impaginazione fatta)
         requestAnimationFrame(() => window.pv4BootDone?.());
     }
@@ -5446,7 +5448,29 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
                 canvasContainer.appendChild(sphere);
                 // doppio clic sulla sfera: la vista 3D torna piatta
-                sphere.addEventListener('dblclick', (e) => { e.preventDefault(); e.stopPropagation(); this.resetCanvasPlaneRotation(true); });
+                sphere.addEventListener('dblclick', (e) => { e.preventDefault(); e.stopPropagation(); this.resetView3D(); });
+
+                // pulsante ben visibile sotto la sfera: riporta la vista 3D standard
+                const resetBtn = document.createElement('button');
+                resetBtn.type = 'button';
+                resetBtn.id = 'sphereResetBtn';
+                resetBtn.className = 'sphere-reset-btn';
+                resetBtn.textContent = '⟲ Vista';
+                resetBtn.title = 'Rimetti la vista 3D standard (foglio inclinato di ' + SchemaEditor.DRAW_3D_TILT + '°)';
+                ['mousedown', 'pointerdown', 'touchstart', 'dblclick'].forEach(ev => resetBtn.addEventListener(ev, (e) => e.stopPropagation()));
+                resetBtn.addEventListener('click', (e) => { e.stopPropagation(); this.resetView3D(); });
+                // accanto alla sfera (non dentro: la sfera ruota e lo deformerebbe); la segue quando si sposta o si nasconde
+                canvasContainer.appendChild(resetBtn);
+                const followSphere = () => {
+                    const hidden = sphere.style.display === 'none' || getComputedStyle(sphere).display === 'none';
+                    resetBtn.style.display = hidden ? 'none' : '';
+                    resetBtn.style.left = (sphere.offsetLeft + sphere.offsetWidth / 2) + 'px';
+                    resetBtn.style.top = (sphere.offsetTop + sphere.offsetHeight + 6) + 'px';
+                };
+                new MutationObserver(followSphere).observe(sphere, { attributes: true, attributeFilter: ['style', 'class'] });
+                new MutationObserver(followSphere).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+                window.addEventListener('resize', followSphere);
+                requestAnimationFrame(followSphere);
 
                 // Create toggle button to show/hide the sphere
                 // const toggleBtn = document.createElement('button');
@@ -5575,7 +5599,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 });
 
                 // Tooltip: Alt+drag to move, Shift+drag to rotate Z
-                sphere.title = 'Drag: rotate X/Y, Shift+drag: rotate Z, Alt+drag: move control, wheel: rotate Z';
+                sphere.title = 'Trascina: ruota il foglio · Maiusc+trascina o rotellina: gira sul piano · Alt+trascina: sposta la sfera · doppio clic o ⟲ Vista: vista standard';
             }
         } catch (err) {
             console.warn('Could not create plane rotation sphere', err);
@@ -6008,6 +6032,18 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         }
         // After applying plane transform, refresh object transforms if they inherit the plane rotation
         try { this.updateAllObjectTransforms(); } catch (err) { /* ignore */ }
+    }
+
+    /** Vista 3D standard: in 3D il foglio torna inclinato come all'inizio, in 2D torna piatto */
+    resetView3D() {
+        if (this.getDrawMode() !== '3d') { this.resetCanvasPlaneRotation(true); return; }
+        this.resetCanvasPlaneRotation(false);
+        this.rotateCanvasPlane('X', SchemaEditor.DRAW_3D_TILT);
+        const tab = this.getCurrentTab();
+        if (tab) tab.canvasRotation = { ...this.canvasRotation };
+        const sphere = document.getElementById('planeRotationSphere');
+        if (sphere) sphere.style.transform = '';
+        this.saveState('Vista 3D standard');
     }
 
     resetCanvasPlaneRotation(record = false) {
