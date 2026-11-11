@@ -168,6 +168,17 @@ html:`<p><b>Lavagna</b> (barra a sinistra, sezione Allenamento; File → Lavagna
 <p>Puoi anche <b>chiederlo a parole</b> e premere Invio: «P3 ricezione a 4 a metà campo», «difesa 2-1-3 attacco da posto 4», «tutte le difese in P1», «copertura pipe P6», «tutte le rotazioni in ricezione a 5», «difesa P5 con avversari».</p>
 <p>L'anteprima mostra la disposizione e controlla le <b>regole di posizione</b> al momento della battuta (davanti/dietro e sinistra/destra): le ricezioni proposte sono tutte regolari. Ogni disposizione diventa una scheda con nome (es. «P1 · Side out · Ricezione»), descrizione e step; i giocatori si spostano liberamente e lo schema si salva in <a data-topic="libreria">libreria</a>.</p>` },
 
+{ id:'scout', cat:'Esercizi', title:'Scout partita (stile DataVolley)', keys:'scout scoutizzazione datavolley partita statistiche codici battuta ricezione alzata attacco muro difesa free ball valutazione = / - ! + # punteggio break point cambio palla rotazione libero palleggiatore formazione set',
+html:`<p><b>Scout partita</b> (barra a sinistra, sezione Allenamento; File → Scout partita) registra la partita azione per azione con i codici di <b>DataVolley</b>, in una finestra a parte.</p>
+<p><b>Formazioni</b>: per ogni squadra nome, i 6 giocatori per zona (numero, nome, ruolo P · S · O · C) e fino a due liberi. Per la casa <b>👥 Dalla rosa</b> prende i giocatori della rosa in <b>Squadra</b> (P1/P2, S1, S2, O, C1, C2, L1, L2) e scrivendo un numero della rosa compaiono nome e ruolo. La <b>rotazione</b> P1…P6 è la zona del palleggiatore: cambiandola le righe ruotano. Il <b>libero</b> sostituisce il centrale in seconda linea (in zona 1 batte il centrale). Scegli chi batte per primo e premi <b>Inizia set</b>.</p>
+<p><b>Partita</b>: il campo mostra le 6 zone di ogni squadra con numero, nome e ruolo (★ = palleggiatore, 🏐 = battitore). <b>Clic sul giocatore</b> → compare un arco a 6 spicchi con le valutazioni: <b>=</b> errore (rosso), <b>/</b>, <b>-</b>, <b>!</b>, <b>+</b>, <b>#</b> perfetto o punto (verde). Il fondamentale lo deduce la fase dell'azione: battuta → ricezione → alzata (l'arco si apre da solo sul palleggiatore) → attacco → difesa o muro, e così via; ogni squadra ha da 1 a 3 tocchi e il muro non conta come tocco.</p>
+<ul><li>Per cambiare il fondamentale: <b>pressione lunga</b> o tasto destro sul giocatore (arco con S R E A B D F), clic sul <b>centro dell'arco</b> o barra spaziatrice, oppure i tasti/pulsanti S R E A B D F per la prossima azione.</li>
+<li><b>=</b> dà il punto agli avversari; <b>#</b> in battuta (ace), attacco o muro dà il punto; attacco <b>/</b> = murato e muro <b>/</b> = invasione danno il punto agli avversari. Punteggio, <b>break point</b> (BP), <b>cambio palla</b> (CP) e rotazione sono automatici; il set finisce a 25 (15 al quinto) con due punti di scarto e la partita a 3 set vinti.</li>
+<li><b>+1</b> assegna un punto a mano (es. fallo fischiato); <b>⇄ Campo</b> scambia i lati; <b>↶ Annulla</b> (Ctrl+Z) toglie l'ultima registrazione.</li>
+<li>Il <b>registro</b> mostra i codici: <code>*7RH#</code> (casa, n° 7, ricezione, perfetta), <code>a12AH+</code> (ospiti, n° 12, attacco positivo), <code>*p03:02</code> punto, <code>*z6</code> rotazione, <code>**1set</code> fine set. Il tipo di colpo per ora è sempre H.</li>
+<li>I codici si possono anche <b>scrivere</b> nel campo Codice (Invio): <code>*7RH#</code>, <code>a12A+</code> oppure solo <code>9#</code> (squadra e fondamentale dedotti), <code>*p</code>/<code>ap</code> per un punto.</li></ul>
+<p>Con l'arco aperto: tasti <b>= / - ! + #</b> (o 1…6) per la valutazione, una lettera per il fondamentale, Esc per chiudere. Lo scout si salva con lo schema (file .json, libreria, allenamento e salvataggio automatico).</p>` },
+
 { id:'condividi', cat:'Esercizi', title:'Condividere con un link', keys:'condividi link slug url whatsapp facebook telegram email sola lettura consultazione allenamento esercizio anteprima visite i miei link apri in volleyprow4 copia',
 html:`<p><b>🔗 Condividi</b> (barra in alto, barra a sinistra, File → Condividi allenamento / esercizio, Piano allenamento, Genera allenamento) crea un <b>link di sola consultazione</b> del tipo <code>…/pvw4/v/allenamento-n-12-under-16-k3f9q2</code>.</p>
 <ul><li><b>Allenamento</b>: dal <a data-topic="piano-allenamento">Piano allenamento</a> (intestazione, obiettivo, caratteristiche, materiale, fasi con blocchi, esercizi con i disegni annessi, gruppi) oppure dalle <b>schede aperte</b> (per esempio dopo <a data-topic="genera-allenamento">Genera allenamento</a>), divise in fase analitica, sintetica e globale.</li>
@@ -276,6 +287,7 @@ html:`<table class="guide-table"><tr><th>Tasti</th><th>Comando</th></tr>
 <tr><td>+ · − · 0</td><td>zoom avanti · indietro · 100%</td></tr>
 <tr><td>Esc</td><td>deseleziona</td></tr>
 <tr><td>Ctrl+Invio</td><td>in Crea da testo: crea l'esercizio</td></tr>
+<tr><td>= / - ! + # · S R E A B D F · Ctrl+Z</td><td>in <a data-topic="scout">Scout partita</a>: valutazione · fondamentale · annulla</td></tr>
 <tr><td>F1</td><td>questa guida</td></tr></table>
 <p>I tasti della libreria sono in <a data-topic="esplora">La libreria come Esplora file</a>.</p>` },
 
@@ -305,6 +317,7 @@ html:`<dl class="guide-faq">
 
 { id:'novita', cat:'Riferimento', title:'Novità', keys:'novità versioni changelog aggiornamenti',
 html:`<ul>
+<li><b>1.10.0</b> — <a data-topic="scout">Scout partita</a> in stile DataVolley: formazioni dalla rosa, rotazioni e libero, clic sul giocatore e arco con le valutazioni = / - ! + #, fondamentale dedotto dalla fase, punteggio, break point, cambio palla e rotazione automatici, registro dei codici, Annulla; salvato con lo schema.</li>
 <li><b>1.9.1</b> — Pulsante <b>⟲ Vista</b> sotto la sfera 3D per tornare alla vista standard.</li>
 <li><b>1.9.0</b> — <a data-topic="modo-2d-3d">Disegno 2D o 3D</a> per ogni schema (galleria separata) con conversione ⇄; <b>Cancella tutto</b> nella barra a sinistra e nel tasto destro del foglio; la griglia non copre più lo sfondo del campo.</li>
 <li><b>1.8.1</b> — Trascinamento dalla galleria sempre funzionante, anche prendendo l'elemento dalla miniatura o rilasciandolo sulla zona scura attorno al foglio.</li>

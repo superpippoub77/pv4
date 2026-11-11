@@ -5,6 +5,23 @@ e compaiono nella barra di stato ("VBProW4 by SpikeCode AI · Ott 2026 · Ver: 1
 Informazioni e nella guida (Riferimento → Novità). A ogni rilascio vanno aggiornati insieme a questo file
 e a `package.json`.
 
+## 1.10.0 — Nov 2026
+
+- **Scout partita** (stile DataVolley, fase 1) in una nuova finestra (barra a sinistra → Allenamento, File → Scout partita):
+  - **formazioni** delle due squadre per zona (numero, nome, ruolo), casa **dalla rosa** (P1/P2, S1, S2, O, C1, C2,
+    liberi), rotazione di partenza **P1…P6** (zona del palleggiatore), due liberi, chi batte per primo;
+  - **campo** con le 6 zone per squadra: numero, nome e ruolo; il **libero** sostituisce il centrale in seconda linea
+    (in zona 1 batte il centrale); evidenziati battitore e palleggiatore;
+  - **clic sul giocatore** → un arco a 6 spicchi con le valutazioni `=` (errore, rosso) `/ - ! +` `#` (perfetto/punto,
+    verde); il fondamentale è dedotto dalla fase (battuta → ricezione → alzata, aperta da sola sul palleggiatore →
+    attacco → difesa/muro); si cambia con pressione lunga o tasto destro, clic sul centro dell'arco o tasti S R E A B D F;
+  - da 1 a 3 tocchi per squadra, il muro non conta come tocco; **punteggio, break point, cambio palla e rotazione**
+    automatici; fine set a 25 (15 al quinto) con 2 punti di scarto, partita a 3 set vinti; punto a mano (+1);
+  - **registro dei codici** DataVolley (`*7RH#`, `a12AH+`, `*p03:02`, `*z6`, `**1set`), codici scritti a mano nel
+    campo Codice, **Annulla** (Ctrl+Z) e scorciatoie (`= / - ! + #` o 1…6 con l'arco aperto, Esc);
+  - lo scout è **salvato con lo schema** (file .json, libreria, allenamento, salvataggio automatico).
+- Prossime fasi: zone d'arrivo con un terzo clic, tipi di battuta e attacco, statistiche ed export CSV.
+
 ## 1.9.1 — Nov 2026
 
 - **⟲ Vista** sotto la sfera 3D: un clic rimette la vista 3D standard (foglio inclinato di 40°). Il ritorno alla vista
