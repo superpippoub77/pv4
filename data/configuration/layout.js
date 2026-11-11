@@ -11,7 +11,7 @@
 
 // Versione e mese di rilascio (come in SpikeCut): da aggiornare a ogni rilascio,
 // insieme a CHANGELOG.md, package.json e alla sezione "Novità" della guida.
-const APP_VERSION = "1.9.1";
+const APP_VERSION = "1.10.0";
 const APP_RELEASE = "Nov 2026";
 
 // Icone in stile SpikeCut (viewBox 22, tratto 1.6)
@@ -46,6 +46,7 @@ const LAYOUT_ICONS = {
     calendar: SC_ICON("M4 6h14v13H4z M4 10h14 M8 3v5 M14 3v5 M7.5 13.5h2 M12.5 13.5h2 M7.5 16.5h2"),
     magic: SC_ICON("M4 18L14 8 M12 6l4 4 M16 3v3 M14.5 4.5h3 M19 8v2 M18 9h2 M8 3v2 M7 4h2"),
     trash: SC_ICON("M4 6h14 M9 6V4h4v2 M6 6l1 13h8l1-13 M9.5 9.5v6 M12.5 9.5v6"),
+    scout: SC_ICON("M4 4h14v14H4z M11 4v14 M7 8h.01 M7 12h.01 M7 16h.01 M14 9l1.5 1.5L18 7.5 M14 15h4"),
     clearAll: SC_ICON("M14 3l-6.5 9 M5 12.5h7l1.5 2.5-2 4.5H4.5l-1-4z M7 15.5l-.5 3 M10 15.5l-.3 3 M17 9h3 M16.5 13h3.5 M17 17h3")
 };
 
@@ -119,6 +120,7 @@ const layoutConfig = {
 
         { section: "Allenamento", i18n: "rail_sec_training" },
         { id: "rotationBoardBtn", icon: "board", label: "Lavagna", i18n: "rail_rotation_board", title: "Apri la lavagna: i 6 giocatori in ogni rotazione (P1…P6) e fase (partenza, break point, side out) su campo intero o metà campo", onClick: (ed) => ed.rotationBoard.show() },
+        { id: "scoutBtn", icon: "scout", label: "Scout partita", i18n: "rail_scout", title: "Scout della partita in stile DataVolley: formazioni e rotazioni, clic sul giocatore e valutazione = / - ! + #, punteggio e codici", onClick: (ed) => ed.scout?.show() },
         { id: "workoutPlanBtn", icon: "plan", label: "Piano allenamento", i18n: "rail_workout_plan", title: "Scheda completa della seduta: intestazione, obiettivo, fasi con esercizi e disegni, gruppi; importa da PDF ed esporta in PDF", onClick: (ed) => ed.workoutPlan.show() },
         { id: "workoutGenBtn", icon: "calendar", label: "Genera allenamento", i18n: "rail_workout_generator", title: "Descrivi parte analitica, sintetica e globale: l'allenamento viene composto con gli esercizi della libreria o creati in automatico", onClick: (ed) => ed.workoutGenerator.show() },
         { id: "shareLinkBtn", icon: "link", label: "Condividi (link)", i18n: "rail_share", title: "Link di sola consultazione dell'allenamento o dell'esercizio (con disegni, step e video)", onClick: () => window.Pv4Share.shareWorkout() },

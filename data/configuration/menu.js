@@ -21,6 +21,7 @@ const menuData = [
             { icon: "🗄", label: "Archivio esercizi (precedente)", onClick: (editor) => editor.libraryManager.show() },
             { separator: true },
             { icon: "🏐", label: "Lavagna (rotazioni e fasi)…", onClick: (editor) => editor.rotationBoard.show() },
+            { icon: "📊", label: "Scout partita…", onClick: (editor) => editor.scout?.show() },
             { icon: "📋", label: "Piano allenamento…", onClick: (editor) => editor.workoutPlan.show() },
             { icon: "🗓", label: "Genera allenamento…", onClick: (editor) => editor.workoutGenerator.show() },
             { icon: "🔗", label: "Condividi allenamento (link)…", onClick: () => window.Pv4Share.shareWorkout() },

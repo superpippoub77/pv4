@@ -131,6 +131,7 @@ class SchemaEditor {
         this.textExerciseManager = new TextExerciseBuilder(this);
         this.workoutGenerator = new WorkoutGenerator(this);
         this.rotationBoard = new RotationBoard(this);
+        this.scout = (typeof ScoutManager !== 'undefined') ? new ScoutManager(this) : null;
         this.workoutPlan = new WorkoutPlan(this);
         if (window.VideoObjects) VideoObjects.init(this);
         // Unico gestore del login, creato in index.html (crearne un altro aggiungeva una seconda finestra di accesso)
@@ -513,6 +514,7 @@ class SchemaEditor {
                     timing: tabData.timing,
                     rec: tabData.rec,
                     exerciseSteps: tabData.exerciseSteps,
+                    scout: tabData.scout || undefined, // scout della partita
                     frames: tabData.frames?.map(frame => ({
                         id: frame.id,
                         timestamp: frame.timestamp,
@@ -608,6 +610,7 @@ class SchemaEditor {
                 tab.timing = tabData.timing;
                 tab.rec = tabData.rec;
                 tab.exerciseSteps = tabData.exerciseSteps || [];
+                tab.scout = tabData.scout || null;
                 tab.canvasSize = tabData.canvasSize;
                 if (tabData.customWidth) tab.customWidth = tabData.customWidth;
                 tab.lib = tabData.lib || null;
@@ -693,6 +696,7 @@ class SchemaEditor {
                     timing: tabData.timing,
                     rec: tabData.rec,
                     exerciseSteps: tabData.exerciseSteps || [],
+                    scout: tabData.scout || null,
                     canvasSize: tabData.canvasSize,
                     customWidth: tabData.customWidth || tab.customWidth,
                     customHeight: tabData.customHeight || tab.customHeight,
@@ -4164,7 +4168,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     timestamp: frame.timestamp,
                     objects: Array.from(frame.objects.entries())
                 })) || [],
-                exerciseSteps: tab.exerciseSteps || []
+                exerciseSteps: tab.exerciseSteps || [],
+                scout: tab.scout || undefined
             };
             allTabs.push(tabData);
         });
@@ -4294,6 +4299,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     tab.timing = tabData.timing || 10;
                     tab.rec = tabData.rec || 60;
                     tab.exerciseSteps = tabData.exerciseSteps || [];
+                    tab.scout = tabData.scout || null;
 
                     // ✅ Carica frames se presenti
                     if (tabData.frames) {
@@ -9637,7 +9643,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
     /** Schede con del lavoro (oggetti sul foglio o step) */
     tabHasWork(tab) {
-        return !!tab && (tab.objects.size > 0 || (tab.exerciseSteps || []).length > 0);
+        return !!tab && (tab.objects.size > 0 || (tab.exerciseSteps || []).length > 0 || !!(tab.scout && tab.scout.log && tab.scout.log.length));
     }
 
     /** Chiude tutte le schede tranne keepId (se indicato); con del lavoro aperto chiede conferma una volta sola */
@@ -10549,8 +10555,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 objects: Array.from(frame.objects.entries())
             })),
             animationSpeed: tab.animationSpeed || 1000,
-            exerciseSteps: tab.exerciseSteps || []
-            ,
+            exerciseSteps: tab.exerciseSteps || [],
+            // scout della partita (finestra Scout)
+            scout: tab.scout || undefined,
             // Persist canvas plane rotation so reload preserves inclination
             canvasRotation: tab.canvasRotation || this.canvasRotation || { X: 0, Y: 0, Z: 0 }
         };
@@ -10682,6 +10689,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         tab.timing = data.timing || 10;      // ✅ AGGIUNTO
         tab.rec = data.rec || 60;            // ✅ AGGIUNTO                
         tab.exerciseSteps = data.exerciseSteps || [];
+        tab.scout = data.scout || null;
 
         this.initExerciseSteps();
         this.renderStepsList();
