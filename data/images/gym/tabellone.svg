@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="150" height="96" viewBox="0 0 150 96"><title>tabellone</title>
+<rect x="6" y="8" width="138" height="72" rx="6" fill="#2b2f36" stroke="#2b2b2b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="18" y="24" width="48" height="44" rx="4" fill="#fff" stroke="#2b2b2b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><rect x="84" y="24" width="48" height="44" rx="4" fill="#fff" stroke="#2b2b2b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M18 46 H66 M84 46 H132" stroke="#2b2b2b" stroke-width="1.2"/>
+<text x="42" y="58" font-family="Arial,sans-serif" font-weight="700" font-size="30" text-anchor="middle" fill="#1f6fd1">12</text>
+<text x="108" y="58" font-family="Arial,sans-serif" font-weight="700" font-size="30" text-anchor="middle" fill="#e8413c">10</text>
+<rect x="18" y="12" width="48" height="8" rx="2" fill="#1f6fd1"/><rect x="84" y="12" width="48" height="8" rx="2" fill="#e8413c"/>
+<path d="M30 80 V92 M120 80 V92" stroke="#2b2b2b" stroke-linejoin="round" stroke-linecap="round" stroke-width="4"/></svg>

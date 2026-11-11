@@ -20,6 +20,10 @@ const SKETCH_SIZES = {
     "pallone.svg": [50, 33]
 };
 const SKETCH_SCALE = 0.5;
+// Disegni a colori di palestra e pallavolo (data/images/gym, rigenerabili con scripts/gym-svg.py)
+const GYM_SIZES = { "pallone.svg": [64, 64], "pallone-azzurro.svg": [64, 64], "carrello-palloni.svg": [120, 116], "cesto-palloni.svg": [110, 90], "cono.svg": [56, 74], "cinesino.svg": [76, 42], "cinesino-rosso.svg": [76, 42], "ostacolo.svg": [110, 74], "cerchio.svg": [100, 52], "scaletta.svg": [64, 190], "palla-medica.svg": [66, 66], "manubrio.svg": [120, 50], "kettlebell.svg": [64, 74], "step.svg": [120, 84], "pedana.svg": [150, 96], "materassino.svg": [150, 74], "panca.svg": [170, 64], "elastico.svg": [110, 60], "corda.svg": [110, 80], "fischietto.svg": [96, 62], "cronometro.svg": [72, 84], "lavagnetta.svg": [96, 128], "borraccia.svg": [44, 104], "asciugamano.svg": [90, 64], "seggiolone.svg": [100, 170], "tabellone.svg": [150, 96], "paletta-cambio.svg": [54, 116], "bersaglio.svg": [110, 62], "lanciapalloni.svg": [130, 120], "antenna.svg": [30, 150], "ginocchiere.svg": [110, 64], "scarpa.svg": [120, 62], "maglia.svg": [100, 96] };
+const GYM_SCALE = 0.5;
+const gymIcon = (name) => `<img src="data/images/gym/${name}.svg" alt="" style="width:28px;height:28px;object-fit:contain">`;
 // miniatura su carta chiara (il disegno è a inchiostro scuro, invisibile sul tema scuro)
 const sketchIcon = (name) => `<img src="data/images/sketch/${name}.svg" alt="" style="width:28px;height:28px;object-fit:contain;background:#f5f1e6;border-radius:4px;padding:1px">`;
 
@@ -128,6 +132,48 @@ const sidebarConfig = [
         ]
     },
     {
+        // Attrezzi di palestra e materiale da pallavolo: disegni vettoriali a colori, in 2D e in 3D
+        title: "🏋️ Palestra e pallavolo",
+        controlType: "accordion",
+        category: "volleyball-courts",
+        i18ntitle: "sb_gym",
+        items: [
+            { type: "gym", src: "data/images/gym/pallone.svg", label: "gym_pallone", iconHTML: gymIcon("pallone") },
+            { type: "gym", src: "data/images/gym/pallone-azzurro.svg", label: "gym_pallone_azzurro", iconHTML: gymIcon("pallone-azzurro") },
+            { type: "gym", src: "data/images/gym/carrello-palloni.svg", label: "gym_carrello_palloni", iconHTML: gymIcon("carrello-palloni") },
+            { type: "gym", src: "data/images/gym/cesto-palloni.svg", label: "gym_cesto_palloni", iconHTML: gymIcon("cesto-palloni") },
+            { type: "gym", src: "data/images/gym/lanciapalloni.svg", label: "gym_lanciapalloni", iconHTML: gymIcon("lanciapalloni") },
+            { type: "gym", src: "data/images/gym/antenna.svg", label: "gym_antenna", iconHTML: gymIcon("antenna") },
+            { type: "gym", src: "data/images/gym/seggiolone.svg", label: "gym_seggiolone", iconHTML: gymIcon("seggiolone") },
+            { type: "gym", src: "data/images/gym/tabellone.svg", label: "gym_tabellone", iconHTML: gymIcon("tabellone") },
+            { type: "gym", src: "data/images/gym/paletta-cambio.svg", label: "gym_paletta_cambio", iconHTML: gymIcon("paletta-cambio") },
+            { type: "gym", src: "data/images/gym/bersaglio.svg", label: "gym_bersaglio", iconHTML: gymIcon("bersaglio") },
+            { type: "gym", src: "data/images/gym/maglia.svg", label: "gym_maglia", iconHTML: gymIcon("maglia") },
+            { type: "gym", src: "data/images/gym/ginocchiere.svg", label: "gym_ginocchiere", iconHTML: gymIcon("ginocchiere") },
+            { type: "gym", src: "data/images/gym/scarpa.svg", label: "gym_scarpa", iconHTML: gymIcon("scarpa") },
+            { type: "gym", src: "data/images/gym/cono.svg", label: "gym_cono", iconHTML: gymIcon("cono") },
+            { type: "gym", src: "data/images/gym/cinesino.svg", label: "gym_cinesino", iconHTML: gymIcon("cinesino") },
+            { type: "gym", src: "data/images/gym/cinesino-rosso.svg", label: "gym_cinesino_rosso", iconHTML: gymIcon("cinesino-rosso") },
+            { type: "gym", src: "data/images/gym/ostacolo.svg", label: "gym_ostacolo", iconHTML: gymIcon("ostacolo") },
+            { type: "gym", src: "data/images/gym/cerchio.svg", label: "gym_cerchio", iconHTML: gymIcon("cerchio") },
+            { type: "gym", src: "data/images/gym/scaletta.svg", label: "gym_scaletta", iconHTML: gymIcon("scaletta") },
+            { type: "gym", src: "data/images/gym/step.svg", label: "gym_step", iconHTML: gymIcon("step") },
+            { type: "gym", src: "data/images/gym/pedana.svg", label: "gym_pedana", iconHTML: gymIcon("pedana") },
+            { type: "gym", src: "data/images/gym/materassino.svg", label: "gym_materassino", iconHTML: gymIcon("materassino") },
+            { type: "gym", src: "data/images/gym/panca.svg", label: "gym_panca", iconHTML: gymIcon("panca") },
+            { type: "gym", src: "data/images/gym/palla-medica.svg", label: "gym_palla_medica", iconHTML: gymIcon("palla-medica") },
+            { type: "gym", src: "data/images/gym/manubrio.svg", label: "gym_manubrio", iconHTML: gymIcon("manubrio") },
+            { type: "gym", src: "data/images/gym/kettlebell.svg", label: "gym_kettlebell", iconHTML: gymIcon("kettlebell") },
+            { type: "gym", src: "data/images/gym/elastico.svg", label: "gym_elastico", iconHTML: gymIcon("elastico") },
+            { type: "gym", src: "data/images/gym/corda.svg", label: "gym_corda", iconHTML: gymIcon("corda") },
+            { type: "gym", src: "data/images/gym/fischietto.svg", label: "gym_fischietto", iconHTML: gymIcon("fischietto") },
+            { type: "gym", src: "data/images/gym/cronometro.svg", label: "gym_cronometro", iconHTML: gymIcon("cronometro") },
+            { type: "gym", src: "data/images/gym/lavagnetta.svg", label: "gym_lavagnetta", iconHTML: gymIcon("lavagnetta") },
+            { type: "gym", src: "data/images/gym/borraccia.svg", label: "gym_borraccia", iconHTML: gymIcon("borraccia") },
+            { type: "gym", src: "data/images/gym/asciugamano.svg", label: "gym_asciugamano", iconHTML: gymIcon("asciugamano") }
+        ]
+    },
+    {
         title: "✏️ Testo e icone",
         controlType: "accordion",
         category: "icons",
@@ -149,6 +195,22 @@ const sidebarConfig = [
             { type: "icon", icon: "fa fa-arrow-down", label: "icon_arrow_down" },
             { type: "icon", icon: "fa fa-arrow-left", label: "icon_arrow_left" },
             { type: "icon", icon: "fa fa-arrow-right", label: "icon_arrow_right" },
+            { type: "icon", icon: "fa fa-dumbbell", label: "icon_dumbbell" },
+            { type: "icon", icon: "fa fa-person-running", label: "icon_running" },
+            { type: "icon", icon: "fa fa-person-walking", label: "icon_walking" },
+            { type: "icon", icon: "fa fa-shoe-prints", label: "icon_footwork" },
+            { type: "icon", icon: "fa fa-bullseye", label: "icon_target" },
+            { type: "icon", icon: "fa fa-flag", label: "icon_flag" },
+            { type: "icon", icon: "fa fa-clipboard-list", label: "icon_clipboard" },
+            { type: "icon", icon: "fa fa-hourglass-half", label: "icon_hourglass" },
+            { type: "icon", icon: "fa fa-repeat", label: "icon_repeat" },
+            { type: "icon", icon: "fa fa-bolt", label: "icon_bolt" },
+            { type: "icon", icon: "fa fa-fire", label: "icon_fire" },
+            { type: "icon", icon: "fa fa-bottle-water", label: "icon_water" },
+            { type: "icon", icon: "fa fa-users", label: "icon_group" },
+            { type: "icon", icon: "fa fa-hand", label: "icon_hand" },
+            { type: "icon", icon: "fa fa-chart-line", label: "icon_progress" },
+            { type: "icon", icon: "fa fa-circle-exclamation", label: "icon_attention" },
         ]
     }
 ];

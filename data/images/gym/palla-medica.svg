@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="66" height="66" viewBox="0 0 66 66"><title>palla-medica</title>
+<circle cx="33" cy="33" r="29" fill="#8b4a2b" stroke="#2b2b2b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M4 33 H62 M33 4 Q18 33 33 62 M33 4 Q48 33 33 62" stroke="#3b1d10" stroke-width="2.2" fill="none"/>
+<circle cx="33" cy="33" r="29" fill="none" stroke="#2b2b2b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg>

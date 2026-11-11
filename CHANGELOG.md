@@ -5,6 +5,20 @@ e compaiono nella barra di stato ("VBProW4 by SpikeCode AI · Ott 2026 · Ver: 1
 Informazioni e nella guida (Riferimento → Novità). A ogni rilascio vanno aggiornati insieme a questo file
 e a `package.json`.
 
+## 1.12.0 — Nov 2026
+
+- **Nuova categoria 🏋️ Palestra e pallavolo** in *Campo e oggetti…*: 33 disegni vettoriali a colori, nitidi a ogni
+  zoom e in stampa, disponibili sia in 2D sia in 3D:
+  - **pallavolo**: pallone giallo-blu e bianco-azzurro, carrello e cesto dei palloni, macchina lanciapalloni, antenna,
+    seggiolone dell'arbitro, tabellone segnapunti, paletta del cambio, bersaglio a terra, maglia, ginocchiere, scarpa;
+  - **palestra**: cono, cinesino giallo e rosso, ostacolo, cerchio, scaletta agility, step/box, pedana, materassino,
+    panca, palla medica, manubrio, kettlebell, elastico, corda per saltare, fischietto, cronometro, lavagnetta tattica,
+    borraccia, asciugamano.
+  Nascono a metà della dimensione naturale e si ridimensionano come gli altri oggetti; si rigenerano con
+  `scripts/gym-svg.py`.
+- **16 nuove icone** in *Testo e icone*: pesi, corsa, camminata, spostamenti, obiettivo, bandierina, scheda, clessidra,
+  ripeti, esplosività, intensità, pausa acqua, gruppo, mano/stop, progressione, attenzione.
+
 ## 1.11.0 — Nov 2026
 
 - **Campi a sole linee in prospettiva** nella categoria ✍️ Stile schizzo (*Campo e oggetti…*): disegni vettoriali del

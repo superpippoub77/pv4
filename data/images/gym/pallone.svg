@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><title>pallone</title><clipPath id="b"><circle cx="32" cy="32" r="28"/></clipPath>
+<circle cx="32" cy="32" r="28" fill="#ffd23f"/>
+<g clip-path="url(#b)" fill="#1f6fd1">
+<path d="M4 22.200000000000003 Q32 30.6 60 16.599999999999998 L60 4 L4 4Z"/>
+<path d="M22.200000000000003 60 Q29.2 36.2 60 34.8 L60 60Z"/></g>
+<g fill="none" stroke="#2b2b2b" stroke-width="2.0" stroke-linecap="round" clip-path="url(#b)">
+<path d="M4 22.200000000000003 Q32 30.6 60 16.599999999999998"/>
+<path d="M22.200000000000003 60 Q29.2 36.2 60 34.8"/>
+<path d="M26.4 27.8 Q11.0 39.0 16.599999999999998 58.599999999999994"/></g>
+<circle cx="32" cy="32" r="28" fill="none" stroke="#2b2b2b" stroke-width="2.5"/></svg>

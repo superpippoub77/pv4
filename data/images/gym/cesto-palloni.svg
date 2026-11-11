@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="110" height="90" viewBox="0 0 110 90"><title>cesto-palloni</title>
+<clipPath id="d1"><circle cx="34" cy="30" r="15"/></clipPath>
+<circle cx="34" cy="30" r="15" fill="#ffd23f"/>
+<g clip-path="url(#d1)" fill="#1f6fd1">
+<path d="M19 24.75 Q34 29.25 49 21.75 L49 15 L19 15Z"/>
+<path d="M28.75 45 Q32.5 32.25 49 31.5 L49 45Z"/></g>
+<g fill="none" stroke="#2b2b2b" stroke-width="1.2" stroke-linecap="round" clip-path="url(#d1)">
+<path d="M19 24.75 Q34 29.25 49 21.75"/>
+<path d="M28.75 45 Q32.5 32.25 49 31.5"/>
+<path d="M31.0 27.75 Q22.75 33.75 25.75 44.25"/></g>
+<circle cx="34" cy="30" r="15" fill="none" stroke="#2b2b2b" stroke-width="1.5"/><clipPath id="d2"><circle cx="60" cy="24" r="15"/></clipPath>
+<circle cx="60" cy="24" r="15" fill="#ffd23f"/>
+<g clip-path="url(#d2)" fill="#1f6fd1">
+<path d="M45 18.75 Q60 23.25 75 15.75 L75 9 L45 9Z"/>
+<path d="M54.75 39 Q58.5 26.25 75 25.5 L75 39Z"/></g>
+<g fill="none" stroke="#2b2b2b" stroke-width="1.2" stroke-linecap="round" clip-path="url(#d2)">
+<path d="M45 18.75 Q60 23.25 75 15.75"/>
+<path d="M54.75 39 Q58.5 26.25 75 25.5"/>
+<path d="M57.0 21.75 Q48.75 27.75 51.75 38.25"/></g>
+<circle cx="60" cy="24" r="15" fill="none" stroke="#2b2b2b" stroke-width="1.5"/><clipPath id="d3"><circle cx="80" cy="34" r="14"/></clipPath>
+<circle cx="80" cy="34" r="14" fill="#ffd23f"/>
+<g clip-path="url(#d3)" fill="#1f6fd1">
+<path d="M66 29.1 Q80 33.3 94 26.299999999999997 L94 20 L66 20Z"/>
+<path d="M75.1 48 Q78.6 36.1 94 35.4 L94 48Z"/></g>
+<g fill="none" stroke="#2b2b2b" stroke-width="1.2" stroke-linecap="round" clip-path="url(#d3)">
+<path d="M66 29.1 Q80 33.3 94 26.299999999999997"/>
+<path d="M75.1 48 Q78.6 36.1 94 35.4"/>
+<path d="M77.2 31.9 Q69.5 37.5 72.3 47.3"/></g>
+<circle cx="80" cy="34" r="14" fill="none" stroke="#2b2b2b" stroke-width="1.5"/>
+<path d="M10 36 H100 L92 84 H18Z" fill="#e67e22" stroke="#2b2b2b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M14 50 H96 M16 66 H94 M32 36 L34 84 M55 36 V84 M78 36 L76 84" stroke="#2b2b2b" stroke-width="1.5" fill="none" stroke-opacity="0.7"/></svg>

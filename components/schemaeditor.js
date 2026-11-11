@@ -5820,7 +5820,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             return this.addObject(data.type, x, y, data.color, data.text, 0, this.dashedMode, null, null, spriteData);
         } else if (data.type === 'icon') {
             return this.addObject(data.type, x, y, data.color, data.text, 0, this.dashedMode, data.icon);
-        } else if (data.type === 'local-svg' || data.type === 'sketch') {
+        } else if (data.type === 'local-svg' || data.type === 'sketch' || data.type === 'gym') {
             return this.addObject(data.type, x, y, data.color, data.text, 0, this.dashedMode, null, data.src);
         } else if (data.type === 'object') {
             return this.addObject(data.type, x, y, data.color, data.text, 0, this.dashedMode, null, null, null, data.model3d, true);
@@ -6222,6 +6222,13 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             if (/^campo.*\.svg$/.test(name) && cv && cv.offsetWidth && cv.offsetHeight) {
                 k = Math.min(cv.offsetWidth * 0.95 / nat[0], cv.offsetHeight * 0.95 / nat[1]);
             }
+            return { width: Math.round(nat[0] * k), height: Math.round(nat[1] * k) };
+        }
+        // Attrezzi di palestra e pallavolo: dimensioni naturali dell'SVG in scala
+        if (type === 'gym') {
+            const name = String(src || '').split('/').pop();
+            const nat = (typeof GYM_SIZES !== 'undefined' && GYM_SIZES[name]) || [60, 60];
+            const k = typeof GYM_SCALE !== 'undefined' ? GYM_SCALE : 0.5;
             return { width: Math.round(nat[0] * k), height: Math.round(nat[1] * k) };
         }
         const sizes = {
@@ -6709,7 +6716,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             return content;
         }
 
-        if (object.type === 'sketch') {
+        if (object.type === 'sketch' || object.type === 'gym') {
             // Disegno vettoriale a tutta area, nessun filtro colore: resta identico all'originale
             const img = document.createElement('img');
             img.src = object.src;

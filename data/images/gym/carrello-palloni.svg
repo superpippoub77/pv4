@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="116" viewBox="0 0 120 116"><title>carrello-palloni</title>
+<path d="M14 30 H106" stroke="#2b2b2b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" fill="none"/>
+<clipPath id="c1"><circle cx="30" cy="30" r="13"/></clipPath>
+<circle cx="30" cy="30" r="13" fill="#ffd23f"/>
+<g clip-path="url(#c1)" fill="#1f6fd1">
+<path d="M17 25.45 Q30 29.35 43 22.85 L43 17 L17 17Z"/>
+<path d="M25.45 43 Q28.7 31.95 43 31.3 L43 43Z"/></g>
+<g fill="none" stroke="#2b2b2b" stroke-width="1.2" stroke-linecap="round" clip-path="url(#c1)">
+<path d="M17 25.45 Q30 29.35 43 22.85"/>
+<path d="M25.45 43 Q28.7 31.95 43 31.3"/>
+<path d="M27.4 28.05 Q20.25 33.25 22.85 42.35"/></g>
+<circle cx="30" cy="30" r="13" fill="none" stroke="#2b2b2b" stroke-width="1.5"/><clipPath id="c2"><circle cx="56" cy="26" r="13"/></clipPath>
+<circle cx="56" cy="26" r="13" fill="#ffd23f"/>
+<g clip-path="url(#c2)" fill="#1f6fd1">
+<path d="M43 21.45 Q56 25.35 69 18.85 L69 13 L43 13Z"/>
+<path d="M51.45 39 Q54.7 27.95 69 27.3 L69 39Z"/></g>
+<g fill="none" stroke="#2b2b2b" stroke-width="1.2" stroke-linecap="round" clip-path="url(#c2)">
+<path d="M43 21.45 Q56 25.35 69 18.85"/>
+<path d="M51.45 39 Q54.7 27.95 69 27.3"/>
+<path d="M53.4 24.05 Q46.25 29.25 48.85 38.35"/></g>
+<circle cx="56" cy="26" r="13" fill="none" stroke="#2b2b2b" stroke-width="1.5"/><clipPath id="c3"><circle cx="82" cy="30" r="13"/></clipPath>
+<circle cx="82" cy="30" r="13" fill="#ffd23f"/>
+<g clip-path="url(#c3)" fill="#1f6fd1">
+<path d="M69 25.45 Q82 29.35 95 22.85 L95 17 L69 17Z"/>
+<path d="M77.45 43 Q80.7 31.95 95 31.3 L95 43Z"/></g>
+<g fill="none" stroke="#2b2b2b" stroke-width="1.2" stroke-linecap="round" clip-path="url(#c3)">
+<path d="M69 25.45 Q82 29.35 95 22.85"/>
+<path d="M77.45 43 Q80.7 31.95 95 31.3"/>
+<path d="M79.4 28.05 Q72.25 33.25 74.85 42.35"/></g>
+<circle cx="82" cy="30" r="13" fill="none" stroke="#2b2b2b" stroke-width="1.5"/><clipPath id="c4"><circle cx="44" cy="40" r="12"/></clipPath>
+<circle cx="44" cy="40" r="12" fill="#ffd23f"/>
+<g clip-path="url(#c4)" fill="#1f6fd1">
+<path d="M32 35.8 Q44 39.4 56 33.4 L56 28 L32 28Z"/>
+<path d="M39.8 52 Q42.8 41.8 56 41.2 L56 52Z"/></g>
+<g fill="none" stroke="#2b2b2b" stroke-width="1.2" stroke-linecap="round" clip-path="url(#c4)">
+<path d="M32 35.8 Q44 39.4 56 33.4"/>
+<path d="M39.8 52 Q42.8 41.8 56 41.2"/>
+<path d="M41.6 38.2 Q35.0 43.0 37.4 51.4"/></g>
+<circle cx="44" cy="40" r="12" fill="none" stroke="#2b2b2b" stroke-width="1.5"/><clipPath id="c5"><circle cx="70" cy="40" r="12"/></clipPath>
+<circle cx="70" cy="40" r="12" fill="#ffd23f"/>
+<g clip-path="url(#c5)" fill="#1f6fd1">
+<path d="M58 35.8 Q70 39.4 82 33.4 L82 28 L58 28Z"/>
+<path d="M65.8 52 Q68.8 41.8 82 41.2 L82 52Z"/></g>
+<g fill="none" stroke="#2b2b2b" stroke-width="1.2" stroke-linecap="round" clip-path="url(#c5)">
+<path d="M58 35.8 Q70 39.4 82 33.4"/>
+<path d="M65.8 52 Q68.8 41.8 82 41.2"/>
+<path d="M67.6 38.2 Q61.0 43.0 63.4 51.4"/></g>
+<circle cx="70" cy="40" r="12" fill="none" stroke="#2b2b2b" stroke-width="1.5"/>
+<path d="M14 42 L22 92 H98 L106 42Z" fill="#c9ced6" fill-opacity="0.55" stroke="#2b2b2b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M34 42 V92 M50 42 V92 M70 42 V92 M86 42 V92 M17 62 H103" stroke="#2b2b2b" stroke-width="1.6" fill="none"/>
+<path d="M106 42 L114 16" stroke="#2b2b2b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" fill="none"/><path d="M110 16 H118" stroke="#2b2b2b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" fill="none"/>
+<circle cx="28" cy="102" r="8" fill="#555" stroke="#2b2b2b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="92" cy="102" r="8" fill="#555" stroke="#2b2b2b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="28" cy="102" r="2.5" fill="#ddd"/><circle cx="92" cy="102" r="2.5" fill="#ddd"/></svg>
