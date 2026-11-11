@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="62" viewBox="0 0 120 62"><title>scarpa</title>
+<path d="M8 40 Q8 18 26 18 L44 12 Q58 26 80 30 Q110 34 112 46 V52 H8Z" fill="#fff" stroke="#2b2b2b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M8 46 H112 V54 Q112 58 106 58 H14 Q8 58 8 52Z" fill="#e8413c" stroke="#2b2b2b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M44 12 Q58 26 80 30" fill="none" stroke="#2e86de" stroke-width="4"/>
+<path d="M52 22 l6 -6 M60 26 l6 -6 M68 28 l6 -6" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round"/></svg>

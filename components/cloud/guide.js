@@ -86,9 +86,10 @@ html:`<p>Con <b>＋</b> accanto alle schede (o nella barra in alto) crei un nuov
 <p>Il lavoro viene salvato da solo nel browser: vedi <a data-topic="salvataggio">Salvataggio</a>.</p>` },
 
 /* ---------------- DISEGNARE ---------------- */
-{ id:'inserire', cat:'Disegnare', title:'Campo, giocatori e materiale', keys:'inserisci aggiungi campo intero metà campo rete pallone cono giocatori squadra galleria trascina',
+{ id:'inserire', cat:'Disegnare', title:'Campo, giocatori e materiale', keys:'inserisci aggiungi campo intero metà campo rete pallone cono giocatori squadra galleria trascina palestra attrezzi carrello cinesino ostacolo cerchio scaletta step materassino panca palla medica manubrio kettlebell elastico fischietto cronometro lavagnetta borraccia seggiolone tabellone paletta bersaglio lanciapalloni antenna',
 html:`<ul><li><b>Giocatori…</b> (G) apre la galleria dei giocatori: Squadra A (blu: P1, S1, C1, O1, L1), Squadra B (verde: P2, S2, C2, O2, L2), giocatori generici A-F e staff. <b>Clic</b> per aggiungerlo al centro del foglio, <b>trascinamento</b> per metterlo dove vuoi.</li>
 <li><b>Campo e oggetti…</b> (E): campo intero, metà campo, rete, palloni, figure, materiale, testo e icone.</li>
+<li><b>🏋️ Palestra e pallavolo</b> (in Campo e oggetti…): disegni a colori di palloni, carrello e cesto dei palloni, lanciapalloni, antenna, seggiolone dell'arbitro, tabellone, paletta del cambio, bersaglio, maglia, ginocchiere, scarpa, coni, cinesini, ostacoli, cerchi, scaletta, step, pedana, materassino, panca, palla medica, manubri, kettlebell, elastico, corda, fischietto, cronometro, lavagnetta, borraccia e asciugamano. Si usano sia in 2D sia in 3D e si ridimensionano senza perdere qualità. In <b>Testo e icone</b> ci sono anche icone per pesi, corsa, spostamenti, obiettivo, ripetizioni, intensità, pausa acqua, gruppo e progressione.</li>
 <li><b>Testo</b> (T) aggiunge una scritta al centro del foglio.</li></ul>
 <p>Il campo resta sempre sotto agli altri oggetti. Per un esercizio completo in un colpo solo usa <a data-topic="crea-da-testo">Crea da testo</a>.</p>` },
 
@@ -317,6 +318,7 @@ html:`<dl class="guide-faq">
 
 { id:'novita', cat:'Riferimento', title:'Novità', keys:'novità versioni changelog aggiornamenti',
 html:`<ul>
+<li><b>1.12.0</b> — Nuova categoria <a data-topic="inserire">🏋️ Palestra e pallavolo</a> con 33 disegni a colori (palloni, carrello, lanciapalloni, seggiolone, tabellone, coni, cinesini, ostacoli, scaletta, step, materassino, pesi, fischietto, cronometro…) e 16 nuove icone.</li>
 <li><b>1.11.0</b> — Tre campi a sole linee in <a data-topic="stile-schizzo">Stile schizzo</a>: in prospettiva con la profondità, di sbieco e in diagonale, con rete, aste e antenne.</li>
 <li><b>1.10.0</b> — <a data-topic="scout">Scout partita</a> in stile DataVolley: formazioni dalla rosa, rotazioni e libero, clic sul giocatore e arco con le valutazioni = / - ! + #, fondamentale dedotto dalla fase, punteggio, break point, cambio palla e rotazione automatici, registro dei codici, Annulla; salvato con lo schema.</li>
 <li><b>1.9.1</b> — Pulsante <b>⟲ Vista</b> sotto la sfera 3D per tornare alla vista standard.</li>

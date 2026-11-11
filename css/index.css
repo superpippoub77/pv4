@@ -1431,7 +1431,8 @@ body.dragging-endpoint .canvas-object .connection-point {
 }
 
 /* Disegni in stile "schizzo": SVG a tutta area, proporzioni mantenute */
-.sketch-object {
+.sketch-object,
+.gym-object {
     width: 100%;
     height: 100%;
     display: flex;
@@ -1440,7 +1441,8 @@ body.dragging-endpoint .canvas-object .connection-point {
     background: transparent;
 }
 
-.sketch-object img {
+.sketch-object img,
+.gym-object img {
     width: 100%;
     height: 100%;
     object-fit: contain;

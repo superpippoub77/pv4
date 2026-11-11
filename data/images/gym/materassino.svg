@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="150" height="74" viewBox="0 0 150 74"><title>materassino</title>
+<path d="M10 22 L30 8 H142 L122 22Z" fill="#6aa9e9" stroke="#2b2b2b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M10 22 H122 V60 H10Z" fill="#2e86de" stroke="#2b2b2b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M122 22 L142 8 V46 L122 60Z" fill="#1d5fa3" stroke="#2b2b2b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M47 22 V60 M84 22 V60 M47 22 L67 8 M84 22 L104 8" stroke="#2b2b2b" stroke-width="1.6" fill="none"/></svg>

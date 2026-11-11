@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="128" viewBox="0 0 96 128"><title>lavagnetta</title>
+<rect x="6" y="10" width="84" height="112" rx="6" fill="#c8894a" stroke="#2b2b2b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="14" y="22" width="68" height="92" fill="#3c8d5a" stroke="#fff" stroke-width="2"/>
+<path d="M14 68 H82 M14 53 H82 M14 83 H82" stroke="#fff" stroke-width="1.5"/>
+<rect x="34" y="4" width="28" height="12" rx="3" fill="#9aa3ad" stroke="#2b2b2b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M28 36 l8 8 m0 -8 l-8 8" stroke="#ffd400" stroke-width="2.5" stroke-linecap="round"/>
+<circle cx="64" cy="96" r="5" fill="none" stroke="#fff" stroke-width="2.5"/>
+<path d="M36 46 Q50 70 60 90" stroke="#fff" stroke-width="1.8" fill="none" stroke-dasharray="4 3"/></svg>

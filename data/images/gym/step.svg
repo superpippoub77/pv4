@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="84" viewBox="0 0 120 84"><title>step</title>
+<path d="M8 34 L36 12 H112 L84 34Z" fill="#e6c49a" stroke="#2b2b2b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M8 34 H84 V76 H8Z" fill="#c8894a" stroke="#2b2b2b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M84 34 L112 12 V54 L84 76Z" fill="#a86c34" stroke="#2b2b2b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M20 48 H72 M20 62 H72" stroke="#2b2b2b" stroke-width="1.2" stroke-opacity="0.5"/></svg>

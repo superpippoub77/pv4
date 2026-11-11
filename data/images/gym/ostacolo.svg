@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="110" height="74" viewBox="0 0 110 74"><title>ostacolo</title>
+<path d="M18 22 V62 M92 22 V62" stroke="#2b2b2b" stroke-linejoin="round" stroke-linecap="round" stroke-width="4" fill="none"/>
+<path d="M6 64 H30 M80 64 H104" stroke="#2b2b2b" stroke-linejoin="round" stroke-linecap="round" stroke-width="4" fill="none"/>
+<rect x="10" y="12" width="90" height="12" rx="3" fill="#fff" stroke="#2b2b2b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M22 12 h12 v12 h-12z M46 12 h12 v12 h-12z M70 12 h12 v12 h-12z" fill="#e8413c"/>
+<rect x="10" y="12" width="90" height="12" rx="3" fill="none" stroke="#2b2b2b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg>
