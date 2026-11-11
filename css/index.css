@@ -1487,3 +1487,34 @@ body.dragging-endpoint .canvas-object .connection-point {
     user-select: none;
     pointer-events: none;
 }
+
+
+/* Griglia sopra gli sfondi del campo (prima la griglia li copriva del tutto) */
+.canvas.grid-visible.bg-half-field,
+.canvas.grid-visible.bg-full-field,
+.canvas.grid-visible.bg-3d-field {
+    background-size: 20px 20px, 20px 20px, cover;
+    background-position: 0 0, 0 0, center;
+    background-repeat: repeat, repeat, no-repeat;
+}
+
+.canvas.grid-visible.bg-half-field {
+    background-image:
+        linear-gradient(to right, rgba(255, 255, 255, .25) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, .25) 1px, transparent 1px),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%2300aa00'/%3E%3Cpath d='M200 50 L350 50 L350 250 L200 250 Z' fill='none' stroke='white' stroke-width='3'/%3E%3Ccircle cx='275' cy='150' r='60' fill='none' stroke='white' stroke-width='3'/%3E%3Cpath d='M200 100 L240 100 L240 200 L200 200' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E");
+}
+
+.canvas.grid-visible.bg-full-field {
+    background-image:
+        linear-gradient(to right, rgba(255, 255, 255, .25) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, .25) 1px, transparent 1px),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%2300aa00'/%3E%3Cpath d='M50 50 L350 50 L350 250 L50 250 Z' fill='none' stroke='white' stroke-width='3'/%3E%3Ccircle cx='200' cy='150' r='60' fill='none' stroke='white' stroke-width='3'/%3E%3Cpath d='M50 100 L90 100 L90 200 L50 200' fill='none' stroke='white' stroke-width='3'/%3E%3Cpath d='M310 100 L350 100 L350 200 L310 200' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E");
+}
+
+.canvas.grid-visible.bg-3d-field {
+    background-image:
+        linear-gradient(to right, rgba(255, 255, 255, .25) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, .25) 1px, transparent 1px),
+        linear-gradient(135deg, #00aa00 0%, #006600 50%, #004400 100%);
+}

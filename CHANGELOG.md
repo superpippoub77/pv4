@@ -5,6 +5,22 @@ e compaiono nella barra di stato ("VBProW4 by SpikeCode AI · Ott 2026 · Ver: 1
 Informazioni e nella guida (Riferimento → Novità). A ogni rilascio vanno aggiornati insieme a questo file
 e a `package.json`.
 
+## 1.9.0 — Nov 2026
+
+- **Disegno 2D o 3D** per ogni schema, con i pulsanti **2D · 3D** nella barra in alto:
+  - **2D**: foglio piatto, galleria con disegni, figure, stile schizzo e campi piani; vista 3D (pannello, sfera,
+    azzeramento) nascosta;
+  - **3D**: foglio inclinato con sfera e pannello Vista 3D, galleria con gli oggetti 3D e sfondo Campo 3D;
+  - giocatori, rete, coni, testi e icone restano in tutte e due; gli schemi già salvati prendono la modalità dal
+    contenuto (oggetti 3D, campo 3D o foglio inclinato = 3D).
+- **⇄ in 3D / ⇄ in 2D**: converte il disegno (palloni piani ↔ pallone 3D, figure disegnate → giocatori con lettera,
+  campo schizzo e campo intero ↔ Campo 3D, foglio inclinato ↔ piatto). Un solo passo di Annulla, che ora riporta anche
+  modalità, sfondo e inclinazione del foglio.
+- **Cancella tutto**: nella barra a sinistra (sezione Modifica) e nel menu del tasto destro sul foglio, con conferma;
+  si annulla con Ctrl+Z.
+- Con la griglia accesa gli sfondi del campo (Metà, Intero, Campo 3D) si vedono sotto la griglia: prima la griglia li
+  copriva del tutto.
+
 ## 1.8.1 — Nov 2026
 
 - **Trascinamento dalla galleria più affidabile**: prendendo un elemento dalla miniatura (es. i disegni dello stile

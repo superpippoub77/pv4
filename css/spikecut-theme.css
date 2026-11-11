@@ -938,3 +938,29 @@ body.sc-theme .sc-resizer { touch-action: none; }
     .menu-dropdown-item { min-height: 40px; }
     .win-titlebar button { width: 32px !important; height: 32px !important; }
 }
+
+/* ---- Disegno 2D / 3D: interruttore in alto e galleria filtrata per modalità ---- */
+.iconbtn.mode-btn { min-width: 34px; font-weight: 700; letter-spacing: .02em; border-color: var(--line, #3a3a3a); }
+.iconbtn.mode-btn.active { background: var(--brass); border-color: var(--brass); color: #1c1200; }
+#mode2dBtn { border-radius: 5px 0 0 5px; }
+#mode3dBtn { border-radius: 0 5px 5px 0; margin-left: -1px; }
+#convertModeBtn { color: var(--brass); }
+
+body.draw-2d .component-item[data-mode="3d"],
+body.draw-3d .component-item[data-mode="2d"],
+.sf-group.mode-empty { display: none !important; }
+
+/* in 2D non servono la vista 3D (pannello, sfera, azzeramento) */
+body.draw-2d #planeControls,
+body.draw-2d #togglePlaneSphereBtn,
+body.draw-2d #resetPlane3dBtn,
+body.draw-2d #planeRotationSphere { display: none !important; }
+
+/* messaggio breve (conversione, cancella tutto) */
+.pv4-flash {
+    position: fixed; left: 50%; bottom: 40px; z-index: 100000;
+    transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
+    padding: 8px 16px; border-radius: 999px; background: #222; color: #fff; font-size: 13.5px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, .35); transition: opacity .2s, transform .2s;
+}
+.pv4-flash.show { opacity: 1; transform: translate(-50%, 0); }

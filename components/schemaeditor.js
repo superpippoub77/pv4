@@ -1,4 +1,7 @@
 class SchemaEditor {
+    // Oggetti solo 2D (disegni piatti) e inclinazione del foglio quando si passa al 3D
+    static DRAW_2D_ONLY = new Set(['sketch', 'local-svg', 'sprite', 'volleyball-player-bagher']);
+    static DRAW_3D_TILT = 40;
     // Fattore di scala dei caratteri a mano (occhio più piccolo dei caratteri di sistema)
     static FONT_SCALE = { 'Nanum Pen Script': 1.35, 'Schoolbell': 1, 'Architects Daughter': 0.95 };
 
@@ -584,6 +587,7 @@ class SchemaEditor {
 
                 // Ripristina le proprietà
                 tab.background = tabData.background || 'none';
+                tab.drawMode = tabData.drawMode;
                 tab.gridVisible = tabData.gridVisible || false;
                 tab.bwMode = tabData.bwMode || false;
                 tab.zoom = tabData.zoom || 1;
@@ -4134,6 +4138,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 objects: Array.from(tab.objects.entries()),
                 arrows: Array.from(tab.arrows.entries()),
                 background: tab.background,
+                drawMode: tab.drawMode || undefined,
                 gridVisible: tab.gridVisible,
                 bwMode: tab.bwMode,
                 zoom: tab.zoom,
@@ -4268,6 +4273,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     }
 
                     tab.background = tabData.background || 'none';
+                tab.drawMode = tabData.drawMode;
                     tab.gridVisible = tabData.gridVisible || false;
                     tab.bwMode = tabData.bwMode || false;
                     tab.zoom = tabData.zoom || 1;
@@ -5625,6 +5631,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             { label: '📋 Incolla', action: () => this.paste(), shortcut: 'Ctrl+V', disabled: !this.clipboard },
             { separator: true },
             { label: '🔄 Seleziona tutto', action: () => this.selectAll(), shortcut: 'Ctrl+A' },
+            { label: '🧹 Cancella tutto', action: () => this.clearSheet() },
             { separator: true },
             { label: '↶ Annulla', action: () => this.undo(), shortcut: 'Ctrl+Z' },
             { label: '↷ Ripeti', action: () => this.redo(), shortcut: 'Ctrl+Y' }
@@ -9803,6 +9810,188 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         } catch (err) {
             // ignore
         }
+        // Disegno 2D o 3D della scheda: galleria, sfondi, vista 3D e pulsanti
+        try { this.applyDrawModeUI(); } catch (err) { console.warn('applyDrawModeUI', err); }
+    }
+
+    // ==================================================================
+    // DISEGNO 2D / 3D (per scheda) e CANCELLA TUTTO
+    // ==================================================================
+
+    /** Modalità della scheda: '2d' o '3d'. Gli schemi vecchi senza modalità la ricavano dal contenuto. */
+    getDrawMode(tab = this.getCurrentTab()) {
+        if (!tab) return '2d';
+        if (tab.drawMode === '2d' || tab.drawMode === '3d') return tab.drawMode;
+        const r = tab.canvasRotation || {};
+        const has3d = Array.from(tab.objects.values()).some(o => o.type === 'object' || o.is3d);
+        return (has3d || tab.background === '3d-field' || r.X || r.Y || r.Z) ? '3d' : '2d';
+    }
+
+    /** Cambia solo la modalità (galleria e vista): gli oggetti restano come sono */
+    setDrawMode(mode, record = true) {
+        const tab = this.getCurrentTab();
+        if (!tab || (mode !== '2d' && mode !== '3d')) return;
+        tab.drawMode = mode;
+        if (mode === '2d') {
+            this.resetCanvasPlaneRotation(false);
+        } else {
+            const r = this.canvasRotation || {};
+            // in 3D il foglio si inclina subito, così si vede la profondità
+            if (!r.X && !r.Y && !r.Z) {
+                this.canvasRotation = { X: 0, Y: 0, Z: 0 };
+                this.rotateCanvasPlane('X', SchemaEditor.DRAW_3D_TILT);
+                tab.canvasRotation = { ...this.canvasRotation };
+            }
+            const sphere = document.getElementById('planeRotationSphere');
+            if (sphere) sphere.style.display = '';
+            tab.planeSphere = { ...(tab.planeSphere || {}), visible: true };
+        }
+        this.applyDrawModeUI();
+        if (record) this.saveState(mode === '3d' ? 'Disegno in 3D' : 'Disegno in 2D');
+    }
+
+    /** Aggiorna interfaccia in base alla modalità: elementi della galleria, sfondi, vista 3D, pulsanti */
+    applyDrawModeUI() {
+        const tab = this.getCurrentTab();
+        const mode = this.getDrawMode(tab);
+        document.body.classList.toggle('draw-2d', mode === '2d');
+        document.body.classList.toggle('draw-3d', mode === '3d');
+        document.getElementById('mode2dBtn')?.classList.toggle('active', mode === '2d');
+        document.getElementById('mode3dBtn')?.classList.toggle('active', mode === '3d');
+        const conv = document.getElementById('convertModeBtn');
+        if (conv) {
+            conv.textContent = mode === '2d' ? '⇄ in 3D' : '⇄ in 2D';
+            conv.title = mode === '2d'
+                ? 'Converti questo disegno in 3D: palloni in 3D, figure disegnate in giocatori, campo verde 3D, foglio inclinato'
+                : 'Converti questo disegno in 2D: palloni 3D in palloni piani, campo 3D in campo intero, foglio piatto';
+        }
+        // gruppi della galleria senza elementi visibili in questa modalità
+        document.querySelectorAll('.shapes-flyout .sf-group').forEach(g => {
+            const items = Array.from(g.querySelectorAll('.component-item'));
+            const visible = items.filter(i => !i.dataset.mode || i.dataset.mode === mode);
+            g.classList.toggle('mode-empty', items.length > 0 && visible.length === 0);
+            const c = g.querySelector('.layer-count');
+            if (c) c.textContent = visible.length;
+        });
+        // sfondi: campo 3D solo in 3D, campi piani solo in 2D (quello in uso resta sempre visibile)
+        const bg = document.getElementById('backgroundSelect');
+        if (bg) Array.from(bg.options).forEach(o => {
+            const only = o.value === '3d-field' ? '3d' : (o.value === 'half-field' || o.value === 'full-field') ? '2d' : '';
+            o.hidden = !!only && only !== mode && o.value !== bg.value;
+        });
+        // sfera della vista 3D: solo in 3D
+        const sphere = document.getElementById('planeRotationSphere');
+        if (sphere) {
+            if (mode === '2d') sphere.style.display = 'none';
+            else if (!(tab && tab.planeSphere && tab.planeSphere.visible === false)) sphere.style.display = '';
+        }
+    }
+
+    /** Converte il disegno della scheda nell'altra modalità, sostituendo gli oggetti che hanno un equivalente */
+    convertDrawing() {
+        const tab = this.getCurrentTab();
+        if (!tab) return;
+        const from = this.getDrawMode(tab);
+        const to = from === '2d' ? '3d' : '2d';
+        const BALL_3D = { src: 'data/images/volleyball_ball.svg', model3d: 'data/images/m3.glb' };
+        const center = (o) => ({ cx: o.x + (o.width || 0) / 2, cy: o.y + (o.height || 0) / 2 });
+        const place = (o, type) => {
+            const { cx, cy } = center(o);
+            const size = this.getDefaultSize(type, o.src);
+            o.type = type; o.width = size.width; o.height = size.height;
+            o.x = Math.round(cx - size.width / 2); o.y = Math.round(cy - size.height / 2);
+        };
+        let converted = 0, kept = 0;
+        const remove = [];
+        tab.objects.forEach((o, id) => {
+            const src = String(o.src || '');
+            if (to === '3d') {
+                const isBall = o.type === 'ball' || /volleyball_ball\.svg$|sketch\/pallone\.svg$/.test(src);
+                if (isBall) {
+                    Object.assign(o, BALL_3D, { is3d: true, spriteData: null });
+                    place(o, 'object'); converted++;
+                } else if (o.type === 'sketch' && /campo\.svg$/.test(src)) {
+                    remove.push(id); converted++;               // il campo disegnato diventa lo sfondo 3D
+                } else if (SchemaEditor.DRAW_2D_ONLY.has(o.type)) {
+                    // figure disegnate: diventano giocatori (il nome resta nel testo)
+                    const name = src.split('/').pop().replace(/\.(svg|png)$/i, '');
+                    const label = /muro/.test(name) ? 'M' : /difensore/.test(name) ? 'D' : /attaccante|spike/.test(name) ? 'A' : (o.text || 'G');
+                    Object.assign(o, { text: label, color: o.type === 'sketch' ? '#e67e22' : (o.color || '#e67e22'), src: null, spriteData: null });
+                    place(o, 'player'); converted++;
+                }
+            } else if (o.type === 'object' || o.is3d) {
+                this.disposeObjectMesh(o);
+                const isBall = /m3\.glb$/.test(String(o.model3d || '')) || /volleyball_ball\.svg$/.test(src);
+                Object.assign(o, { is3d: false, model3d: null });
+                if (isBall) { o.src = null; place(o, 'ball'); converted++; }
+                else if (src) { place(o, 'local-svg'); converted++; }
+                else { kept++; }
+            }
+        });
+        remove.forEach(id => { this.disposeObjectMesh(tab.objects.get(id)); tab.objects.delete(id); });
+        // sfondo
+        const hadSketchCourt = remove.length > 0;
+        if (to === '3d' && (tab.background === 'full-field' || tab.background === 'half-field' || hadSketchCourt)) tab.background = '3d-field';
+        if (to === '2d' && tab.background === '3d-field') tab.background = 'full-field';
+        const bg = document.getElementById('backgroundSelect');
+        if (bg) bg.value = tab.background || 'none';
+        this.updateBackground();
+
+        tab.drawMode = to;
+        this._restoringState = true;          // un solo passo nello storico
+        try {
+            this.deselectAll();
+            this.loadTabState();
+            this.updateBackground();
+            this.setDrawMode(to, false);
+        } finally {
+            this._restoringState = false;
+        }
+        this.saveState(`Disegno convertito in ${to.toUpperCase()}`);
+        const msg = `Disegno convertito in ${to.toUpperCase()}: ${converted} oggetti sostituiti` + (kept ? `, ${kept} senza equivalente lasciati com'erano` : '') + '. Ctrl+Z per tornare indietro.';
+        this.flashMessage(msg);
+    }
+
+    /** Toglie dalla scena 3D la mesh di un oggetto (se c'è) */
+    disposeObjectMesh(obj) {
+        if (!obj || !obj.mesh) return;
+        try { if (this.threeScene) this.threeScene.remove(obj.mesh); } catch (e) { /* ignore */ }
+        obj.mesh = null;
+    }
+
+    /** Cancella tutto il contenuto della scheda (oggetti, frecce, disegni); si annulla con Ctrl+Z */
+    clearSheet() {
+        const tab = this.getCurrentTab();
+        if (!tab) return;
+        const n = tab.objects.size + tab.arrows.size + tab.freehands.size;
+        if (!n) { this.flashMessage('Il foglio è già vuoto.'); return; }
+        if (!confirm(`Cancellare tutto il contenuto di «${tab.name || 'questo schema'}»? (${n} elementi)\n\nPuoi tornare indietro con Annulla (Ctrl+Z).`)) return;
+        this.deselectAll();
+        tab.objects.forEach(o => this.disposeObjectMesh(o));
+        tab.objects.clear();
+        tab.arrows.clear();
+        tab.freehands.clear();
+        if (tab.connectionPointCounters) tab.connectionPointCounters.clear();
+        this._restoringState = true;
+        try { this.loadTabState(); } finally { this._restoringState = false; }
+        this.saveState('Cancellato tutto');
+        this.flashMessage(`Cancellati ${n} elementi. Ctrl+Z per annullare.`);
+    }
+
+    /** Messaggio breve in basso al centro */
+    flashMessage(text) {
+        if (window.Pv4Library && window.Pv4Library.toast) { window.Pv4Library.toast(text); return; }
+        let el = document.getElementById('pv4Flash');
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'pv4Flash';
+            el.className = 'pv4-flash';
+            document.body.appendChild(el);
+        }
+        el.textContent = text;
+        el.classList.add('show');
+        clearTimeout(this._flashTimer);
+        this._flashTimer = setTimeout(() => el.classList.remove('show'), 3500);
     }
 
     saveState(description = 'Modifica') {
@@ -9819,6 +10008,10 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             objects: Array.from(tab.objects.entries()).map(([id, o]) => [id, this.cloneForHistory(o)]),
             arrows: Array.from(tab.arrows.entries()).map(([id, a]) => [id, this.cloneForHistory(a)]),
             freehands: Array.from(tab.freehands.entries()).map(([id, f]) => [id, this.cloneForHistory(f)]),
+            // modalità 2D/3D, sfondo e inclinazione: Annulla li riporta insieme agli oggetti
+            drawMode: tab.drawMode || null,
+            background: tab.background || 'none',
+            canvasRotation: { ...(tab.canvasRotation || this.canvasRotation || { X: 0, Y: 0, Z: 0 }) },
             timestamp: Date.now(),
             description: description
         };
@@ -9913,10 +10106,23 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             });
         }
 
+        // Modalità, sfondo e inclinazione del foglio (stati salvati dalla 1.9.0 in poi)
+        if ('drawMode' in state) tab.drawMode = state.drawMode || undefined;
+        if (state.background) {
+            tab.background = state.background;
+            const bgSel = document.getElementById('backgroundSelect');
+            if (bgSel) bgSel.value = state.background;
+        }
+        if (state.canvasRotation) {
+            tab.canvasRotation = { ...state.canvasRotation };
+            this.canvasRotation = { ...state.canvasRotation };
+        }
+
         // Ricaricare la visualizzazione del tab
         this._restoringState = true;
         try {
             this.loadTabState();
+            if (state.background) this.updateBackground();
             this.deselectAll();
         } finally {
             this._restoringState = false;
@@ -10293,6 +10499,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             }),
             arrows: Array.from(tab.arrows.entries()),
             background: tab.background,
+                drawMode: tab.drawMode || undefined,
             gridVisible: tab.gridVisible,
             bwMode: tab.bwMode,
             zoom: tab.zoom,
@@ -10416,6 +10623,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
         // Imposta le proprietà del tab
         tab.background = data.background || 'none';
+        tab.drawMode = data.drawMode;
         tab.gridVisible = data.gridVisible !== undefined ? data.gridVisible : true;
         tab.bwMode = data.bwMode || false;
         tab.zoom = data.zoom || 1;
