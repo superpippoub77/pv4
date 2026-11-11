@@ -6181,7 +6181,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             dashed: dashed,
             opacity: 1,
             // Campo (court) deve rimanere sotto a tutti gli altri oggetti
-            zIndex: (type === 'court' || type === 'half-court' || type === 'full-field' || type === 'full-court' || (type === 'sketch' && /campo\.svg$/.test(src || ''))) ? 0 : this.maxZIndex++,
+            zIndex: (type === 'court' || type === 'half-court' || type === 'full-field' || type === 'full-court' || (type === 'sketch' && /campo[^/]*\.svg$/.test(src || ''))) ? 0 : this.maxZIndex++,
             icon: icon,
             src: src,
             spriteData: spriteData,
@@ -6219,7 +6219,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             let k = typeof SKETCH_SCALE !== 'undefined' ? SKETCH_SCALE : 0.6;
             // il campo entra sempre nel foglio
             const cv = document.getElementById('canvas');
-            if (name === 'campo.svg' && cv && cv.offsetWidth && cv.offsetHeight) {
+            if (/^campo.*\.svg$/.test(name) && cv && cv.offsetWidth && cv.offsetHeight) {
                 k = Math.min(cv.offsetWidth * 0.95 / nat[0], cv.offsetHeight * 0.95 / nat[1]);
             }
             return { width: Math.round(nat[0] * k), height: Math.round(nat[1] * k) };
@@ -9952,7 +9952,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 if (isBall) {
                     Object.assign(o, BALL_3D, { is3d: true, spriteData: null });
                     place(o, 'object'); converted++;
-                } else if (o.type === 'sketch' && /campo\.svg$/.test(src)) {
+                } else if (o.type === 'sketch' && /campo[^/]*\.svg$/.test(src)) {
                     remove.push(id); converted++;               // il campo disegnato diventa lo sfondo 3D
                 } else if (SchemaEditor.DRAW_2D_ONLY.has(o.type)) {
                     // figure disegnate: diventano giocatori (il nome resta nel testo)

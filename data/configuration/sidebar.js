@@ -14,7 +14,8 @@ const STAFF_COLOR = "#7f8c8d";    // grigio
 
 // Dimensioni naturali (px) dei disegni "schizzo": l'oggetto nasce in scala 0,5
 const SKETCH_SIZES = {
-    "campo.svg": [764, 848], "attaccante.svg": [88, 134], "muro.svg": [86, 91],
+    "campo.svg": [764, 848], "campo-prospettiva.svg": [760, 527], "campo-sbieco.svg": [860, 460], "campo-diagonale.svg": [760, 489],
+    "attaccante.svg": [88, 134], "muro.svg": [86, 91],
     "difensore-1.svg": [64, 61], "difensore-2.svg": [72, 58], "difensore-3.svg": [57, 73], "difensore-4.svg": [54, 70],
     "pallone.svg": [50, 33]
 };
@@ -114,6 +115,9 @@ const sidebarConfig = [
         i18ntitle: "sb_sketch",
         items: [
             { type: "sketch", src: "data/images/sketch/campo.svg", label: "sketch_court", iconHTML: sketchIcon("campo") },
+            { type: "sketch", src: "data/images/sketch/campo-prospettiva.svg", label: "sketch_court_perspective", iconHTML: sketchIcon("campo-prospettiva") },
+            { type: "sketch", src: "data/images/sketch/campo-sbieco.svg", label: "sketch_court_side", iconHTML: sketchIcon("campo-sbieco") },
+            { type: "sketch", src: "data/images/sketch/campo-diagonale.svg", label: "sketch_court_diagonal", iconHTML: sketchIcon("campo-diagonale") },
             { type: "sketch", src: "data/images/sketch/attaccante.svg", label: "sketch_spiker", iconHTML: sketchIcon("attaccante") },
             { type: "sketch", src: "data/images/sketch/muro.svg", label: "sketch_block", iconHTML: sketchIcon("muro") },
             { type: "sketch", src: "data/images/sketch/difensore-1.svg", label: "sketch_defender_1", iconHTML: sketchIcon("difensore-1") },

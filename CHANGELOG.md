@@ -5,6 +5,16 @@ e compaiono nella barra di stato ("VBProW4 by SpikeCode AI · Ott 2026 · Ver: 1
 Informazioni e nella guida (Riferimento → Novità). A ogni rilascio vanno aggiornati insieme a questo file
 e a `package.json`.
 
+## 1.11.0 — Nov 2026
+
+- **Campi a sole linee in prospettiva** nella categoria ✍️ Stile schizzo (*Campo e oggetti…*): disegni vettoriali del
+  campo 18 × 9 m con linee dei 3 m, linea centrale, rete con aste e antenne, in tre viste:
+  - **in prospettiva**: da dietro la linea di fondo, con la profondità (la metà lontana si stringe verso la rete);
+  - **di sbieco**: visto dal lato, con il campo inclinato;
+  - **in diagonale**: dall'alto, con il campo ruotato.
+  Come il campo schizzo si adattano al foglio, restano sotto agli altri oggetti e convertendo in 3D diventano il Campo 3D.
+  Sono generati in proiezione prospettica da `scripts/court-svg.py` (per rifarli con altre viste).
+
 ## 1.10.0 — Nov 2026
 
 - **Scout partita** (stile DataVolley, fase 1) in una nuova finestra (barra a sinistra → Allenamento, File → Scout partita):

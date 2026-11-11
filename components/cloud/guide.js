@@ -301,8 +301,8 @@ html:`<p>Ogni schema è <b>2D</b> o <b>3D</b>: lo scegli con i pulsanti <b>2D ·
 <p><b>⇄ in 3D / ⇄ in 2D</b> converte il disegno: palloni piani ↔ pallone 3D, figure disegnate (schizzo, immagini, sprite) → giocatori con una lettera (A attaccante, M muro, D difensore, G altri), campo schizzo → sfondo Campo 3D, campo intero ↔ campo 3D, foglio inclinato ↔ piatto. Si annulla con Ctrl+Z.</p>
 <p><b>Cancella tutto</b> (barra a sinistra, sezione Modifica, o tasto destro sul foglio) toglie oggetti, frecce e disegni dello schema corrente dopo una conferma; si annulla con Ctrl+Z.</p>` },
 
-{ id:'stile-schizzo', cat:'Disegnare', title:'Stile schizzo, caratteri a mano ed evidenziatore', keys:'schizzo disegno a mano matita giocatori muro difensore attaccante pallone campo rete svg vettoriale font carattere nanum pen schoolbell architects daughter evidenziatore sottolineatura alone pennellata',
-html:`<p>In <b>Campo e oggetti…</b> la categoria <b>✍️ Stile schizzo</b> contiene disegni a mano vettoriali (restano nitidi a ogni zoom e in stampa): campo completo con la rete, attaccante, giocatore a muro, quattro difensori e pallone. Il campo si adatta al foglio e resta sotto agli altri oggetti; i disegni mantengono i colori originali.</p>
+{ id:'stile-schizzo', cat:'Disegnare', title:'Stile schizzo, caratteri a mano ed evidenziatore', keys:'prospettiva sbieco diagonale linee profondità schizzo disegno a mano matita giocatori muro difensore attaccante pallone campo rete svg vettoriale font carattere nanum pen schoolbell architects daughter evidenziatore sottolineatura alone pennellata',
+html:`<p>In <b>Campo e oggetti…</b> la categoria <b>✍️ Stile schizzo</b> contiene disegni a mano vettoriali (restano nitidi a ogni zoom e in stampa): campo completo con la rete, attaccante, giocatore a muro, quattro difensori e pallone. Il campo si adatta al foglio e resta sotto agli altri oggetti; i disegni mantengono i colori originali. Ci sono anche tre <b>campi a sole linee</b> con la rete, le aste e le antenne: <b>in prospettiva</b> (visto da dietro la linea di fondo, con la profondità), <b>di sbieco</b> (dal lato) e <b>in diagonale</b> (dall'alto); anche questi si adattano al foglio e restano sotto agli altri oggetti.</p>
 <p><b>Carattere</b> (pannello Proprietà, con un testo selezionato): <i>Nanum Pen Script</i>, <i>Schoolbell</i> o <i>Architects Daughter</i>, scritture a mano adatte allo stile schizzo; <i>Predefinito</i> torna al carattere normale.</p>
 <p><b>Evidenziatore</b>: per i testi è una pennellata colorata dietro le parole (giallo, verde, azzurro, rosa, arancione); per le frecce è un alone largo e trasparente sotto il tratto, nel colore della freccia o in uno a scelta.</p>` },
 
@@ -317,6 +317,7 @@ html:`<dl class="guide-faq">
 
 { id:'novita', cat:'Riferimento', title:'Novità', keys:'novità versioni changelog aggiornamenti',
 html:`<ul>
+<li><b>1.11.0</b> — Tre campi a sole linee in <a data-topic="stile-schizzo">Stile schizzo</a>: in prospettiva con la profondità, di sbieco e in diagonale, con rete, aste e antenne.</li>
 <li><b>1.10.0</b> — <a data-topic="scout">Scout partita</a> in stile DataVolley: formazioni dalla rosa, rotazioni e libero, clic sul giocatore e arco con le valutazioni = / - ! + #, fondamentale dedotto dalla fase, punteggio, break point, cambio palla e rotazione automatici, registro dei codici, Annulla; salvato con lo schema.</li>
 <li><b>1.9.1</b> — Pulsante <b>⟲ Vista</b> sotto la sfera 3D per tornare alla vista standard.</li>
 <li><b>1.9.0</b> — <a data-topic="modo-2d-3d">Disegno 2D o 3D</a> per ogni schema (galleria separata) con conversione ⇄; <b>Cancella tutto</b> nella barra a sinistra e nel tasto destro del foglio; la griglia non copre più lo sfondo del campo.</li>
