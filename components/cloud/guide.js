@@ -283,7 +283,7 @@ html:`<table class="guide-table"><tr><th>Tasti</th><th>Comando</th></tr>
 html:`<p>Ogni schema è <b>2D</b> o <b>3D</b>: lo scegli con i pulsanti <b>2D · 3D</b> nella barra in alto.</p>
 <ul>
 <li><b>2D</b>: foglio piatto; la galleria mostra disegni, figure, stile schizzo e campi piani. Pannello e sfera della vista 3D sono nascosti.</li>
-<li><b>3D</b>: il foglio si inclina e compaiono la sfera e il pannello <i>Vista 3D</i>; la galleria mostra gli oggetti 3D (es. pallone 3D) e lo sfondo <i>Campo 3D</i>.</li>
+<li><b>3D</b>: il foglio si inclina e compaiono la sfera e il pannello <i>Vista 3D</i>; la galleria mostra gli oggetti 3D (es. pallone 3D) e lo sfondo <i>Campo 3D</i>. Trascina la sfera per ruotare il foglio; il pulsante <b>⟲ Vista</b> sotto la sfera (o doppio clic sulla sfera, o ⟲ 3D nella barra in basso) rimette la vista 3D standard.</li>
 </ul>
 <p>Giocatori, rete, coni, testi e icone vanno bene in tutte e due le modalità. Il cambio di modalità non tocca gli oggetti già sul foglio.</p>
 <p><b>⇄ in 3D / ⇄ in 2D</b> converte il disegno: palloni piani ↔ pallone 3D, figure disegnate (schizzo, immagini, sprite) → giocatori con una lettera (A attaccante, M muro, D difensore, G altri), campo schizzo → sfondo Campo 3D, campo intero ↔ campo 3D, foglio inclinato ↔ piatto. Si annulla con Ctrl+Z.</p>
@@ -305,6 +305,7 @@ html:`<dl class="guide-faq">
 
 { id:'novita', cat:'Riferimento', title:'Novità', keys:'novità versioni changelog aggiornamenti',
 html:`<ul>
+<li><b>1.9.1</b> — Pulsante <b>⟲ Vista</b> sotto la sfera 3D per tornare alla vista standard.</li>
 <li><b>1.9.0</b> — <a data-topic="modo-2d-3d">Disegno 2D o 3D</a> per ogni schema (galleria separata) con conversione ⇄; <b>Cancella tutto</b> nella barra a sinistra e nel tasto destro del foglio; la griglia non copre più lo sfondo del campo.</li>
 <li><b>1.8.1</b> — Trascinamento dalla galleria sempre funzionante, anche prendendo l'elemento dalla miniatura o rilasciandolo sulla zona scura attorno al foglio.</li>
 <li><b>1.8.0</b> — <a data-topic="stile-schizzo">Stile schizzo</a>: disegni a mano vettoriali (campo con rete, attaccante, muro, difensori, pallone), caratteri a mano per i testi, evidenziatore per testi e frecce.</li>

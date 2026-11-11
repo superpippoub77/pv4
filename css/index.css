@@ -1518,3 +1518,20 @@ body.dragging-endpoint .canvas-object .connection-point {
         linear-gradient(to bottom, rgba(255, 255, 255, .25) 1px, transparent 1px),
         linear-gradient(135deg, #00aa00 0%, #006600 50%, #004400 100%);
 }
+
+/* Pulsante "⟲ Vista" sotto la sfera della vista 3D */
+.sphere-reset-btn {
+    position: absolute;
+    z-index: 2000;
+    transform: translateX(-50%);
+    padding: 2px 8px;
+    border: 1px solid rgba(255, 255, 255, .25);
+    border-radius: 999px;
+    background: rgba(20, 20, 20, .85);
+    color: #fff;
+    font: 600 11.5px/1.4 system-ui, sans-serif;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.sphere-reset-btn:hover { background: #c9973f; border-color: #c9973f; color: #1c1200; }

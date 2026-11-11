@@ -954,7 +954,9 @@ body.draw-3d .component-item[data-mode="2d"],
 body.draw-2d #planeControls,
 body.draw-2d #togglePlaneSphereBtn,
 body.draw-2d #resetPlane3dBtn,
-body.draw-2d #planeRotationSphere { display: none !important; }
+body.draw-2d #planeRotationSphere,
+body.draw-2d #sphereResetBtn,
+body.no-docs #sphereResetBtn { display: none !important; }
 
 /* messaggio breve (conversione, cancella tutto) */
 .pv4-flash {
