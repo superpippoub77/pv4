@@ -262,7 +262,12 @@ class Sidebar {
             item.frame !== undefined ? `data-sprite-frame="${item.frame}"` : "",
             item.width ? `data-sprite-width="${item.width}"` : "",
             item.height ? `data-sprite-height="${item.height}"` : "",
-            item.special ? `data-special="${item.special}"` : ""
+            item.special ? `data-special="${item.special}"` : "",
+            // modalità di disegno: 3D solo per i modelli 3D, 2D per disegni e figure piane
+            (() => {
+                const m = item.mode || (item.type === "object" ? "3d" : (["sketch", "local-svg", "sprite", "volleyball-player-bagher"].includes(item.type) ? "2d" : ""));
+                return m ? `data-mode="${m}"` : "";
+            })()
         ].filter(Boolean).join(" ");
 
         let iconHTML = item.iconHTML || (item.src ? `<img src="${item.src}" draggable="false" style="width:22px;height:22px;object-fit:contain;">` : (item.icon ? `<i class="${item.icon}"></i>` : "🃏"));

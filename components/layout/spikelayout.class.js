@@ -289,6 +289,7 @@ class SpikeLayout {
             { el: grpOf("#btnNewTab"), prio: 20 },
             { el: grpOf("#schemaTitle"), prio: 30 },
             { el: grpOf("#undoBtn"), prio: 40 },
+            { el: grpOf("#mode2dBtn"), prio: 45 },
             { el: grpOf("#loadFromLibrary"), prio: 50 },
             { el: grpOf(".user-menu"), prio: 60 }
         ].filter(it => it.el);
@@ -557,6 +558,7 @@ class SpikeLayout {
         document.getElementById("railPlayers")?.classList.toggle("open", open && mode === "players");
         document.getElementById("railElements")?.classList.toggle("open", open && mode === "elements");
         if (!open) return;
+        try { this.editor.applyDrawModeUI(); } catch (e) { /* editor non pronto */ }
 
         const isPlayers = mode === "players";
         const title = this.flyout.querySelector("#flyoutTitle");

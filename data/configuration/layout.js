@@ -11,7 +11,7 @@
 
 // Versione e mese di rilascio (come in SpikeCut): da aggiornare a ogni rilascio,
 // insieme a CHANGELOG.md, package.json e alla sezione "Novità" della guida.
-const APP_VERSION = "1.8.1";
+const APP_VERSION = "1.9.0";
 const APP_RELEASE = "Nov 2026";
 
 // Icone in stile SpikeCut (viewBox 22, tratto 1.6)
@@ -45,7 +45,8 @@ const LAYOUT_ICONS = {
     pdf: SC_ICON("M6 3h7l4 4v12H6z M13 3v4h4 M8.5 12h6 M8.5 15h6"),
     calendar: SC_ICON("M4 6h14v13H4z M4 10h14 M8 3v5 M14 3v5 M7.5 13.5h2 M12.5 13.5h2 M7.5 16.5h2"),
     magic: SC_ICON("M4 18L14 8 M12 6l4 4 M16 3v3 M14.5 4.5h3 M19 8v2 M18 9h2 M8 3v2 M7 4h2"),
-    trash: SC_ICON("M4 6h14 M9 6V4h4v2 M6 6l1 13h8l1-13 M9.5 9.5v6 M12.5 9.5v6")
+    trash: SC_ICON("M4 6h14 M9 6V4h4v2 M6 6l1 13h8l1-13 M9.5 9.5v6 M12.5 9.5v6"),
+    clearAll: SC_ICON("M14 3l-6.5 9 M5 12.5h7l1.5 2.5-2 4.5H4.5l-1-4z M7 15.5l-.5 3 M10 15.5l-.3 3 M17 9h3 M16.5 13h3.5 M17 17h3")
 };
 
 const layoutConfig = {
@@ -72,6 +73,12 @@ const layoutConfig = {
             { type: "label", id: "zoomDisplay", cls: "pagelabel", text: "100%" },
             { type: "button", id: "zoomIn", text: "+", title: "Ingrandisci (+)", onClick: (ed) => ed.changeZoom(0.1) },
             { type: "button", id: "zoomReset", text: "⤢", title: "Zoom 100% (0)", onClick: (ed) => ed.layout.resetZoom() }
+        ],
+        // Disegno 2D o 3D (per scheda) e conversione dall'uno all'altro
+        [
+            { type: "button", id: "mode2dBtn", cls: "mode-btn", text: "2D", title: "Disegno 2D: foglio piatto, galleria con disegni, figure e campi piani", onClick: (ed) => ed.setDrawMode('2d') },
+            { type: "button", id: "mode3dBtn", cls: "mode-btn", text: "3D", title: "Disegno 3D: foglio inclinato con vista 3D, galleria con oggetti 3D e campo 3D", onClick: (ed) => ed.setDrawMode('3d') },
+            { type: "button", id: "convertModeBtn", text: "⇄ in 3D", title: "Converti il disegno nell'altra modalità", onClick: (ed) => ed.convertDrawing() }
         ],
         "spacer",
         [
@@ -101,6 +108,7 @@ const layoutConfig = {
         { id: "railElements", icon: "court", label: "Campo e oggetti…", i18n: "rail_elements", key: "E", title: "Campo, materiale, figure, testo e icone", onClick: (ed) => ed.layout.toggleFlyout("elements") },
 
         { section: "Modifica", i18n: "rail_sec_edit" },
+        { id: "clearSheetBtn", icon: "clearAll", cls: "danger", label: "Cancella tutto", i18n: "rail_clear_all", title: "Cancella tutto il contenuto del foglio (oggetti, frecce e disegni). Si annulla con Ctrl+Z", onClick: (ed) => ed.clearSheet() },
         { id: "rotateRight", icon: "rotate", label: "Ruota 15°", i18n: "rail_rotate", key: "R", title: "Ruota di 15° (Maiusc+R: -15°). Con più oggetti ruota il gruppo", onClick: (ed, ev) => ed.rotateSmart(ev && ev.shiftKey ? -15 : 15) },
         { id: "rotateRight90", icon: "rotate90", label: "Ruota 90°", i18n: "rail_rotate90", title: "Ruota di 90° (Maiusc+clic: -90°)", onClick: (ed, ev) => ed.rotateSmart(ev && ev.shiftKey ? -90 : 90) },
         { id: "mirrorHorizontal", icon: "mirrorH", label: "Specchia ⇋", i18n: "rail_mirror_h", key: "H", title: "Specchia orizzontalmente", onClick: (ed) => ed.mirrorSelected("h") },

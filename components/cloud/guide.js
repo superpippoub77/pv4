@@ -279,6 +279,16 @@ html:`<table class="guide-table"><tr><th>Tasti</th><th>Comando</th></tr>
 <tr><td>F1</td><td>questa guida</td></tr></table>
 <p>I tasti della libreria sono in <a data-topic="esplora">La libreria come Esplora file</a>.</p>` },
 
+{ id:'modo-2d-3d', cat:'Disegnare', title:'Disegno 2D o 3D e Cancella tutto', keys:'2d 3d modalità disegno piano inclinato vista 3d converti conversione pallone 3d campo 3d cancella tutto svuota foglio pulisci',
+html:`<p>Ogni schema è <b>2D</b> o <b>3D</b>: lo scegli con i pulsanti <b>2D · 3D</b> nella barra in alto.</p>
+<ul>
+<li><b>2D</b>: foglio piatto; la galleria mostra disegni, figure, stile schizzo e campi piani. Pannello e sfera della vista 3D sono nascosti.</li>
+<li><b>3D</b>: il foglio si inclina e compaiono la sfera e il pannello <i>Vista 3D</i>; la galleria mostra gli oggetti 3D (es. pallone 3D) e lo sfondo <i>Campo 3D</i>.</li>
+</ul>
+<p>Giocatori, rete, coni, testi e icone vanno bene in tutte e due le modalità. Il cambio di modalità non tocca gli oggetti già sul foglio.</p>
+<p><b>⇄ in 3D / ⇄ in 2D</b> converte il disegno: palloni piani ↔ pallone 3D, figure disegnate (schizzo, immagini, sprite) → giocatori con una lettera (A attaccante, M muro, D difensore, G altri), campo schizzo → sfondo Campo 3D, campo intero ↔ campo 3D, foglio inclinato ↔ piatto. Si annulla con Ctrl+Z.</p>
+<p><b>Cancella tutto</b> (barra a sinistra, sezione Modifica, o tasto destro sul foglio) toglie oggetti, frecce e disegni dello schema corrente dopo una conferma; si annulla con Ctrl+Z.</p>` },
+
 { id:'stile-schizzo', cat:'Disegnare', title:'Stile schizzo, caratteri a mano ed evidenziatore', keys:'schizzo disegno a mano matita giocatori muro difensore attaccante pallone campo rete svg vettoriale font carattere nanum pen schoolbell architects daughter evidenziatore sottolineatura alone pennellata',
 html:`<p>In <b>Campo e oggetti…</b> la categoria <b>✍️ Stile schizzo</b> contiene disegni a mano vettoriali (restano nitidi a ogni zoom e in stampa): campo completo con la rete, attaccante, giocatore a muro, quattro difensori e pallone. Il campo si adatta al foglio e resta sotto agli altri oggetti; i disegni mantengono i colori originali.</p>
 <p><b>Carattere</b> (pannello Proprietà, con un testo selezionato): <i>Nanum Pen Script</i>, <i>Schoolbell</i> o <i>Architects Daughter</i>, scritture a mano adatte allo stile schizzo; <i>Predefinito</i> torna al carattere normale.</p>
@@ -295,6 +305,7 @@ html:`<dl class="guide-faq">
 
 { id:'novita', cat:'Riferimento', title:'Novità', keys:'novità versioni changelog aggiornamenti',
 html:`<ul>
+<li><b>1.9.0</b> — <a data-topic="modo-2d-3d">Disegno 2D o 3D</a> per ogni schema (galleria separata) con conversione ⇄; <b>Cancella tutto</b> nella barra a sinistra e nel tasto destro del foglio; la griglia non copre più lo sfondo del campo.</li>
 <li><b>1.8.1</b> — Trascinamento dalla galleria sempre funzionante, anche prendendo l'elemento dalla miniatura o rilasciandolo sulla zona scura attorno al foglio.</li>
 <li><b>1.8.0</b> — <a data-topic="stile-schizzo">Stile schizzo</a>: disegni a mano vettoriali (campo con rete, attaccante, muro, difensori, pallone), caratteri a mano per i testi, evidenziatore per testi e frecce.</li>
 <li><b>1.7.0</b> — <a data-topic="telefono-tablet">Telefono e tablet</a>: barra in alto adattabile (menu »), pannello a cassetto, finestre a tutto schermo, gesti con le dita (trascina, zoom a due dita, pressione lunga, doppio tocco).</li>
