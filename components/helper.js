@@ -583,6 +583,10 @@ function createWindow({
     // ==================== Min / Max / Close ====================
     let maximized = false, prev = {};
     btnMax.addEventListener('click', () => {
+        // animazione morbida solo per questo cambio di dimensione
+        win.classList.add('win-animating');
+        clearTimeout(win._animT);
+        win._animT = setTimeout(() => win.classList.remove('win-animating'), 280);
         if (!maximized) { prev = { left: win.offsetLeft, top: win.offsetTop, width: win.offsetWidth, height: win.offsetHeight }; win.style.left = '20px'; win.style.top = '20px'; win.style.width = (window.innerWidth - 40) + 'px'; win.style.height = (window.innerHeight - 40) + 'px'; maximized = true; }
         else { win.style.left = prev.left + 'px'; win.style.top = prev.top + 'px'; win.style.width = prev.width + 'px'; win.style.height = prev.height + 'px'; maximized = false; }
     });

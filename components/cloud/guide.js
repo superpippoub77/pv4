@@ -318,6 +318,7 @@ html:`<dl class="guide-faq">
 
 { id:'novita', cat:'Riferimento', title:'Novità', keys:'novità versioni changelog aggiornamenti',
 html:`<ul>
+<li><b>1.12.1</b> — Le finestre si spostano subito insieme al mouse (prima arrivavano con un attimo di ritardo).</li>
 <li><b>1.12.0</b> — Nuova categoria <a data-topic="inserire">🏋️ Palestra e pallavolo</a> con 33 disegni a colori (palloni, carrello, lanciapalloni, seggiolone, tabellone, coni, cinesini, ostacoli, scaletta, step, materassino, pesi, fischietto, cronometro…) e 16 nuove icone.</li>
 <li><b>1.11.0</b> — Tre campi a sole linee in <a data-topic="stile-schizzo">Stile schizzo</a>: in prospettiva con la profondità, di sbieco e in diagonale, con rete, aste e antenne.</li>
 <li><b>1.10.0</b> — <a data-topic="scout">Scout partita</a> in stile DataVolley: formazioni dalla rosa, rotazioni e libero, clic sul giocatore e arco con le valutazioni = / - ! + #, fondamentale dedotto dalla fase, punteggio, break point, cambio palla e rotazione automatici, registro dei codici, Annulla; salvato con lo schema.</li>
