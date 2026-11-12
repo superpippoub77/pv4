@@ -5,6 +5,12 @@ e compaiono nella barra di stato ("VBProW4 by SpikeCode AI · Ott 2026 · Ver: 1
 Informazioni e nella guida (Riferimento → Novità). A ogni rilascio vanno aggiornati insieme a questo file
 e a `package.json`.
 
+## 1.12.1 — Nov 2026
+
+- **Finestre reattive**: trascinandole o ridimensionandole dai bordi seguono subito il mouse. Prima l'effetto di
+  animazione era sempre attivo su tutte le proprietà (anche posizione e dimensioni), così la finestra arrivava con
+  0,25 s di ritardo; ora l'animazione morbida resta solo per Ingrandisci/Ripristina.
+
 ## 1.12.0 — Nov 2026
 
 - **Nuova categoria 🏋️ Palestra e pallavolo** in *Campo e oggetti…*: 33 disegni vettoriali a colori, nitidi a ogni
