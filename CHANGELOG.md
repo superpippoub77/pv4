@@ -5,6 +5,24 @@ e compaiono nella barra di stato ("VBProW4 by SpikeCode AI · Ott 2026 · Ver: 1
 Informazioni e nella guida (Riferimento → Novità). A ogni rilascio vanno aggiornati insieme a questo file
 e a `package.json`.
 
+## 1.15.0 — Nov 2026
+
+- **Zoom con la rotella**: Ctrl (⌘) + rotella, rotella tenendo premuto un tasto del mouse o pizzico sul touchpad,
+  centrato sul puntatore (prima sul foglio non c'era); la rotella da sola continua a scorrere.
+- **Ridimensionamento da ogni angolo e lato**:
+  - oggetti: 8 maniglie (4 angoli, 4 lati), funziona anche con l'oggetto ruotato, Maiusc sugli angoli = proporzioni
+    bloccate; la maniglia di rotazione è sopra al centro, staccata dalle altre;
+  - foglio: 8 maniglie; tirando a sinistra o in alto lo spazio si aggiunge da quel lato e il disegno resta al suo
+    posto; segue il mouse anche con lo zoom (prima solo l'angolo in basso a destra, e in ritardo per l'animazione).
+- **Casella di testo** grande quanto il testo: nasce sulla misura delle parole e la segue mentre si scrive o si cambia
+  carattere; dagli angoli ingrandisce anche il carattere, dai lati cambia solo la casella (il testo va a capo e
+  l'altezza si adatta); nel pannello *Grandezza testo* e *⤢ Adatta al testo*.
+- **Esportazione senza aloni**: selezioni, maniglie, punti di aggancio e ombre dell'interfaccia non finiscono più
+  nell'immagine, nel PDF e nella scheda allenamento (un oggetto selezionato lasciava un rettangolo grigio/colorato).
+- **Niente collegamenti per sbaglio**: i punti di aggancio delle frecce sono attivi solo in modalità *Frecce* (prima,
+  afferrando dal bordo un oggetto appena inserito o incollato, partiva una freccia verso il disegno); un clic senza
+  trascinare non crea più frecce lunghe zero; inserendo o incollando si torna allo strumento *Selezione*.
+
 ## 1.14.2 — Nov 2026
 
 - **Scout partita, formazioni corrette**: la *Formazione automatica* schiera sempre il sestetto 5-1 — 1 palleggiatore,

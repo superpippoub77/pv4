@@ -544,8 +544,10 @@ body.dragging-endpoint .canvas-object .connection-point {
     pointer-events: auto !important;
 }
 
-.canvas-object:hover .connection-point,
-.canvas-object.selected .connection-point {
+/* I punti di aggancio servono solo per le frecce: fuori dalla modalità Frecce non si vedono e non si prendono
+   (prima, afferrando un oggetto dal bordo, partiva una freccia che lo collegava al disegno) */
+body.arrow-mode .canvas-object:hover .connection-point,
+body.arrow-mode .canvas-object.selected .connection-point {
     opacity: 1;
     pointer-events: auto;
 }
@@ -1537,3 +1539,36 @@ body.dragging-endpoint .canvas-object .connection-point {
 }
 
 .sphere-reset-btn:hover { background: #c9973f; border-color: #c9973f; color: #1c1200; }
+
+/* Maniglie del foglio: 4 angoli e 4 lati (area di presa 20px, segno visibile al centro) */
+.canvas-rh { position: absolute; width: 20px; height: 20px; z-index: 50; pointer-events: auto; }
+.canvas-rh::after {
+    content: ""; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    background: #3498db; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, .35); opacity: .75; transition: opacity .15s, transform .15s;
+}
+.canvas-rh-corner::after { width: 10px; height: 10px; border-radius: 3px; }
+.canvas-rh-h::after { width: 26px; height: 6px; border-radius: 3px; }
+.canvas-rh-v::after { width: 6px; height: 26px; border-radius: 3px; }
+.canvas-rh:hover::after, body.resizing-canvas .canvas-rh::after { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+body.no-docs .canvas-rh { display: none !important; }
+
+/* Maniglie di ridimensionamento degli oggetti: 4 angoli e 4 lati */
+.canvas-object .obj-grip {
+    position: absolute; width: 10px; height: 10px; background: #fff; border: 1.5px solid #3498db; border-radius: 2px;
+    z-index: 12; opacity: 0; pointer-events: none; box-sizing: border-box;
+}
+.canvas-object.selected .obj-grip { opacity: 1; pointer-events: auto; }
+body.arrow-mode .canvas-object .obj-grip, .canvas-object.group-selected .obj-grip { opacity: 0 !important; pointer-events: none !important; }
+.canvas-object .obj-grip:hover { background: #3498db; }
+.canvas-object .obj-grip-nw { left: -6px; top: -6px; cursor: nwse-resize; }
+.canvas-object .obj-grip-n { left: calc(50% - 5px); top: -6px; cursor: ns-resize; }
+.canvas-object .obj-grip-ne { right: -6px; top: -6px; cursor: nesw-resize; }
+.canvas-object .obj-grip-e { right: -6px; top: calc(50% - 5px); cursor: ew-resize; }
+.canvas-object .obj-grip-se { right: -6px; bottom: -6px; cursor: nwse-resize; }
+.canvas-object .obj-grip-s { left: calc(50% - 5px); bottom: -6px; cursor: ns-resize; }
+.canvas-object .obj-grip-sw { left: -6px; bottom: -6px; cursor: nesw-resize; }
+.canvas-object .obj-grip-w { left: -6px; top: calc(50% - 5px); cursor: ew-resize; }
+/* rotazione: sopra al centro, staccata dalle maniglie */
+.canvas-object .rotate-handle { right: auto !important; left: calc(50% - 7px) !important; top: -30px !important; }
+.canvas-object .rotate-handle::after { content: ""; position: absolute; left: 50%; top: 100%; width: 1.5px; height: 14px; background: #e74c3c; transform: translateX(-50%); }
+body.resizing-canvas .canvas { transition: none !important; }
