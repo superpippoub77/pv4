@@ -95,7 +95,8 @@ html:`<ul><li><b>Giocatori…</b> (G) apre la galleria dei giocatori: Squadra A 
 
 { id:'frecce', cat:'Disegnare', title:'Frecce, matita e tratteggio', keys:'freccia collega punti aggancio curva lineare zigzag spessore punte matita disegno libero tratteggio tratteggiato',
 html:`<ul><li><b>Frecce</b> (A): clicca un punto di aggancio di un oggetto e poi un altro punto (di un oggetto o del foglio). Le frecce agganciate seguono gli oggetti quando li sposti.</li>
-<li>Selezionando una freccia, nel pannello Proprietà scegli colore, tipo (lineare, curva, zigzag), spessore, opacità, punte all'inizio e alla fine, tratteggio. Nelle frecce curve il punto arancione ne regola la curvatura.</li>
+<li>La freccia nasce <b>dritta</b>; per curvarla trascina il <b>perno arancione</b> a metà: la curva passa sotto il mouse e mantiene la forma quando sposti i giocatori collegati. Riportando il perno sulla linea, con un doppio clic sul perno o con <b>↺ Raddrizza</b> torna dritta.</li>
+<li>Selezionando una freccia, nel pannello Proprietà scegli colore, forma (<b>Linea</b> o <b>Zigzag</b>), spessore, opacità, punte all'inizio e alla fine, evidenziatore e tratteggio.</li>
 <li><b>Matita libera</b> (B): disegno a mano libera, con colore, spessore e opacità.</li>
 <li><b>Tratteggio</b> (D): con oggetti o una freccia selezionati ne tratteggia il bordo (di nuovo per tornare continuo, come «⚡ Tratteggiato» nel pannello Proprietà); senza selezione, i nuovi oggetti e le nuove frecce vengono creati tratteggiati. Per convenzione: freccia continua = palla, tratteggiata = spostamento del giocatore.</li></ul>` },
 
@@ -321,6 +322,7 @@ html:`<dl class="guide-faq">
 
 { id:'novita', cat:'Riferimento', title:'Novità', keys:'novità versioni changelog aggiornamenti',
 html:`<ul>
+<li><b>1.14.1</b> — <a data-topic="frecce">Frecce</a>: niente più Lineare/Curva, nascono dritte e si curvano trascinando il perno arancione (sulla linea); pannello Freccia riordinato.</li>
 <li><b>1.14.0</b> — Pulsante <b>＋</b> con la scelta di come iniziare (vuoto, libreria, file, testo, lavagna…) e <b>compilazione guidata</b> dei dati dell'esercizio; <b>archivio squadre</b> (anche avversari) e scelta dei giocatori da elenco nello <a data-topic="scout">Scout partita</a>; corretto ＋ che da «Nessuno schema aperto» creava due schede.</li>
 <li><b>1.13.1</b> — Importa giocatori anche con <b>copia e incolla</b> da Excel, Google Fogli, Google Documenti, Word, WhatsApp: Ctrl+V nella finestra Squadra o pulsante 📋 Incolla, anteprima subito.</li>
 <li><b>1.13.0</b> — <a data-topic="animazione">Importa giocatori</a> nella finestra Squadra da Excel, CSV, PDF, Word, testo, JSON o foto di un foglio, con anteprima modificabile prima di confermare.</li>

@@ -3944,7 +3944,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             (document.getElementById('objectInfoText') || document.getElementById('objectInfo')).textContent = 'Disegno selezionato';
             document.getElementById('objectControls').style.display = 'none';
             document.getElementById('arrowControls').style.display = 'none';
-            document.getElementById('freehandControls').style.display = 'flex';
+            document.getElementById('freehandControls').style.display = 'block';
         }
     }
 
@@ -7063,10 +7063,13 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             const arrow = this.getCurrentTab().arrows.get(this.selectedArrow);
             if (arrow) {
                 const p = this.getCanvasLocalPoint(e);
-                const newX = p.x;
-                const newY = p.y;
-
-                arrow.controlPoint = { x: newX, y: newY };
+                const fromPos = this.getArrowPoint(arrow.from);
+                const toPos = this.getArrowPoint(arrow.to);
+                // il perno sta sulla linea: la curva passa sotto il mouse; vicino alla linea torna dritta
+                const bend = this.bendFromPivot(fromPos, toPos, { x: p.x, y: p.y });
+                arrow.bend = Math.hypot(bend.a, bend.b) < 8 ? { a: 0, b: 0 } : bend;
+                if (arrow.type !== 'zigzag') arrow.type = 'curved';
+                this._curveDragged = true;
                 this.renderArrow(arrow);
             }
             return;
@@ -7233,7 +7236,12 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             // Commit any open macro transaction (drag/resize/rotate)
             try { if (window.app && window.app.macroRecorder) window.app.macroRecorder.endTransaction(); } catch (err) { /* ignore */ }
 
-            this.saveState(`Modificato posizione oggetto${this.selectedObjects.size > 1 ? 's' : ''}`);
+            if (this.isDraggingControlPoint && !this.isDragging) {
+                // perno della freccia: si salva solo se è stato davvero trascinato
+                if (this._curveDragged) this.saveState(`Curvata freccia ${this.selectedArrow}`);
+            } else {
+                this.saveState(`Modificato posizione oggetto${this.selectedObjects.size > 1 ? 's' : ''}`);
+            }
             this.updateCurrentFrame();
         } else if (this.isSelecting) {
             this.finalizeSelectionBox(e);
@@ -7280,6 +7288,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             }
             this.rotate3DStart = null;
         }
+
+        this._curveDragged = false;
 
         this.isDragging = false;
         this.isResizing = false;
@@ -7998,10 +8008,10 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
             (document.getElementById('objectInfoText') || document.getElementById('objectInfo')).textContent = 'Freccia selezionata';
             document.getElementById('objectControls').style.display = 'none';
-            document.getElementById('arrowControls').style.display = 'flex';
+            document.getElementById('arrowControls').style.display = 'block';
 
             document.querySelectorAll('.arrow-type-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(`arrowType${arrowData.type.charAt(0).toUpperCase() + arrowData.type.slice(1)}`).classList.add('active');
+            document.getElementById(arrowData.type === 'zigzag' ? 'arrowTypeZigzag' : 'arrowTypeCurved')?.classList.add('active');
         } else {
             this.deselectAll();
         }
@@ -8279,6 +8289,15 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         const fromPos = this.getArrowPoint(arrow.from);
         const toPos = this.getArrowPoint(arrow.to);
         arrow.controlPoint = this.generateDefaultControlPoint(fromPos, toPos);
+        // Una sola "linea": parte dritta e si curva trascinando il perno arancione.
+        // Chi chiede esplicitamente 'curved' (es. Crea da testo) la riceve già curvata.
+        if (type === 'zigzag') arrow.bend = { a: 0, b: 0 };
+        else {
+            arrow.bend = type === 'curved'
+                ? this.bendFromPivot(fromPos, toPos, { x: ((fromPos.x + toPos.x) / 2 + arrow.controlPoint.x) / 2, y: ((fromPos.y + toPos.y) / 2 + arrow.controlPoint.y) / 2 })
+                : { a: 0, b: 0 };
+            arrow.type = 'curved';
+        }
 
         tab.arrows.set(arrowId, arrow);
 
@@ -8390,13 +8409,17 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         if (arrow.dashed) path.classList.add('dashed');
         if (wasSelected) path.classList.add('selected');
 
-        // Assicurati che il control point esista
-        if (!arrow.controlPoint) {
-            arrow.controlPoint = this.generateDefaultControlPoint(fromPos, toPos);
-        }
+        // Forma: curvatura relativa agli estremi (segue i giocatori quando si spostano)
+        this.ensureArrowBend(arrow, fromPos, toPos);
+        const pivot = this.pivotFromBend(fromPos, toPos, arrow.bend);
+        const midP = { x: (fromPos.x + toPos.x) / 2, y: (fromPos.y + toPos.y) / 2 };
+        arrow.pivot = pivot;
+        // punto di controllo della curva quadratica che passa per il perno a metà
+        arrow.controlPoint = { x: 2 * pivot.x - midP.x, y: 2 * pivot.y - midP.y };
+        const straight = arrow.type !== 'zigzag' && Math.hypot(arrow.bend.a, arrow.bend.b) < 0.5;
 
         // Genera il path in base al tipo
-        let pathData = this.generateArrowPath(fromPos, toPos, arrow.type, arrow.controlPoint);
+        let pathData = this.generateArrowPath(fromPos, toPos, straight ? 'linear' : arrow.type, arrow.controlPoint);
 
         // Evidenziatore: pennellata larga e trasparente sotto la freccia
         if (arrow.highlight) {
@@ -8457,9 +8480,11 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         svg.appendChild(startPoint);
         svg.appendChild(endPoint);
 
-        // Aggiungi il punto di controllo per la curva
-        const controlPointElement = this.addCurveControlPoint(svg, arrow);
-        svg.appendChild(controlPointElement);
+        // Perno arancione per curvare (non serve con lo zigzag)
+        if (arrow.type !== 'zigzag') {
+            const controlPointElement = this.addCurveControlPoint(svg, arrow);
+            svg.appendChild(controlPointElement);
+        }
 
         const allPoints = [fromPos, toPos];
         if (arrow.controlPoint) {
@@ -8525,8 +8550,18 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
     addCurveControlPoint(svg, arrow) {
         const controlPoint = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        controlPoint.setAttribute('cx', arrow.controlPoint.x);
-        controlPoint.setAttribute('cy', arrow.controlPoint.y);
+        const pv = arrow.pivot || arrow.controlPoint;
+        controlPoint.setAttribute('cx', pv.x);
+        controlPoint.setAttribute('cy', pv.y);
+        const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+        title.textContent = 'Trascina per curvare la freccia · doppio clic: torna dritta';
+        controlPoint.appendChild(title);
+        controlPoint.addEventListener('dblclick', (e) => {
+            e.stopPropagation();
+            arrow.bend = { a: 0, b: 0 };
+            this.renderArrow(arrow);
+            this.saveState(`Raddrizzata freccia ${arrow.id}`);
+        });
         controlPoint.setAttribute('r', '6');
         controlPoint.setAttribute('fill', '#f39c12');
         controlPoint.setAttribute('stroke', '#fff');
@@ -8565,6 +8600,50 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         const controlX = midX + (from.y - to.y) * offset / dist;
         const controlY = midY + (to.x - from.x) * offset / dist;
         return { x: controlX, y: controlY };
+    }
+
+    /** Riferimento di una freccia: punto medio, direzione e normale */
+    arrowFrame(from, to) {
+        const dx = to.x - from.x, dy = to.y - from.y;
+        const L = Math.hypot(dx, dy) || 1;
+        return { mid: { x: (from.x + to.x) / 2, y: (from.y + to.y) / 2 }, u: { x: dx / L, y: dy / L }, n: { x: -dy / L, y: dx / L } };
+    }
+
+    /** perno (sulla curva, a metà) → curvatura relativa { a: lungo la freccia, b: di lato } */
+    bendFromPivot(from, to, P) {
+        const f = this.arrowFrame(from, to);
+        const dx = P.x - f.mid.x, dy = P.y - f.mid.y;
+        return { a: dx * f.u.x + dy * f.u.y, b: dx * f.n.x + dy * f.n.y };
+    }
+
+    pivotFromBend(from, to, bend) {
+        const f = this.arrowFrame(from, to);
+        const a = (bend && bend.a) || 0, b = (bend && bend.b) || 0;
+        return { x: f.mid.x + f.u.x * a + f.n.x * b, y: f.mid.y + f.u.y * a + f.n.y * b };
+    }
+
+    /** Frecce salvate prima: 'linear' → dritta, 'curved' → stessa curva di prima */
+    ensureArrowBend(arrow, from, to) {
+        if (arrow.bend && typeof arrow.bend.a === 'number') return;
+        if (arrow.type === 'curved' && arrow.controlPoint) {
+            const mid = { x: (from.x + to.x) / 2, y: (from.y + to.y) / 2 };
+            arrow.bend = this.bendFromPivot(from, to, { x: (mid.x + arrow.controlPoint.x) / 2, y: (mid.y + arrow.controlPoint.y) / 2 });
+        } else {
+            arrow.bend = { a: 0, b: 0 };
+        }
+        if (arrow.type !== 'zigzag') arrow.type = 'curved';
+    }
+
+    /** Raddrizza la freccia selezionata */
+    straightenArrow() {
+        if (!this.selectedArrow) return;
+        const a = this.getCurrentTab().arrows.get(this.selectedArrow);
+        if (!a) return;
+        a.bend = { a: 0, b: 0 };
+        if (a.type === 'zigzag') a.type = 'curved';
+        this.renderArrow(a);
+        this.updateArrowControls();
+        this.saveState(`Raddrizzata freccia ${a.id}`);
     }
 
     generateArrowPath(from, to, type, controlPoint = null) {
@@ -8629,6 +8708,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         if (!this.selectedArrow) return;
         const arrowData = this.getCurrentTab().arrows.get(this.selectedArrow);
         if (arrowData) {
+            if (newType === 'linear') { newType = 'curved'; arrowData.bend = { a: 0, b: 0 }; }
             arrowData.type = newType;
             // Mantieni il punto di controllo esistente
             if (!arrowData.controlPoint) {
@@ -9302,6 +9382,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     arrowData.markerStart = arrow.markerStart || false;
                     arrowData.markerEnd = arrow.markerEnd !== false;
                     if (arrow.highlight) arrowData.highlight = arrow.highlight;
+                    if (arrow.bend) arrowData.bend = { ...arrow.bend };
+                    if (arrow.type) arrowData.type = arrow.type;
                     this.renderArrow(arrowData);
                 }
             }
@@ -10153,7 +10235,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     cloneForHistory(item) {
         if (!item || typeof item !== 'object') return item;
         const copy = { ...item };
-        ['spriteData', 'from', 'to', 'controlPoint'].forEach(k => {
+        ['spriteData', 'from', 'to', 'controlPoint', 'bend', 'pivot'].forEach(k => {
             if (copy[k] && typeof copy[k] === 'object') copy[k] = { ...copy[k] };
         });
         ['animations', 'points'].forEach(k => {

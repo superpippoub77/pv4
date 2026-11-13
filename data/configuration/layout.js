@@ -11,7 +11,7 @@
 
 // Versione e mese di rilascio (come in SpikeCut): da aggiornare a ogni rilascio,
 // insieme a CHANGELOG.md, package.json e alla sezione "Novità" della guida.
-const APP_VERSION = "1.14.0";
+const APP_VERSION = "1.14.1";
 const APP_RELEASE = "Nov 2026";
 
 // Icone in stile SpikeCut (viewBox 22, tratto 1.6)
@@ -230,12 +230,13 @@ const layoutConfig = {
             id: "arrowControls", title: "Freccia", i18n: "toolbar_arrow_controls", hidden: true, fields: [
                 { label: "Colore", i18n: "panel_color", item: { type: "input", inputType: "color", id: "arrowColor", value: "#000000", onChange: (ed, ev) => ed.changeArrowColor(ev.target.value) } },
                 {
-                    label: "Tipo", i18n: "panel_arrow_type", seg: [
-                        { type: "button", id: "arrowTypeLinear", class: "arrow-type-btn", text: "Lineare", onClick: (ed) => ed.changeArrowType('linear') },
-                        { type: "button", id: "arrowTypeCurved", class: "arrow-type-btn", text: "Curva", onClick: (ed) => ed.changeArrowType('curved') },
-                        { type: "button", id: "arrowTypeZigzag", class: "arrow-type-btn", text: "Zigzag", onClick: (ed) => ed.changeArrowType('zigzag') }
+                    label: "Forma", i18n: "panel_arrow_shape", seg: [
+                        { type: "button", id: "arrowTypeCurved", class: "arrow-type-btn", text: "Linea", title: "Linea: nasce dritta, si curva trascinando il perno arancione", onClick: (ed) => ed.changeArrowType('curved') },
+                        { type: "button", id: "arrowTypeZigzag", class: "arrow-type-btn", text: "Zigzag", onClick: (ed) => ed.changeArrowType('zigzag') },
+                        { type: "button", id: "arrowStraighten", text: "↺ Raddrizza", title: "Torna dritta (anche doppio clic sul perno arancione)", onClick: (ed) => ed.straightenArrow() }
                     ]
                 },
+                { type: "hint", text: "Trascina il perno arancione per curvarla; riportalo sulla linea (o doppio clic) per raddrizzarla.", i18n: "panel_arrow_curve_hint" },
                 {
                     label: "Spessore", i18n: "panel_thickness", row: [
                         { type: "input", inputType: "range", id: "arrowThickness", min: "1", max: "10", value: "3", step: "1", onInput: (ed, ev) => { document.getElementById('thicknessValue').textContent = ev.target.value; if (ed.selectedArrow) ed.changeArrowThickness(ev.target.value); } },
