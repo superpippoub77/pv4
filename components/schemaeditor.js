@@ -3708,7 +3708,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         // reserve an id for this in-progress freehand so we can record keyframes against it
         try {
             const tab = this.getCurrentTab();
-            this.pendingFreehandId = 'freehand-' + tab.nextFreehandId;
+            this.pendingFreehandId = this.freeId(tab, 'freehands', 'freehand-', 'nextFreehandId', false);
         } catch (err) { this.pendingFreehandId = null; }
 
         // Begin macro transaction for freehand drawing
@@ -3759,10 +3759,11 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         if (this.pendingFreehandId) {
             id = this.pendingFreehandId;
             // consume the reserved id
-            tab.nextFreehandId++;
+            if (tab.freehands.has(id)) id = this.freeId(tab, 'freehands', 'freehand-', 'nextFreehandId');
+            else tab.nextFreehandId = Math.max(tab.nextFreehandId || 1, (parseInt(id.split('-')[1], 10) || 0) + 1);
             this.pendingFreehandId = null;
         } else {
-            id = 'freehand-' + tab.nextFreehandId++;
+            id = this.freeId(tab, 'freehands', 'freehand-', 'nextFreehandId');
         }
 
         const freehand = {
@@ -6165,7 +6166,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
     addObject(type, x, y, color = '#3498db', text = '', rotation = 0, dashed = this.dashedMode, icon = null, src = null, spriteData = null, model3d = null, is3d = false) {
         const tab = this.getCurrentTab();
-        const id = 'obj-' + tab.nextObjectId++;
+        const id = this.freeId(tab, 'objects', 'obj-', 'nextObjectId');
 
         const objectNumber = tab.objects.size + 1;
 
@@ -6218,6 +6219,19 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         this.saveState(`Aggiunto oggetto ${object.type} con ID ${object.id}`);
 
         return object;
+    }
+
+    /**
+     * Identificativo libero per un nuovo oggetto/freccia/disegno. Dopo il caricamento di uno schema (libreria,
+     * file, salvataggio automatico…) il contatore poteva ripartire da 1: il nuovo oggetto (es. incollato)
+     * prendeva l'id di uno esistente e lo sostituiva, e le frecce di quello finivano attaccate al nuovo.
+     */
+    freeId(tab, mapName, prefix, counterKey, consume = true) {
+        const map = tab[mapName] || new Map();
+        let n = Math.max(1, tab[counterKey] || 1);
+        while (map.has(prefix + n) || (mapName === 'objects' && document.getElementById(prefix + n))) n++;
+        if (consume) tab[counterKey] = n + 1;
+        return prefix + n;
     }
 
     getDefaultSize(type, src) {
@@ -8412,7 +8426,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
     createArrow(from, to, type, dashed = this.dashedMode, color = document.getElementById('arrowColor').value, thickness = parseInt(document.getElementById('arrowThickness').value)) {
         const tab = this.getCurrentTab();
-        const arrowId = 'arrow-' + tab.nextArrowId++;
+        const arrowId = this.freeId(tab, 'arrows', 'arrow-', 'nextArrowId');
 
         // RIMUOVI QUESTO BLOCCO SE ESISTE:
         // if (from.objectId && to.objectId) {
