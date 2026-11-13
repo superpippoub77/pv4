@@ -313,10 +313,34 @@ class ScoutManager {
     // ============================================================
     // FORMAZIONI
     // ============================================================
+    /** Squadre tra cui scegliere: la rosa (Squadra) e quelle dell'archivio */
+    pickerTeams() {
+        const tm = this.editor.teamManager;
+        if (tm && tm.getPickerTeams) return tm.getPickerTeams();
+        return [{ id: '__rosa__', name: 'La mia rosa (Squadra)', players: tm?.teamPlayers || this.editor.teamPlayers || [] }];
+    }
+
+    /** id della squadra d'origine dei giocatori di un lato (casa = rosa se non scelto) */
+    sourceId(t) {
+        const T = this.state.teams[t];
+        if (T.sourceId === undefined) return t === 'home' ? '__rosa__' : '';
+        return T.sourceId;
+    }
+
+    sourcePlayers(t) {
+        const id = this.sourceId(t);
+        if (!id) return [];
+        const team = this.pickerTeams().find(x => x.id === id);
+        return team ? (team.players || []) : [];
+    }
+
     /** Formazione della casa dalla rosa (Squadra), con il palleggiatore nella zona della rotazione */
-    fromRoster(rotation) {
-        const roster = this.editor.teamManager?.teamPlayers || this.editor.teamPlayers || [];
-        if (!roster.length) { this.flash('La rosa è vuota: aggiungi i giocatori in Squadra'); return; }
+    fromRoster(rotation) { return this.fromTeam('home', rotation); }
+
+    /** Formazione di una squadra dai suoi giocatori (rosa o archivio), palleggiatore nella zona della rotazione */
+    fromTeam(t, rotation) {
+        const roster = this.sourcePlayers(t);
+        if (!roster.length) { this.flash(this.sourceId(t) ? 'La squadra scelta non ha giocatori' : 'Scegli prima la squadra (rosa o archivio)'); return; }
         const used = new Set();
         const pick = (roles) => {
             for (const r of roles) {
@@ -333,7 +357,7 @@ class ScoutManager {
             lineup[zone - 1] = { num: p ? String(p.number) : '', name: p ? (p.name || '') : '', role: role.charAt(0) };
         });
         const libs = roster.filter(x => /^L/.test(x.role)).slice(0, 2);
-        const T = this.state.teams.home;
+        const T = this.state.teams[t];
         T.lineup = lineup;
         T.liberi = [0, 1].map(i => ({ num: libs[i] ? String(libs[i].number) : '', name: libs[i]?.name || '' }));
         this.renderLineupForm();
@@ -494,7 +518,7 @@ class ScoutManager {
         }
         win.addEventListener('click', (e) => {
             const b = e.target.closest('[data-view]');
-            if (b) { this.closeArc(); if (this.view === 'lineup') this.readLineupForm(); this.view = b.dataset.view; this.render(); }
+            if (b) { this.closeArc(); this.closePicker(); if (this.view === 'lineup') this.readLineupForm(); this.view = b.dataset.view; this.render(); }
         });
         this.bindKeys();
     }
@@ -576,9 +600,8 @@ class ScoutManager {
         const el = this.root().querySelector('#scoutLineup');
         if (!el) return;
         const st = this.state;
-        const roster = this.editor.teamManager?.teamPlayers || this.editor.teamPlayers || [];
-        const datalist = roster.length
-            ? `<datalist id="scoutRosterNums">${roster.map(p => `<option value="${this.esc(p.number)}">${this.esc(p.name)} · ${this.esc(p.role)}</option>`).join('')}</datalist>` : '';
+        const teams = this.pickerTeams();
+        const datalist = '';
         const team = (t) => {
             const T = st.teams[t];
             const setterZone = (T.lineup.findIndex(p => ScoutManager.roleKind(p.role) === 'P') + 1) || 1;
@@ -586,15 +609,15 @@ class ScoutManager {
                 const p = T.lineup[z - 1] || { num: '', name: '', role: 'S' };
                 const roles = ScoutManager.ROLES.map(r => `<option value="${r.v}" ${ScoutManager.roleKind(p.role) === r.v ? 'selected' : ''}>${r.l}</option>`).join('');
                 return `<tr><td class="sc-z">Z${z}</td>
-                    <td><input class="wg-input sc-num" data-f="${t}-num-${z}" value="${this.esc(p.num)}" inputmode="numeric" maxlength="2" ${t === 'home' && roster.length ? 'list="scoutRosterNums"' : ''}></td>
-                    <td><input class="wg-input" data-f="${t}-pname-${z}" value="${this.esc(p.name)}" placeholder="Nome"></td>
+                    <td><input class="wg-input sc-num sc-pick" data-f="${t}-num-${z}" value="${this.esc(p.num)}" inputmode="numeric" maxlength="2" autocomplete="off"></td>
+                    <td><input class="wg-input sc-pick" data-f="${t}-pname-${z}" value="${this.esc(p.name)}" placeholder="Nome · clic per scegliere" autocomplete="off"></td>
                     <td><select class="wg-input" data-f="${t}-role-${z}">${roles}</select></td></tr>`;
             }).join('');
             const libs = [0, 1].map(i => {
                 const l = T.liberi[i] || { num: '', name: '' };
                 return `<tr><td class="sc-z">L${i + 1}</td>
-                    <td><input class="wg-input sc-num" data-f="${t}-lnum-${i}" value="${this.esc(l.num)}" inputmode="numeric" maxlength="2" ${t === 'home' && roster.length ? 'list="scoutRosterNums"' : ''}></td>
-                    <td colspan="2"><input class="wg-input" data-f="${t}-lname-${i}" value="${this.esc(l.name)}" placeholder="Nome del libero"></td></tr>`;
+                    <td><input class="wg-input sc-num sc-pick" data-f="${t}-lnum-${i}" value="${this.esc(l.num)}" inputmode="numeric" maxlength="2" autocomplete="off"></td>
+                    <td colspan="2"><input class="wg-input sc-pick" data-f="${t}-lname-${i}" value="${this.esc(l.name)}" placeholder="Nome del libero · clic per scegliere" autocomplete="off"></td></tr>`;
             }).join('');
             const rot = [1, 6, 5, 4, 3, 2].map(r => `<option value="${r}" ${r === setterZone ? 'selected' : ''}>P${r}</option>`).join('');
             return `<div class="scout-team-form">
@@ -603,8 +626,10 @@ class ScoutManager {
                     <span class="sc-prefix">${ScoutManager.prefix(t)}</span>
                 </div>
                 <div class="sc-form-tools">
+                    <label>Squadra <select class="wg-input sc-source" data-source="${t}" title="Da dove prendere i giocatori: la tua rosa o una squadra salvata in Squadra → Archivio squadre">
+                        <option value="">— nessuna —</option>${teams.map(x => `<option value="${this.esc(x.id)}" ${x.id === this.sourceId(t) ? 'selected' : ''}>${this.esc(x.name)} (${(x.players || []).length})</option>`).join('')}</select></label>
                     <label>Rotazione <select class="wg-input sc-rot" data-rot="${t}">${rot}</select></label>
-                    ${t === 'home' ? `<button type="button" class="btn sc-small" data-roster="1" title="Prende P1/P2, S1, S2, O, C1, C2 e i liberi dalla rosa (Squadra), con il palleggiatore nella zona della rotazione scelta">👥 Dalla rosa</button>` : ''}
+                    <button type="button" class="btn sc-small" data-roster="${t}" title="Mette in campo P1/P2, S1, S2, O, C1, C2 e i liberi della squadra scelta, con il palleggiatore nella zona della rotazione scelta">👥 Formazione automatica</button>
                 </div>
                 <table class="sc-form-table"><thead><tr><th>Zona</th><th>N°</th><th>Nome</th><th>Ruolo</th></tr></thead><tbody>${rows}</tbody>
                 <tbody class="sc-libs">${libs}</tbody></table>
@@ -623,28 +648,154 @@ class ScoutManager {
                 ${st.started ? `<button type="button" class="btn sc-small" data-act="reset">Azzera partita</button>` : ''}
                 <button type="button" class="btn primary sc-start" data-act="start">${st.started && !st.needLineup ? 'Applica e ricomincia il set' : `▶ Inizia set ${st.set}`}</button>
             </div>`;
-        el.querySelector('[data-roster]')?.addEventListener('click', () => {
+        el.querySelectorAll('[data-roster]').forEach(b => b.addEventListener('click', () => {
+            const t = b.dataset.roster;
             this.readLineupForm();
-            const r = parseInt(el.querySelector('[data-rot="home"]').value, 10) || 1;
-            this.fromRoster(r);
-        });
+            const r = parseInt(el.querySelector(`[data-rot="${t}"]`).value, 10) || 1;
+            this.fromTeam(t, r);
+        }));
+        el.querySelectorAll('[data-source]').forEach(sel => sel.addEventListener('change', () => {
+            const t = sel.dataset.source;
+            this.readLineupForm();
+            const T = this.state.teams[t];
+            const prev = this.pickerTeams().find(x => x.id === this.sourceId(t));
+            T.sourceId = sel.value;
+            const team = this.pickerTeams().find(x => x.id === sel.value);
+            // il nome della squadra segue la scelta, se non era stato scritto a mano
+            const def = t === 'home' ? 'Casa' : 'Ospiti';
+            if (team && team.id !== '__rosa__' && (!T.name || T.name === def || (prev && T.name === prev.name))) T.name = team.name;
+            this.renderLineupForm();
+        }));
+        this.bindPlayerPicker(el);
         el.querySelectorAll('[data-rot]').forEach(s => s.addEventListener('change', () => this.rotateForm(s.dataset.rot, parseInt(s.value, 10))));
         el.querySelector('[data-act="start"]')?.addEventListener('click', () => this.startSet());
         el.querySelector('[data-act="reset"]')?.addEventListener('click', () => this.resetMatch());
-        // numero della rosa → nome e ruolo
-        el.querySelectorAll('input[list="scoutRosterNums"]').forEach(inp => inp.addEventListener('change', () => {
-            const p = roster.find(x => String(x.number) === inp.value.trim());
-            if (!p) return;
-            const f = inp.dataset.f;
-            const mz = f.match(/^home-num-(\d)$/), ml = f.match(/^home-lnum-(\d)$/);
-            if (mz) {
-                const n = el.querySelector(`[data-f="home-pname-${mz[1]}"]`); if (n) n.value = p.name || '';
-                const k = ScoutManager.roleKind(p.role);
-                const r = el.querySelector(`[data-f="home-role-${mz[1]}"]`); if (r && k && k !== 'L') r.value = k;
-            } else if (ml) {
-                const n = el.querySelector(`[data-f="home-lname-${ml[1]}"]`); if (n) n.value = p.name || '';
+    }
+
+    /** Elenco a comparsa dei giocatori della squadra scelta, sulle celle numero e nome */
+    bindPlayerPicker(el) {
+        const parse = (f) => {
+            let m = f.match(/^(home|away)-(num|pname)-(\d)$/);
+            if (m) return { t: m[1], kind: 'zone', idx: m[3] };
+            m = f.match(/^(home|away)-(lnum|lname)-(\d)$/);
+            if (m) return { t: m[1], kind: 'lib', idx: m[3] };
+            return null;
+        };
+        const fill = (info, p) => {
+            const q = (f) => el.querySelector(`[data-f="${f}"]`);
+            if (info.kind === 'zone') {
+                const n = q(`${info.t}-num-${info.idx}`); if (n) n.value = p.number === '' || p.number == null ? '' : String(p.number);
+                const nm = q(`${info.t}-pname-${info.idx}`); if (nm) nm.value = p.name || '';
+                const k = ScoutManager.roleKind(p.role || p.position);
+                const r = q(`${info.t}-role-${info.idx}`); if (r && k && k !== 'L') r.value = k;
+            } else {
+                const n = q(`${info.t}-lnum-${info.idx}`); if (n) n.value = p.number === '' || p.number == null ? '' : String(p.number);
+                const nm = q(`${info.t}-lname-${info.idx}`); if (nm) nm.value = p.name || '';
             }
-        }));
+        };
+        el.querySelectorAll('input.sc-pick').forEach(inp => {
+            const info = parse(inp.dataset.f);
+            if (!info) return;
+            inp.addEventListener('focus', () => this.openPicker(inp, info, fill));
+            inp.addEventListener('click', () => this.openPicker(inp, info, fill));
+            inp.addEventListener('input', () => this.openPicker(inp, info, fill, true));
+            inp.addEventListener('keydown', (e) => this.pickerKey(e));
+            // numero scritto a mano: se è della squadra scelta, completa nome e ruolo
+            if (/num/.test(inp.dataset.f)) inp.addEventListener('change', () => {
+                const p = this.sourcePlayers(info.t).find(x => String(x.number) === inp.value.trim());
+                if (p) fill(info, p);
+            });
+        });
+    }
+
+    openPicker(inp, info, fill, filtering = false) {
+        const players = this.sourcePlayers(info.t);
+        let pk = this._picker;
+        if (!pk) {
+            pk = this._picker = document.createElement('div');
+            pk.className = 'sc-picker';
+            document.body.appendChild(pk);
+            pk.addEventListener('mousedown', (e) => e.preventDefault());       // il campo resta attivo
+            document.addEventListener('mousedown', (e) => {
+                if (this._picker && this._picker.style.display !== 'none' && !this._picker.contains(e.target) && !e.target.closest('input.sc-pick')) this.closePicker();
+            });
+        }
+        this._pickerCtx = { inp, info, fill };
+        const T = this.state.teams[info.t];
+        const team = this.pickerTeams().find(x => x.id === this.sourceId(info.t));
+        // giocatori già messi in questa formazione (letti dal modulo, non ancora salvati)
+        const form = this.root().querySelector('#scoutLineup');
+        const used = new Set();
+        form.querySelectorAll(`input[data-f^="${info.t}-"]`).forEach(i => {
+            if (i === inp) return;
+            if (/-(num|lnum)-/.test(i.dataset.f) && i.value.trim()) used.add('n' + i.value.trim());
+            if (/-(pname|lname)-/.test(i.dataset.f) && i.value.trim()) used.add('m' + i.value.trim().toLowerCase());
+        });
+        const q = filtering ? inp.value.trim().toLowerCase() : '';
+        const isNum = /num/.test(inp.dataset.f);
+        let list = players.map(p => ({ p, used: used.has('n' + p.number) || used.has('m' + String(p.name || '').toLowerCase()) }))
+            .filter(({ p }) => !q || (isNum ? String(p.number).startsWith(q) : String(p.name || '').toLowerCase().includes(q)));
+        // liberi in cima per le righe del libero, poi non usati, poi per numero
+        const lib = (p) => ScoutManager.roleKind(p.role) === 'L';
+        list.sort((a, b) => (info.kind === 'lib' ? lib(b.p) - lib(a.p) : lib(a.p) - lib(b.p)) || a.used - b.used || (Number(a.p.number) || 999) - (Number(b.p.number) || 999));
+        const esc = (v) => this.esc(v);
+        pk.innerHTML = !team
+            ? `<div class="sc-pk-empty">Scegli la <b>Squadra</b> qui sopra: la tua rosa o una squadra salvata in <b>Squadra → Archivio squadre</b>.</div>`
+            : !players.length
+                ? `<div class="sc-pk-empty">«${esc(team.name)}» non ha giocatori.</div>`
+                : `<div class="sc-pk-head">${esc(team.name)}</div>` + (list.length ? list.map(({ p, used }, i) =>
+                    `<div class="sc-pk-item${used ? ' used' : ''}${i === 0 ? ' active' : ''}" data-i="${players.indexOf(p)}">
+                        <span class="sc-pk-num">${p.number === '' || p.number == null ? '—' : esc(p.number)}</span>
+                        <span class="sc-pk-name">${esc(p.name)}</span>
+                        <span class="sc-pk-role">${esc(p.position || p.role || '')}</span>${used ? '<span class="sc-pk-used">già in formazione</span>' : ''}
+                    </div>`).join('') : `<div class="sc-pk-empty">Nessun giocatore corrisponde a «${esc(inp.value)}».</div>`);
+        pk.querySelectorAll('.sc-pk-item').forEach(it => it.addEventListener('click', () => this.pickPlayer(+it.dataset.i)));
+        const r = inp.getBoundingClientRect();
+        pk.style.display = 'block';
+        const w = Math.max(280, r.width);
+        pk.style.width = w + 'px';
+        pk.style.left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8)) + 'px';
+        const below = window.innerHeight - r.bottom;
+        pk.style.maxHeight = Math.max(160, Math.min(320, Math.max(below, r.top) - 16)) + 'px';
+        if (below >= 180 || below >= r.top) { pk.style.top = (r.bottom + 2) + 'px'; pk.style.bottom = ''; }
+        else { pk.style.top = ''; pk.style.bottom = (window.innerHeight - r.top + 2) + 'px'; }
+    }
+
+    pickPlayer(i) {
+        const ctx = this._pickerCtx;
+        if (!ctx) return;
+        const p = this.sourcePlayers(ctx.info.t)[i];
+        if (!p) return;
+        ctx.fill(ctx.info, p);
+        this.closePicker();
+        // passa alla riga successiva (comodo per fare la formazione di seguito)
+        const all = Array.from(this.root().querySelectorAll(`#scoutLineup input.sc-pick[data-f^="${ctx.info.t}-"][data-f*="name"]`));
+        const cur = all.findIndex(x => x.dataset.f.endsWith(ctx.info.idx) && x.dataset.f.includes(ctx.info.kind === 'zone' ? 'pname' : 'lname'));
+        const next = all[cur + 1];
+        if (next && !next.value) next.focus(); else ctx.inp.blur();
+    }
+
+    pickerKey(e) {
+        const pk = this._picker;
+        if (!pk || pk.style.display === 'none') return;
+        const items = Array.from(pk.querySelectorAll('.sc-pk-item'));
+        let i = items.findIndex(x => x.classList.contains('active'));
+        if (e.key === 'Escape') { this.closePicker(); return; }
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (!items.length) return;
+            i = (i + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
+            items.forEach((x, k) => x.classList.toggle('active', k === i));
+            items[i].scrollIntoView({ block: 'nearest' });
+        } else if (e.key === 'Enter' && i >= 0 && items[i]) {
+            e.preventDefault();
+            this.pickPlayer(+items[i].dataset.i);
+        } else if (e.key === 'Tab') this.closePicker();
+    }
+
+    closePicker() {
+        if (this._picker) this._picker.style.display = 'none';
+        this._pickerCtx = null;
     }
 
     // ---------------- Partita ----------------

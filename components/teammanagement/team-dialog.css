@@ -297,3 +297,16 @@ body.show-all-player-names .canvas-object .player-name-badge {
     border: 1px solid #c9973f; background: #c9973f; color: #1c1200;
 }
 .roster-paste-btn:hover { filter: brightness(1.08); }
+
+/* Archivio squadre */
+.team-archive-save { display: flex; gap: 8px; margin: 6px 0 8px; flex-wrap: wrap; }
+.team-archive-save input { flex: 1; min-width: 180px; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--line, #ccc); background: var(--bg-2, #fff); color: inherit; font: inherit; }
+.team-archive-list { display: flex; flex-direction: column; gap: 4px; }
+.team-archive-item { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border: 1px solid var(--line, #ddd); border-radius: 6px; }
+.team-archive-item .ta-name { font-weight: 600; }
+.team-archive-item .ta-meta { flex: 1; opacity: .65; font-size: 12px; }
+.team-archive-item button { padding: 4px 10px; border-radius: 5px; border: 1px solid var(--line, #bbb); background: transparent; color: inherit; cursor: pointer; font: inherit; font-size: 12px; }
+.team-archive-item button:hover { border-color: #c9973f; color: #c9973f; }
+.team-archive-item .ta-del:hover { border-color: #d1402c; color: #d1402c; }
+.team-archive-list .ta-empty { opacity: .6; margin: 2px 0; font-size: 12.5px; }
+.roster-import .ri-archname { flex-basis: 100%; max-width: 360px; margin-left: 24px; }

@@ -153,6 +153,17 @@ class TeamManagementDialog {
     </div>
 
     <div class="team-form-section full-width">
+        <h4>🗂 Archivio squadre</h4>
+        <p class="import-text-help">Salva la tua rosa o quelle degli avversari (anche importandole da file o incollandole: nell'anteprima
+            scegli <b>Salva come squadra in archivio</b>). Nello <b>Scout partita</b> le scegli per Casa e Ospiti.</p>
+        <div class="team-archive-save">
+            <input type="text" id="teamArchiveName" placeholder="Nome della squadra (es. Volley Torino U18)">
+            <button type="button" id="teamArchiveSaveBtn" class="roster-paste-btn">💾 Salva la rosa in archivio</button>
+        </div>
+        <div id="teamArchiveList" class="team-archive-list"></div>
+    </div>
+
+    <div class="team-form-section full-width">
         <h4>📋 Rosa Giocatori</h4>
         <div class="team-list" id="teamPlayersList"></div>
     </div>
@@ -225,6 +236,31 @@ class TeamManagementDialog {
             this.onPaste(e, false);
         });
         document.getElementById('rosterPasteBtn')?.addEventListener('click', () => this.pasteFromClipboard());
+        document.getElementById('teamArchiveSaveBtn')?.addEventListener('click', () => {
+            const inp = document.getElementById('teamArchiveName');
+            if (!this.teamPlayers.length) { alert('La rosa è vuota: aggiungi o importa prima i giocatori.'); return; }
+            const name = (inp?.value || '').trim();
+            if (!name) { alert('Scrivi il nome della squadra.'); inp?.focus(); return; }
+            if (this.saveToArchive(name, this.teamPlayers)) { inp.value = ''; this.flash(`Squadra «${name}» salvata in archivio.`); }
+        });
+        document.getElementById('teamArchiveList')?.addEventListener('click', (e) => {
+            const b = e.target.closest('button[data-arch]');
+            if (!b) return;
+            const id = b.dataset.id;
+            const team = this.getArchive().find(t => t.id === id);
+            if (!team) return;
+            if (b.dataset.arch === 'load') {
+                if (this.teamPlayers.length && !confirm(`Sostituire la rosa attuale (${this.teamPlayers.length} giocatori) con «${team.name}»?`)) return;
+                this.teamPlayers = team.players.map(p => ({ ...p }));
+                this.saveTeamToStorage();
+                this.renderPlayersList();
+                this.flash(`Rosa caricata da «${team.name}».`);
+            } else if (b.dataset.arch === 'del') {
+                if (!confirm(`Eliminare «${team.name}» dall'archivio?`)) return;
+                this.setArchive(this.getArchive().filter(t => t.id !== id));
+                this.renderArchiveList();
+            }
+        });
 
         // File scelto o trascinato: lettura e anteprima
         this.elements.importTeamFile?.addEventListener('change', (e) => this.importTeam(e));
@@ -276,6 +312,7 @@ class TeamManagementDialog {
     show() {
         this.dialog.showDialog();
         this.renderPlayersList();
+        this.renderArchiveList();
     }
 
     /**
@@ -323,6 +360,63 @@ class TeamManagementDialog {
         } catch (error) {
             console.error('Errore nel salvataggio della squadra:', error);
         }
+    }
+
+    // ============================================================
+    // ARCHIVIO SQUADRE (la propria e gli avversari, per lo Scout partita)
+    // ============================================================
+    getArchive() {
+        try {
+            const raw = this.editor.storage.get('teamArchive');
+            const list = raw ? JSON.parse(raw) : [];
+            return Array.isArray(list) ? list : [];
+        } catch (e) { return []; }
+    }
+
+    setArchive(list) {
+        try { this.editor.storage.set('teamArchive', JSON.stringify(list)); } catch (e) { console.error('Archivio squadre:', e); }
+    }
+
+    /** salva (o aggiorna, stesso nome) una squadra in archivio; false se annullato */
+    saveToArchive(name, players) {
+        const list = this.getArchive();
+        const key = name.trim().toLowerCase();
+        const clean = players.map(p => { const { image, ...rest } = p; return image && image.length < 60000 ? { ...rest, image } : rest; });
+        const ex = list.find(t => t.name.trim().toLowerCase() === key);
+        if (ex) {
+            if (!confirm(`In archivio c'è già «${ex.name}» (${ex.players.length} giocatori). Sostituirla?`)) return false;
+            ex.players = clean; ex.updated = Date.now();
+        } else {
+            list.push({ id: 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: name.trim(), players: clean, updated: Date.now() });
+        }
+        list.sort((a, b) => a.name.localeCompare(b.name, 'it'));
+        this.setArchive(list);
+        this.renderArchiveList();
+        return true;
+    }
+
+    /** squadre selezionabili altrove (Scout): la rosa attuale e quelle in archivio */
+    getPickerTeams() {
+        const out = [{ id: '__rosa__', name: 'La mia rosa (Squadra)', players: this.teamPlayers }];
+        return out.concat(this.getArchive());
+    }
+
+    renderArchiveList() {
+        const el = document.getElementById('teamArchiveList');
+        if (!el) return;
+        const list = this.getArchive();
+        const esc = (v) => String(v == null ? '' : v).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+        el.innerHTML = list.length ? list.map(t => `<div class="team-archive-item">
+                <span class="ta-name">${esc(t.name)}</span>
+                <span class="ta-meta">${t.players.length} giocatori${t.updated ? ' · ' + new Date(t.updated).toLocaleDateString('it-IT') : ''}</span>
+                <button type="button" data-arch="load" data-id="${t.id}" title="Sostituisce la rosa con questa squadra">Carica nella rosa</button>
+                <button type="button" data-arch="del" data-id="${t.id}" title="Elimina dall'archivio" class="ta-del">🗑</button>
+            </div>`).join('')
+            : '<p class="ta-empty">Nessuna squadra in archivio.</p>';
+    }
+
+    flash(msg) {
+        if (this.editor.flashMessage) this.editor.flashMessage(msg); else alert(msg);
     }
 
     // ============================================================
@@ -582,7 +676,8 @@ class TeamManagementDialog {
     // ============================================================
 
     openImportPreview(src) {
-        this.imp = { src, rows: RosterImport.trimTitleRows(src.rows || []), mode: this.teamPlayers.length ? 'merge' : 'replace', info: null, players: [] };
+        this.imp = { src, rows: RosterImport.trimTitleRows(src.rows || []), mode: this.teamPlayers.length ? 'merge' : 'replace', info: null, players: [],
+            archName: (src.name || '').replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim() };
         this.rebuildImport();
         if (!this.imp.players.length) {
             alert('Nessun giocatore riconosciuto in ' + (src.name ? '«' + src.name + '»' : 'questo testo') + '.' +
@@ -672,6 +767,8 @@ class TeamManagementDialog {
         html += `<div class="ri-mode">
             <label><input type="radio" name="riMode" value="merge" data-act="mode"${this.imp.mode === 'merge' ? ' checked' : ''}> Aggiungi alla rosa attuale <small>(stesso numero = aggiornato)</small></label>
             <label><input type="radio" name="riMode" value="replace" data-act="mode"${this.imp.mode === 'replace' ? ' checked' : ''}> Sostituisci tutta la rosa <small>(${this.teamPlayers.length} giocatori attuali)</small></label>
+            <label><input type="radio" name="riMode" value="archive" data-act="mode"${this.imp.mode === 'archive' ? ' checked' : ''}> Salva come squadra in archivio <small>(es. avversari)</small></label>
+            <input type="text" class="ri-archname" data-act="archname" placeholder="Nome della squadra" value="${esc(this.imp.archName || '')}"${this.imp.mode === 'archive' ? '' : ' hidden'}>
         </div>`;
         html += `<div class="ri-table-wrap"><table class="ri-table"><thead><tr>
             <th><input type="checkbox" data-act="all"${players.every(p => p.include !== false) ? ' checked' : ''} title="Tutti"></th>
@@ -697,10 +794,12 @@ class TeamManagementDialog {
         let upd = 0;
         if (this.imp.mode === 'merge') inc.forEach(p => { if (p.number !== null && this.teamPlayers.some(t => t.number === p.number)) upd++; });
         const sum = document.getElementById('rosterImportSummary');
-        if (sum) sum.innerHTML = `Verranno importati <b>${inc.length}</b> giocatori: ${inc.length - upd} nuovi` + (upd ? `, ${upd} aggiornati` : '') +
+        if (sum) sum.innerHTML = this.imp.mode === 'archive'
+            ? `Verrà salvata in archivio la squadra <b>${(this.imp.archName || '…').replace(/[<>&]/g, '')}</b> con <b>${inc.length}</b> giocatori · la tua rosa non cambia`
+            : `Verranno importati <b>${inc.length}</b> giocatori: ${inc.length - upd} nuovi` + (upd ? `, ${upd} aggiornati` : '') +
             (this.imp.mode === 'replace' && this.teamPlayers.length ? ` · <b>la rosa attuale (${this.teamPlayers.length}) verrà sostituita</b>` : '');
         const btn = document.getElementById('rosterImportConfirm');
-        if (btn) { btn.textContent = `Importa ${inc.length} giocatori`; btn.disabled = !inc.length; btn.style.opacity = inc.length ? '1' : '.5'; }
+        if (btn) { btn.textContent = this.imp.mode === 'archive' ? `Salva in archivio (${inc.length})` : `Importa ${inc.length} giocatori`; btn.disabled = !inc.length; btn.style.opacity = inc.length ? '1' : '.5'; }
     }
 
     onPreviewEdit(e, typing = false) {
@@ -721,6 +820,7 @@ class TeamManagementDialog {
             case 'inc': p.include = t.checked; break;
             case 'all': this.imp.players.forEach(q => { q.include = t.checked; }); break;
             case 'mode': this.imp.mode = t.value; break;
+            case 'archname': this.imp.archName = t.value; return this.updateImportSummary();
             case 'sheet': {
                 const i = +t.value;
                 this.imp.src.sheet = i;
@@ -760,6 +860,14 @@ class TeamManagementDialog {
             Object.entries(extra).forEach(([k, v]) => { if (v) out[k] = v; else if (old && old[k]) out[k] = old[k]; });
             return out;
         });
+        if (this.imp.mode === 'archive') {
+            const name = (this.imp.archName || '').trim();
+            if (!name) { alert('Scrivi il nome della squadra da salvare in archivio.'); document.querySelector('#rosterImportBody .ri-archname')?.focus(); return; }
+            if (!this.saveToArchive(name, fresh)) return;
+            this.previewWin.hideDialog();
+            this.flash(`Squadra «${name}» salvata in archivio con ${fresh.length} giocatori.`);
+            return;
+        }
         let roster;
         if (this.imp.mode === 'replace') roster = fresh;
         else {

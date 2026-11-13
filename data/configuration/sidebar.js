@@ -273,6 +273,7 @@ const rightSidebarConfig = [
         render: (editor) => {
             return `
                 <div class="workout-details">
+                    <button type="button" id="openExerciseWizard" class="exwiz-open-btn" title="Compila i dati dell'esercizio passo per passo">🧭 Compilazione guidata</button>
                     <div class="detail-row">
                         <div class="detail-field">
                             <label for="workoutDate">Data:</label>
@@ -440,6 +441,7 @@ const rightSidebarConfig = [
             `;
         },
         init: (editor) => {
+            document.getElementById('openExerciseWizard')?.addEventListener('click', () => editor.exerciseWizard?.open());
             // Event listeners per i campi
             const fields = [
                 { id: 'workoutPeriodo', prop: 'periodo' },
@@ -549,6 +551,13 @@ const rightSidebarConfig = [
                         input.value = initialOpt.textContent.trim();
                         clearBtn.style.display = input.value ? 'inline-block' : 'none';
                     }
+                    // valore cambiato da programma (cambio schema, caricamento, compilazione guidata)
+                    sel._syncSearchable = () => {
+                        const o = sel.options[sel.selectedIndex];
+                        input.value = o ? o.textContent.trim() : '';
+                        clearBtn.style.display = input.value ? 'inline-block' : 'none';
+                    };
+                    sel.addEventListener('change', sel._syncSearchable);
 
                     // Build flat list of options (preserve optgroup label)
                     const getOptionsList = () => {

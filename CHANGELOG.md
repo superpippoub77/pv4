@@ -5,6 +5,23 @@ e compaiono nella barra di stato ("VBProW4 by SpikeCode AI · Ott 2026 · Ver: 1
 Informazioni e nella guida (Riferimento → Novità). A ogni rilascio vanno aggiornati insieme a questo file
 e a `package.json`.
 
+## 1.14.0 — Nov 2026
+
+- **Pulsante ＋** (accanto alle schede e in alto): menu con le stesse scelte della schermata «Nessuno schema aperto» —
+  schema vuoto, apri dalla libreria, da file, crea da testo, lavagna, genera allenamento, piano allenamento.
+- **Compilazione guidata** 🧭 dei dati dell'esercizio (scheda *Esercizio*), in 5 passi con pulsanti grandi: nome, data e
+  luogo · genere, categoria, gruppo, ruolo · periodo e tipologia · serie, ripetizioni, tempo e recupero (± rapidi) ·
+  note. Si apre per ogni nuovo schema vuoto e all'avvio se lo schema è vuoto e non compilato; *Salta*, riapertura dal
+  pulsante nella scheda Esercizio, opzione per non aprirla in automatico. Scrive nei campi veri (salvataggio e libreria
+  invariati); il nome diventa il nome della scheda e il titolo.
+- **Archivio squadre** (finestra *Squadra*): salva la rosa con un nome, ricaricala, eliminala; nell'anteprima di
+  importazione la nuova scelta *Salva come squadra in archivio* (es. avversari da PDF/Excel/incolla) non tocca la rosa.
+- **Scout partita**: per Casa e Ospiti si sceglie la *Squadra* (la rosa o una dell'archivio); clic sul numero o sul
+  nome di una zona apre l'elenco dei giocatori (filtro scrivendo, frecce e Invio, già in formazione in grigio) che
+  compila numero, nome e ruolo e passa alla riga dopo; *Formazione automatica* anche per gli ospiti.
+- Corretto: ＋ da «Nessuno schema aperto» creava **due schede** (si usa la scheda vuota già pronta).
+- Corretto: i menu con ricerca della scheda Esercizio non mostravano il valore dopo un cambio di scheda o un caricamento.
+
 ## 1.13.1 — Nov 2026
 
 - **Importa giocatori con copia e incolla**: copia le righe da **Excel, Google Fogli, Google Documenti, Word,
