@@ -74,6 +74,21 @@ class ScoutManager {
         return '';
     }
 
+    /** Ruolo (P S C O L) di un giocatore della rosa/archivio: prima il ruolo esteso, poi la sigla esatta.
+     *  "Other", "All", "Coach"… non sono ruoli di campo (prima "Other" diventava O = Opposto). */
+    static playerKind(p) {
+        if (!p) return '';
+        const pos = String(p.position || '').toLowerCase();
+        if (/palleggi|alzat|regist|setter/.test(pos)) return 'P';
+        if (/libero|libera/.test(pos)) return 'L';
+        if (/centr|middle/.test(pos)) return 'C';
+        if (/oppost|diagonal|opposite/.test(pos)) return 'O';
+        if (/schiacc|banda|martell|laterale|attacc|ricett|outside|hitter/.test(pos)) return 'S';
+        const r = String(p.role || '').trim().toUpperCase();
+        const m = r.match(/^([PSCOL])\d?$/);
+        return m ? m[1] : '';
+    }
+
     newState() {
         const emptyTeam = (name, roles) => ({
             name,
@@ -341,26 +356,40 @@ class ScoutManager {
     fromTeam(t, rotation) {
         const roster = this.sourcePlayers(t);
         if (!roster.length) { this.flash(this.sourceId(t) ? 'La squadra scelta non ha giocatori' : 'Scegli prima la squadra (rosa o archivio)'); return; }
+        const K = (p) => ScoutManager.playerKind(p);
+        // ordine di preferenza: sigla (P1 prima di P2, S1 prima di S2…), poi numero
+        const rank = (p) => { const m = String(p.role || '').match(/(\d)$/); return (m ? +m[1] : 5) * 1000 + (Number(p.number) || 999); };
+        const pool = roster.filter(p => p && p.name).slice().sort((a, b) => rank(a) - rank(b));
         const used = new Set();
-        const pick = (roles) => {
-            for (const r of roles) {
-                const p = roster.find(x => x.role === r && !used.has(x));
-                if (p) { used.add(p); return p; }
-            }
-            return null;
-        };
-        const alt = { P: ['P1', 'P2'], S1: ['S1', 'S2'], S2: ['S2', 'S1'], O: ['O'], C1: ['C1', 'C2'], C2: ['C2', 'C1'] };
-        const lineup = new Array(6);
-        ScoutManager.LINEUP_P1.forEach((role, i) => {
-            const zone = ((i + rotation - 1) % 6) + 1;
-            const p = pick(alt[role] || [role]);
-            lineup[zone - 1] = { num: p ? String(p.number) : '', name: p ? (p.name || '') : '', role: role.charAt(0) };
+        const take = (kind) => { const p = pool.find(x => !used.has(x) && K(x) === kind); if (p) used.add(p); return p || null; };
+        const notes = [];
+        // sistema 5-1 in P1: P, S, C, O, S, C (zone 1…6)
+        const slots = ['P', 'S', 'C', 'O', 'S', 'C'];
+        const chosen = slots.map(k => take(k));
+        // ruolo mancante: un giocatore di movimento rimasto (mai un secondo palleggiatore o un libero, se si può evitare)
+        const NAMES = ScoutManager.ROLE_NAMES;
+        chosen.forEach((p, i) => {
+            if (p) return;
+            const k = slots[i];
+            const prefs = k === 'P' ? ['P'] : k === 'S' ? ['O', 'C', ''] : k === 'C' ? ['S', 'O', ''] : ['S', 'C', ''];
+            let alt = null;
+            for (const pk of prefs) { alt = pool.find(x => !used.has(x) && K(x) === pk); if (alt) break; }
+            if (!alt && k !== 'P') alt = pool.find(x => !used.has(x) && K(x) !== 'L' && K(x) !== 'P');
+            if (alt) { used.add(alt); chosen[i] = alt; notes.push(`manca ${k === 'S' ? 'una banda' : 'un ' + NAMES[k].toLowerCase()}: messo ${alt.name}`); }
+            else notes.push(`manca ${k === 'S' ? 'una banda' : 'un ' + NAMES[k].toLowerCase()}`);
         });
-        const libs = roster.filter(x => /^L/.test(x.role)).slice(0, 2);
+        const lineup = new Array(6);
+        slots.forEach((k, i) => {
+            const zone = ((i + rotation - 1) % 6) + 1;
+            const p = chosen[i];
+            lineup[zone - 1] = { num: p && p.number !== '' && p.number != null ? String(p.number) : '', name: p ? (p.name || '') : '', role: k };
+        });
+        const libs = pool.filter(x => !used.has(x) && K(x) === 'L').slice(0, 2);
         const T = this.state.teams[t];
         T.lineup = lineup;
-        T.liberi = [0, 1].map(i => ({ num: libs[i] ? String(libs[i].number) : '', name: libs[i]?.name || '' }));
+        T.liberi = [0, 1].map(i => ({ num: libs[i] && libs[i].number !== '' ? String(libs[i].number) : '', name: libs[i]?.name || '' }));
         this.renderLineupForm();
+        if (notes.length) this.flash(`${T.name}: ${notes.join(' · ')}`);
     }
 
     readLineupForm() {
@@ -384,6 +413,32 @@ class ScoutManager {
         st.firstServe = root.querySelector('input[name="scFirstServe"]:checked')?.value || st.firstServe;
     }
 
+    /** Composizione del sestetto (5-1): 1 palleggiatore, 2 bande, 2 centrali, 1 opposto. Messaggi per squadra. */
+    lineupWarnings(roles) {
+        const c = { P: 0, S: 0, C: 0, O: 0 };
+        roles.forEach(r => { if (c[r] !== undefined) c[r]++; });
+        const w = [];
+        if (c.P === 0) w.push('nessun palleggiatore');
+        if (c.P > 1) w.push(`${c.P} palleggiatori`);
+        if (c.S < 2) w.push(c.S === 1 ? 'manca una banda' : 'mancano le bande');
+        if (c.C < 2) w.push(c.C === 1 ? 'manca un centrale' : 'mancano i centrali');
+        if (c.O < 1) w.push("manca l'opposto");
+        return w;
+    }
+
+    updateLineupWarnings() {
+        const el = this.root().querySelector('#scoutLineup');
+        if (!el) return;
+        ScoutManager.TEAMS.forEach(t => {
+            const box = el.querySelector(`[data-warn="${t}"]`);
+            if (!box) return;
+            const roles = [1, 2, 3, 4, 5, 6].map(z => el.querySelector(`[data-f="${t}-role-${z}"]`)?.value || '');
+            const w = this.lineupWarnings(roles);
+            box.textContent = w.length ? '⚠ Sestetto: ' + w.join(' · ') + ' (controlla i ruoli o usa Formazione automatica)' : '';
+            box.style.display = w.length ? '' : 'none';
+        });
+    }
+
     validateLineups() {
         const st = this.state;
         for (const t of ScoutManager.TEAMS) {
@@ -402,6 +457,11 @@ class ScoutManager {
         this.readLineupForm();
         const err = this.validateLineups();
         if (err) { this.flash(err); return; }
+        const warns = ScoutManager.TEAMS.map(t => {
+            const w = this.lineupWarnings(this.state.teams[t].lineup.map(p => ScoutManager.roleKind(p.role)));
+            return w.length ? `${this.state.teams[t].name}: ${w.join(', ')}` : '';
+        }).filter(Boolean);
+        if (warns.length && !confirm(`Controlla il sestetto:\n${warns.join('\n')}\n\nIniziare lo stesso?`)) return;
         this.pushUndo();
         const st = this.state;
         ScoutManager.TEAMS.forEach(t => { st.rot[t] = st.teams[t].lineup.map(p => String(p.num)); });
@@ -633,6 +693,7 @@ class ScoutManager {
                 </div>
                 <table class="sc-form-table"><thead><tr><th>Zona</th><th>N°</th><th>Nome</th><th>Ruolo</th></tr></thead><tbody>${rows}</tbody>
                 <tbody class="sc-libs">${libs}</tbody></table>
+                <div class="sc-warn" data-warn="${t}"></div>
             </div>`;
         };
         el.innerHTML = `${datalist}
@@ -667,6 +728,8 @@ class ScoutManager {
             this.renderLineupForm();
         }));
         this.bindPlayerPicker(el);
+        el.querySelectorAll('select[data-f*="-role-"]').forEach(sel => sel.addEventListener('change', () => this.updateLineupWarnings()));
+        this.updateLineupWarnings();
         el.querySelectorAll('[data-rot]').forEach(s => s.addEventListener('change', () => this.rotateForm(s.dataset.rot, parseInt(s.value, 10))));
         el.querySelector('[data-act="start"]')?.addEventListener('click', () => this.startSet());
         el.querySelector('[data-act="reset"]')?.addEventListener('click', () => this.resetMatch());
@@ -686,7 +749,7 @@ class ScoutManager {
             if (info.kind === 'zone') {
                 const n = q(`${info.t}-num-${info.idx}`); if (n) n.value = p.number === '' || p.number == null ? '' : String(p.number);
                 const nm = q(`${info.t}-pname-${info.idx}`); if (nm) nm.value = p.name || '';
-                const k = ScoutManager.roleKind(p.role || p.position);
+                const k = ScoutManager.playerKind(p);
                 const r = q(`${info.t}-role-${info.idx}`); if (r && k && k !== 'L') r.value = k;
             } else {
                 const n = q(`${info.t}-lnum-${info.idx}`); if (n) n.value = p.number === '' || p.number == null ? '' : String(p.number);
@@ -726,18 +789,26 @@ class ScoutManager {
         // giocatori già messi in questa formazione (letti dal modulo, non ancora salvati)
         const form = this.root().querySelector('#scoutLineup');
         const used = new Set();
+        const sameRow = info.kind === 'zone'
+            ? [`${info.t}-num-${info.idx}`, `${info.t}-pname-${info.idx}`]
+            : [`${info.t}-lnum-${info.idx}`, `${info.t}-lname-${info.idx}`];
         form.querySelectorAll(`input[data-f^="${info.t}-"]`).forEach(i => {
-            if (i === inp) return;
+            if (sameRow.includes(i.dataset.f)) return;     // la riga che si sta cambiando non conta
             if (/-(num|lnum)-/.test(i.dataset.f) && i.value.trim()) used.add('n' + i.value.trim());
             if (/-(pname|lname)-/.test(i.dataset.f) && i.value.trim()) used.add('m' + i.value.trim().toLowerCase());
         });
         const q = filtering ? inp.value.trim().toLowerCase() : '';
         const isNum = /num/.test(inp.dataset.f);
-        let list = players.map(p => ({ p, used: used.has('n' + p.number) || used.has('m' + String(p.name || '').toLowerCase()) }))
+        // lo staff (allenatori, dirigenti, fisioterapisti) non va in campo
+        const staff = (p) => !ScoutManager.playerKind(p) && (/^(All|Coach|Physio|Dir)$/i.test(String(p.role || '')) || /allenat|coach|dirigent|fisio|prepar|medic|manager|presid/i.test(String(p.position || '')));
+        let list = players.filter(p => !staff(p)).map(p => ({ p, used: used.has('n' + p.number) || used.has('m' + String(p.name || '').toLowerCase()) }))
             .filter(({ p }) => !q || (isNum ? String(p.number).startsWith(q) : String(p.name || '').toLowerCase().includes(q)));
         // liberi in cima per le righe del libero, poi non usati, poi per numero
-        const lib = (p) => ScoutManager.roleKind(p.role) === 'L';
-        list.sort((a, b) => (info.kind === 'lib' ? lib(b.p) - lib(a.p) : lib(a.p) - lib(b.p)) || a.used - b.used || (Number(a.p.number) || 999) - (Number(b.p.number) || 999));
+        const lib = (p) => ScoutManager.playerKind(p) === 'L';
+        // ruolo scelto nella riga (es. Z2 = S): quei giocatori in cima
+        const rowRole = info.kind === 'zone' ? (form.querySelector(`[data-f="${info.t}-role-${info.idx}"]`)?.value || '') : 'L';
+        const fit = (p) => ScoutManager.playerKind(p) === rowRole ? 0 : 1;
+        list.sort((a, b) => a.used - b.used || fit(a.p) - fit(b.p) || (info.kind === 'lib' ? lib(b.p) - lib(a.p) : lib(a.p) - lib(b.p)) || (Number(a.p.number) || 999) - (Number(b.p.number) || 999));
         const esc = (v) => this.esc(v);
         pk.innerHTML = !team
             ? `<div class="sc-pk-empty">Scegli la <b>Squadra</b> qui sopra: la tua rosa o una squadra salvata in <b>Squadra → Archivio squadre</b>.</div>`
@@ -747,7 +818,7 @@ class ScoutManager {
                     `<div class="sc-pk-item${used ? ' used' : ''}${i === 0 ? ' active' : ''}" data-i="${players.indexOf(p)}">
                         <span class="sc-pk-num">${p.number === '' || p.number == null ? '—' : esc(p.number)}</span>
                         <span class="sc-pk-name">${esc(p.name)}</span>
-                        <span class="sc-pk-role">${esc(p.position || p.role || '')}</span>${used ? '<span class="sc-pk-used">già in formazione</span>' : ''}
+                        <span class="sc-pk-role${ScoutManager.playerKind(p) === rowRole ? ' fit' : ''}">${esc(p.position || ScoutManager.ROLE_NAMES[ScoutManager.playerKind(p)] || p.role || '')}</span>${used ? '<span class="sc-pk-used">già in formazione</span>' : ''}
                     </div>`).join('') : `<div class="sc-pk-empty">Nessun giocatore corrisponde a «${esc(inp.value)}».</div>`);
         pk.querySelectorAll('.sc-pk-item').forEach(it => it.addEventListener('click', () => this.pickPlayer(+it.dataset.i)));
         const r = inp.getBoundingClientRect();
@@ -768,6 +839,7 @@ class ScoutManager {
         if (!p) return;
         ctx.fill(ctx.info, p);
         this.closePicker();
+        this.updateLineupWarnings();
         // passa alla riga successiva (comodo per fare la formazione di seguito)
         const all = Array.from(this.root().querySelectorAll(`#scoutLineup input.sc-pick[data-f^="${ctx.info.t}-"][data-f*="name"]`));
         const cur = all.findIndex(x => x.dataset.f.endsWith(ctx.info.idx) && x.dataset.f.includes(ctx.info.kind === 'zone' ? 'pname' : 'lname'));
