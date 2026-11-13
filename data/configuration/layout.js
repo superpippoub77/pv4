@@ -11,7 +11,7 @@
 
 // Versione e mese di rilascio (come in SpikeCut): da aggiornare a ogni rilascio,
 // insieme a CHANGELOG.md, package.json e alla sezione "Novità" della guida.
-const APP_VERSION = "1.13.1";
+const APP_VERSION = "1.14.0";
 const APP_RELEASE = "Nov 2026";
 
 // Icone in stile SpikeCut (viewBox 22, tratto 1.6)
@@ -83,7 +83,7 @@ const layoutConfig = {
         ],
         "spacer",
         [
-            { type: "button", id: "btnNewTab", text: "＋", title: "Nuovo schema", onClick: (ed) => ed.addNewTab() },
+            { type: "button", id: "btnNewTab", text: "＋", title: "Nuovo esercizio: schema vuoto, dalla libreria, da file, da testo…", onClick: (ed, ev) => ed.showNewChooser(ev && ev.currentTarget) },
             { type: "button", id: "btnLoadTop", text: "⇪", title: "Carica uno schema (.json)", onClick: () => document.getElementById("fileInput").click() },
             { type: "button", id: "btnHelpTop", text: "?", title: "Guida (F1)", onClick: (ed) => ed.menuManager.showHelpDialog?.() }
         ],

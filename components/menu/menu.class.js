@@ -150,7 +150,7 @@ class MenuManager {
     executeMenuAction(action, size, bg) {
         const actions = {
             // ========== FILE ==========
-            'newSchema': () => this.editor.addNewTab(),
+            'newSchema': () => (this.editor.newSchemaByUser ? this.editor.newSchemaByUser() : this.editor.addNewTab()),
             'saveSchema': () => this.editor.saveSchema(),
             'loadSchema': () => document.getElementById('fileInput').click(),
             'saveWorkout': () => this.editor.showSaveWorkoutDialog(),

@@ -966,3 +966,20 @@ body.no-docs #sphereResetBtn { display: none !important; }
     box-shadow: 0 4px 16px rgba(0, 0, 0, .35); transition: opacity .2s, transform .2s;
 }
 .pv4-flash.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* Menu del pulsante ＋: come iniziare un nuovo esercizio */
+.new-chooser {
+    position: fixed; z-index: 100002; display: none; width: 300px; padding: 6px;
+    background: var(--bg-1, #1f2023); border: 1px solid var(--line, #3a3b3e); border-radius: 10px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, .45);
+}
+.new-chooser .nc-title { padding: 4px 8px 6px; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--brass, #c9973f); }
+.new-chooser .nc-item {
+    display: flex; align-items: center; gap: 10px; width: 100%; padding: 7px 8px; border: 0; border-radius: 6px;
+    background: transparent; color: var(--ink, #e9e6df); font: inherit; font-size: 13px; text-align: left; cursor: pointer;
+}
+.new-chooser .nc-item:hover, .new-chooser .nc-item:focus { background: var(--bg-2, #2b2c30); outline: none; }
+.new-chooser .nc-item.primary { color: var(--brass, #c9973f); font-weight: 600; }
+.new-chooser .nc-ic { width: 20px; text-align: center; flex: none; }
+.new-chooser .nc-tx { display: flex; flex-direction: column; }
+.new-chooser .nc-tx small { font-size: 11px; color: var(--ink-dim, #a9a49a); font-weight: 400; }

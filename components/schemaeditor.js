@@ -132,6 +132,7 @@ class SchemaEditor {
         this.workoutGenerator = new WorkoutGenerator(this);
         this.rotationBoard = new RotationBoard(this);
         this.scout = (typeof ScoutManager !== 'undefined') ? new ScoutManager(this) : null;
+        this.exerciseWizard = (typeof ExerciseWizard !== 'undefined') ? new ExerciseWizard(this) : null;
         this.workoutPlan = new WorkoutPlan(this);
         if (window.VideoObjects) VideoObjects.init(this);
         // Unico gestore del login, creato in index.html (crearne un altro aggiungeva una seconda finestra di accesso)
@@ -288,6 +289,8 @@ class SchemaEditor {
         this.layout?.afterInit();
         // modalità 2D/3D della scheda aperta (galleria, sfera, pulsanti) già all'avvio
         try { this.applyDrawModeUI(); } catch (e) { /* ignore */ }
+        // schema vuoto e dati dell'esercizio non compilati: compilazione guidata
+        setTimeout(() => { try { this.exerciseWizard?.maybeOpen(false); } catch (e) { /* ignore */ } }, 900);
         // grafica pronta: via la schermata di caricamento (al frame dopo, a impaginazione fatta)
         requestAnimationFrame(() => window.pv4BootDone?.());
     }
@@ -1020,7 +1023,7 @@ class SchemaEditor {
     executeMenuAction(action, size, bg) {
         const actions = {
             // File
-            'newSchema': () => this.addNewTab(),
+            'newSchema': () => this.newSchemaByUser(),
             'saveSchema': () => this.saveSchema(),
             'loadSchema': () => document.getElementById('fileInput').click(),
             'saveWorkout': () => this.workoutManager.show(),
@@ -4676,7 +4679,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             }
         });
 
-        document.querySelector('.add-tab').addEventListener('click', () => this.addNewTab());
+        document.querySelector('.add-tab').addEventListener('click', (e) => this.showNewChooser(e.currentTarget));
         document.getElementById('backgroundSelect').addEventListener('change', (e) => {
             this.getCurrentTab().background = e.target.value;
             this.updateBackground();
@@ -9376,7 +9379,25 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         this.updateBackground();
     }
 
+    /** Nuovo schema chiesto dall'utente (＋, menu): poi la compilazione guidata dei dati dell'esercizio */
+    newSchemaByUser() {
+        const r = this.addNewTab();
+        setTimeout(() => { try { this.exerciseWizard?.maybeOpen(true); } catch (e) { console.warn('wizard', e); } }, 150);
+        return r;
+    }
+
+    /** I menu con ricerca della scheda Esercizio mostrano il valore attuale (dopo cambio schema o caricamento) */
+    syncDetailSelects() {
+        document.querySelectorAll('.workout-details select').forEach(sel => { if (sel._syncSearchable) sel._syncSearchable(); });
+    }
+
     addNewTab() {
+        // Da «Nessuno schema aperto» dietro c'è già una scheda vuota nascosta: si usa quella
+        // (prima se ne creava un'altra e comparivano due schede)
+        if (this.noDocs) {
+            const cur = this.getCurrentTab();
+            if (cur && !this.tabHasWork(cur)) { this.setNoDocs(false); return; }
+        }
         // dopo il ripristino delle schede il contatore può essere indietro: mai riusare un numero già in uso
         while (this.tabs.has(this.nextTabId)) this.nextTabId++;
         const id = this.nextTabId++;
@@ -9393,6 +9414,51 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     // una schermata con le scelte possibili. Dietro resta una scheda vuota
     // nascosta, così il resto dell'editor ha sempre una scheda attiva.
     // ------------------------------------------------------------------
+    /** Modi per iniziare un esercizio: schermata «Nessuno schema aperto» e menu del pulsante ＋ */
+    startActions() {
+        return [
+            { key: 'new', icon: '＋', label: 'Nuovo schema vuoto', hint: 'con la compilazione guidata dei dati', primary: true, run: () => this.newSchemaByUser() },
+            { key: 'library', icon: '☁', label: 'Apri dalla libreria', run: () => window.Pv4Library?.open() },
+            { key: 'file', icon: '📂', label: 'Apri uno schema da file (.json)', run: () => document.getElementById('fileInput')?.click() },
+            { key: 'text', icon: '✨', label: 'Crea un esercizio da testo', run: () => this.textExerciseManager?.show() },
+            { key: 'board', icon: '🏐', label: 'Apri la lavagna', hint: 'rotazioni P1…P6, break point, side out', run: () => this.rotationBoard?.show() },
+            { key: 'workout', icon: '🗓', label: 'Genera un allenamento', run: () => this.workoutGenerator?.show() },
+            { key: 'plan', icon: '📋', label: 'Piano allenamento', hint: 'anche da PDF', run: () => this.workoutPlan?.show() }
+        ];
+    }
+
+    /** Pulsante ＋ (barra delle schede e barra in alto): menu con le stesse scelte della schermata iniziale */
+    showNewChooser(anchor) {
+        // senza schemi aperti la schermata iniziale è già la scelta: ＋ crea lo schema vuoto
+        if (this.noDocs) { this.newSchemaByUser(); return; }
+        let m = document.getElementById('newChooser');
+        if (m && m.style.display !== 'none') { m.style.display = 'none'; return; }
+        if (!m) {
+            m = document.createElement('div');
+            m.id = 'newChooser';
+            m.className = 'new-chooser';
+            m.innerHTML = '<div class="nc-title">Nuovo esercizio</div>' + this.startActions().map(a =>
+                `<button type="button" class="nc-item${a.primary ? ' primary' : ''}" data-nc="${a.key}"><span class="nc-ic">${a.icon}</span><span class="nc-tx">${a.label}${a.hint ? `<small>${a.hint}</small>` : ''}</span></button>`).join('');
+            m.addEventListener('click', (e) => {
+                const b = e.target.closest('[data-nc]');
+                if (!b) return;
+                m.style.display = 'none';
+                this.startActions().find(a => a.key === b.dataset.nc)?.run();
+            });
+            document.addEventListener('mousedown', (e) => {
+                if (m.style.display !== 'none' && !m.contains(e.target) && !e.target.closest('.add-tab, #btnNewTab')) m.style.display = 'none';
+            });
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') m.style.display = 'none'; });
+            document.body.appendChild(m);
+        }
+        m.style.display = 'block';
+        const r = (anchor || document.querySelector('.add-tab')).getBoundingClientRect();
+        const w = m.offsetWidth, h = m.offsetHeight;
+        m.style.left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8)) + 'px';
+        m.style.top = (r.bottom + h + 8 < window.innerHeight ? r.bottom + 4 : Math.max(8, r.top - h - 4)) + 'px';
+        m.querySelector('.nc-item')?.focus();
+    }
+
     buildEmptyState() {
         if (document.getElementById('emptyState')) return;
         const host = document.querySelector('.canvas-container');
@@ -9405,27 +9471,12 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 <div class="es-icon">🏐</div>
                 <h2>Nessuno schema aperto</h2>
                 <p>Crea un nuovo schema oppure apri un esercizio o un allenamento esistente.</p>
-                <button class="btn primary" data-es="new">＋ Nuovo schema</button>
-                <button class="btn" data-es="library">☁ Apri dalla libreria</button>
-                <button class="btn" data-es="file">📂 Apri uno schema da file (.json)</button>
-                <button class="btn" data-es="board">🏐 Apri la lavagna (rotazioni P1…P6, break point, side out)</button>
-                <button class="btn" data-es="text">✨ Crea un esercizio da testo</button>
-                <button class="btn" data-es="workout">🗓 Genera un allenamento</button>
-                <button class="btn" data-es="plan">📋 Piano allenamento (anche da PDF)</button>
+                ${this.startActions().map(a => `<button class="btn${a.primary ? ' primary' : ''}" data-es="${a.key}">${a.icon} ${a.label}${a.hint ? ` (${a.hint})` : ''}</button>`).join('')}
             </div>`;
         el.addEventListener('click', (e) => {
             const b = e.target.closest('[data-es]');
             if (!b) return;
-            const actions = {
-                new: () => this.setNoDocs(false),
-                library: () => window.Pv4Library?.open(),
-                file: () => document.getElementById('fileInput')?.click(),
-                board: () => this.rotationBoard?.show(),
-                text: () => this.textExerciseManager?.show(),
-                workout: () => this.workoutGenerator?.show(),
-                plan: () => this.workoutPlan?.show()
-            };
-            actions[b.dataset.es]?.();
+            this.startActions().find(a => a.key === b.dataset.es)?.run();
         });
         host.appendChild(el);
     }
@@ -9607,6 +9658,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         document.getElementById('workoutTipologia').value = tab.tipologia || 'GEN';
         document.getElementById('workoutGenere').value = tab.genere || 'GEN';
         document.getElementById('workoutCategoria').value = tab.categoria || 'GEN';
+        this.syncDetailSelects();
         document.getElementById('workoutDescrizione').value = tab.descrizione || '';
         document.getElementById('workoutAutore').value = tab.autore || this.currentUser;
 
@@ -10737,6 +10789,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         document.getElementById('workoutTipologia').value = tab.tipologia;
         document.getElementById('workoutGenere').value = tab.genere;
         document.getElementById('workoutCategoria').value = tab.categoria;
+        this.syncDetailSelects();
         document.getElementById('workoutDescrizione').value = tab.descrizione;
         document.getElementById('workoutAutore').value = tab.autore;
         document.getElementById('workoutDate').value = tab.date;

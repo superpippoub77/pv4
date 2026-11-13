@@ -1,0 +1,60 @@
+/* Compilazione guidata dei dati dell'esercizio */
+.exwiz { display: flex; flex-direction: column; gap: 10px; font-size: 14px; color: var(--ink, #222); }
+.exwiz h3 { margin: 4px 0 0; font-size: 18px; }
+.exwiz .exwiz-hint { margin: 0 0 4px; opacity: .7; }
+
+.exwiz-steps { display: flex; gap: 6px; flex-wrap: wrap; padding-bottom: 8px; border-bottom: 1px solid var(--line, #ddd); }
+.exwiz-dot {
+    display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px 4px 4px; border-radius: 999px;
+    border: 1px solid var(--line, #ccc); background: transparent; color: inherit; font: inherit; font-size: 12.5px; cursor: pointer; opacity: .7;
+}
+.exwiz-dot span {
+    display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%;
+    background: var(--bg-2, #eee); font-size: 11px; font-weight: 700;
+}
+.exwiz-dot.done { opacity: .9; }
+.exwiz-dot.done span { background: #3fae6a; color: #fff; }
+.exwiz-dot.on { opacity: 1; border-color: var(--brass, #c9973f); color: var(--brass, #8a6a30); }
+.exwiz-dot.on span { background: var(--brass, #c9973f); color: #1c1200; }
+
+.exwiz-field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+.exwiz-field span, .exwiz-label, .exwiz-num > span { font-size: 12.5px; font-weight: 600; opacity: .8; }
+.exwiz input[type=text], .exwiz input[type=date], .exwiz input[type=number], .exwiz textarea, .exwiz select {
+    padding: 8px 10px; border-radius: 6px; border: 1px solid var(--line, #ccc); background: var(--bg-2, #fff);
+    color: inherit; font: inherit; width: 100%; box-sizing: border-box;
+}
+.exwiz textarea { resize: vertical; min-height: 120px; }
+.exwiz-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.exwiz-row .exwiz-field { min-width: 180px; }
+.exwiz-label { margin-top: 4px; }
+
+.exwiz-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.exwiz-group { flex-basis: 100%; font-size: 11.5px; opacity: .6; margin-top: 4px; }
+.exwiz-chip {
+    display: inline-flex; flex-direction: column; align-items: flex-start; gap: 1px;
+    padding: 6px 12px; border-radius: 8px; border: 1px solid var(--line, #ccc); background: var(--bg-2, #f4f4f4);
+    color: inherit; font: inherit; font-size: 13px; cursor: pointer;
+}
+.exwiz-chip small { font-size: 11px; opacity: .65; }
+.exwiz-chip:hover { border-color: var(--brass, #c9973f); }
+.exwiz-chip.on { background: var(--brass, #c9973f); border-color: var(--brass, #c9973f); color: #1c1200; font-weight: 600; }
+.exwiz-chip.on small { opacity: .8; }
+
+.exwiz-nums { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.exwiz-num { display: flex; flex-direction: column; gap: 4px; }
+.exwiz-numrow { display: flex; align-items: center; gap: 4px; }
+.exwiz-numrow input { text-align: center; font-size: 16px; font-weight: 600; }
+.exwiz-numrow button {
+    flex: 0 0 36px; height: 36px; border-radius: 6px; border: 1px solid var(--line, #ccc); background: var(--bg-2, #eee);
+    color: inherit; font-size: 18px; cursor: pointer;
+}
+.exwiz-numrow em { font-style: normal; opacity: .7; }
+
+.exwiz-auto { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 12px; opacity: .7; cursor: pointer; }
+
+/* pulsante nella scheda Esercizio */
+.exwiz-open-btn {
+    width: 100%; margin: 0 0 10px; padding: 8px 10px; border-radius: 6px; cursor: pointer; font: inherit; font-weight: 600;
+    border: 1px solid var(--brass, #c9973f); background: rgba(201, 151, 63, .12); color: var(--brass, #c9973f);
+}
+.exwiz-open-btn:hover { background: rgba(201, 151, 63, .22); }

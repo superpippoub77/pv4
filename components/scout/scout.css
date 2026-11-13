@@ -135,3 +135,21 @@
     .scout .sc-skills { margin-left: 0; }
     .scout .sc-sb-score b { font-size: 26px; }
 }
+
+/* ---- Scelta dei giocatori dalla squadra (elenco a comparsa) ---- */
+.scout .sc-form-tools .sc-source { max-width: 220px; }
+.scout input.sc-pick { cursor: pointer; }
+.sc-picker {
+    position: fixed; z-index: 100001; display: none; overflow-y: auto;
+    background: var(--bg-1, #fff); color: var(--ink, #222); border: 1px solid var(--brass, #c9973f);
+    border-radius: 8px; box-shadow: 0 10px 28px rgba(0, 0, 0, .35); font-size: 13px; padding: 4px 0;
+}
+.sc-picker .sc-pk-head { padding: 4px 10px 6px; font-size: 11.5px; font-weight: 700; color: var(--brass, #8a6a30); text-transform: uppercase; letter-spacing: .04em; }
+.sc-picker .sc-pk-item { display: flex; align-items: center; gap: 8px; padding: 6px 10px; cursor: pointer; }
+.sc-picker .sc-pk-item:hover, .sc-picker .sc-pk-item.active { background: rgba(201, 151, 63, .18); }
+.sc-picker .sc-pk-item.used { opacity: .45; }
+.sc-picker .sc-pk-num { min-width: 28px; text-align: center; font-weight: 700; font-family: var(--mono, monospace); }
+.sc-picker .sc-pk-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sc-picker .sc-pk-role { font-size: 11.5px; opacity: .7; white-space: nowrap; }
+.sc-picker .sc-pk-used { font-size: 10.5px; opacity: .8; white-space: nowrap; }
+.sc-picker .sc-pk-empty { padding: 8px 12px; line-height: 1.5; opacity: .85; }
