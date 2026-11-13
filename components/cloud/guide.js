@@ -213,10 +213,12 @@ html:`<p>Nella scheda <b>Step</b> del pannello a destra scrivi le fasi dell'eser
 html:`<p>La scheda <b>Esercizio</b> del pannello a destra contiene i dati che finiscono nella scheda di allenamento: periodo, ruolo, tipologia, genere e categoria, descrizione, autore, data e luogo, numero, serie, gruppi, durata e recupero.</p>
 <p>Con <b>File → Salva allenamento…</b> riunisci più esercizi in un allenamento completo.</p>` },
 
-{ id:'animazione', cat:'Esercizi', title:'Animazione, macro e squadra', keys:'animazione frame fotogrammi movimento play velocità macro registra squadra rosa giocatori nomi foto',
+{ id:'animazione', cat:'Esercizi', title:'Animazione, macro e squadra', keys:'animazione frame fotogrammi movimento play velocità macro registra squadra rosa giocatori nomi foto importa importare excel csv pdf word docx elenco convocati foglio ocr anteprima',
 html:`<ul><li><b>Animazione</b>: salvi le posizioni degli oggetti in fotogrammi successivi e riproduci il movimento, con la velocità che preferisci.</li>
 <li><b>Macro</b>: registri una sequenza di operazioni e la riproduci quando serve.</li>
-<li><b>Squadra</b>: la rosa dei giocatori (ruolo, numero, nome e foto). Con l'interruttore <b>nomi</b> nella barra di stato i giocatori sul campo mostrano nome e numero.</li></ul>` },
+<li><b>Squadra</b>: la rosa dei giocatori (ruolo, numero, nome, foto e dettagli). Con l'interruttore <b>nomi</b> nella barra di stato i giocatori sul campo mostrano nome e numero.</li>
+<li><b>Importa giocatori</b> (finestra Squadra): trascina o scegli un file <b>Excel/ODS, CSV, PDF, Word (.docx), testo, JSON</b> o la <b>foto di un foglio</b> scritto o stampato, oppure incolla l'elenco e premi <i>Importa testo</i>. Vengono riconosciuti numero, nome e cognome, ruolo (palleggiatore, schiacciatore/banda, centrale, opposto, libero, staff), nascita, altezza, email, telefono e note, in qualsiasi ordine.</li>
+<li>Prima di confermare si apre l'<b>anteprima</b>: puoi cambiare il significato delle colonne, scegliere il foglio, correggere numero, nome e ruolo, escludere righe e scegliere se <i>aggiungere alla rosa</i> (stesso numero = aggiornato) o <i>sostituirla</i>. Gli avvisi (numero mancante o ripetuto) mostrano cosa controllare; con le foto controlla sempre nomi e numeri.</li></ul>` },
 
 /* ---------------- SALVARE E CONDIVIDERE ---------------- */
 { id:'salvataggio', cat:'Salvare e condividere', title:'Salvataggio', keys:'salva salvataggio automatico autosave file json apri carica browser',
@@ -318,6 +320,7 @@ html:`<dl class="guide-faq">
 
 { id:'novita', cat:'Riferimento', title:'Novità', keys:'novità versioni changelog aggiornamenti',
 html:`<ul>
+<li><b>1.13.0</b> — <a data-topic="animazione">Importa giocatori</a> nella finestra Squadra da Excel, CSV, PDF, Word, testo, JSON o foto di un foglio, con anteprima modificabile prima di confermare.</li>
 <li><b>1.12.1</b> — Le finestre si spostano subito insieme al mouse (prima arrivavano con un attimo di ritardo).</li>
 <li><b>1.12.0</b> — Nuova categoria <a data-topic="inserire">🏋️ Palestra e pallavolo</a> con 33 disegni a colori (palloni, carrello, lanciapalloni, seggiolone, tabellone, coni, cinesini, ostacoli, scaletta, step, materassino, pesi, fischietto, cronometro…) e 16 nuove icone.</li>
 <li><b>1.11.0</b> — Tre campi a sole linee in <a data-topic="stile-schizzo">Stile schizzo</a>: in prospettiva con la profondità, di sbieco e in diagonale, con rete, aste e antenne.</li>

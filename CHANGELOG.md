@@ -5,6 +5,25 @@ e compaiono nella barra di stato ("VBProW4 by SpikeCode AI · Ott 2026 · Ver: 1
 Informazioni e nella guida (Riferimento → Novità). A ogni rilascio vanno aggiornati insieme a questo file
 e a `package.json`.
 
+## 1.13.0 — Nov 2026
+
+- **Importa giocatori** (finestra *Squadra*) da qualsiasi fonte, con **anteprima** prima della conferma:
+  - file **Excel/ODS** (sceglie da solo il foglio con i giocatori, si può cambiare), **CSV** (anche salvati da Excel con
+    accenti), **PDF** con tabelle o elenchi, **Word .docx** (tabelle e paragrafi), **testo**, **JSON** e **foto o
+    scansioni** di un foglio scritto o stampato (lettura del testo nel browser);
+  - testo incollato da WhatsApp, email, Word: una riga per giocatore, campi in qualsiasi ordine; resta valido il vecchio
+    formato `P1.4.Mario Rossi`;
+  - riconosce numero, nome e cognome (anche in due colonne, MAIUSCOLO sistemato), ruolo in italiano, inglese e francese
+    (palleggiatore, banda, centrale, opposto, libero, staff), data o anno di nascita (anche date di Excel), altezza
+    (185, 1.85, 1,85 m), email, telefono e note; salta titoli e intestazioni;
+  - anteprima: colonne del file con il loro significato modificabile, intestazione sì/no, numero, nome e ruolo
+    correggibili, righe escludibili, *Aggiungi alla rosa* (stesso numero = aggiornato, la foto resta) o *Sostituisci
+    tutta la rosa*; avvisi per numero mancante o ripetuto ed esito per riga (Nuovo / Aggiorna #7 …);
+  - le sigle P1/P2, S1/S2, C1/C2, O, L1/L2, All… sono assegnate senza doppioni (gli altri diventano *Altro*), così
+    la rosa è pronta anche per lo Scout partita.
+- La rosa mostra i dettagli sotto il nome (ruolo esteso, nascita, altezza, contatti).
+- Corretto **✏️ Modifica** nella rosa: andava in errore.
+
 ## 1.12.1 — Nov 2026
 
 - **Finestre reattive**: trascinandole o ridimensionandole dai bordi seguono subito il mouse. Prima l'effetto di

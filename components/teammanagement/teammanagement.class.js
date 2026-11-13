@@ -126,25 +126,25 @@ class TeamManagementDialog {
     </div>
 
     <div class="team-form-section full-width">
-        <h4>📝 Importa da Testo</h4>
+        <h4>📥 Importa giocatori</h4>
+
+        <div id="jsonDropzone" class="json-dropzone roster-dropzone">
+            Trascina qui un file: <b>Excel, CSV, PDF, Word, testo, JSON</b> o la <b>foto di un foglio</b><br>
+            <small>(oppure clicca per sceglierlo) · prima di confermare vedi l'anteprima e puoi correggere</small>
+            <input type="file" id="importTeamFile" accept=".xlsx,.xls,.xlsm,.ods,.csv,.tsv,.txt,.text,.md,.pdf,.docx,.doc,.json,image/*">
+        </div>
 
         <p class="import-text-help">
-            Formato: Ruolo.Numero.Nome, Ruolo.Numero.Nome, ...<br>
-            <small>Esempio: P1.4.Mario Rossi, S1.10.Luigi Bianchi, L1.1.Paolo Verdi</small>
+            …oppure <b>incolla l'elenco</b> (da WhatsApp, email, Word, Excel): una riga per giocatore, in qualsiasi ordine
+            numero, nome, ruolo, nascita, altezza, email, telefono. Poi premi <b>Importa testo</b>.
         </p>
 
         <div class="import-text-container">
             <textarea id="playersImportText"
                 rows="4"
                 class="import-text-area"
-                placeholder="P1.4.Mario Rossi, S1.10.Luigi Bianchi, L1.1.Paolo Verdi"></textarea>
+                placeholder="7 Rossi Mario palleggiatore 2004&#10;10 Bianchi Luca schiacciatore 1.92&#10;12 Neri Paolo (libero)"></textarea>
         </div>
-    </div>
-
-    <div id="jsonDropzone" class="json-dropzone">
-        Trascina qui il file JSON<br>
-        <small>(oppure clicca per selezionarlo)</small>
-        <input type="file" id="importTeamFile" accept="application/json">
     </div>
 
     <div class="team-form-section full-width">
@@ -211,8 +211,19 @@ class TeamManagementDialog {
             console.error('TeamManagementDialog: HTML elements not found');
         }
 
-        // Attacca listener sul file input (quando scelgo il file, chiamami)
+        // File scelto o trascinato: lettura e anteprima
         this.elements.importTeamFile?.addEventListener('change', (e) => this.importTeam(e));
+        const dz = document.getElementById('jsonDropzone');
+        if (dz) {
+            dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.classList.add('dragover'); });
+            dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+            dz.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dz.classList.remove('dragover');
+                const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+                if (f) this.importFile(f);
+            });
+        }
     }
 
     /**
@@ -354,6 +365,8 @@ class TeamManagementDialog {
      * Modifica un giocatore esistente
      */
     editPlayer(index) {
+        const player = this.teamPlayers[index];
+        if (!player) return;
         this.currentPlayerImage = player.image || null;
 
         const dz = document.getElementById('playerImageDropzone');
@@ -361,7 +374,6 @@ class TeamManagementDialog {
             ? `<img src="${player.image}" class="player-image-preview">`
             : '📷 Trascina un\'immagine<br><small>(opzionale)</small>';
 
-        const player = this.teamPlayers[index];
         this.elements.newPlayerRole.value = player.role;
         this.elements.newPlayerNumber.value = player.number;
         this.elements.newPlayerName.value = player.name;
@@ -403,11 +415,18 @@ class TeamManagementDialog {
 
             const numberDiv = document.createElement('div');
             numberDiv.className = 'team-player-number';
-            numberDiv.textContent = `#${player.number}`;
+            numberDiv.textContent = player.number === '' || player.number == null ? '—' : `#${player.number}`;
 
             const nameDiv = document.createElement('div');
             nameDiv.className = 'team-player-name';
             nameDiv.textContent = player.name;
+            const det = [player.position, player.birth, player.height ? player.height + ' cm' : '', player.email, player.phone, player.notes].filter(Boolean).join(' · ');
+            if (det) {
+                const small = document.createElement('small');
+                small.className = 'team-player-details';
+                small.textContent = det;
+                nameDiv.appendChild(small);
+            }
 
             const actionsDiv = document.createElement('div');
             actionsDiv.className = 'team-player-actions';
@@ -460,90 +479,242 @@ class TeamManagementDialog {
      * Formato: Ruolo.Numero.Nome, Ruolo.Numero.Nome, ...
      */
     importFromText() {
-        const text = this.elements.importTextArea.value.trim();
-
+        const text = (this.elements.importTextArea?.value || '').trim();
         if (!text) {
-            alert('Inserisci i dati dei giocatori nel formato richiesto');
+            alert('Incolla l\'elenco dei giocatori nel riquadro, oppure trascina un file (Excel, PDF, Word, foto…).');
             return;
         }
+        this.openImportPreview({ kind: 'text', label: 'Testo incollato', name: '', rows: RosterImport.textToRows(text) });
+    }
 
+    /** Legge un file di qualsiasi tipo supportato e apre l'anteprima */
+    async importFile(file) {
+        const status = (msg) => this.setImportStatus(msg);
         try {
-            const entries = text.split(',').map(e => e.trim());
-            const imported = [];
-            const errors = [];
-
-            entries.forEach((entry, idx) => {
-                const parts = entry.split('.');
-
-                if (parts.length !== 3) {
-                    errors.push(`Riga ${idx + 1}: formato non valido`);
-                    return;
-                }
-
-                const role = parts[0].trim();
-                const number = parseInt(parts[1].trim());
-                const name = parts[2].trim();
-
-                if (!role || isNaN(number) || !name) {
-                    errors.push(`Riga ${idx + 1}: dati incompleti`);
-                    return;
-                }
-
-                imported.push({ role, number, name });
-            });
-
-            if (errors.length > 0) {
-                alert('Errori durante l\'importazione:\n' + errors.join('\n'));
-                return;
-            }
-
-            if (imported.length === 0) {
-                alert('Nessun giocatore valido trovato');
-                return;
-            }
-
-            let added = 0;
-            let replaced = 0;
-
-            imported.forEach(player => {
-                const existing = this.teamPlayers.find(p =>
-                    p.role === player.role || p.number === player.number
-                );
-
-                if (existing) {
-                    const msg = `Il ruolo ${player.role} o il numero ${player.number} è già assegnato a:\n` +
-                        `→ ${existing.role}.${existing.number}.${existing.name}\n\n` +
-                        `Vuoi sostituirlo con:\n` +
-                        `→ ${player.role}.${player.number}.${player.name}?`;
-
-                    if (confirm(msg)) {
-                        // sostituisci eliminando il vecchio
-                        this.teamPlayers = this.teamPlayers.filter(p =>
-                            p.role !== player.role && p.number !== player.number
-                        );
-                        this.teamPlayers.push(player);
-                        replaced++;
-                    }
-                } else {
-                    // aggiungi nuovo
-                    this.teamPlayers.push(player);
-                    added++;
-                }
-            });
-
-            this.teamPlayers.sort((a, b) => a.number - b.number);
-            this.saveTeamToStorage();
-            this.renderPlayersList();
-            this.elements.importTextArea.value = '';
-
-            alert(`Importazione completata!\n\nAggiunti: ${added}\nSostituiti: ${replaced}`);
-
-        } catch (error) {
-            alert('Errore durante l\'importazione: ' + error.message);
-            console.error('Errore importazione testo:', error);
+            status('Lettura di «' + file.name + '»…');
+            const src = await RosterImport.readFile(file, status);
+            status('');
+            this.openImportPreview(src);
+        } catch (err) {
+            status('');
+            console.error('Importazione giocatori:', err);
+            alert('Non riesco a leggere «' + file.name + '»: ' + (err.message || err));
         }
     }
 
+    setImportStatus(msg) {
+        let el = document.getElementById('rosterImportStatus');
+        const dz = document.getElementById('jsonDropzone');
+        if (!el && dz) {
+            el = document.createElement('div');
+            el.id = 'rosterImportStatus';
+            el.className = 'roster-import-status';
+            dz.insertAdjacentElement('afterend', el);
+        }
+        if (el) { el.textContent = msg || ''; el.style.display = msg ? '' : 'none'; }
+    }
+
+    // ============================================================
+    // ANTEPRIMA DELL'IMPORTAZIONE
+    // ============================================================
+
+    openImportPreview(src) {
+        this.imp = { src, rows: RosterImport.trimTitleRows(src.rows || []), mode: this.teamPlayers.length ? 'merge' : 'replace', info: null, players: [] };
+        this.rebuildImport();
+        if (!this.imp.players.length) {
+            alert('Nessun giocatore riconosciuto in ' + (src.name ? '«' + src.name + '»' : 'questo testo') + '.' +
+                (src.note ? '\n\n' + src.note : '\n\nControlla che ci siano nomi e numeri, una riga per giocatore.'));
+            return;
+        }
+        if (!this.previewWin) {
+            this.previewWin = createWindow({
+                title: 'Anteprima importazione giocatori',
+                icon: '📥',
+                id: 'rosterImportPreview',
+                contentHTML: '<div id="rosterImportBody" class="roster-import"></div>',
+                effect: 'windows',
+                size: 'xl',
+                modal: true,
+                visible: false,
+                buttons: [
+                    { label: 'Annulla', color: 'secondary', onClick: () => this.previewWin.hideDialog() },
+                    { id: 'rosterImportConfirm', label: 'Importa', close: false, color: 'success', onClick: () => this.confirmImport() }
+                ]
+            });
+            // sopra la finestra Squadra
+            const ov = document.querySelector('.overlay-for-rosterImportPreview');
+            if (ov) ov.style.zIndex = 10050;
+            this.previewWin.style.zIndex = 10051;
+            const body = document.getElementById('rosterImportBody');
+            body.addEventListener('change', (e) => this.onPreviewEdit(e));
+            body.addEventListener('input', (e) => { if (e.target.matches('input[type=text],input[type=number]')) this.onPreviewEdit(e, true); });
+        }
+        this.renderImportPreview();
+        this.previewWin.showDialog();
+        const ov = document.querySelector('.overlay-for-rosterImportPreview');
+        if (ov) ov.style.zIndex = 10050;
+        this.previewWin.style.zIndex = 10051;
+    }
+
+    /** riconosce di nuovo i giocatori (dopo un cambio di foglio, di colonne o di intestazione) */
+    rebuildImport(opts) {
+        const { players, info } = RosterImport.buildPlayers(this.imp.rows, opts);
+        players.forEach(p => { p.include = !/Nome mancante/.test(p.warn || ''); });
+        this.imp.info = info;
+        this.imp.players = players;
+        RosterImport.assignRoles(players, this.teamPlayers, this.imp.mode);
+    }
+
+    roleOptions(selected) {
+        const roles = (configuration.sports[this.editor.typeOfSport] || configuration.sports.volleyball || []);
+        const list = roles.some(r => r.value === 'Other') ? roles : roles.concat([{ value: 'Other', label: 'Other - Altro' }]);
+        return list.map(r => `<option value="${r.value}"${r.value === selected ? ' selected' : ''}>${r.label}</option>`).join('');
+    }
+
+    /** esito di ogni riga rispetto alla rosa attuale */
+    importStatus(p) {
+        if (p.include === false) return { cls: 'off', text: 'Escluso' };
+        const warn = p.warn && !/ripetuto/.test(p.warn) ? p.warn : '';
+        const dupInFile = this.imp.players.filter(q => q.include !== false && q.number !== null && q.number === p.number).length > 1;
+        if (dupInFile) return { cls: 'warn', text: '⚠ Numero ripetuto nel file' };
+        if (this.imp.mode === 'merge' && p.number !== null) {
+            const ex = this.teamPlayers.find(t => t.number === p.number);
+            if (ex) return { cls: 'upd', text: `Aggiorna #${ex.number} ${ex.name}` + (warn ? ' · ⚠ ' + warn : '') };
+        }
+        return warn ? { cls: 'warn', text: '⚠ ' + warn } : { cls: 'new', text: 'Nuovo' };
+    }
+
+    renderImportPreview() {
+        const body = document.getElementById('rosterImportBody');
+        if (!body) return;
+        const esc = (v) => String(v == null ? '' : v).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+        const { src, info, players } = this.imp;
+        const cols = info.tabular ? info.mapping.length : 0;
+        const headerRow = info.tabular && info.header >= 0 ? this.imp.rows[info.header] : null;
+
+        let html = `<div class="ri-source">📄 <b>${esc(src.name || src.label)}</b> <span>${esc(src.name ? src.label : '')} · ${players.length} giocatori riconosciuti</span></div>`;
+        if (src.note) html += `<div class="ri-note">${esc(src.note)}</div>`;
+        if (src.sheets && src.sheets.length > 1) {
+            html += `<label class="ri-inline">Foglio <select data-act="sheet">${src.sheets.map((sh, i) => `<option value="${i}"${i === src.sheet ? ' selected' : ''}>${esc(sh.name)} (${sh.rows.length} righe)</option>`).join('')}</select></label>`;
+        }
+        if (info.tabular) {
+            html += `<div class="ri-cols"><div class="ri-cols-title">Colonne del file <label class="ri-inline"><input type="checkbox" data-act="header"${info.header >= 0 ? ' checked' : ''}> la prima riga è l'intestazione</label></div><div class="ri-cols-list">`;
+            for (let c = 0; c < cols; c++) {
+                const head = headerRow ? headerRow[c] : `Colonna ${c + 1}`;
+                const sample = (this.imp.rows[info.header >= 0 ? info.header + 1 : 0] || [])[c] || '';
+                html += `<div class="ri-col"><span title="${esc(head)}">${esc(head || 'Colonna ' + (c + 1))}</span><select data-act="map" data-col="${c}">${RosterImport.FIELDS.map(([v, l]) => `<option value="${v}"${info.mapping[c] === v ? ' selected' : ''}>${l}</option>`).join('')}</select><small title="${esc(sample)}">${esc(sample)}</small></div>`;
+            }
+            html += `</div></div>`;
+        }
+        html += `<div class="ri-mode">
+            <label><input type="radio" name="riMode" value="merge" data-act="mode"${this.imp.mode === 'merge' ? ' checked' : ''}> Aggiungi alla rosa attuale <small>(stesso numero = aggiornato)</small></label>
+            <label><input type="radio" name="riMode" value="replace" data-act="mode"${this.imp.mode === 'replace' ? ' checked' : ''}> Sostituisci tutta la rosa <small>(${this.teamPlayers.length} giocatori attuali)</small></label>
+        </div>`;
+        html += `<div class="ri-table-wrap"><table class="ri-table"><thead><tr>
+            <th><input type="checkbox" data-act="all"${players.every(p => p.include !== false) ? ' checked' : ''} title="Tutti"></th>
+            <th>N°</th><th>Nome e cognome</th><th>Ruolo</th><th>Dettagli</th><th>Esito</th></tr></thead><tbody>`;
+        players.forEach((p, i) => {
+            const st = this.importStatus(p);
+            const details = [p.family ? RosterImport.familyLabel(p.family) : (p.roleText || ''), p.birth, p.height ? p.height + ' cm' : '', p.email, p.phone, p.notes].filter(Boolean).join(' · ');
+            html += `<tr class="${p.include === false ? 'off' : ''}">
+                <td><input type="checkbox" data-act="inc" data-i="${i}"${p.include !== false ? ' checked' : ''}></td>
+                <td><input type="number" min="0" max="99" data-act="num" data-i="${i}" value="${p.number === null ? '' : p.number}"></td>
+                <td><input type="text" data-act="name" data-i="${i}" value="${esc(p.name)}"></td>
+                <td><select data-act="role" data-i="${i}">${this.roleOptions(p.role)}</select></td>
+                <td class="ri-det" title="${esc(details)}">${esc(details)}</td>
+                <td class="ri-st ${st.cls}">${esc(st.text)}</td></tr>`;
+        });
+        html += `</tbody></table></div><div class="ri-summary" id="rosterImportSummary"></div>`;
+        body.innerHTML = html;
+        this.updateImportSummary();
+    }
+
+    updateImportSummary() {
+        const inc = this.imp.players.filter(p => p.include !== false);
+        let upd = 0;
+        if (this.imp.mode === 'merge') inc.forEach(p => { if (p.number !== null && this.teamPlayers.some(t => t.number === p.number)) upd++; });
+        const sum = document.getElementById('rosterImportSummary');
+        if (sum) sum.innerHTML = `Verranno importati <b>${inc.length}</b> giocatori: ${inc.length - upd} nuovi` + (upd ? `, ${upd} aggiornati` : '') +
+            (this.imp.mode === 'replace' && this.teamPlayers.length ? ` · <b>la rosa attuale (${this.teamPlayers.length}) verrà sostituita</b>` : '');
+        const btn = document.getElementById('rosterImportConfirm');
+        if (btn) { btn.textContent = `Importa ${inc.length} giocatori`; btn.disabled = !inc.length; btn.style.opacity = inc.length ? '1' : '.5'; }
+    }
+
+    onPreviewEdit(e, typing = false) {
+        const t = e.target;
+        const act = t.dataset.act;
+        if (!act) return;
+        const p = t.dataset.i !== undefined ? this.imp.players[+t.dataset.i] : null;
+        switch (act) {
+            case 'name': p.name = t.value.trim(); if (p.name) delete p.warn; return typing ? this.updateImportSummary() : this.renderImportPreview();
+            case 'num': {
+                const n = t.value === '' ? null : parseInt(t.value, 10);
+                p.number = isNaN(n) ? null : n;
+                if (p.number !== null && /Numero mancante/.test(p.warn || '')) delete p.warn;
+                if (typing) return this.updateImportSummary();
+                break;
+            }
+            case 'role': p.role = t.value; p.roleFixed = true; break;
+            case 'inc': p.include = t.checked; break;
+            case 'all': this.imp.players.forEach(q => { q.include = t.checked; }); break;
+            case 'mode': this.imp.mode = t.value; break;
+            case 'sheet': {
+                const i = +t.value;
+                this.imp.src.sheet = i;
+                this.imp.rows = RosterImport.trimTitleRows(this.imp.src.sheets[i].rows);
+                this.rebuildImport();
+                return this.renderImportPreview();
+            }
+            case 'header': case 'map': {
+                const info = this.imp.info;
+                const mapping = Array.from(document.querySelectorAll('#rosterImportBody select[data-act=map]')).map(s => s.value);
+                const header = document.querySelector('#rosterImportBody input[data-act=header]')?.checked ? 0 : -1;
+                this.rebuildImport({ mapping, header: act === 'header' ? header : info.header });
+                return this.renderImportPreview();
+            }
+            default: return;
+        }
+        // le sigle libere si riassegnano (senza toccare quelle scelte a mano)
+        RosterImport.assignRoles(this.imp.players, this.teamPlayers, this.imp.mode);
+        this.renderImportPreview();
+    }
+
+    confirmImport() {
+        const inc = this.imp.players.filter(p => p.include !== false && p.name);
+        if (!inc.length) return;
+        const nums = inc.map(p => p.number).filter(n => n !== null);
+        const dups = [...new Set(nums.filter((n, i) => nums.indexOf(n) !== i))];
+        if (dups.length && !confirm(`Numeri ripetuti: ${dups.map(n => '#' + n).join(', ')}.\nCorreggili nell'anteprima oppure conferma per importare lo stesso.`)) return;
+        const fresh = inc.map(p => {
+            const old = this.imp.mode === 'merge' && p.number !== null ? this.teamPlayers.find(t => t.number === p.number) : null;
+            const out = {
+                role: p.role || 'Other',
+                number: p.number === null ? '' : p.number,
+                name: p.name,
+                image: old ? old.image || null : null
+            };
+            const extra = { position: p.family ? RosterImport.familyLabel(p.family) : (p.roleText || ''), birth: p.birth, height: p.height, email: p.email, phone: p.phone, notes: p.notes };
+            Object.entries(extra).forEach(([k, v]) => { if (v) out[k] = v; else if (old && old[k]) out[k] = old[k]; });
+            return out;
+        });
+        let roster;
+        if (this.imp.mode === 'replace') roster = fresh;
+        else {
+            const numbers = new Set(fresh.map(p => p.number).filter(n => n !== ''));
+            const roles = new Set(fresh.map(p => p.role).filter(r => r !== 'Other'));
+            // chi resta perde la sigla se è stata data a un nuovo giocatore (niente doppioni)
+            const kept = this.teamPlayers.filter(t => !numbers.has(t.number)).map(t => roles.has(t.role) ? { ...t, role: 'Other' } : t);
+            roster = kept.concat(fresh);
+        }
+        roster.sort((a, b) => (a.number === '' ? 999 : a.number) - (b.number === '' ? 999 : b.number));
+        this.teamPlayers = roster;
+        this.saveTeamToStorage();
+        this.renderPlayersList();
+        if (this.elements.importTextArea) this.elements.importTextArea.value = '';
+        this.previewWin.hideDialog();
+        const msg = `Importati ${fresh.length} giocatori nella rosa.`;
+        if (this.editor.flashMessage) this.editor.flashMessage(msg); else alert(msg);
+    }
 
     /**
      * Esporta la squadra in JSON
@@ -569,51 +740,10 @@ class TeamManagementDialog {
      */
     // --- Sostituisci questa funzione ---
     importTeam(event) {
-        // supporta sia il caso "change" (event) sia il caso in cui venga chiamata senza event
-        try {
-            let file = null;
-
-            if (event && event.target && event.target.files) {
-                file = event.target.files[0];
-            } else if (this.elements.importTeamFile && this.elements.importTeamFile.files) {
-                file = this.elements.importTeamFile.files[0];
-            }
-
-            if (!file) {
-                // nessun file selezionato: esci silenziosamente
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const data = JSON.parse(e.target.result);
-
-                    if (data.team && Array.isArray(data.team)) {
-                        // qui potresti voler gestire merge vs replace: per ora sostituiamo interamente
-                        // (se vuoi comportamento diverso, lo modifichiamo)
-                        this.teamPlayers = data.team;
-                        this.saveTeamToStorage();
-                        this.renderPlayersList();
-                        alert('✅ Squadra importata con successo!');
-                    } else {
-                        alert('❌ File non valido: formato squadra non riconosciuto');
-                    }
-                } catch (error) {
-                    alert('❌ Errore nel caricamento del file: ' + error.message);
-                    console.error('Errore importazione file:', error);
-                } finally {
-                    // reset input per permettere lo stesso file in futuro
-                    if (event && event.target) event.target.value = '';
-                    if (this.elements.importTeamFile) this.elements.importTeamFile.value = '';
-                }
-            };
-
-            reader.readAsText(file);
-        } catch (err) {
-            console.error('importTeam error:', err);
-            alert('Errore durante l\'importazione del file: ' + (err.message || err));
-        }
+        const input = (event && event.target) || this.elements.importTeamFile;
+        const file = input && input.files && input.files[0];
+        if (file) this.importFile(file);
+        if (input) input.value = '';           // si può riscegliere lo stesso file
     }
 
     /**
