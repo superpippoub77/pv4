@@ -5,6 +5,15 @@ e compaiono nella barra di stato ("VBProW4 by SpikeCode AI · Ott 2026 · Ver: 1
 Informazioni e nella guida (Riferimento → Novità). A ogni rilascio vanno aggiornati insieme a questo file
 e a `package.json`.
 
+## 1.15.2 — Nov 2026
+
+- **Copia/incolla e inserimento non collegano più oggetti per sbaglio**: dopo aver aperto uno schema (dalla libreria,
+  da file, dal salvataggio automatico, dalla lavagna, da Crea da testo…) il contatore degli identificativi ripartiva da
+  1. Il primo oggetto incollato o inserito prendeva l'identificativo di uno già presente e lo sostituiva: le frecce
+  agganciate a quello finivano attaccate al nuovo (es. la freccia della «A» che parte dalla scarpa incollata). Ora
+  oggetti, frecce e disegni nuovi ricevono sempre un identificativo libero.
+- Negli schemi già salvati con una freccia attaccata all'oggetto sbagliato basta trascinarne l'estremità sul punto giusto.
+
 ## 1.15.1 — Nov 2026
 
 - **Tratteggio sulla forma**: con *Tratteggiato* il bordo tratteggiato va solo sulla forma dell'oggetto (cerchio del
