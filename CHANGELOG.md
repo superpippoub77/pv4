@@ -5,6 +5,17 @@ e compaiono nella barra di stato ("VBProW4 by SpikeCode AI · Ott 2026 · Ver: 1
 Informazioni e nella guida (Riferimento → Novità). A ogni rilascio vanno aggiornati insieme a questo file
 e a `package.json`.
 
+## 1.14.1 — Nov 2026
+
+- **Frecce più semplici**: non si sceglie più tra Lineare e Curva. La freccia nasce **dritta** e si curva trascinando
+  il **perno arancione**, che ora sta sulla linea a metà (prima era fuori linea e sulle frecce lineari non serviva): la
+  curva passa esattamente sotto il mouse e mantiene la forma quando si spostano i giocatori collegati. Riportando il
+  perno sulla linea, con doppio clic sul perno o con **↺ Raddrizza** torna dritta. Con lo Zigzag il perno non compare.
+  Le frecce già salvate restano come erano (le lineari dritte, le curve con la stessa curva).
+- Pannello **Freccia** riordinato: campi allineati a sinistra e a tutta larghezza, *Forma* con Linea · Zigzag ·
+  Raddrizza, punte su una riga; stesso ordine per il pannello del disegno a mano libera.
+- Curvare una freccia è un solo passo di Annulla (prima ne salvava due, uno come «posizione oggetto»).
+
 ## 1.14.0 — Nov 2026
 
 - **Pulsante ＋** (accanto alle schede e in alto): menu con le stesse scelte della schermata «Nessuno schema aperto» —
