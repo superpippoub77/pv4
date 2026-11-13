@@ -247,3 +247,44 @@ body.show-all-player-names .canvas-object .player-name-badge {
     border-radius: 50%;
     object-fit: cover;
 }
+/* ---- Importazione giocatori: area unica e anteprima ---- */
+.roster-dropzone { margin-bottom: 10px; line-height: 1.5; }
+.roster-import-status { margin: -4px 0 10px; font-size: 13px; color: #c9973f; }
+.team-player-name small.team-player-details { display: block; font-size: 11.5px; opacity: .7; font-weight: 400; margin-top: 1px; }
+
+.roster-import { display: flex; flex-direction: column; gap: 10px; font-size: 13.5px; color: var(--ink, #222); min-height: 0; height: 100%; }
+.roster-import .ri-source span { opacity: .7; }
+.roster-import .ri-note { padding: 6px 10px; border-radius: 6px; background: rgba(201, 151, 63, .15); border: 1px solid rgba(201, 151, 63, .5); }
+.roster-import .ri-inline { display: inline-flex; align-items: center; gap: 6px; font-weight: 400; }
+.roster-import select, .roster-import input[type=text], .roster-import input[type=number] {
+    padding: 4px 6px; border-radius: 5px; border: 1px solid var(--line, #ccc);
+    background: var(--bg-2, #fff); color: inherit; font: inherit; min-width: 0;
+}
+.roster-import .ri-cols { border: 1px solid var(--line, #ddd); border-radius: 8px; padding: 8px 10px; }
+.roster-import .ri-cols-title { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; font-weight: 600; margin-bottom: 6px; }
+.roster-import .ri-cols-list { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+.roster-import .ri-col { display: flex; flex-direction: column; gap: 3px; min-width: 120px; max-width: 160px; }
+.roster-import .ri-col span { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.roster-import .ri-col small { opacity: .65; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.roster-import .ri-mode { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.roster-import .ri-mode label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.roster-import .ri-mode small { opacity: .65; }
+.roster-import .ri-table-wrap { flex: 1; min-height: 140px; overflow: auto; border: 1px solid var(--line, #ddd); border-radius: 8px; }
+.roster-import .ri-table { width: 100%; border-collapse: collapse; }
+.roster-import .ri-table th { position: sticky; top: 0; z-index: 1; background: var(--bg-1, #f3f4f6); text-align: left; font-weight: 600; padding: 6px; border-bottom: 1px solid var(--line, #ddd); }
+.roster-import .ri-table td { padding: 4px 6px; border-bottom: 1px solid var(--line, #eee); vertical-align: middle; }
+.roster-import .ri-table td input[type=number] { width: 56px; text-align: center; }
+.roster-import .ri-table td input[type=text] { width: 100%; min-width: 150px; }
+.roster-import .ri-table td select { max-width: 170px; }
+.roster-import .ri-table tr.off td { opacity: .45; }
+.roster-import .ri-det { max-width: 280px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: .8; font-size: 12.5px; }
+.roster-import .ri-st { white-space: nowrap; font-size: 12.5px; }
+.roster-import .ri-st.new { color: #3fae6a; }
+.roster-import .ri-st.upd { color: #4a9fe0; }
+.roster-import .ri-st.warn { color: #e0a030; }
+.roster-import .ri-st.off { opacity: .6; }
+.roster-import .ri-summary { font-size: 13px; }
+@media (max-width: 720px) {
+    .roster-import .ri-det { display: none; }
+    .roster-import .ri-table td input[type=text] { min-width: 110px; }
+}
