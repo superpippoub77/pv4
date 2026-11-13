@@ -426,7 +426,9 @@
                     p.warn = 'Nome mancante';
                 } else return;
             }
-            if (/^(totale|total|squadra|team|elenco|lista|rosa|roster|stagione|campionato|pagina)\b/i.test(p.name) && p.number === null) return;
+            if (/^(totale|total|squadra|team|elenco|lista|rosa|roster|stagione|campionato|pagina|convocat[aeio]|convocazion[ei]|formazion[ei]|giocator[ei]|giocatric[ei]|atlet[ei]|partita|gara|allenamento|ritrovo)\b/i.test(p.name) && p.number === null) return;
+            // riga-titolo che finisce con ":" ("Convocati sabato:") senza numero
+            if (!info.tabular && p.number === null && !p.family && /:\s*$/.test(r.join(' ').trim())) return;
             p.source = idx + (info.tabular && info.header >= 0 ? info.header + 2 : 1);
             players.push(p);
         });
@@ -623,27 +625,79 @@
         return pages;
     }
 
-    /** HTML (Word) → righe: le tabelle restano a celle, i paragrafi come righe di testo */
+    /**
+     * HTML (Word, Google Documenti/Fogli, Excel, pagine web) → righe:
+     * le tabelle restano a celle; paragrafi, elenchi puntati e a capo diventano righe di testo
+     */
     function htmlToRows(html) {
-        const doc = new DOMParser().parseFromString(`<div>${html}</div>`, 'text/html');
+        const doc = new DOMParser().parseFromString(String(html || ''), 'text/html');
         const rows = [];
-        doc.body.firstChild.childNodes.forEach(node => {
-            if (node.nodeName === 'TABLE') {
-                node.querySelectorAll('tr').forEach(tr => {
-                    const cells = Array.from(tr.querySelectorAll('td,th')).map(td => td.textContent.replace(/\s+/g, ' ').trim());
-                    if (cells.some(Boolean)) rows.push(cells);
+        const BLOCK = /^(P|DIV|LI|H[1-6]|BLOCKQUOTE|PRE|SECTION|ARTICLE|UL|OL|DL|DT|DD|HEADER|FOOTER)$/;
+        let buf = '';
+        const flush = () => { if (buf.trim()) textToRows(buf).forEach(r => rows.push(r)); buf = ''; };
+        const cellText = (td) => {
+            // dentro una cella gli a capo diventano spazi
+            const c = td.cloneNode(true);
+            c.querySelectorAll('br').forEach(b => b.replaceWith(' '));
+            return c.textContent.replace(/\s+/g, ' ').trim();
+        };
+        const walk = (node) => {
+            if (node.nodeType === 3) { buf += node.nodeValue; return; }
+            if (node.nodeType !== 1) return;
+            const tag = node.nodeName;
+            if (/^(STYLE|SCRIPT|META|TITLE|HEAD|LINK|COLGROUP)$/.test(tag)) return;
+            if (tag === 'TABLE') {
+                flush();
+                Array.from(node.rows || []).forEach(tr => {
+                    const cells = Array.from(tr.cells || []).map(cellText);
+                    // celle unite (colspan): restano vuote le colonne coperte, così l'allineamento non si sposta
+                    const out = [];
+                    Array.from(tr.cells || []).forEach((td, i) => { out.push(cells[i]); for (let k = 1; k < (td.colSpan || 1); k++) out.push(''); });
+                    if (out.some(Boolean)) rows.push(out);
                 });
-            } else {
-                const txt = (node.textContent || '').trim();
-                if (txt) textToRows(txt).forEach(r => rows.push(r));
+                return;
             }
-        });
+            if (tag === 'BR') { buf += '\n'; return; }
+            const block = BLOCK.test(tag);
+            if (block) buf += '\n';
+            node.childNodes.forEach(walk);
+            if (block) buf += '\n';
+        };
+        walk(doc.body);
+        flush();
         return rows;
+    }
+
+    /** da dove arriva un incolla (per l'etichetta dell'anteprima) */
+    function pasteSourceLabel(html) {
+        const h = String(html || '');
+        if (/google-sheets-html-origin/i.test(h)) return 'Incollato da Google Fogli';
+        if (/docs-internal-guid/i.test(h)) return 'Incollato da Google Documenti';
+        if (/urn:schemas-microsoft-com:office:excel|ProgId.{0,4}Excel/i.test(h)) return 'Incollato da Excel';
+        if (/urn:schemas-microsoft-com:office:word|ProgId.{0,4}Word/i.test(h)) return 'Incollato da Word';
+        if (/LibreOffice|OpenOffice/i.test(h)) return 'Incollato da LibreOffice';
+        if (/<table/i.test(h)) return 'Tabella incollata';
+        return 'Testo incollato';
+    }
+
+    /**
+     * Contenuto degli appunti → righe. Con una tabella in HTML si usa quella (celle esatte, anche da Google
+     * Documenti e Word); altrimenti il testo semplice (Excel e Fogli lo danno già separato da tabulazioni).
+     */
+    function clipboardToRows(html, text) {
+        const h = String(html || '');
+        if (/<table/i.test(h)) {
+            const rows = htmlToRows(h);
+            if (rows.length) return { rows, label: pasteSourceLabel(h) };
+        }
+        if (text && String(text).trim()) return { rows: textToRows(text), label: h ? pasteSourceLabel(h) : 'Testo incollato' };
+        if (h) return { rows: htmlToRows(h), label: pasteSourceLabel(h) };
+        return { rows: [], label: 'Testo incollato' };
     }
 
     const api = {
         FIELDS, FAMILY_LABEL, familyLabel, roleFamily, parseFreeLine, textToRows, pdfPagesToRows, analyze, buildPlayers,
-        assignRoles, trimTitleRows, parseBirth, parseHeight, parseNumber, tidyName, readFile, kindOf, htmlToRows, loadLib, fixOcrNumbers
+        assignRoles, trimTitleRows, parseBirth, parseHeight, parseNumber, tidyName, readFile, kindOf, htmlToRows, clipboardToRows, pasteSourceLabel, loadLib, fixOcrNumbers
     };
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
     root.RosterImport = api;

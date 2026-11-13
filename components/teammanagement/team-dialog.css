@@ -288,3 +288,12 @@ body.show-all-player-names .canvas-object .player-name-badge {
     .roster-import .ri-det { display: none; }
     .roster-import .ri-table td input[type=text] { min-width: 110px; }
 }
+
+/* Incolla da Excel, Google Fogli/Documenti, Word… */
+.roster-paste-row { display: flex; align-items: flex-start; gap: 10px; margin: 4px 0 8px; }
+.roster-paste-row .import-text-help { margin: 0; }
+.roster-paste-btn {
+    flex: 0 0 auto; padding: 7px 12px; border-radius: 6px; cursor: pointer; font: inherit; font-weight: 600;
+    border: 1px solid #c9973f; background: #c9973f; color: #1c1200;
+}
+.roster-paste-btn:hover { filter: brightness(1.08); }
