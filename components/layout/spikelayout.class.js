@@ -37,6 +37,7 @@ class SpikeLayout {
         this.buildSideControls();
         this.buildPriorityBar();
         this.bindTouch();
+        this.bindWheelZoom();
         this.bindScrollbarReveal();
         this.bindShortcuts();
         this.patchEditor();
@@ -369,6 +370,41 @@ class SpikeLayout {
         ed.zoom = tab.zoom;
         ed.updateZoom();
         host.scrollLeft = 0; host.scrollTop = 0;
+    }
+
+    // ------------------------------------------------- zoom con la rotella
+    // Ctrl/⌘ + rotella, rotella con un tasto del mouse premuto o pizzico sul touchpad: zoom attorno al puntatore.
+    // La rotella da sola continua a scorrere il foglio.
+    bindWheelZoom() {
+        const host = document.querySelector(".canvas-container");
+        if (!host) return;
+        host.addEventListener("wheel", (e) => {
+            if (!(e.ctrlKey || e.metaKey || e.buttons)) return;
+            if (e.target.closest && e.target.closest("#planeRotationSphere, .empty-state")) return;
+            e.preventDefault();
+            this.zoomAt(e.clientX, e.clientY, Math.exp(-e.deltaY * (e.deltaMode === 1 ? 0.05 : 0.0015)));
+        }, { passive: false });
+    }
+
+    /** Zoom (fattore) mantenendo fermo il punto dello schermo (x, y) */
+    zoomAt(x, y, factor) {
+        const ed = this.editor, tab = ed.getCurrentTab?.();
+        const host = document.querySelector(".canvas-container"), canvas = document.getElementById("canvas");
+        if (!tab || !host || !canvas) return;
+        const z0 = tab.zoom || 1;
+        const z1 = Math.max(0.2, Math.min(3, Math.round(z0 * factor * 1000) / 1000));
+        if (z1 === z0) return;
+        const r0 = canvas.getBoundingClientRect();
+        const lx = (x - r0.left) / z0, ly = (y - r0.top) / z0;      // punto del foglio sotto il puntatore
+        const tr = canvas.style.transition;
+        canvas.style.transition = "none";                           // niente animazione: il punto resta fermo
+        tab.zoom = z1; ed.zoom = z1;
+        ed.updateZoom();
+        const r1 = canvas.getBoundingClientRect();
+        host.scrollLeft += (r1.left + lx * z1) - x;
+        host.scrollTop += (r1.top + ly * z1) - y;
+        clearTimeout(this._zoomT);
+        this._zoomT = setTimeout(() => { canvas.style.transition = tr; }, 120);
     }
 
     // ------------------------------------------------- tocco (come SpikeCut)

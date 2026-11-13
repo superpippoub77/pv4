@@ -11,7 +11,7 @@
 
 // Versione e mese di rilascio (come in SpikeCut): da aggiornare a ogni rilascio,
 // insieme a CHANGELOG.md, package.json e alla sezione "Novità" della guida.
-const APP_VERSION = "1.14.2";
+const APP_VERSION = "1.15.0";
 const APP_RELEASE = "Nov 2026";
 
 // Icone in stile SpikeCut (viewBox 22, tratto 1.6)
@@ -206,6 +206,10 @@ const layoutConfig = {
                     ]
                 },
                 { label: "Testo", i18n: "panel_text", item: { type: "input", inputType: "text", id: "objectText", placeholder: "Testo...", i18nPlaceholder: "placeholder_edit_text", onInput: (ed, ev) => ed.changeSelectedObjectsText(ev.target.value) } },
+                { label: "Grandezza testo", i18n: "panel_font_size", row: [
+                    { type: "input", inputType: "number", id: "objectFontSize", min: "6", max: "300", step: "1", value: "18", onChange: (ed, ev) => ed.changeSelectedObjectsFontSize(ev.target.value) },
+                    { type: "button", id: "objectFitText", text: "⤢ Adatta al testo", title: "La casella torna della misura del testo", onClick: (ed) => { const t = ed.getCurrentTab(); ed.selectedObjects.forEach((p, id) => { const o = t.objects.get(id); if (o && o.type === 'text') { o.manualSize = false; ed.fitTextBox(o); } }); ed.saveState('Casella adattata al testo'); } }
+                ] },
                 { label: "Carattere", i18n: "panel_font", item: { type: "select", id: "objectFont", options: [["", "font_default"], ["Nanum Pen Script", "Nanum Pen Script"], ["Schoolbell", "Schoolbell"], ["Architects Daughter", "Architects Daughter"]], onChange: (ed, value) => ed.changeSelectedObjectsTextStyle('fontFamily', value) } },
                 { label: "Evidenziatore", i18n: "panel_highlight", item: { type: "select", id: "objectHighlight", options: [["", "highlight_none"], ["#ffd84d", "highlight_yellow"], ["#9be38f", "highlight_green"], ["#8fd0ff", "highlight_blue"], ["#ffa3d1", "highlight_pink"], ["#ffbd7a", "highlight_orange"]], onChange: (ed, value) => ed.changeSelectedObjectsTextStyle('highlight', value) } },
                 {

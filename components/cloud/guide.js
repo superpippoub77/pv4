@@ -80,7 +80,7 @@ html:`<p>Lo schermo è diviso in zone:</p>
 
 { id:'schede', cat:'Per iniziare', title:'Schede e foglio', keys:'tab nuovo schema più schemi chiudi scheda foglio dimensione formato personalizzato maniglia sfondo zoom',
 html:`<p>Con <b>＋</b> accanto alle schede (o nella barra in alto) scegli come iniziare: <b>schema vuoto</b>, dalla <b>libreria</b>, da <b>file</b>, da <b>testo</b>, dalla <b>lavagna</b>, generando un <b>allenamento</b> o dal <b>piano</b>. Per un nuovo schema vuoto si apre la <b>compilazione guidata</b> (🧭) dei dati dell'esercizio, in 5 passi: nome, data e luogo · genere, categoria, gruppo e ruolo · periodo e tipologia · serie, ripetizioni, tempo e recupero · note. Si apre da sola anche all'avvio se lo schema è vuoto e i dati non sono compilati; <i>Salta</i> la chiude, la si riapre con <b>🧭 Compilazione guidata</b> nella scheda Esercizio e si può disattivare l'apertura automatica; la × su una scheda la chiude. Chiudendo l'ultima (o tutte) compare <b>Nessuno schema aperto</b> con i pulsanti per creare un nuovo schema, aprire dalla libreria o da file, creare un esercizio da testo o generare un allenamento; resta così anche ricaricando la pagina. <b>✕ Chiudi tutte</b> a destra della barra, o il tasto destro su una scheda (Chiudi scheda, Chiudi le altre, Chiudi tutte), chiude più schede insieme, con una sola conferma se c'è del lavoro aperto. Ogni scheda ha i suoi oggetti, i suoi step e la sua cronologia annulla/ripeti. Il nome si cambia scrivendo direttamente sulla scheda o nel titolo in alto.</p>
-<ul><li><b>Dimensione del foglio</b>: dal pannello Proprietà (senza selezione) scegli un formato (A5, A4, A3, A2, verticale o orizzontale) oppure <b>Personalizzato</b>; trascinando la maniglia ⇲ nell'angolo del foglio lo ridimensioni a mano. Il nuovo schema parte da 560 × 400.</li>
+<ul><li><b>Dimensione del foglio</b>: dal pannello Proprietà (senza selezione) scegli un formato (A5, A4, A3, A2, verticale o orizzontale) oppure <b>Personalizzato</b>; trascinando la maniglie blu sui 4 angoli e sui 4 lati del foglio lo ridimensioni a mano da qualsiasi lato (tirando a sinistra o in alto lo spazio si aggiunge da quel lato e il disegno resta dov'è). <b>Zoom</b>: pulsanti − / + in alto, oppure <b>Ctrl (⌘) + rotella</b>, rotella tenendo premuto un tasto del mouse o pizzico sul touchpad, centrato sul puntatore. Il nuovo schema parte da 560 × 400.</li>
 <li><b>Sfondo</b>: dal pannello Proprietà.</li>
 <li><b>Zoom</b>: pulsanti – e + nella barra in alto, ⤢ per tornare al 100%.</li></ul>
 <p>Il lavoro viene salvato da solo nel browser: vedi <a data-topic="salvataggio">Salvataggio</a>.</p>` },
@@ -94,7 +94,7 @@ html:`<ul><li><b>Giocatori…</b> (G) apre la galleria dei giocatori: Squadra A 
 <p>Il campo resta sempre sotto agli altri oggetti. Per un esercizio completo in un colpo solo usa <a data-topic="crea-da-testo">Crea da testo</a>.</p>` },
 
 { id:'frecce', cat:'Disegnare', title:'Frecce, matita e tratteggio', keys:'freccia collega punti aggancio curva lineare zigzag spessore punte matita disegno libero tratteggio tratteggiato',
-html:`<ul><li><b>Frecce</b> (A): clicca un punto di aggancio di un oggetto e poi un altro punto (di un oggetto o del foglio). Le frecce agganciate seguono gli oggetti quando li sposti.</li>
+html:`<ul><li><b>Frecce</b> (A): i punti di aggancio arancioni compaiono solo in questa modalità; trascina da un punto di aggancio a un altro punto (di un oggetto o del foglio). Un clic senza trascinare non crea frecce. Le frecce agganciate seguono gli oggetti quando li sposti.</li>
 <li>La freccia nasce <b>dritta</b>; per curvarla trascina il <b>perno arancione</b> a metà: la curva passa sotto il mouse e mantiene la forma quando sposti i giocatori collegati. Riportando il perno sulla linea, con un doppio clic sul perno o con <b>↺ Raddrizza</b> torna dritta.</li>
 <li>Selezionando una freccia, nel pannello Proprietà scegli colore, forma (<b>Linea</b> o <b>Zigzag</b>), spessore, opacità, punte all'inizio e alla fine, evidenziatore e tratteggio.</li>
 <li><b>Matita libera</b> (B): disegno a mano libera, con colore, spessore e opacità.</li>
@@ -102,6 +102,8 @@ html:`<ul><li><b>Frecce</b> (A): clicca un punto di aggancio di un oggetto e poi
 
 { id:'modificare', cat:'Disegnare', title:'Selezionare e modificare', keys:'seleziona sposta ruota specchia primo piano sfondo griglia allinea elimina colore opacità etichetta copia incolla annulla',
 html:`<ul><li><b>Selezione</b> (V): clic su un oggetto per selezionarlo, trascinamento sull'area vuota per selezionarne più di uno. Si spostano trascinandoli o con le frecce della tastiera (Maiusc per passi più lunghi).</li>
+<li>L'oggetto selezionato ha <b>8 maniglie</b> (angoli e lati) per ridimensionarlo da qualsiasi parte, anche se è ruotato; con <b>Maiusc</b> sugli angoli mantiene le proporzioni. Il pallino rosso sopra serve a ruotarlo.</li>
+<li><b>Testo</b>: la casella nasce grande quanto il testo e lo segue mentre scrivi; dagli angoli si ingrandisce anche il carattere, dai lati cambia solo la casella (il testo va a capo e l'altezza si adatta). Nel pannello: <i>Grandezza testo</i> e <i>⤢ Adatta al testo</i>.</li>
 <li><b>Ruota 15°</b> (R, con Maiusc nel verso opposto) e <b>Ruota 90°</b>; con più oggetti ruota il gruppo.</li>
 <li><b>Specchia</b> orizzontale (H) e verticale.</li>
 <li><b>Primo piano</b> (Ctrl+]) e <b>Sfondo</b> (Ctrl+[) cambiano l'ordine di sovrapposizione.</li>
@@ -322,6 +324,7 @@ html:`<dl class="guide-faq">
 
 { id:'novita', cat:'Riferimento', title:'Novità', keys:'novità versioni changelog aggiornamenti',
 html:`<ul>
+<li><b>1.15.0</b> — Zoom con Ctrl + rotella; ridimensionamento di oggetti e foglio da tutti gli angoli e lati; casella di testo sulla misura del testo; esportazione senza aloni; niente più frecce create per sbaglio inserendo o copiando oggetti.</li>
 <li><b>1.14.2</b> — <a data-topic="scout">Scout</a>: formazione automatica sempre con 1 palleggiatore e 2 bande, avviso sul sestetto, elenco giocatori ordinato per ruolo.</li>
 <li><b>1.14.1</b> — <a data-topic="frecce">Frecce</a>: niente più Lineare/Curva, nascono dritte e si curvano trascinando il perno arancione (sulla linea); pannello Freccia riordinato.</li>
 <li><b>1.14.0</b> — Pulsante <b>＋</b> con la scelta di come iniziare (vuoto, libreria, file, testo, lavagna…) e <b>compilazione guidata</b> dei dati dell'esercizio; <b>archivio squadre</b> (anche avversari) e scelta dei giocatori da elenco nello <a data-topic="scout">Scout partita</a>; corretto ＋ che da «Nessuno schema aperto» creava due schede.</li>

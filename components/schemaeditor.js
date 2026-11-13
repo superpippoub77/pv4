@@ -3255,117 +3255,116 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         this.saveState(`Impostata dimensione canvas: ${size}`);
     }
     initCanvasResize() {
+        if (this._canvasResizeBound) { this.updateAllResizeHandles(); return; }   // una volta sola
+        this._canvasResizeBound = true;
         const canvas = document.getElementById('canvas');
         const container = canvas.parentElement;
+        // vecchia maniglia unica (versioni precedenti): sostituita dalle 8 maniglie
+        document.getElementById('canvasResizeHandle')?.remove();
 
-        // Crea UN SOLO handle nell'angolo in basso a destra
-        let handle = document.getElementById('canvasResizeHandle');
-        if (!handle) {
-            handle = document.createElement('div');
-            handle.id = 'canvasResizeHandle';
-            handle.className = 'canvas-resize-handle-single';
-            // Ensure absolute positioning context (defensive) and pointer events
-            handle.style.position = 'absolute';
-            handle.style.pointerEvents = 'auto';
-            handle.innerHTML = '⇲';
-            container.appendChild(handle);
-        }
+        // 8 maniglie: angoli e lati del foglio
+        const DIRS = { n: 'ns-resize', ne: 'nesw-resize', e: 'ew-resize', se: 'nwse-resize', s: 'ns-resize', sw: 'nesw-resize', w: 'ew-resize', nw: 'nwse-resize' };
+        Object.entries(DIRS).forEach(([dir, cursor]) => {
+            if (document.getElementById(`canvasResizeHandle-${dir}`)) return;
+            const h = document.createElement('div');
+            h.id = `canvasResizeHandle-${dir}`;
+            h.className = `canvas-rh canvas-rh-${dir.length === 2 ? 'corner' : (dir === 'n' || dir === 's' ? 'h' : 'v')}`;
+            h.dataset.dir = dir;
+            h.style.cursor = cursor;
+            h.title = 'Trascina per ridimensionare il foglio';
+            container.appendChild(h);
+        });
 
-        let isResizing = false;
-        let startX, startY, startWidth, startHeight;
+        let rs = null;   // stato del ridimensionamento in corso
+        const zoom = () => this.getCurrentTab()?.zoom || 1;
 
-        // Funzione per posizionare l'handle
-        const updateHandlePosition = () => {
-            const rect = canvas.getBoundingClientRect();
-            const containerRect = container.getBoundingClientRect();
-
-            // Account for container scroll so the handle stays aligned to the canvas content
-            const scrollLeft = container.scrollLeft || 0;
-            const scrollTop = container.scrollTop || 0;
-
-            handle.style.left = (rect.right - containerRect.left + scrollLeft - 10) + 'px';
-            handle.style.top = (rect.bottom - containerRect.top + scrollTop - 10) + 'px';
-        };
-
-        // Posiziona inizialmente
-        updateHandlePosition();
-
-        // MouseDown sull'handle
-        handle.addEventListener('mousedown', (e) => {
+        container.addEventListener('mousedown', (e) => {
+            const h = e.target.closest('.canvas-rh');
+            if (!h) return;
             e.preventDefault();
             e.stopPropagation();
-
-            // Passa a modalità custom quando inizi il resize
-            const currentSize = document.getElementById('canvasSizeSelect').value;
-            if (currentSize !== 'custom') {
-                // Read computed size BEFORE removing preset class so we preserve the rendered px values
-                const rect = canvas.getBoundingClientRect();
+            // passa al formato personalizzato mantenendo la misura attuale
+            const sel = document.getElementById('canvasSizeSelect');
+            if (sel && sel.value !== 'custom') {
                 const tab = this.getCurrentTab();
-                tab.customWidth = Math.round(rect.width);
-                tab.customHeight = Math.round(rect.height);
-                // Switch select to custom and apply saved custom px dimensions
-                document.getElementById('canvasSizeSelect').value = 'custom';
+                tab.customWidth = Math.round(canvas.offsetWidth);
+                tab.customHeight = Math.round(canvas.offsetHeight);
+                sel.value = 'custom';
                 this.setCanvasSize('custom');
-                // Ensure inline styles reflect the exact computed size
                 canvas.style.width = tab.customWidth + 'px';
                 canvas.style.height = tab.customHeight + 'px';
             }
-
-            isResizing = true;
-            startX = e.clientX;
-            startY = e.clientY;
-            startWidth = canvas.offsetWidth;
-            startHeight = canvas.offsetHeight;
-
-            document.body.style.cursor = 'nwse-resize';
+            const cs = getComputedStyle(canvas);
+            rs = {
+                dir: h.dataset.dir, x: e.clientX, y: e.clientY,
+                w: canvas.offsetWidth, h: canvas.offsetHeight,
+                minW: Math.min(parseInt(cs.minWidth) || 200, 200), minH: Math.min(parseInt(cs.minHeight) || 150, 150),
+                shiftX: 0, shiftY: 0
+            };
+            document.body.style.cursor = h.style.cursor;
             document.body.classList.add('resizing-canvas');
         });
 
-        // MouseMove
         document.addEventListener('mousemove', (e) => {
-            if (!isResizing) return;
-
-            const deltaX = e.clientX - startX;
-            const deltaY = e.clientY - startY;
-
-            // Read CSS min sizes to avoid fighting with stylesheet constraints
-            const computed = getComputedStyle(canvas);
-            const cssMinW = parseInt(computed.minWidth) || 400;
-            const cssMinH = parseInt(computed.minHeight) || 300;
-
-            let newWidth = Math.max(cssMinW, startWidth + deltaX);
-            let newHeight = Math.max(cssMinH, startHeight + deltaY);
-
-            canvas.style.width = newWidth + 'px';
-            canvas.style.height = newHeight + 'px';
-
-            updateHandlePosition();
-        });
-
-        // MouseUp
-        document.addEventListener('mouseup', () => {
-            if (isResizing) {
-                isResizing = false;
-                document.body.style.cursor = '';
-                document.body.classList.remove('resizing-canvas');
-
-                // Salva dimensioni custom
-                const tab = this.getCurrentTab();
-                tab.customWidth = canvas.offsetWidth;
-                tab.customHeight = canvas.offsetHeight;
-
-                this.saveState(`Ridimensionato canvas a ${canvas.offsetWidth}x${canvas.offsetHeight}px`);
+            if (!rs) return;
+            const z = zoom();
+            const dx = (e.clientX - rs.x) / z, dy = (e.clientY - rs.y) / z;
+            const d = rs.dir;
+            let w = rs.w, hgt = rs.h;
+            if (d.includes('e')) w = rs.w + dx;
+            if (d.includes('w')) w = rs.w - dx;
+            if (d.includes('s')) hgt = rs.h + dy;
+            if (d.includes('n')) hgt = rs.h - dy;
+            w = Math.round(Math.max(rs.minW, w));
+            hgt = Math.round(Math.max(rs.minH, hgt));
+            canvas.style.width = w + 'px';
+            canvas.style.height = hgt + 'px';
+            // tirando a sinistra o in alto lo spazio si aggiunge da quel lato: il disegno resta al suo posto
+            const sx = d.includes('w') ? w - rs.w : 0;
+            const sy = d.includes('n') ? hgt - rs.h : 0;
+            if (sx !== rs.shiftX || sy !== rs.shiftY) {
+                this.shiftSheetContent(sx - rs.shiftX, sy - rs.shiftY);
+                rs.shiftX = sx; rs.shiftY = sy;
             }
+            this.updateAllResizeHandles();
         });
 
-        // Aggiorna handle quando il canvas cambia dimensione
-        const resizeObserver = new ResizeObserver(() => {
-            updateHandlePosition();
+        document.addEventListener('mouseup', () => {
+            if (!rs) return;
+            rs = null;
+            document.body.style.cursor = '';
+            document.body.classList.remove('resizing-canvas');
+            const tab = this.getCurrentTab();
+            tab.customWidth = canvas.offsetWidth;
+            tab.customHeight = canvas.offsetHeight;
+            this.saveState(`Ridimensionato foglio a ${canvas.offsetWidth}x${canvas.offsetHeight}px`);
         });
-        resizeObserver.observe(canvas);
 
-        // Aggiorna anche sullo scroll del container
-        container.addEventListener('scroll', updateHandlePosition);
+        const update = () => this.updateAllResizeHandles();
+        new ResizeObserver(update).observe(canvas);
+        container.addEventListener('scroll', update);
+        window.addEventListener('resize', update);
+        update();
+    }
+
+    /** Sposta tutto il contenuto del foglio (oggetti, frecce libere, disegni) di dx, dy */
+    shiftSheetContent(dx, dy) {
+        if (!dx && !dy) return;
+        const tab = this.getCurrentTab();
+        if (!tab) return;
+        tab.objects.forEach(o => {
+            o.x += dx; o.y += dy;
+            const el = document.getElementById(o.id);
+            if (el) { el.style.left = o.x + 'px'; el.style.top = o.y + 'px'; }
+        });
+        tab.arrows.forEach(a => {
+            ['from', 'to'].forEach(k => { if (a[k] && !a[k].objectId && typeof a[k].x === 'number') { a[k].x += dx; a[k].y += dy; } });
+            try { this.renderArrow(a); } catch (e) { /* ignore */ }
+        });
+        (tab.freehands || new Map()).forEach(f => {
+            (f.points || []).forEach(pt => { pt.x += dx; pt.y += dy; });
+            try { this.renderFreehand(f); } catch (e) { /* ignore */ }
+        });
     }
 
     updateAllResizeHandles() {
@@ -5838,6 +5837,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
      */
     addComponent(opts = {}) {
         if (!opts.type) return;
+        // inserendo si torna alla Selezione (la galleria resta aperta)
+        try { if ((this.arrowMode || this.freehandMode) && this.layout && this.layout.setSelectTool) this.layout.setSelectTool(false); } catch (e) { /* ignore */ }
         const container = document.querySelector('.canvas-container');
         const canvas = document.getElementById('canvas');
         if (!container || !canvas) return;
@@ -5921,6 +5922,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         this.arrowMode = typeof force === 'boolean' ? force : !this.arrowMode;
         if (this.arrowMode && this.freehandMode) this.toggleFreehandMode(false);
         document.getElementById('arrowModeBtn')?.classList.toggle('active', this.arrowMode);
+        document.body.classList.toggle('arrow-mode', !!this.arrowMode);
         document.getElementById('canvas').style.cursor = this.arrowMode ? 'crosshair' : 'default';
         this.deselectAll();
     }
@@ -6197,6 +6199,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             mesh: null,
         };
 
+        if (type === 'text') object.fontSize = 18;
         tab.objects.set(id, object);
 
         // If the toolbar toggle is active, initialize the object's X/Y rotation to match the canvas plane
@@ -6209,6 +6212,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         tab.maxZIndex = this.maxZIndex;
 
         this.renderObject(object);
+        if (object.type === 'text') this.fitTextBox(object);
         this.saveState(`Aggiunto oggetto ${object.type} con ID ${object.id}`);
 
         return object;
@@ -6792,6 +6796,10 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             editableText.contentEditable = 'true';
             editableText.focus();
             this.deselectAll();
+            const o = this.getCurrentTab().objects.get(objectId);
+            const onInput = () => this.fitTextBox(o);
+            editableText.addEventListener('input', onInput);
+            editableText.addEventListener('blur', () => editableText.removeEventListener('input', onInput), { once: true });
 
             editableText.addEventListener('blur', () => {
                 editableText.contentEditable = 'false';
@@ -6832,6 +6840,12 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         } else {
             const editableText = content.querySelector('.editable-text');
             if (editableText) {
+                if (type === 'text') {
+                    // il testo ha la sua grandezza (cambia dagli angoli), la casella può essere qualsiasi
+                    const o = this.getCurrentTab().objects.get(element.id);
+                    editableText.style.fontSize = `${this.textFontSize(o || { width, height })}px`;
+                    return;
+                }
                 const initialWidth = this.getDefaultSize(type).width;
                 const initialHeight = this.getDefaultSize(type).height;
                 const scaleFactor = Math.min(width / initialWidth, height / initialHeight);
@@ -6841,16 +6855,100 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         }
     }
 
+    /** grandezza del carattere di un testo (schemi vecchi: ricavata dalla casella come prima) */
+    textFontSize(o) {
+        if (o && o.fontSize) return o.fontSize;
+        const w = (o && o.width) || 100, h = (o && o.height) || 30;
+        return Math.max(6, Math.round(14 * Math.min(w / 100, h / 30) * 10) / 10);
+    }
+
+    /** Casella allargata/stretta a mano: la larghezza resta, l'altezza segue il testo che va a capo */
+    fitTextHeight(o, minH = 0) {
+        const el = document.getElementById(o.id);
+        const ed = el && el.querySelector('.editable-text');
+        if (!ed) return;
+        const pad = 12;
+        const probe = ed.cloneNode(true);
+        const cs = getComputedStyle(ed);
+        Object.assign(probe.style, {
+            position: 'absolute', left: '-10000px', top: '0', visibility: 'hidden', display: 'block', height: 'auto',
+            width: Math.max(10, o.width - pad) + 'px', whiteSpace: 'pre-wrap', wordWrap: 'break-word', fontFamily: cs.fontFamily,
+            fontSize: this.textFontSize(o) + 'px', fontWeight: cs.fontWeight, lineHeight: cs.lineHeight, padding: cs.padding, boxSizing: 'border-box'
+        });
+        document.body.appendChild(probe);
+        const need = Math.ceil(probe.offsetHeight + pad);
+        probe.remove();
+        const h = Math.max(18, need, minH);
+        if (Math.abs(h - o.height) < 1) return;
+        o.height = h;
+        el.style.height = h + 'px';
+        this.updateArrowsForObject?.(o.id);
+    }
+
+    /** Grandezza del carattere dal pannello (testi) */
+    changeSelectedObjectsFontSize(size) {
+        const v = Math.max(6, Math.min(300, parseFloat(size) || 0));
+        if (!v || this.selectedObjects.size === 0) return;
+        const tab = this.getCurrentTab();
+        this.selectedObjects.forEach((pos, id) => {
+            const o = tab.objects.get(id);
+            if (!o || o.type !== 'text') return;
+            o.fontSize = v;
+            o.manualSize = false;
+            this.renderObject(o);
+            this.fitTextBox(o);
+        });
+        this.saveState('Modificata grandezza del testo');
+    }
+
+    /** La casella di testo prende la misura del testo (finché non la si allarga o stringe a mano da un lato) */
+    fitTextBox(o) {
+        if (!o || o.type !== 'text') return;
+        if (o.manualSize) return this.fitTextHeight(o);
+        const el = document.getElementById(o.id);
+        const ed = el && el.querySelector('.editable-text');
+        if (!ed) return;
+        if (!o.fontSize) o.fontSize = this.textFontSize(o);
+        const probe = ed.cloneNode(true);
+        const cs = getComputedStyle(ed);
+        Object.assign(probe.style, {
+            position: 'absolute', left: '-10000px', top: '0', visibility: 'hidden', width: 'auto', height: 'auto',
+            display: 'inline-block', whiteSpace: 'pre', fontFamily: cs.fontFamily, fontSize: o.fontSize + 'px',
+            fontWeight: cs.fontWeight, lineHeight: cs.lineHeight, padding: cs.padding, letterSpacing: cs.letterSpacing
+        });
+        if (!probe.textContent.trim()) probe.textContent = 'Testo';
+        document.body.appendChild(probe);
+        const tw = probe.offsetWidth, th = probe.offsetHeight;
+        probe.remove();
+        const pad = 12;                                  // margine interno della casella
+        const w = Math.max(24, Math.ceil(tw + pad)), h = Math.max(18, Math.ceil(th + pad));
+        if (Math.abs(w - o.width) < 1 && Math.abs(h - o.height) < 1) return;
+        // la casella cresce/si stringe attorno al centro
+        o.x = Math.round(o.x + (o.width - w) / 2);
+        o.y = Math.round(o.y + (o.height - h) / 2);
+        o.width = w; o.height = h;
+        el.style.left = o.x + 'px'; el.style.top = o.y + 'px';
+        el.style.width = w + 'px'; el.style.height = h + 'px';
+        this.updateArrowsForObject?.(o.id);
+    }
+
     addControlHandles(element) {
-        let resizeHandle = element.querySelector('.resize-handle');
-        if (!resizeHandle) {
-            resizeHandle = document.createElement('div');
-            resizeHandle.className = 'resize-handle';
-            element.appendChild(resizeHandle);
-        }
-        resizeHandle.addEventListener('mousedown', (e) => {
-            e.stopPropagation();
-            this.startResize(element, e);
+        // 8 maniglie di ridimensionamento: 4 angoli e 4 lati (Maiusc sugli angoli = proporzioni bloccate)
+        element.querySelectorAll('.resize-handle').forEach(h => h.remove());
+        ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'].forEach(dir => {
+            let g = element.querySelector(`.obj-grip[data-dir="${dir}"]`);
+            if (!g) {
+                g = document.createElement('div');
+                g.className = `obj-grip obj-grip-${dir}`;
+                g.dataset.dir = dir;
+                element.appendChild(g);
+                g.addEventListener('mousedown', (e) => {
+                    if (e.button !== 0) return;
+                    e.stopPropagation();
+                    e.preventDefault();
+                    this.startResize(element, e, dir);
+                });
+            }
         });
 
         let rotateHandle = element.querySelector('.rotate-handle');
@@ -6969,7 +7067,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             }
             return;
         }
-        if (e.target.closest('.resize-handle') || e.target.closest('.rotate-handle') || e.target.closest('.connection-point')) {
+        if (e.target.closest('.resize-handle') || e.target.closest('.obj-grip') || e.target.closest('.rotate-handle') || e.target.closest('.connection-point')) {
             return;
         }
 
@@ -7492,14 +7590,20 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         this.updateObjectControls();
     }
 
-    startResize(element, e) {
+    startResize(element, e, dir = 'se') {
         this.isResizing = true;
         this.selectedObject = element;
+        const o = this.getCurrentTab().objects.get(element.id) || {};
         this.resizeStart = {
             x: e.clientX,
             y: e.clientY,
-            width: element.offsetWidth,
-            height: element.offsetHeight
+            dir,
+            width: o.width || element.offsetWidth,
+            height: o.height || element.offsetHeight,
+            ox: o.x || 0,
+            oy: o.y || 0,
+            rot: (o.rotation || 0) * Math.PI / 180,
+            fontSize: o.type === 'text' ? this.textFontSize(o) : null
         };
 
         // Begin transaction for resize
@@ -7588,28 +7692,58 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     }
 
     handleResize(e) {
-        if (!this.isResizing) return;
-
-        const deltaX = (e.clientX - this.resizeStart.x) / this.getCurrentTab().zoom;
-        const deltaY = (e.clientY - this.resizeStart.y) / this.getCurrentTab().zoom;
-
-        const newWidth = Math.max(20, this.resizeStart.width + deltaX);
-        const newHeight = Math.max(20, this.resizeStart.height + deltaY);
-
-        this.selectedObject.style.width = newWidth + 'px';
-        this.selectedObject.style.height = newHeight + 'px';
-
-        const objectData = this.getCurrentTab().objects.get(this.selectedObject.id);
-        if (objectData) {
-            objectData.width = newWidth;
-            objectData.height = newHeight;
+        if (!this.isResizing || !this.resizeStart) return;
+        const rs = this.resizeStart;
+        const z = this.getCurrentTab().zoom || 1;
+        // spostamento del mouse nel riferimento dell'oggetto (anche se è ruotato)
+        const gx = (e.clientX - rs.x) / z, gy = (e.clientY - rs.y) / z;
+        const c = Math.cos(rs.rot), sn = Math.sin(rs.rot);
+        const lx = gx * c + gy * sn, ly = -gx * sn + gy * c;
+        const d = rs.dir || 'se';
+        let L = 0, R = 0, T = 0, B = 0;                 // spostamento dei quattro lati
+        if (d.includes('w')) L = lx;
+        if (d.includes('e')) R = lx;
+        if (d.includes('n')) T = ly;
+        if (d.includes('s')) B = ly;
+        let w = rs.width + R - L, h = rs.height + B - T;
+        const MIN = 12;
+        // Maiusc sugli angoli: proporzioni bloccate
+        if (e.shiftKey && d.length === 2 && rs.width > 0 && rs.height > 0) {
+            const k = Math.max(w / rs.width, h / rs.height);
+            const w2 = rs.width * k, h2 = rs.height * k;
+            if (d.includes('w')) L = rs.width - w2; else R = w2 - rs.width;
+            if (d.includes('n')) T = rs.height - h2; else B = h2 - rs.height;
+            w = w2; h = h2;
         }
+        if (w < MIN) { if (d.includes('w')) L = rs.width - MIN; else R = MIN - rs.width; w = MIN; }
+        if (h < MIN) { if (d.includes('n')) T = rs.height - MIN; else B = MIN - rs.height; h = MIN; }
+        // il centro si sposta di metà dei lati mossi (ruotato come l'oggetto)
+        const scx = (L + R) / 2, scy = (T + B) / 2;
+        const cx = rs.ox + rs.width / 2 + scx * c - scy * sn;
+        const cy = rs.oy + rs.height / 2 + scx * sn + scy * c;
+        const objectData = this.getCurrentTab().objects.get(this.selectedObject.id);
+        if (!objectData) return;
+        objectData.width = Math.round(w);
+        objectData.height = Math.round(h);
+        objectData.x = Math.round(cx - w / 2);
+        objectData.y = Math.round(cy - h / 2);
+        const el = this.selectedObject;
+        el.style.width = objectData.width + 'px';
+        el.style.height = objectData.height + 'px';
+        el.style.left = objectData.x + 'px';
+        el.style.top = objectData.y + 'px';
 
-        this.resizeContent(this.selectedObject, newWidth, newHeight, objectData.type);
+        // testo: dagli angoli cambia la grandezza del carattere, dai lati solo la casella (il testo va a capo)
+        if (objectData.type === 'text' && rs.fontSize) {
+            if (d.length === 2) objectData.fontSize = Math.max(6, Math.min(300, Math.round(rs.fontSize * h / rs.height * 10) / 10));
+            else objectData.manualSize = true;
+        }
+        this.resizeContent(el, objectData.width, objectData.height, objectData.type);
+        // testo stretto da un lato: l'altezza cresce perché le parole vanno a capo (dall'alto/basso resta quella scelta, se basta)
+        if (objectData.type === 'text' && objectData.manualSize) this.fitTextHeight(objectData, (d === 'n' || d === 's') ? objectData.height : 0);
 
-        this.updateArrowsForObject(this.selectedObject.id);
-        // record keyframe for macro differential timeline (resize)
-        try { if (window.app && window.app.macroRecorder) window.app.macroRecorder.recordKeyframe(this.selectedObject.id, { width: objectData.width, height: objectData.height }); } catch (err) { /* ignore */ }
+        this.updateArrowsForObject(el.id);
+        try { if (window.app && window.app.macroRecorder) window.app.macroRecorder.recordKeyframe(el.id, { width: objectData.width, height: objectData.height, x: objectData.x, y: objectData.y }); } catch (err) { /* ignore */ }
     }
 
     startRotation(element, e) {
@@ -7944,6 +8078,13 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
                 document.getElementById('objectColor').value = toHexColor(objectData.color);
                 document.getElementById('objectText').value = objectData.text;
+                const fsInp = document.getElementById('objectFontSize');
+                if (fsInp) {
+                    const isText = objectData.type === 'text';
+                    const fld = fsInp.closest('.field');
+                    if (fld) fld.style.display = isText ? '' : 'none';
+                    if (isText) fsInp.value = Math.round(this.textFontSize(objectData));
+                }
                 const fontSel = document.getElementById('objectFont');
                 if (fontSel) fontSel.value = objectData.fontFamily || '';
                 const hlSel = document.getElementById('objectHighlight');
@@ -8165,7 +8306,12 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             to = endPos;
         }
 
-        this.createArrow(this.connectionStart, to, this.arrowType);
+        // un clic senza trascinare (o sul punto di partenza) non crea frecce: prima ne nasceva una lunga zero,
+        // agganciata al punto del disegno, ogni volta che si cliccava vicino a un punto di aggancio
+        const startPos = this.getArrowPoint(this.connectionStart);
+        const sameObject = to.objectId && to.objectId === this.connectionStart.objectId;
+        const tooShort = !to.objectId && Math.hypot(endPos.x - startPos.x, endPos.y - startPos.y) < 12;
+        if (!sameObject && !tooShort) this.createArrow(this.connectionStart, to, this.arrowType);
 
         this.isConnecting = false;
         this.connectionStart = null;
@@ -8789,6 +8935,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             if (!objectData) return;
             if (value) objectData[prop] = value; else delete objectData[prop];
             this.renderObject(objectData);
+            this.fitTextBox(objectData);
         });
         this.saveState(`Modificato ${prop === 'fontFamily' ? 'carattere' : 'evidenziatore'} di ${this.selectedObjects.size} oggetti`);
         this.updateCurrentFrame();
@@ -8814,6 +8961,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             if (!objectData) return;
             objectData.text = text;
             this.renderObject(objectData);
+            this.fitTextBox(objectData);
         });
 
         this.saveState(`Modificato testo di ${this.selectedObjects.size} oggetti`);
@@ -9229,6 +9377,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     }
 
     paste() {
+        // incollando si torna alla Selezione: il clic successivo sposta la copia, non disegna frecce
+        try { if (this.layout && this.layout.setSelectTool) this.layout.setSelectTool(false); } catch (e) { /* ignore */ }
         if (!this.clipboard) return;
 
         this.deselectAll();
@@ -10948,6 +11098,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 foreignObjectRendering: false,
                 onclone: (clonedDoc) => {
                     const clonedCanvas = clonedDoc.getElementById('canvas');
+                    this.cleanCloneForExport(clonedCanvas);
                     if (clonedCanvas) {
                         clonedCanvas.style.transform = 'none';
                         clonedCanvas.style.position = 'relative';
@@ -11275,6 +11426,23 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             // ignore UI sync errors
         }
     }
+    /**
+     * Copia del foglio usata per l'esportazione: via selezioni, maniglie, punti di aggancio, perni e ombre
+     * dell'interfaccia (prima un oggetto selezionato lasciava un alone rettangolare nell'immagine/PDF).
+     */
+    cleanCloneForExport(clonedCanvas) {
+        if (!clonedCanvas) return;
+        clonedCanvas.style.boxShadow = 'none';
+        clonedCanvas.querySelectorAll('.resize-handle, .rotate-handle, .connection-point, .connection-badge, .control-point, .endpoint-control, .group-rotation-center, .selection-box, .canvas-resize-handle-single, .obj-grip, .arrow-highlight-preview')
+            .forEach(el => el.remove());
+        clonedCanvas.querySelectorAll('.canvas-object').forEach(o => {
+            o.classList.remove('selected', 'group-selected', 'hover', 'dragging');
+            o.style.boxShadow = 'none';
+            o.style.outline = 'none';
+        });
+        clonedCanvas.querySelectorAll('.arrow-path.selected').forEach(pth => pth.classList.remove('selected'));
+    }
+
     prepareCanvasForExport() {
         const canvas = document.getElementById('canvas');
         const tab = this.getCurrentTab();
@@ -11445,6 +11613,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 onclone: (clonedDoc) => {
                     const c = clonedDoc.getElementById('canvas');
                     if (!c) return;
+                    this.cleanCloneForExport(c);
                     c.style.transform = 'none';
                     c.style.position = 'relative';
                     c.querySelectorAll('.arrow-svg').forEach(svg => { svg.style.position = 'absolute'; svg.style.left = '0'; svg.style.top = '0'; });
@@ -11652,6 +11821,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     foreignObjectRendering: false,
                     onclone: (clonedDoc) => {
                         const clonedCanvas = clonedDoc.getElementById('canvas');
+                        this.cleanCloneForExport(clonedCanvas);
                         if (clonedCanvas) {
                             clonedCanvas.style.transform = 'none';
                             clonedCanvas.style.position = 'relative';
