@@ -134,10 +134,15 @@ class TeamManagementDialog {
             <input type="file" id="importTeamFile" accept=".xlsx,.xls,.xlsm,.ods,.csv,.tsv,.txt,.text,.md,.pdf,.docx,.doc,.json,image/*">
         </div>
 
-        <p class="import-text-help">
-            …oppure <b>incolla l'elenco</b> (da WhatsApp, email, Word, Excel): una riga per giocatore, in qualsiasi ordine
-            numero, nome, ruolo, nascita, altezza, email, telefono. Poi premi <b>Importa testo</b>.
-        </p>
+        <div class="roster-paste-row">
+            <button type="button" id="rosterPasteBtn" class="roster-paste-btn">📋 Incolla</button>
+            <p class="import-text-help">
+                …oppure <b>copia</b> le righe da <b>Excel, Google Fogli, Google Documenti, Word, WhatsApp, email</b> e
+                premi <b>Ctrl+V</b> (⌘V su Mac) qui o il pulsante <b>Incolla</b>: si apre subito l'anteprima.
+                Puoi anche scrivere l'elenco qui sotto (una riga per giocatore, in qualsiasi ordine numero, nome, ruolo,
+                nascita, altezza…) e premere <b>Importa testo</b>.
+            </p>
+        </div>
 
         <div class="import-text-container">
             <textarea id="playersImportText"
@@ -210,6 +215,16 @@ class TeamManagementDialog {
         if (!this.elements.dialog) {
             console.error('TeamManagementDialog: HTML elements not found');
         }
+
+        // Incolla (Ctrl+V nel riquadro, nella finestra o pulsante): le tabelle di Excel, Fogli, Documenti e Word
+        // arrivano con le loro celle e si apre subito l'anteprima
+        this.elements.importTextArea?.addEventListener('paste', (e) => this.onPaste(e, true));
+        this.elements.dialog?.addEventListener('paste', (e) => {
+            if (e.target === this.elements.importTextArea) return;
+            if (e.target.closest && e.target.closest('input, textarea, select, [contenteditable="true"]')) return;
+            this.onPaste(e, false);
+        });
+        document.getElementById('rosterPasteBtn')?.addEventListener('click', () => this.pasteFromClipboard());
 
         // File scelto o trascinato: lettura e anteprima
         this.elements.importTeamFile?.addEventListener('change', (e) => this.importTeam(e));
@@ -487,6 +502,54 @@ class TeamManagementDialog {
         this.openImportPreview({ kind: 'text', label: 'Testo incollato', name: '', rows: RosterImport.textToRows(text) });
     }
 
+    /** Ctrl+V: tabella o testo degli appunti → anteprima */
+    onPaste(e, inTextarea) {
+        const cd = e.clipboardData;
+        if (!cd) return;
+        // file incollati (es. screenshot di un elenco o file copiato dal computer)
+        const file = Array.from(cd.files || [])[0];
+        if (file) { e.preventDefault(); this.importFile(file); return; }
+        const html = cd.getData('text/html');
+        const text = cd.getData('text/plain');
+        const { rows, label } = RosterImport.clipboardToRows(html, text);
+        // nel riquadro una sola riga breve si incolla normalmente (si sta scrivendo a mano)
+        if (inTextarea && rows.length < 2 && !/<table/i.test(html || '')) return;
+        if (!rows.length) return;
+        e.preventDefault();
+        if (inTextarea && this.elements.importTextArea) this.elements.importTextArea.value = text || rows.map(r => r.join('\t')).join('\n');
+        this.openImportPreview({ kind: 'paste', label, name: '', rows });
+    }
+
+    /** Pulsante Incolla: legge gli appunti (tabella HTML se c'è, altrimenti testo) */
+    async pasteFromClipboard() {
+        let html = '', text = '';
+        try {
+            if (navigator.clipboard && navigator.clipboard.read) {
+                const items = await navigator.clipboard.read();
+                for (const it of items) {
+                    const img = it.types.find(t => t.startsWith('image/'));
+                    if (img && !it.types.includes('text/plain')) {
+                        const blob = await it.getType(img);
+                        return this.importFile(new File([blob], 'appunti.' + img.split('/')[1], { type: img }));
+                    }
+                    if (it.types.includes('text/html')) html = await (await it.getType('text/html')).text();
+                    if (it.types.includes('text/plain')) text = await (await it.getType('text/plain')).text();
+                }
+            } else if (navigator.clipboard && navigator.clipboard.readText) {
+                text = await navigator.clipboard.readText();
+            }
+        } catch (err) {
+            try { text = await navigator.clipboard.readText(); } catch (e2) { /* permesso negato */ }
+        }
+        const { rows, label } = RosterImport.clipboardToRows(html, text);
+        if (!rows.length) {
+            alert('Gli appunti sono vuoti o il browser non permette di leggerli.\n\nCopia le righe (da Excel, Google Fogli, Documenti, Word…) e premi Ctrl+V (⌘V su Mac) nel riquadro.');
+            this.elements.importTextArea?.focus();
+            return;
+        }
+        this.openImportPreview({ kind: 'paste', label, name: '', rows });
+    }
+
     /** Legge un file di qualsiasi tipo supportato e apre l'anteprima */
     async importFile(file) {
         const status = (msg) => this.setImportStatus(msg);
@@ -592,7 +655,7 @@ class TeamManagementDialog {
         const cols = info.tabular ? info.mapping.length : 0;
         const headerRow = info.tabular && info.header >= 0 ? this.imp.rows[info.header] : null;
 
-        let html = `<div class="ri-source">📄 <b>${esc(src.name || src.label)}</b> <span>${esc(src.name ? src.label : '')} · ${players.length} giocatori riconosciuti</span></div>`;
+        let html = `<div class="ri-source">${src.kind === "paste" ? "📋" : "📄"} <b>${esc(src.name || src.label)}</b> <span>${esc(src.name ? src.label : '')} · ${players.length} giocatori riconosciuti</span></div>`;
         if (src.note) html += `<div class="ri-note">${esc(src.note)}</div>`;
         if (src.sheets && src.sheets.length > 1) {
             html += `<label class="ri-inline">Foglio <select data-act="sheet">${src.sheets.map((sh, i) => `<option value="${i}"${i === src.sheet ? ' selected' : ''}>${esc(sh.name)} (${sh.rows.length} righe)</option>`).join('')}</select></label>`;

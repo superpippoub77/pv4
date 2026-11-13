@@ -5,6 +5,17 @@ e compaiono nella barra di stato ("VBProW4 by SpikeCode AI · Ott 2026 · Ver: 1
 Informazioni e nella guida (Riferimento → Novità). A ogni rilascio vanno aggiornati insieme a questo file
 e a `package.json`.
 
+## 1.13.1 — Nov 2026
+
+- **Importa giocatori con copia e incolla**: copia le righe da **Excel, Google Fogli, Google Documenti, Word,
+  LibreOffice, pagine web, WhatsApp o email** e premi **Ctrl+V** (⌘V) nella finestra *Squadra* (nel riquadro o in un
+  punto qualsiasi) oppure il nuovo pulsante **📋 Incolla**: si apre subito l'anteprima.
+  - dagli appunti si usa la tabella vera (HTML) quando c'è: le colonne restano separate anche da Google Documenti e
+    Word, le celle con «a capo» restano una cella, le celle unite non spostano le colonne;
+  - elenchi puntati e paragrafi diventano una riga per giocatore; righe-titolo come «Convocati sabato:» sono saltate;
+  - anche un'immagine copiata (es. screenshot di un elenco) viene letta come una foto;
+  - nel riquadro di testo una parola o una riga sola si incolla normalmente, per scrivere a mano.
+
 ## 1.13.0 — Nov 2026
 
 - **Importa giocatori** (finestra *Squadra*) da qualsiasi fonte, con **anteprima** prima della conferma:
