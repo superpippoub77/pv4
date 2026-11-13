@@ -324,6 +324,7 @@ html:`<dl class="guide-faq">
 
 { id:'novita', cat:'Riferimento', title:'Novità', keys:'novità versioni changelog aggiornamenti',
 html:`<ul>
+<li><b>1.15.1</b> — Bordo tratteggiato solo sulla forma dell'oggetto (cerchio del giocatore, cono, pallone…), non sul riquadro che lo contiene; il testo nuovo non va più a capo sull'ultima lettera.</li>
 <li><b>1.15.0</b> — Zoom con Ctrl + rotella; ridimensionamento di oggetti e foglio da tutti gli angoli e lati; casella di testo sulla misura del testo; esportazione senza aloni; niente più frecce create per sbaglio inserendo o copiando oggetti.</li>
 <li><b>1.14.2</b> — <a data-topic="scout">Scout</a>: formazione automatica sempre con 1 palleggiatore e 2 bande, avviso sul sestetto, elenco giocatori ordinato per ruolo.</li>
 <li><b>1.14.1</b> — <a data-topic="frecce">Frecce</a>: niente più Lineare/Curva, nascono dritte e si curvano trascinando il perno arancione (sulla linea); pannello Freccia riordinato.</li>

@@ -2,6 +2,8 @@ class SchemaEditor {
     // Oggetti solo 2D (disegni piatti) e inclinazione del foglio quando si passa al 3D
     static DRAW_2D_ONLY = new Set(['sketch', 'local-svg', 'sprite', 'volleyball-player-bagher']);
     static DRAW_3D_TILT = 40;
+    // oggetti con una forma propria: il tratteggio va sul loro bordo, non sul riquadro che li contiene
+    static OWN_DASH = new Set(['player', 'cone', 'goal', 'net', 'ball', 'mat', 'brick', 'basket', 'icon']);
     // Fattore di scala dei caratteri a mano (occhio più piccolo dei caratteri di sistema)
     static FONT_SCALE = { 'Nanum Pen Script': 1.35, 'Schoolbell': 1, 'Architects Daughter': 0.95 };
 
@@ -6304,7 +6306,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             element.style.zIndex = Math.max(1, object.zIndex || 1);
         }
         element.style.opacity = object.opacity || 1;
-        element.classList.toggle('dashed', object.dashed);
+        // tratteggio: sulla forma dell'oggetto (cerchio del giocatore, cono, pallone…); il riquadro tratteggiato
+        // solo per chi non ha una forma propria (testo, immagini)
+        element.classList.toggle('dashed', !!object.dashed && !SchemaEditor.OWN_DASH.has(object.type));
 
         // Aggiorna contenuto senza cancellare l'elemento
         element.innerHTML = '';
@@ -6782,6 +6786,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             case 'net':
                 content.classList.toggle('dashed', object.dashed);
                 break;
+            default:
+                if (SchemaEditor.OWN_DASH.has(object.type)) content.classList.toggle('dashed', !!object.dashed);
+                break;
         }
 
         return content;
@@ -6867,7 +6874,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         const el = document.getElementById(o.id);
         const ed = el && el.querySelector('.editable-text');
         if (!ed) return;
-        const pad = 12;
+        const pad = 22;
         const probe = ed.cloneNode(true);
         const cs = getComputedStyle(ed);
         Object.assign(probe.style, {
@@ -6920,7 +6927,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         document.body.appendChild(probe);
         const tw = probe.offsetWidth, th = probe.offsetHeight;
         probe.remove();
-        const pad = 12;                                  // margine interno della casella
+        const pad = 22;                                  // margine interno della casella + bordo (non deve andare a capo)
         const w = Math.max(24, Math.ceil(tw + pad)), h = Math.max(18, Math.ceil(th + pad));
         if (Math.abs(w - o.width) < 1 && Math.abs(h - o.height) < 1) return;
         // la casella cresce/si stringe attorno al centro

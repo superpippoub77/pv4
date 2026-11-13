@@ -1572,3 +1572,6 @@ body.arrow-mode .canvas-object .obj-grip, .canvas-object.group-selected .obj-gri
 .canvas-object .rotate-handle { right: auto !important; left: calc(50% - 7px) !important; top: -30px !important; }
 .canvas-object .rotate-handle::after { content: ""; position: absolute; left: 50%; top: 100%; width: 1.5px; height: 14px; background: #e74c3c; transform: translateX(-50%); }
 body.resizing-canvas .canvas { transition: none !important; }
+
+/* Tratteggio sulla forma del pallone (non sul riquadro) */
+.ball-object.dashed { border: 2px dashed #333; box-sizing: border-box; }

@@ -5,6 +5,14 @@ e compaiono nella barra di stato ("VBProW4 by SpikeCode AI · Ott 2026 · Ver: 1
 Informazioni e nella guida (Riferimento → Novità). A ogni rilascio vanno aggiornati insieme a questo file
 e a `package.json`.
 
+## 1.15.1 — Nov 2026
+
+- **Tratteggio sulla forma**: con *Tratteggiato* il bordo tratteggiato va solo sulla forma dell'oggetto (cerchio del
+  giocatore, cono, pallone, porta, rete, materassino, mattone, cesto, icona), non più anche sul riquadro quadrato che
+  lo contiene. Testi e immagini, che non hanno una forma propria, mantengono il riquadro tratteggiato.
+- La casella di un testo nuovo non manda più a capo l'ultima lettera (nel calcolo della misura mancavano i bordi
+  interni).
+
 ## 1.15.0 — Nov 2026
 
 - **Zoom con la rotella**: Ctrl (⌘) + rotella, rotella tenendo premuto un tasto del mouse o pizzico sul touchpad,
