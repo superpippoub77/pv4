@@ -5,6 +5,18 @@ e compaiono nella barra di stato ("VBProW4 by SpikeCode AI · Ott 2026 · Ver: 1
 Informazioni e nella guida (Riferimento → Novità). A ogni rilascio vanno aggiornati insieme a questo file
 e a `package.json`.
 
+## 1.14.2 — Nov 2026
+
+- **Scout partita, formazioni corrette**: la *Formazione automatica* schiera sempre il sestetto 5-1 — 1 palleggiatore,
+  2 bande, 2 centrali, 1 opposto — più i liberi. Prima poteva mettere due palleggiatori e lasciare fuori una banda:
+  il ruolo si leggeva solo dalla sigla e chi in rosa aveva la sigla *Altro* (es. la seconda banda importata) era preso
+  per **O = Opposto**. Ora il ruolo si legge prima dal ruolo esteso (Palleggiatore, Schiacciatore, Centrale…), poi
+  dalla sigla esatta; se un ruolo manca si usa un giocatore di movimento rimasto e lo si segnala.
+- Sotto ogni squadra un **avviso** indica se il sestetto ha due palleggiatori o se manca una banda, un centrale o
+  l'opposto; *Inizia set* chiede conferma in quel caso.
+- Elenco a comparsa: prima i giocatori del ruolo della riga (es. le bande sulla riga S), lo staff non compare, il
+  giocatore già in quella riga non risulta «già in formazione».
+
 ## 1.14.1 — Nov 2026
 
 - **Frecce più semplici**: non si sceglie più tra Lineare e Curva. La freccia nasce **dritta** e si curva trascinando
