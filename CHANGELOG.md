@@ -5,6 +5,16 @@ e compaiono nella barra di stato ("VBProW4 by SpikeCode AI · Ott 2026 · Ver: 1
 Informazioni e nella guida (Riferimento → Novità). A ogni rilascio vanno aggiornati insieme a questo file
 e a `package.json`.
 
+## 1.18.0 — Nov 2026
+
+- **Corpo e viso** (nuovo gruppo in *Forme…*): occhio, occhi, faccia, testa di profilo, bocca, orecchio, mano,
+  impronta del piede, figura umana, cervello. Disegnati in vettoriale: si ridimensionano, si ruotano, si specchiano e
+  si colorano (Colore = pelle/riempimento, Bordo = contorno, iride e tratti).
+- Rombi gialli: **dove guardano** l'occhio e gli occhi (anche nella faccia), **espressione** della faccia (dal sorriso
+  alla bocca triste), bocca aperta o chiusa.
+- Le forme ora possono avere dettagli sopra il contorno (iride, pupille, pieghe…), anche nell'anteprima della galleria
+  e nelle immagini esportate.
+
 ## 1.17.0 — Nov 2026
 
 - **Collegamenti dell'esercizio** (scheda *Esercizio* → *🔗 Collegamenti* → *＋ Collega…*): uno o più collegamenti per
