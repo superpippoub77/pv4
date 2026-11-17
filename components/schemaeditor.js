@@ -137,6 +137,8 @@ class SchemaEditor {
         this.rotationBoard = new RotationBoard(this);
         this.scout = (typeof ScoutManager !== 'undefined') ? new ScoutManager(this) : null;
         this.exerciseWizard = (typeof ExerciseWizard !== 'undefined') ? new ExerciseWizard(this) : null;
+        this.exerciseLinks = (typeof ExerciseLinks !== 'undefined') ? new ExerciseLinks(this) : null;
+        try { this.exerciseLinks?.bindPanel(); } catch (e) { /* pannello non ancora creato: lo collega sidebar.js */ }
         this.workoutPlan = new WorkoutPlan(this);
         if (window.VideoObjects) VideoObjects.init(this);
         // Unico gestore del login, creato in index.html (crearne un altro aggiungeva una seconda finestra di accesso)
@@ -534,6 +536,7 @@ class SchemaEditor {
                     customHeight: tabData.customHeight,
                     lib: tabData.lib || null, // collegamento all'esercizio nella libreria online
                     uid: tabData.uid || null, // identificativo stabile (Piano allenamento)
+                    links: tabData.links || [], // collegamenti ad altri esercizi, dettagli, pagine web
                     showBorder: tabData.showBorder,
                     maxZIndex: tabData.maxZIndex,
                     canvasRotation: tabData.canvasRotation,
@@ -624,6 +627,7 @@ class SchemaEditor {
                 if (tabData.customWidth) tab.customWidth = tabData.customWidth;
                 tab.lib = tabData.lib || null;
                 tab.uid = tabData.uid || null;
+                tab.links = tabData.links || [];
                 if (tabData.customHeight) tab.customHeight = tabData.customHeight;
                 tab.showBorder = tabData.showBorder;
                 tab.maxZIndex = tabData.maxZIndex;
@@ -711,6 +715,7 @@ class SchemaEditor {
                     customHeight: tabData.customHeight || tab.customHeight,
                     lib: tabData.lib || null,
                     uid: tabData.uid || null,
+                    links: tabData.links || [],
                     showBorder: tabData.showBorder,
                     maxZIndex: tabData.maxZIndex,
                     canvasRotation: tabData.canvasRotation,
@@ -3631,6 +3636,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 { separator: true },
                 { label: obj?.dashed ? '━ Linea continua' : '╌ Linea tratteggiata', action: () => this.toggleDashedObject() },
                 { separator: true },
+                ...(this.exerciseLinks && obj ? [...this.exerciseLinks.objectMenuItems(obj), { separator: true }] : []),
                 { label: '🗑️ Elimina', action: () => this.deleteSelected(), shortcut: 'Canc' }
             ];
         } else if (type === 'arrow') {
@@ -4178,7 +4184,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     objects: Array.from(frame.objects.entries())
                 })) || [],
                 exerciseSteps: tab.exerciseSteps || [],
-                scout: tab.scout || undefined
+                scout: tab.scout || undefined,
+                uid: this.tabUid(tab),
+                links: tab.links || []
             };
             allTabs.push(tabData);
         });
@@ -4309,6 +4317,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     tab.rec = tabData.rec || 60;
                     tab.exerciseSteps = tabData.exerciseSteps || [];
                     tab.scout = tabData.scout || null;
+                    if (tabData.uid && this.findTabByUid(tabData.uid) == null) tab.uid = tabData.uid;
+                    tab.links = tabData.links || [];
 
                     // ✅ Carica frames se presenti
                     if (tabData.frames) {
@@ -6354,6 +6364,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         this.addControlHandles(element);
         this.addConnectionPoints(element);
         this.addObjectLabel(element, object);
+        this.exerciseLinks?.decorateObject(element, object);
 
         // Eventi
         element.addEventListener('contextmenu', (e) => {
@@ -7322,7 +7333,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             }
             return;
         }
-        if (e.target.closest('.resize-handle') || e.target.closest('.obj-grip') || e.target.closest('.adj-handle') || e.target.closest('.rotate-handle') || e.target.closest('.connection-point')) {
+        if (e.target.closest('.resize-handle') || e.target.closest('.obj-grip') || e.target.closest('.adj-handle') || e.target.closest('.obj-link-badge') || e.target.closest('.rotate-handle') || e.target.closest('.connection-point')) {
             return;
         }
 
@@ -7354,6 +7365,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     this.selectObject(target);
                 }
             }
+            // tasto destro (menu) o centrale: solo selezione. Il menu compare subito e il rilascio cade sul menu,
+            // non sul foglio: il trascinamento resterebbe attivo e l'oggetto seguirebbe il mouse.
+            if (e.button !== 0) return;
             // ✅ Sempre inizia il drag, indipendentemente dalla selezione precedente
             this.startDrag(e);
         } else if (arrowPath) {
@@ -10175,6 +10189,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
         this.initExerciseSteps();
         this.renderStepsList();
+        this.exerciseLinks?.render();
 
         this.deselectAll();
         this.updateAllResizeHandles();
@@ -11116,6 +11131,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             })),
             animationSpeed: tab.animationSpeed || 1000,
             exerciseSteps: tab.exerciseSteps || [],
+            // collegamenti (dettagli, varianti, altri esercizi, pagine web) e identificativo della scheda
+            uid: this.tabUid(tab),
+            links: tab.links || [],
             // scout della partita (finestra Scout)
             scout: tab.scout || undefined,
             // Persist canvas plane rotation so reload preserves inclination
@@ -11250,9 +11268,12 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         tab.rec = data.rec || 60;            // ✅ AGGIUNTO                
         tab.exerciseSteps = data.exerciseSteps || [];
         tab.scout = data.scout || null;
+        if (data.uid) { const other = this.findTabByUid(data.uid); if (other == null || other === this.activeTabId) tab.uid = data.uid; }
+        tab.links = Array.isArray(data.links) ? data.links : [];
 
         this.initExerciseSteps();
         this.renderStepsList();
+        this.exerciseLinks?.render();
 
         if (data.frames) {
             tab.frames = data.frames.map(frameData => ({
@@ -11702,7 +11723,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     cleanCloneForExport(clonedCanvas) {
         if (!clonedCanvas) return;
         clonedCanvas.style.boxShadow = 'none';
-        clonedCanvas.querySelectorAll('.resize-handle, .rotate-handle, .connection-point, .connection-badge, .control-point, .endpoint-control, .group-rotation-center, .selection-box, .canvas-resize-handle-single, .obj-grip, .adj-handle, .arrow-highlight-preview')
+        clonedCanvas.querySelectorAll('.resize-handle, .rotate-handle, .connection-point, .connection-badge, .control-point, .endpoint-control, .group-rotation-center, .selection-box, .canvas-resize-handle-single, .obj-grip, .adj-handle, .obj-link-badge, .arrow-highlight-preview')
             .forEach(el => el.remove());
         clonedCanvas.querySelectorAll('.canvas-object').forEach(o => {
             o.classList.remove('selected', 'group-selected', 'hover', 'dragging');
@@ -12153,6 +12174,16 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     const label = `Video: ${v.title}${v.url ? ' - ' + v.url : (v.file ? ' (file ' + v.file + ')' : '')}`.slice(0, 95);
                     doc.setFontSize(fontNormalSize);
                     if (v.url) { doc.setTextColor(30, 90, 180); doc.textWithLink(label, drawingX, nextDrawingY, { url: v.url }); doc.setTextColor(0); }
+                    else doc.text(label, drawingX, nextDrawingY);
+                    nextDrawingY += lineSpacing;
+                });
+                // collegamenti dell'esercizio (dettagli, varianti, progressioni, pagine web)
+                const exLinks = this.exerciseLinks ? this.exerciseLinks.pdfLines(tab) : [];
+                exLinks.forEach(l => {
+                    if (nextDrawingY > maxY) { doc.addPage(); nextDrawingY = margin; }
+                    const label = l.text.slice(0, 95);
+                    doc.setFontSize(fontNormalSize);
+                    if (l.url) { doc.setTextColor(30, 90, 180); doc.textWithLink(label, drawingX, nextDrawingY, { url: l.url }); doc.setTextColor(0); }
                     else doc.text(label, drawingX, nextDrawingY);
                     nextDrawingY += lineSpacing;
                 });
