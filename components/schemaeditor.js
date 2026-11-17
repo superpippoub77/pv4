@@ -5844,9 +5844,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             // forma classica: misura, colori e parametri di partenza della forma
             const key = data.shape || 'rect';
             const def = window.PV4Shapes ? PV4Shapes.get(key) : null;
-            const st = (window.PV4Shapes && PV4Shapes.DEFAULT_STYLE[def && def.cat]) || { color: '#d6e6f7', stroke: '#2c3e50' };
+            const st = (window.PV4Shapes && PV4Shapes.style(key)) || { color: '#d6e6f7', stroke: '#2c3e50' };
             return this.addObject('shape', x, y, st.color, data.text || '', 0, this.dashedMode, null, null, null, null, false,
-                { shape: key, adj: window.PV4Shapes ? PV4Shapes.defaultAdj(key) : [], stroke: st.stroke, strokeWidth: 2, fontSize: 14 });
+                { shape: key, adj: window.PV4Shapes ? PV4Shapes.defaultAdj(key) : [], stroke: st.stroke, strokeWidth: (def && def.sw) || 2, fontSize: 14 });
         } else if (data.type === 'local-svg' || data.type === 'sketch' || data.type === 'gym') {
             return this.addObject(data.type, x, y, data.color, data.text, 0, this.dashedMode, null, data.src);
         } else if (data.type === 'object') {
@@ -6935,7 +6935,6 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         const of = PV4Shapes.overflow(object.shape, w, h, adj);
         const pad = sw + 2;
         const L = pad + of.l, T = pad + of.t, W = w + L + pad + of.r, H = h + T + pad + of.b;
-        const d = def.path(w, h, adj);
         const fill = object.noFill ? 'none' : (object.color || '#d6e6f7');
         const stroke = sw > 0 ? (object.stroke || '#2c3e50') : 'none';
         const dash = object.dashed && sw > 0 ? ` stroke-dasharray="${sw * 3} ${sw * 2}"` : '';
@@ -6950,9 +6949,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
         svg.style.left = (-L) + 'px';
         svg.style.top = (-T) + 'px';
-        // "cover": riempimento senza bordo sopra la base della coda dei fumetti (niente linea tra corpo e coda)
-        const cover = def.cover && !object.noFill ? `<path d="${def.cover(w, h, adj, sw)}" transform="translate(${L} ${T})" fill="${fill}" stroke="none"/>` : '';
-        svg.innerHTML = `<path d="${d}" transform="translate(${L} ${T})" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round"${dash}/>${cover}`;
+        // contorno, "cover" dei fumetti (niente linea tra corpo e coda) e dettagli (occhi, bocca, pieghe…)
+        svg.innerHTML = PV4Shapes.svgInner(object.shape, w, h, adj, { fill, stroke, sw, dash, clipId: 'shclip-' + object.id, L, T });
         // maniglie gialle (si vedono con l'oggetto selezionato)
         content.querySelectorAll(':scope > .adj-handle').forEach(hd => hd.remove());
         (def.handles || []).forEach((hd, i) => {
