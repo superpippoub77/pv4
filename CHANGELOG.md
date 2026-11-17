@@ -5,6 +5,27 @@ e compaiono nella barra di stato ("VBProW4 by SpikeCode AI · Ott 2026 · Ver: 1
 Informazioni e nella guida (Riferimento → Novità). A ogni rilascio vanno aggiornati insieme a questo file
 e a `package.json`.
 
+## 1.16.0 — Nov 2026
+
+- **Forme classiche** (nuovo pulsante *Forme…* nella barra a sinistra, anche in *Campo e oggetti…*), 46 forme
+  disegnate in SVG nelle misure reali (angoli e punte non si deformano):
+  - **forme base**: rettangolo, rettangolo arrotondato, ellisse, cerchio, triangolo, triangolo rettangolo, rombo,
+    parallelogramma, trapezio, pentagono, esagono, ottagono, stelle a 4, 5 e 6 punte, croce, cuore, nuvola;
+  - **diagramma a blocchi**: processo, processo alternativo, decisione, dati, processo predefinito, inizio/fine,
+    documento, preparazione, input manuale, operazione manuale, connettore, connettore fuori pagina, database,
+    ritardo, unione, estrazione, visualizzazione;
+  - **frecce a blocco**: destra, sinistra, su, giù, doppia ↔ e ↕, con coda dentellata, gallone (chevron), pentagono;
+  - **fumetti**: rettangolare e arrotondato, con la coda che si sposta anche fuori dalla forma.
+- **Rombo giallo** per modificare la forma (come nei programmi di disegno): arrotondamento, inclinazione, rientranza,
+  punte della stella, spessore dell'asta e lunghezza della punta delle frecce, coda del fumetto; funziona anche con la
+  forma ruotata, un solo passo di Annulla.
+- Pannello: *Colore* = riempimento, *Bordo della forma* (colore e spessore, 0 = senza bordo), *Senza riempimento*,
+  tratteggio sul bordo; testo dentro la forma con carattere, grandezza ed evidenziatore.
+- **Caratteri**: oltre ai tre a mano, quelli di sistema (Arial, Verdana, Tahoma, Trebuchet MS, Georgia, Times New
+  Roman, Courier New, Comic Sans MS, Impact) e i **caratteri personalizzati**: «➕ Carica un carattere…» (.ttf, .otf,
+  .woff, .woff2, fino a 2,5 MB), salvati per l'utente e caricati a ogni avvio; 🗑 per rimuoverli.
+- Esportazione: le forme escono intere anche quando sporgono dalla casella (coda dei fumetti).
+
 ## 1.15.2 — Nov 2026
 
 - **Copia/incolla e inserimento non collegano più oggetti per sbaglio**: dopo aver aperto uno schema (dalla libreria,

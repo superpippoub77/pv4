@@ -3,9 +3,11 @@ class SchemaEditor {
     static DRAW_2D_ONLY = new Set(['sketch', 'local-svg', 'sprite', 'volleyball-player-bagher']);
     static DRAW_3D_TILT = 40;
     // oggetti con una forma propria: il tratteggio va sul loro bordo, non sul riquadro che li contiene
-    static OWN_DASH = new Set(['player', 'cone', 'goal', 'net', 'ball', 'mat', 'brick', 'basket', 'icon']);
+    static OWN_DASH = new Set(['player', 'cone', 'goal', 'net', 'ball', 'mat', 'brick', 'basket', 'icon', 'shape']);
     // Fattore di scala dei caratteri a mano (occhio più piccolo dei caratteri di sistema)
     static FONT_SCALE = { 'Nanum Pen Script': 1.35, 'Schoolbell': 1, 'Architects Daughter': 0.95 };
+    static HAND_FONTS = ['Nanum Pen Script', 'Schoolbell', 'Architects Daughter'];
+    static SYSTEM_FONTS = ['Arial', 'Verdana', 'Tahoma', 'Trebuchet MS', 'Georgia', 'Times New Roman', 'Courier New', 'Comic Sans MS', 'Impact'];
 
     constructor(configuration, menuData, username, storage) {
         this.typeOfSport = 'volleyball';
@@ -289,6 +291,8 @@ class SchemaEditor {
             this.applyCustomCanvasSize(this.getCurrentTab());
         }
         this.layout?.afterInit();
+        // caratteri personalizzati caricati dall'utente
+        try { this.loadCustomFonts(); } catch (e) { console.warn('caratteri personalizzati', e); }
         // modalità 2D/3D della scheda aperta (galleria, sfera, pulsanti) già all'avvio
         try { this.applyDrawModeUI(); } catch (e) { /* ignore */ }
         // schema vuoto e dati dell'esercizio non compilati: compilazione guidata
@@ -4637,6 +4641,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                         icon: item.dataset.icon || null,
                         src: item.dataset.src || null,
                         model3d: item.dataset.model3d || null,
+                        shape: item.dataset.shape || null,
                         spriteSheet: item.dataset.spriteSheet || null,
                         spriteCols: parseInt(item.dataset.spriteCols) || 1,
                         spriteRows: parseInt(item.dataset.spriteRows) || 1,
@@ -5825,6 +5830,13 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             return this.addObject(data.type, x, y, data.color, data.text, 0, this.dashedMode, null, null, spriteData);
         } else if (data.type === 'icon') {
             return this.addObject(data.type, x, y, data.color, data.text, 0, this.dashedMode, data.icon);
+        } else if (data.type === 'shape') {
+            // forma classica: misura, colori e parametri di partenza della forma
+            const key = data.shape || 'rect';
+            const def = window.PV4Shapes ? PV4Shapes.get(key) : null;
+            const st = (window.PV4Shapes && PV4Shapes.DEFAULT_STYLE[def && def.cat]) || { color: '#d6e6f7', stroke: '#2c3e50' };
+            return this.addObject('shape', x, y, st.color, data.text || '', 0, this.dashedMode, null, null, null, null, false,
+                { shape: key, adj: window.PV4Shapes ? PV4Shapes.defaultAdj(key) : [], stroke: st.stroke, strokeWidth: 2, fontSize: 14 });
         } else if (data.type === 'local-svg' || data.type === 'sketch' || data.type === 'gym') {
             return this.addObject(data.type, x, y, data.color, data.text, 0, this.dashedMode, null, data.src);
         } else if (data.type === 'object') {
@@ -5861,7 +5873,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
         this._clickAddOffset = ((this._clickAddOffset || 0) + 1) % 8;
         const off = this._clickAddOffset * 12;
-        const size = this.getDefaultSize(opts.type, opts.src);
+        const size = this.getDefaultSize(opts.type, opts.type === 'shape' ? opts.shape : opts.src);
         const x = Math.round(p.x - size.width / 2 + off);
         const y = Math.round(p.y - size.height / 2 + off);
 
@@ -5873,6 +5885,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             icon: opts.icon || null,
             src: opts.src || null,
             model3d: opts.model3d || null,
+            shape: opts.shape || null,
             spriteSheet: sprite ? sprite.sheet : null,
             spriteCols: sprite ? (sprite.cols || 1) : 1,
             spriteRows: sprite ? (sprite.rows || 1) : 1,
@@ -6164,7 +6177,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         return { x: localX / zoom, y: localY / zoom, rect };
     }
 
-    addObject(type, x, y, color = '#3498db', text = '', rotation = 0, dashed = this.dashedMode, icon = null, src = null, spriteData = null, model3d = null, is3d = false) {
+    addObject(type, x, y, color = '#3498db', text = '', rotation = 0, dashed = this.dashedMode, icon = null, src = null, spriteData = null, model3d = null, is3d = false, extra = null) {
         const tab = this.getCurrentTab();
         const id = this.freeId(tab, 'objects', 'obj-', 'nextObjectId');
 
@@ -6203,6 +6216,11 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         };
 
         if (type === 'text') object.fontSize = 18;
+        if (extra) Object.assign(object, extra);
+        if (type === 'shape' && extra && extra.shape && window.PV4Shapes) {
+            const sz = PV4Shapes.size(extra.shape);
+            object.width = sz.width; object.height = sz.height;
+        }
         tab.objects.set(id, object);
 
         // If the toolbar toggle is active, initialize the object's X/Y rotation to match the canvas plane
@@ -6235,6 +6253,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     }
 
     getDefaultSize(type, src) {
+        if (type === 'shape') return window.PV4Shapes ? PV4Shapes.size(src || 'rect') : { width: 120, height: 80 };
         // Disegni "schizzo": dimensioni naturali dell'SVG in scala, proporzioni mantenute
         if (type === 'sketch') {
             const name = String(src || '').split('/').pop();
@@ -6323,6 +6342,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         // tratteggio: sulla forma dell'oggetto (cerchio del giocatore, cono, pallone…); il riquadro tratteggiato
         // solo per chi non ha una forma propria (testo, immagini)
         element.classList.toggle('dashed', !!object.dashed && !SchemaEditor.OWN_DASH.has(object.type));
+        element.classList.toggle('obj-shape', object.type === 'shape');
 
         // Aggiorna contenuto senza cancellare l'elemento
         element.innerHTML = '';
@@ -6768,6 +6788,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             return content;
         }
 
+        if (object.type === 'shape') this.buildShapeContent(object, content);
+
         if (object.type !== 'ball' && object.type !== 'net' && object.type !== 'goal') {
             const editableDiv = document.createElement('div');
             editableDiv.classList.add('editable-text');
@@ -6833,6 +6855,11 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     resizeContent(element, width, height, type) {
         const content = element.querySelector(`.${type}-object`);
         if (!content) return;
+        if (type === 'shape') {
+            const o = this.getCurrentTab().objects.get(element.id);
+            if (o) this.updateShapeVisual(o, content);
+            return;
+        }
         if (type === 'sprite') {
             // Gli sprite mantengono le proporzioni tramite background-size
             // Non serve ridimensionare manualmente, il CSS lo gestisce
@@ -6876,6 +6903,110 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         }
     }
 
+    // ------------------------------------------------------------------
+    // FORME CLASSICHE (components/shapes/shapes.js)
+    // ------------------------------------------------------------------
+    buildShapeContent(object, content) {
+        content.innerHTML = '';
+        this.updateShapeVisual(object, content);
+    }
+
+    /** disegna la forma nelle misure attuali e posiziona le maniglie gialle */
+    updateShapeVisual(object, content) {
+        if (!window.PV4Shapes) return;
+        const el = document.getElementById(object.id);
+        content = content || (el && el.querySelector('.shape-object'));
+        if (!content) return;
+        const def = PV4Shapes.get(object.shape);
+        const w = Math.max(1, object.width), h = Math.max(1, object.height);
+        const adj = (object.adj && object.adj.length) ? object.adj : PV4Shapes.defaultAdj(object.shape);
+        const sw = object.strokeWidth == null ? 2 : +object.strokeWidth;
+        const of = PV4Shapes.overflow(object.shape, w, h, adj);
+        const pad = sw + 2;
+        const L = pad + of.l, T = pad + of.t, W = w + L + pad + of.r, H = h + T + pad + of.b;
+        const d = def.path(w, h, adj);
+        const fill = object.noFill ? 'none' : (object.color || '#d6e6f7');
+        const stroke = sw > 0 ? (object.stroke || '#2c3e50') : 'none';
+        const dash = object.dashed && sw > 0 ? ` stroke-dasharray="${sw * 3} ${sw * 2}"` : '';
+        let svg = content.querySelector(':scope > svg.shape-svg');
+        if (!svg) {
+            svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('class', 'shape-svg');
+            content.insertBefore(svg, content.firstChild);
+        }
+        svg.setAttribute('width', W);
+        svg.setAttribute('height', H);
+        svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+        svg.style.left = (-L) + 'px';
+        svg.style.top = (-T) + 'px';
+        // "cover": riempimento senza bordo sopra la base della coda dei fumetti (niente linea tra corpo e coda)
+        const cover = def.cover && !object.noFill ? `<path d="${def.cover(w, h, adj, sw)}" transform="translate(${L} ${T})" fill="${fill}" stroke="none"/>` : '';
+        svg.innerHTML = `<path d="${d}" transform="translate(${L} ${T})" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round"${dash}/>${cover}`;
+        // maniglie gialle (si vedono con l'oggetto selezionato)
+        content.querySelectorAll(':scope > .adj-handle').forEach(hd => hd.remove());
+        (def.handles || []).forEach((hd, i) => {
+            const [x, y] = hd.pos(w, h, adj);
+            const k = document.createElement('div');
+            k.className = 'adj-handle';
+            k.dataset.i = i;
+            k.title = 'Trascina per modificare la forma';
+            k.style.left = (x - 6) + 'px';
+            k.style.top = (y - 6) + 'px';
+            k.addEventListener('mousedown', (e) => {
+                if (e.button !== 0) return;
+                e.stopPropagation();
+                e.preventDefault();
+                this._adjDrag = { id: object.id, i, moved: false };
+                const move = (ev) => { if (this._adjDrag) this.handleAdjDrag(ev); };
+                const up = () => {
+                    document.removeEventListener('mousemove', move);
+                    if (this._adjDrag && this._adjDrag.moved) this.saveState('Modificata forma');
+                    this._adjDrag = null;
+                };
+                document.addEventListener('mousemove', move);
+                document.addEventListener('mouseup', up, { once: true });
+            });
+            content.appendChild(k);
+        });
+        // testo dentro la forma
+        const ed = content.querySelector('.editable-text');
+        if (ed) ed.style.fontSize = (object.fontSize || 14) + 'px';
+    }
+
+    /** trascinamento di una maniglia gialla: punto del mouse nel riferimento della forma (anche ruotata) */
+    handleAdjDrag(e) {
+        const dr = this._adjDrag;
+        const o = this.getCurrentTab().objects.get(dr.id);
+        if (!o || !window.PV4Shapes) return;
+        const def = PV4Shapes.get(o.shape);
+        const hd = (def.handles || [])[dr.i];
+        if (!hd) return;
+        const p = this.getCanvasLocalPoint(e);
+        const cx = o.x + o.width / 2, cy = o.y + o.height / 2;
+        const t = -(o.rotation || 0) * Math.PI / 180;
+        const dx = p.x - cx, dy = p.y - cy;
+        const lx = dx * Math.cos(t) - dy * Math.sin(t) + o.width / 2;
+        const ly = dx * Math.sin(t) + dy * Math.cos(t) + o.height / 2;
+        const adj = (o.adj && o.adj.length) ? o.adj : PV4Shapes.defaultAdj(o.shape);
+        o.adj = hd.set(lx, ly, o.width, o.height, adj).map(v => Math.round(v * 1000) / 1000);
+        dr.moved = true;
+        this.updateShapeVisual(o);
+    }
+
+    /** proprietà di bordo e riempimento delle forme selezionate */
+    changeSelectedShapeProp(prop, value, commit = true) {
+        const tab = this.getCurrentTab();
+        let n = 0;
+        this.selectedObjects.forEach((pos, id) => {
+            const o = tab.objects.get(id);
+            if (!o || o.type !== 'shape') return;
+            o[prop] = value;
+            this.updateShapeVisual(o);
+            n++;
+        });
+        if (n && commit) this.saveState('Modificata forma');
+    }
+
     /** grandezza del carattere di un testo (schemi vecchi: ricavata dalla casella come prima) */
     textFontSize(o) {
         if (o && o.fontSize) return o.fontSize;
@@ -6906,6 +7037,109 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         this.updateArrowsForObject?.(o.id);
     }
 
+    // ------------------------------------------------------------------
+    // CARATTERI: a mano, di sistema e personalizzati (file caricati dall'utente)
+    // ------------------------------------------------------------------
+    getCustomFonts() {
+        try { const raw = this.storage.get('customFonts'); const l = raw ? JSON.parse(raw) : []; return Array.isArray(l) ? l : []; } catch (e) { return []; }
+    }
+
+    /** registra i caratteri personalizzati nel documento (servono anche per l'esportazione) */
+    loadCustomFonts() {
+        const list = this.getCustomFonts();
+        this._customFontNames = list.map(f => f.name);
+        list.forEach(f => {
+            try {
+                const ff = new FontFace(f.name, `url(${f.data})`);
+                ff.load().then(face => { document.fonts.add(face); this.refitAllTexts(); }).catch(err => console.warn('carattere', f.name, err));
+            } catch (e) { /* ignore */ }
+        });
+        this.refreshFontSelect();
+    }
+
+    refreshFontSelect(current) {
+        const sel = document.getElementById('objectFont');
+        if (!sel) return;
+        const val = current !== undefined ? current : sel.value;
+        const esc = (t) => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+        const opt = (f) => `<option value="${esc(f)}" style="font-family:'${esc(f)}'">${esc(f)}</option>`;
+        const custom = this._customFontNames || [];
+        // un carattere usato nello schema ma non presente qui (es. personalizzato su un altro computer)
+        const all = new Set(['', ...SchemaEditor.HAND_FONTS, ...SchemaEditor.SYSTEM_FONTS, ...custom]);
+        sel.innerHTML = `<option value="">Predefinito</option>`
+            + `<optgroup label="A mano">${SchemaEditor.HAND_FONTS.map(opt).join('')}</optgroup>`
+            + `<optgroup label="Sistema">${SchemaEditor.SYSTEM_FONTS.map(opt).join('')}</optgroup>`
+            + (custom.length ? `<optgroup label="Personalizzati">${custom.map(opt).join('')}</optgroup>` : '')
+            + (val && !all.has(val) ? `<option value="${esc(val)}">${esc(val)} (non installato qui)</option>` : '')
+            + `<option value="__upload__">➕ Carica un carattere… (.ttf .otf .woff)</option>`;
+        sel.value = val || '';
+        const rm = document.getElementById('objectFontRemove');
+        if (rm) rm.style.display = custom.includes(sel.value) ? '' : 'none';
+    }
+
+    onFontSelect(value) {
+        if (value === '__upload__') {
+            const sel = document.getElementById('objectFont');
+            const tab = this.getCurrentTab();
+            const first = [...this.selectedObjects.keys()].map(id => tab.objects.get(id)).find(Boolean);
+            if (sel) sel.value = (first && first.fontFamily) || '';
+            this.uploadCustomFont();
+            return;
+        }
+        this.changeSelectedObjectsTextStyle('fontFamily', value);
+        this.refreshFontSelect(value);
+    }
+
+    uploadCustomFont() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2';
+        input.style.display = 'none';
+        document.body.appendChild(input);
+        input.addEventListener('change', async () => {
+            const file = input.files && input.files[0];
+            input.remove();
+            if (!file) return;
+            if (file.size > 2.5 * 1024 * 1024) { alert('Il file del carattere è troppo grande (massimo 2,5 MB).'); return; }
+            const base = file.name.replace(/\.(ttf|otf|woff2?)$/i, '').replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim() || 'Carattere';
+            const name = (prompt('Nome del carattere:', base) || '').trim();
+            if (!name) return;
+            try {
+                const data = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(file); });
+                const face = await new FontFace(name, `url(${data})`).load();
+                document.fonts.add(face);
+                const list = this.getCustomFonts().filter(f => f.name !== name);
+                list.push({ name, data });
+                try { this.storage.set('customFonts', JSON.stringify(list)); }
+                catch (e) { alert('Spazio esaurito nel browser: il carattere è attivo solo fino alla chiusura della pagina.'); }
+                this._customFontNames = list.map(f => f.name);
+                this.changeSelectedObjectsTextStyle('fontFamily', name);
+                this.refreshFontSelect(name);
+                this.flashMessage?.(`Carattere «${name}» aggiunto.`);
+            } catch (err) {
+                console.error('carattere', err);
+                alert('Non riesco a leggere questo file di carattere: usa un file .ttf, .otf, .woff o .woff2.');
+            }
+        });
+        input.click();
+    }
+
+    removeCustomFont(name) {
+        if (!name || !(this._customFontNames || []).includes(name)) return;
+        if (!confirm(`Rimuovere il carattere «${name}» dai tuoi caratteri? I testi che lo usano torneranno al carattere predefinito su questo computer.`)) return;
+        const list = this.getCustomFonts().filter(f => f.name !== name);
+        this.storage.set('customFonts', JSON.stringify(list));
+        this._customFontNames = list.map(f => f.name);
+        this.refreshFontSelect('');
+    }
+
+    /** dopo il caricamento di un carattere le caselle di testo si riadattano */
+    refitAllTexts() {
+        const tab = this.getCurrentTab();
+        if (!tab) return;
+        tab.objects.forEach(o => { if (o.type === 'text' && o.fontFamily) this.fitTextBox(o); });
+    }
+
     /** Grandezza del carattere dal pannello (testi) */
     changeSelectedObjectsFontSize(size) {
         const v = Math.max(6, Math.min(300, parseFloat(size) || 0));
@@ -6913,7 +7147,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         const tab = this.getCurrentTab();
         this.selectedObjects.forEach((pos, id) => {
             const o = tab.objects.get(id);
-            if (!o || o.type !== 'text') return;
+            if (!o || (o.type !== 'text' && o.type !== 'shape')) return;
             o.fontSize = v;
             o.manualSize = false;
             this.renderObject(o);
@@ -7088,7 +7322,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             }
             return;
         }
-        if (e.target.closest('.resize-handle') || e.target.closest('.obj-grip') || e.target.closest('.rotate-handle') || e.target.closest('.connection-point')) {
+        if (e.target.closest('.resize-handle') || e.target.closest('.obj-grip') || e.target.closest('.adj-handle') || e.target.closest('.rotate-handle') || e.target.closest('.connection-point')) {
             return;
         }
 
@@ -7173,6 +7407,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     }
 
     handleCanvasMouseMove(e) {
+        if (this._adjDrag) return;   // maniglia gialla: gestita a livello di pagina
         if (this.isDrawing && this.freehandMode) {
             this.continueFreehand(e);
             return;
@@ -8099,15 +8334,28 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
                 document.getElementById('objectColor').value = toHexColor(objectData.color);
                 document.getElementById('objectText').value = objectData.text;
+                // forme: bordo, spessore, riempimento
+                const isShape = objectData.type === 'shape';
+                ['objectStroke', 'objectNoFill'].forEach(id => { const f = document.getElementById(id)?.closest('.field'); if (f) f.style.display = isShape ? '' : 'none'; });
+                if (isShape) {
+                    const sc = document.getElementById('objectStroke'); if (sc) sc.value = toHexColor(objectData.stroke || '#2c3e50');
+                    const swv = objectData.strokeWidth == null ? 2 : objectData.strokeWidth;
+                    const sw = document.getElementById('objectStrokeWidth'); if (sw) sw.value = swv;
+                    const swl = document.getElementById('objectStrokeWidthValue'); if (swl) swl.textContent = swv;
+                    const nf = document.getElementById('objectNoFill'); if (nf) nf.checked = !!objectData.noFill;
+                }
                 const fsInp = document.getElementById('objectFontSize');
                 if (fsInp) {
-                    const isText = objectData.type === 'text';
+                    const isText = objectData.type === 'text' || objectData.type === 'shape';
                     const fld = fsInp.closest('.field');
                     if (fld) fld.style.display = isText ? '' : 'none';
                     if (isText) fsInp.value = Math.round(this.textFontSize(objectData));
                 }
                 const fontSel = document.getElementById('objectFont');
-                if (fontSel) fontSel.value = objectData.fontFamily || '';
+                if (fontSel) {
+                    this.refreshFontSelect(objectData.fontFamily || '');
+                    fontSel.value = objectData.fontFamily || '';
+                }
                 const hlSel = document.getElementById('objectHighlight');
                 if (hlSel) hlSel.value = objectData.highlight || '';
                 document.getElementById('objectNumber').value = objectData.objectNumber || '';
@@ -8936,7 +9184,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         span.className = 'text-style' + (hl ? ' text-highlight' : '');
         span.textContent = object.text || '';
         if (font) {
-            span.style.fontFamily = `'${font}', cursive`;
+            span.style.fontFamily = `'${font}', ${SchemaEditor.HAND_FONTS.includes(font) ? 'cursive' : 'sans-serif'}`;
             // i caratteri a mano hanno un occhio più piccolo: stessa altezza visiva del testo normale
             span.style.fontSize = (SchemaEditor.FONT_SCALE[font] || 1) + 'em';
         }
@@ -10409,7 +10657,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         ['spriteData', 'from', 'to', 'controlPoint', 'bend', 'pivot'].forEach(k => {
             if (copy[k] && typeof copy[k] === 'object') copy[k] = { ...copy[k] };
         });
-        ['animations', 'points'].forEach(k => {
+        ['animations', 'points', 'adj'].forEach(k => {
             if (Array.isArray(copy[k])) copy[k] = copy[k].map(v => (v && typeof v === 'object') ? { ...v } : v);
         });
         return copy;
@@ -11454,12 +11702,37 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
     cleanCloneForExport(clonedCanvas) {
         if (!clonedCanvas) return;
         clonedCanvas.style.boxShadow = 'none';
-        clonedCanvas.querySelectorAll('.resize-handle, .rotate-handle, .connection-point, .connection-badge, .control-point, .endpoint-control, .group-rotation-center, .selection-box, .canvas-resize-handle-single, .obj-grip, .arrow-highlight-preview')
+        clonedCanvas.querySelectorAll('.resize-handle, .rotate-handle, .connection-point, .connection-badge, .control-point, .endpoint-control, .group-rotation-center, .selection-box, .canvas-resize-handle-single, .obj-grip, .adj-handle, .arrow-highlight-preview')
             .forEach(el => el.remove());
         clonedCanvas.querySelectorAll('.canvas-object').forEach(o => {
             o.classList.remove('selected', 'group-selected', 'hover', 'dragging');
             o.style.boxShadow = 'none';
             o.style.outline = 'none';
+            if (o.classList.contains('obj-shape')) {
+                o.style.overflow = 'visible';
+                o.querySelectorAll('.shape-object').forEach(c => { c.style.overflow = 'visible'; });
+                // html2canvas sposta/taglia l'SVG che esce dall'oggetto (coda dei fumetti): nella copia esportata
+                // il disegno della forma va direttamente sul foglio, con posizione e rotazione esplicite
+                const data = this.getCurrentTab()?.objects.get(o.id);
+                o.querySelectorAll('svg.shape-svg').forEach(svg => {
+                    if (!data) return;
+                    try {
+                        const L = -parseFloat(svg.style.left) || 0, T = -parseFloat(svg.style.top) || 0;
+                        const W = +svg.getAttribute('width'), H = +svg.getAttribute('height');
+                        // SVG della pagina (non della copia: lì html2canvas copia gli stili calcolati, e "transform: none"
+                        // sul tracciato annullerebbe lo spostamento interno del disegno)
+                        const live = document.querySelector(`#${CSS.escape(o.id)} svg.shape-svg`);
+                        const inner = (live || svg).innerHTML;
+                        const markup = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${inner}</svg>`;
+                        const img = clonedCanvas.ownerDocument.createElement('img');
+                        img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(markup);
+                        img.style.cssText = `position:absolute;left:${data.x - L}px;top:${data.y - T}px;width:${W}px;height:${H}px;max-width:none;pointer-events:none;`
+                            + `transform-origin:${L + data.width / 2}px ${T + data.height / 2}px;transform:rotate(${data.rotation || 0}deg);z-index:${o.style.zIndex || 1};opacity:${o.style.opacity || 1}`;
+                        clonedCanvas.insertBefore(img, o);
+                        svg.remove();
+                    } catch (e) { /* resta l'SVG */ }
+                });
+            }
         });
         clonedCanvas.querySelectorAll('.arrow-path.selected').forEach(pth => pth.classList.remove('selected'));
     }
