@@ -5,6 +5,24 @@ e compaiono nella barra di stato ("VBProW4 by SpikeCode AI · Ott 2026 · Ver: 1
 Informazioni e nella guida (Riferimento → Novità). A ogni rilascio vanno aggiornati insieme a questo file
 e a `package.json`.
 
+## 1.17.0 — Nov 2026
+
+- **Collegamenti dell'esercizio** (scheda *Esercizio* → *🔗 Collegamenti* → *＋ Collega…*): uno o più collegamenti per
+  esercizio, ognuno con tipo (dettaglio, variante, progressione, propedeutico, esercizio collegato, esercizio
+  principale) e nota, verso:
+  - una scheda aperta;
+  - una nuova scheda, vuota o con una copia del disegno (per il dettaglio di una zona);
+  - un esercizio della libreria (si riapre da lì);
+  - una pagina web o un video.
+- Tra due schede si aggiunge in automatico il **collegamento di ritorno** (dettaglio ↔ esercizio principale,
+  progressione ↔ propedeutico, variante ↔ variante); togliendo il collegamento sparisce anche il ritorno.
+- **Oggetti collegati**: tasto destro su un oggetto → *Collega a un dettaglio o esercizio…*; sull'oggetto compare un
+  distintivo che con un clic apre la destinazione (non esce nelle immagini esportate).
+- I collegamenti restano nel salvataggio automatico, negli allenamenti salvati, nei file .json e in libreria; le schede
+  mantengono il loro identificativo, così i collegamenti tra esercizi funzionano anche dopo la riapertura. Nel PDF
+  compaiono sotto il disegno, con le pagine web cliccabili.
+- Corretto: con il tasto destro su un oggetto (menu) l'oggetto restava agganciato al mouse e si spostava muovendolo.
+
 ## 1.16.0 — Nov 2026
 
 - **Forme classiche** (nuovo pulsante *Forme…* nella barra a sinistra, anche in *Campo e oggetti…*), 46 forme

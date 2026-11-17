@@ -1,0 +1,57 @@
+/* Collegamenti dell'esercizio (scheda Esercizio) e degli oggetti del disegno */
+.exl-panel .exl-list { display: flex; flex-direction: column; gap: 4px; margin: 2px 0 6px; }
+.exl-empty { font-size: 12px; opacity: .65; padding: 2px 0; }
+.exl-item { display: flex; align-items: stretch; gap: 3px; }
+.exl-item.off .exl-open { opacity: .6; }
+.exl-open {
+    flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; text-align: left; cursor: pointer;
+    padding: 5px 8px; border-radius: 6px; border: 1px solid var(--line, #ccc); background: var(--bg-2, #f4f4f4);
+    color: inherit; font: inherit; font-size: 12.5px;
+}
+.exl-open:hover { border-color: var(--brass, #c9973f); }
+.exl-ico { font-size: 15px; flex: 0 0 auto; }
+.exl-txt { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.exl-txt small { display: block; font-size: 11px; opacity: .65; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.exl-btn {
+    flex: 0 0 28px; border-radius: 6px; border: 1px solid var(--line, #ccc); background: transparent;
+    color: inherit; cursor: pointer; font-size: 13px;
+}
+.exl-btn:hover { background: var(--bg-2, #eee); }
+.exl-add {
+    width: 100%; padding: 6px 10px; border-radius: 6px; cursor: pointer; font: inherit; font-weight: 600;
+    border: 1px dashed var(--brass, #c9973f); background: transparent; color: var(--brass, #c9973f);
+}
+.exl-add:hover { background: rgba(201, 151, 63, .12); }
+
+/* finestra Collega… */
+.exl-dlg { display: flex; flex-direction: column; gap: 10px; font-size: 14px; }
+.exl-hint { margin: 0; opacity: .75; font-size: 13px; }
+.exl-field { display: flex; flex-direction: column; gap: 4px; }
+.exl-field > span { font-size: 12.5px; font-weight: 600; opacity: .8; }
+.exl-dlg input[type=text], .exl-dlg input[type=url], .exl-dlg input[type=search], .exl-dlg select {
+    padding: 8px 10px; border-radius: 6px; border: 1px solid var(--line, #ccc); background: var(--bg-2, #fff);
+    color: inherit; font: inherit; width: 100%; box-sizing: border-box;
+}
+.exl-radios { display: flex; flex-wrap: wrap; gap: 6px; }
+.exl-radio {
+    display: inline-flex; align-items: center; gap: 5px; padding: 6px 10px; border-radius: 8px; cursor: pointer;
+    border: 1px solid var(--line, #ccc); background: var(--bg-2, #f4f4f4); font-size: 13px;
+}
+.exl-radio:has(input:checked) { border-color: var(--brass, #c9973f); background: rgba(201, 151, 63, .18); font-weight: 600; }
+.exl-radio.dis { opacity: .45; cursor: not-allowed; }
+.exl-pane { display: flex; flex-direction: column; gap: 6px; }
+.exl-check { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
+.exl-liblist { max-height: 220px; overflow: auto; border: 1px solid var(--line, #ccc); border-radius: 6px; padding: 4px; font-size: 13px; }
+.exl-libit { padding: 5px 8px; border-radius: 5px; cursor: pointer; }
+.exl-libit small { opacity: .6; }
+.exl-libit:hover { background: var(--bg-2, #eee); }
+.exl-libit.on { background: var(--brass, #c9973f); color: #1c1200; font-weight: 600; }
+
+/* distintivo sull'oggetto collegato */
+.canvas-object > .obj-link-badge {
+    position: absolute; top: -10px; right: -10px; z-index: 30; width: 22px; height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 12px; line-height: 1; cursor: pointer;
+    background: #fff; border: 2px solid #c9973f; box-shadow: 0 1px 4px rgba(0, 0, 0, .3); pointer-events: auto;
+    transform: translateZ(4px); /* il foglio è un contesto 3D: lo z-index da solo non basta */
+}
+.canvas-object > .obj-link-badge:hover { background: #fdf1d6; border-color: #8a6a30; }

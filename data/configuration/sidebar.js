@@ -432,6 +432,12 @@ const rightSidebarConfig = [
                         <textarea id="workoutDescrizione" placeholder="Inserisci note sull'allenamento..."></textarea>
                     </div>
 
+                    <div class="detail-field exl-panel">
+                        <label>🔗 Collegamenti:</label>
+                        <div id="exerciseLinksList" class="exl-list"></div>
+                        <button type="button" id="exerciseLinkAdd" class="exl-add" title="Collega un dettaglio, una variante, una progressione, un altro esercizio o una pagina web">＋ Collega…</button>
+                    </div>
+
                     <div class="detail-field">
                         <label for="workoutAutore" data-i18n="local_workout_author_label">Autore:</label>
                         <input type="text" id="workoutAutore" readonly
@@ -442,6 +448,7 @@ const rightSidebarConfig = [
         },
         init: (editor) => {
             document.getElementById('openExerciseWizard')?.addEventListener('click', () => editor.exerciseWizard?.open());
+            editor.exerciseLinks?.bindPanel();
             // Event listeners per i campi
             const fields = [
                 { id: 'workoutPeriodo', prop: 'periodo' },

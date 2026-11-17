@@ -308,6 +308,15 @@ html:`<p>Ogni schema è <b>2D</b> o <b>3D</b>: lo scegli con i pulsanti <b>2D ·
 <p><b>⇄ in 3D / ⇄ in 2D</b> converte il disegno: palloni piani ↔ pallone 3D, figure disegnate (schizzo, immagini, sprite) → giocatori con una lettera (A attaccante, M muro, D difensore, G altri), campo schizzo → sfondo Campo 3D, campo intero ↔ campo 3D, foglio inclinato ↔ piatto. Si annulla con Ctrl+Z.</p>
 <p><b>Cancella tutto</b> (barra a sinistra, sezione Modifica, o tasto destro sul foglio) toglie oggetti, frecce e disegni dello schema corrente dopo una conferma; si annulla con Ctrl+Z.</p>` },
 
+{ id:'collegamenti', cat:'Esercizi', title:'Collegamenti: dettagli, varianti, progressioni', keys:'collegamento collegamenti link collega dettaglio zoom variante progressione propedeutico esercizio collegato principale ritorno pagina web video url libreria oggetto distintivo',
+html:`<p>Ogni esercizio può avere <b>uno o più collegamenti</b>: nella scheda <b>Esercizio</b> del pannello, sezione <b>🔗 Collegamenti</b>, premi <b>＋ Collega…</b>.</p>
+<ul><li><b>Tipo</b>: 🔍 Dettaglio, 🔀 Variante, 📈 Progressione, 🧱 Propedeutico, 🔗 Esercizio collegato, ⬆️ Esercizio principale.</li>
+<li><b>Collega a</b>: una <b>scheda aperta</b>, una <b>nuova scheda</b> (anche partendo da una copia del disegno, comoda per il dettaglio di una zona), un <b>esercizio della libreria</b> oppure una <b>pagina web o un video</b>. Puoi aggiungere una nota.</li>
+<li>Tra due schede si aggiunge anche il <b>collegamento di ritorno</b> (es. il dettaglio rimanda all'esercizio principale).</li>
+<li>Un clic sul collegamento lo apre; ✎ lo modifica, 🗑 lo toglie. Se la scheda non è aperta ma l'esercizio è in libreria, viene riaperto da lì.</li></ul>
+<p>Anche un <b>singolo oggetto</b> del disegno si può collegare: tasto destro sull'oggetto → <b>🔗 Collega a un dettaglio o esercizio…</b>. Sull'oggetto compare il distintivo (🔍, 🔀…): un clic apre la destinazione.</p>
+<p>I collegamenti restano nel salvataggio automatico, negli allenamenti, nei file e in libreria, e compaiono nel <b>PDF</b> (le pagine web sono cliccabili).</p>` },
+
 { id:'forme', cat:'Disegnare', title:'Forme, diagrammi e frecce a blocco', keys:'forme forma rettangolo arrotondato ellisse cerchio triangolo rombo parallelogramma trapezio pentagono esagono ottagono stella croce cuore nuvola diagramma a blocchi flowchart processo decisione dati documento database terminatore connettore freccia a blocco gallone chevron fumetto callout maniglia gialla bordo riempimento',
 html:`<p><b>Forme…</b> nella barra a sinistra (o <i>Campo e oggetti…</i>) apre le forme classiche: <b>forme base</b> (rettangolo, arrotondato, ellisse, cerchio, triangoli, rombo, parallelogramma, trapezio, poligoni, stelle, croce, cuore, nuvola), <b>diagramma a blocchi</b> (processo, decisione, dati, inizio/fine, documento, database, preparazione, input e operazione manuale, connettori, ritardo, unione, estrazione, visualizzazione), <b>frecce a blocco</b> (destra, sinistra, su, giù, doppie, dentellata, gallone, pentagono) e <b>fumetti</b>.</p>
 <ul><li>Si ridimensionano con le 8 maniglie bianche (Maiusc = proporzioni) e si ruotano come gli altri oggetti; gli angoli e le punte restano proporzionati.</li>
@@ -331,6 +340,7 @@ html:`<dl class="guide-faq">
 
 { id:'novita', cat:'Riferimento', title:'Novità', keys:'novità versioni changelog aggiornamenti',
 html:`<ul>
+<li><b>1.17.0</b> — <a data-topic="collegamenti">Collegamenti</a>: ogni esercizio (e ogni oggetto del disegno) può rimandare a un dettaglio, una variante, una progressione, un altro esercizio della libreria o una pagina web, con il collegamento di ritorno. Il tasto destro su un oggetto non lo lascia più «attaccato» al mouse.</li>
 <li><b>1.16.0</b> — <a data-topic="forme">Forme classiche</a>: forme base, diagramma a blocchi, frecce a blocco e fumetti, regolabili con il rombo giallo; bordo, riempimento e testo dentro. Caratteri di sistema e <b>caratteri personalizzati</b> (.ttf, .otf, .woff).</li>
 <li><b>1.15.2</b> — Corretto: dopo aver aperto uno schema, l'oggetto incollato o inserito poteva prendere il posto di uno esistente e «ereditarne» le frecce.</li>
 <li><b>1.15.1</b> — Bordo tratteggiato solo sulla forma dell'oggetto (cerchio del giocatore, cono, pallone…), non sul riquadro che lo contiene; il testo nuovo non va più a capo sull'ultima lettera.</li>
