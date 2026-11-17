@@ -313,6 +313,8 @@ function openModal(id){
 /* ===== helpers: menu contestuale, avvisi, conferme (da SpikeCut) ===== */
 function showContextMenu(clientX, clientY, items){
   const menu = document.getElementById('ctxMenu');
+  // il menu nasce dentro la finestra della Libreria: fuori da lì (linguette delle schede) resterebbe invisibile
+  if(menu.parentElement !== document.body) document.body.appendChild(menu);
   menu.innerHTML = '';
   items.forEach(it=>{
     if(it==='sep'){

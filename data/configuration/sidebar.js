@@ -435,7 +435,10 @@ const rightSidebarConfig = [
                     <div class="detail-field exl-panel">
                         <label>🔗 Collegamenti:</label>
                         <div id="exerciseLinksList" class="exl-list"></div>
-                        <button type="button" id="exerciseLinkAdd" class="exl-add" title="Collega un dettaglio, una variante, una progressione, un altro esercizio o una pagina web">＋ Collega…</button>
+                        <div class="exl-actions">
+                            <button type="button" id="exerciseLinkAdd" class="exl-add" title="Collega un dettaglio, una variante, una progressione, un altro esercizio o una pagina web">＋ Collega…</button>
+                            <button type="button" id="exerciseVariantAdd" class="exl-add" title="Copia questo esercizio (disegno, step e dati) in una nuova scheda collegata come Variante">🔀 Crea variante</button>
+                        </div>
                     </div>
 
                     <div class="detail-field">
