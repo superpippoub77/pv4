@@ -5,6 +5,20 @@ e compaiono nella barra di stato ("VBProW4 by SpikeCode AI · Ott 2026 · Ver: 1
 Informazioni e nella guida (Riferimento → Novità). A ogni rilascio vanno aggiornati insieme a questo file
 e a `package.json`.
 
+## 1.19.0 — Nov 2026
+
+- **🔀 Crea variante** (scheda *Esercizio*, accanto a *＋ Collega…*, e tasto destro sulla linguetta della scheda): copia
+  completa dell'esercizio (disegno, step, dati, note, genere e categoria) in una nuova scheda «… · variante N»,
+  collegata all'originale con tipo *Variante* in entrambi i sensi.
+- **Frecce da un punto vuoto**: oltre al trascinamento, *clic* sul punto di partenza e *clic* su quello di arrivo
+  (anche nel vuoto o su un oggetto); Esc annulla. Prima un clic nel vuoto creava una freccia lunga zero, invisibile.
+  Rilasciata vicino a un punto di aggancio di un oggetto, la freccia si aggancia lì.
+- **Copia e incolla**: l'oggetto incollato conserva tutte le proprietà (prima una freccia a blocco o un'altra forma
+  tornava un rettangolo, e si perdevano bordo, regolazioni, carattere, collegamento). Si possono copiare anche le frecce
+  da sole (Ctrl+C o tasto destro → Copia), con curva, punte, colore e tratteggio.
+- Il menu del tasto destro sulle linguette delle schede (Chiudi scheda, Chiudi le altre…) non compariva se la
+  Libreria non era aperta.
+
 ## 1.18.0 — Nov 2026
 
 - **Corpo e viso** (nuovo gruppo in *Forme…*): occhio, occhi, faccia, testa di profilo, bocca, orecchio, mano,

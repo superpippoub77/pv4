@@ -3642,6 +3642,9 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         } else if (type === 'arrow') {
             const arrow = this.getCurrentTab().arrows.get(objectId);
             menuItems = [
+                { label: '📋 Copia', action: () => this.copySelected(), shortcut: 'Ctrl+C' },
+                { label: '✂️ Taglia', action: () => this.cutSelected(), shortcut: 'Ctrl+X' },
+                { separator: true },
                 { label: '━ Lineare', action: () => this.changeArrowType('linear') },
                 { label: '⌢ Curva', action: () => this.changeArrowType('curved') },
                 { label: '⚡ Zigzag', action: () => this.changeArrowType('zigzag') },
@@ -8522,7 +8525,10 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
 
     startConnection(from, e) {
         e.preventDefault();
+        // freccia già iniziata con un clic: questo clic la conclude (al rilascio), non ne inizia un'altra
+        if (this.isConnecting && this._clickConnect) return;
         this.isConnecting = true;
+        this._clickConnect = false;
         this.connectionStart = from;
         document.getElementById('canvas').style.cursor = 'crosshair';
         this.createConnectionPreview(e);
@@ -8584,16 +8590,26 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                     target.classList.contains('left') ? 'left' : 'right';
             to = { objectId: targetObject.id, position: targetPosition };
         } else {
-            to = endPos;
+            // rilasciata vicino a un punto di aggancio di un altro oggetto: si aggancia lì
+            const near = this.findNearbyConnectionPoint ? this.findNearbyConnectionPoint(e) : null;
+            to = (near && near.objectId && near.objectId !== this.connectionStart.objectId) ? { objectId: near.objectId, position: near.position } : endPos;
         }
 
-        // un clic senza trascinare (o sul punto di partenza) non crea frecce: prima ne nasceva una lunga zero,
-        // agganciata al punto del disegno, ogni volta che si cliccava vicino a un punto di aggancio
-        const startPos = this.getArrowPoint(this.connectionStart);
+        // un clic senza trascinare non crea una freccia lunga zero: la freccia resta «agganciata» al mouse
+        // e il clic successivo ne fissa la punta (clic – clic), anche partendo da un punto vuoto del foglio.
+        // (il punto di partenza nel vuoto è { objectId: null, position: {x, y} }: va letto così, altrimenti la
+        // distanza veniva NaN e ogni clic creava una freccia invisibile)
+        const startPos = this.getConnectionPointAbsolutePosition(this.connectionStart.objectId, this.connectionStart.position) || { x: NaN, y: NaN };
         const sameObject = to.objectId && to.objectId === this.connectionStart.objectId;
-        const tooShort = !to.objectId && Math.hypot(endPos.x - startPos.x, endPos.y - startPos.y) < 12;
-        if (!sameObject && !tooShort) this.createArrow(this.connectionStart, to, this.arrowType);
+        const dist = Math.hypot(endPos.x - startPos.x, endPos.y - startPos.y);
+        const tooShort = !to.objectId && !(dist >= 12);
+        if (sameObject || tooShort) {
+            if (!this._clickConnect) { this._clickConnect = true; return; } // primo clic: si aspetta il secondo
+        } else {
+            this.createArrow(this.connectionStart, to, this.arrowType);
+        }
 
+        this._clickConnect = false;
         this.isConnecting = false;
         this.connectionStart = null;
         if (this.connectionPreview) {
@@ -9615,9 +9631,13 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             });
 
             // Copia frecce che collegano oggetti selezionati
+            const endOk = (end) => !end.objectId || this.selectedObjects.has(end.objectId);
+            const objSel = [...this.selectedObjects.values()].some(v => v.type !== 'freehand');
             tab.arrows.forEach(arrow => {
-                if (this.selectedObjects.has(arrow.from.objectId) &&
-                    this.selectedObjects.has(arrow.to.objectId)) {
+                // la freccia selezionata (anche da sola), oppure quelle tra oggetti selezionati
+                const picked = arrow.id === this.selectedArrow || (this.selectedArrows && this.selectedArrows.has && this.selectedArrows.has(arrow.id));
+                const between = objSel && (arrow.from.objectId || arrow.to.objectId) && endOk(arrow.from) && endOk(arrow.to);
+                if (picked || between) {
                     const newArrow = {
                         ...arrow,
                         from: { ...arrow.from },
@@ -9671,6 +9691,14 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         // Incolla oggetti normali
         this.clipboard.objects.forEach(obj => {
             const oldId = obj.id;
+            // tutte le proprietà dell'originale (forma e sue regolazioni, bordo, carattere, collegamento, 3D…):
+            // prima passavano solo tipo, colore e testo, e una freccia a blocco tornava un rettangolo
+            const SKIP = new Set(['id', 'x', 'y', 'element', 'animationInterval', 'mesh']);
+            const props = {};
+            Object.entries(obj).forEach(([k, v]) => {
+                if (SKIP.has(k) || typeof v === 'function') return;
+                try { props[k] = (v && typeof v === 'object') ? JSON.parse(JSON.stringify(v)) : v; } catch (e) { props[k] = v; }
+            });
             const newObj = this.addObject(
                 obj.type,
                 obj.x + offset,
@@ -9681,16 +9709,17 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 obj.dashed,
                 obj.icon,
                 obj.src,
-                obj.spriteData
+                obj.spriteData,
+                obj.model3d || null,
+                !!obj.is3d,
+                props
             );
 
             const objectData = tab.objects.get(newObj.id);
             if (objectData) {
+                Object.assign(objectData, props);
                 objectData.opacity = obj.opacity || 1;
                 objectData.zIndex = obj.zIndex || 1;
-                objectData.objectNumber = obj.objectNumber;
-                objectData.width = obj.width;
-                objectData.height = obj.height;
                 this.renderObject(objectData);
             }
 
@@ -9736,6 +9765,14 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             const newFrom = { ...arrow.from };
             const newTo = { ...arrow.to };
 
+            // estremi agganciati a oggetti non copiati: diventano punti liberi nella stessa posizione
+            [newFrom, newTo].forEach(end => {
+                if (end.objectId && !pastedObjectMap.has(end.objectId)) {
+                    const pt = this.getArrowPoint(end);
+                    delete end.objectId; delete end.position;
+                    end.x = pt.x; end.y = pt.y;
+                }
+            });
             // Aggiorna gli ID degli oggetti collegati
             if (newFrom.objectId) {
                 newFrom.objectId = pastedObjectMap.get(newFrom.objectId);
@@ -9765,6 +9802,16 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
                 );
 
                 const arrowData = tab.arrows.get(newArrow.id);
+                if (arrowData && !arrow.controlPoint) {
+                    arrowData.opacity = arrow.opacity || 1;
+                    arrowData.markerStart = arrow.markerStart || false;
+                    arrowData.markerEnd = arrow.markerEnd !== false;
+                    if (arrow.highlight) arrowData.highlight = arrow.highlight;
+                    if (arrow.bend) arrowData.bend = { ...arrow.bend };
+                    if (arrow.type) arrowData.type = arrow.type;
+                    this.renderArrow(arrowData);
+                    this.selectArrow?.(newArrow.id);
+                }
                 if (arrowData && arrow.controlPoint) {
                     // ✅ CRITICO: Sposta il punto di controllo mantenendo la distanza relativa
                     const fromPos = this.getArrowPoint(newFrom);
@@ -11098,6 +11145,8 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
             tipologia: tab.tipologia || 'GEN',
             ruolo: tab.ruolo || 'GEN',
             periodo: tab.periodo || 'GEN',
+            genere: tab.genere || 'GEN',
+            categoria: tab.categoria || 'GEN',
             autore: tab.autore || this.currentUser,
             nr: tab.nr,
             series: tab.series,
@@ -11628,6 +11677,7 @@ Rispondi SOLO con gli step in formato JSON array di stringhe, esempio:
         } else if (e.key === 'Escape') {
             if (this.isConnecting) {
                 this.isConnecting = false;
+                this._clickConnect = false;
                 this.connectionStart = null;
                 if (this.connectionPreview) {
                     this.connectionPreview.svg.remove();

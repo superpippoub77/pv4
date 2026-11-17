@@ -135,6 +135,7 @@ class SpikeLayout {
             const id = parseInt(t.dataset.tabId, 10);
             const ed = this.editor;
             window.Pv4Library.contextMenu(e.clientX, e.clientY, [
+                ...(ed.exerciseLinks ? [{ label: "🔀 Crea variante (copia collegata)", action: () => ed.exerciseLinks.createVariant(id) }, 'sep'] : []),
                 { label: "✕ Chiudi scheda", action: () => ed.closeTab(id) },
                 { label: "Chiudi le altre", disabled: ed.tabs.size < 2, action: () => ed.closeTabs(id) },
                 { label: "Chiudi tutte", action: () => ed.closeAllTabs() }

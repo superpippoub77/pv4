@@ -94,7 +94,7 @@ html:`<ul><li><b>Giocatori…</b> (G) apre la galleria dei giocatori: Squadra A 
 <p>Il campo resta sempre sotto agli altri oggetti. Per un esercizio completo in un colpo solo usa <a data-topic="crea-da-testo">Crea da testo</a>.</p>` },
 
 { id:'frecce', cat:'Disegnare', title:'Frecce, matita e tratteggio', keys:'freccia collega punti aggancio curva lineare zigzag spessore punte matita disegno libero tratteggio tratteggiato',
-html:`<ul><li><b>Frecce</b> (A): i punti di aggancio arancioni compaiono solo in questa modalità; trascina da un punto di aggancio a un altro punto (di un oggetto o del foglio). Un clic senza trascinare non crea frecce. Le frecce agganciate seguono gli oggetti quando li sposti.</li>
+html:`<ul><li><b>Frecce</b> (A): i punti di aggancio arancioni compaiono solo in questa modalità; la freccia può partire e finire <b>ovunque</b>, anche in un punto vuoto del foglio: <b>trascina</b> dal punto di partenza a quello di arrivo, oppure <b>clic</b> sul punto di partenza e <b>clic</b> su quello di arrivo (Esc annulla). Rilasciandola vicino a un punto di aggancio di un oggetto si aggancia lì; le frecce agganciate seguono gli oggetti quando li sposti. Tasto destro sulla freccia: Copia, Taglia, forma, tratteggio.</li>
 <li>La freccia nasce <b>dritta</b>; per curvarla trascina il <b>perno arancione</b> a metà: la curva passa sotto il mouse e mantiene la forma quando sposti i giocatori collegati. Riportando il perno sulla linea, con un doppio clic sul perno o con <b>↺ Raddrizza</b> torna dritta.</li>
 <li>Selezionando una freccia, nel pannello Proprietà scegli colore, forma (<b>Linea</b> o <b>Zigzag</b>), spessore, opacità, punte all'inizio e alla fine, evidenziatore e tratteggio.</li>
 <li><b>Matita libera</b> (B): disegno a mano libera, con colore, spessore e opacità.</li>
@@ -314,6 +314,7 @@ html:`<p>Ogni esercizio può avere <b>uno o più collegamenti</b>: nella scheda 
 <li><b>Collega a</b>: una <b>scheda aperta</b>, una <b>nuova scheda</b> (anche partendo da una copia del disegno, comoda per il dettaglio di una zona), un <b>esercizio della libreria</b> oppure una <b>pagina web o un video</b>. Puoi aggiungere una nota.</li>
 <li>Tra due schede si aggiunge anche il <b>collegamento di ritorno</b> (es. il dettaglio rimanda all'esercizio principale).</li>
 <li>Un clic sul collegamento lo apre; ✎ lo modifica, 🗑 lo toglie. Se la scheda non è aperta ma l'esercizio è in libreria, viene riaperto da lì.</li></ul>
+<p><b>🔀 Crea variante</b> (accanto a ＋ Collega…, o tasto destro sulla linguetta della scheda): copia tutto l'esercizio (disegno, step, dati, note) in una nuova scheda «… · variante 1», collegata all'originale come <b>Variante</b> nei due sensi. Poi modifichi la variante come vuoi: l'originale non cambia.</p>
 <p>Anche un <b>singolo oggetto</b> del disegno si può collegare: tasto destro sull'oggetto → <b>🔗 Collega a un dettaglio o esercizio…</b>. Sull'oggetto compare il distintivo (🔍, 🔀…): un clic apre la destinazione.</p>
 <p>I collegamenti restano nel salvataggio automatico, negli allenamenti, nei file e in libreria, e compaiono nel <b>PDF</b> (le pagine web sono cliccabili).</p>` },
 
@@ -340,6 +341,7 @@ html:`<dl class="guide-faq">
 
 { id:'novita', cat:'Riferimento', title:'Novità', keys:'novità versioni changelog aggiornamenti',
 html:`<ul>
+<li><b>1.19.0</b> — <a data-topic="collegamenti">🔀 Crea variante</a>: copia l'esercizio in una nuova scheda collegata come Variante. <a data-topic="frecce">Frecce</a> anche da un punto vuoto con clic – clic. Copia e incolla corretti per forme e frecce.</li>
 <li><b>1.18.0</b> — <a data-topic="forme">Corpo e viso</a> tra le forme: occhi (con lo sguardo regolabile), faccia con espressione, testa di profilo, bocca, orecchio, mano, impronta del piede, figura umana, cervello.</li>
 <li><b>1.17.0</b> — <a data-topic="collegamenti">Collegamenti</a>: ogni esercizio (e ogni oggetto del disegno) può rimandare a un dettaglio, una variante, una progressione, un altro esercizio della libreria o una pagina web, con il collegamento di ritorno. Il tasto destro su un oggetto non lo lascia più «attaccato» al mouse.</li>
 <li><b>1.16.0</b> — <a data-topic="forme">Forme classiche</a>: forme base, diagramma a blocchi, frecce a blocco e fumetti, regolabili con il rombo giallo; bordo, riempimento e testo dentro. Caratteri di sistema e <b>caratteri personalizzati</b> (.ttf, .otf, .woff).</li>

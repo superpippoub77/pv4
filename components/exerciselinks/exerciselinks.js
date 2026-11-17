@@ -159,6 +159,8 @@ class ExerciseLinks {
         }
         const add = document.getElementById('exerciseLinkAdd');
         if (add && !add._bound) { add._bound = true; add.addEventListener('click', () => this.showDialog({ mode: 'tab' })); }
+        const vr = document.getElementById('exerciseVariantAdd');
+        if (vr && !vr._bound) { vr._bound = true; vr.addEventListener('click', () => this.createVariant()); }
         this.render();
     }
 
@@ -442,6 +444,51 @@ class ExerciseLinks {
         if (t) t.wizardDone = true; // niente compilazione guidata per un dettaglio
         if (data) await ed.loadSchema(Promise.resolve(data));
         ed.updateTabName(id, name);
+        return id;
+    }
+
+    /**
+     * Variante di un esercizio: copia completa (disegno, step, dati, note) in una nuova scheda,
+     * collegata nei due sensi con tipo «Variante». Restituisce l'id della nuova scheda.
+     */
+    async createVariant(tabId) {
+        const ed = this.editor;
+        if (tabId != null && tabId !== ed.activeTabId) ed.switchToTab(tabId);
+        const srcId = ed.activeTabId;
+        const src = ed.tabs.get(srcId);
+        if (!src) return null;
+        const data = JSON.parse(JSON.stringify(ed.getSchemaData()));
+        delete data.uid; delete data.links;
+        (data.objects || []).forEach(([, o]) => { if (o) o.link = null; });
+        // nome: «Esercizio · variante 2» (numerata in base alle varianti già collegate)
+        const base = (src.name || 'Schema').replace(/\s*·\s*variante\s*\d*$/i, '');
+        const taken = new Set([...ed.tabs.values()].map(t => (t.name || '').toLowerCase()));
+        let n = 1 + this.linksOf(src).filter(l => l.kind === 'variant').length, name;
+        do { name = `${base} · variante ${n++}`; } while (taken.has(name.toLowerCase()));
+        const extra = { genere: src.genere, categoria: src.categoria, wizardDone: true };
+
+        const before = new Set(ed.tabs.keys());
+        ed.addNewTab();
+        let id = [...ed.tabs.keys()].find(k => !before.has(k));
+        if (id == null) id = ed.activeTabId;
+        const t = ed.tabs.get(id);
+        if (t) t.wizardDone = true;
+        await ed.loadSchema(Promise.resolve(data));
+        Object.assign(t, extra);
+        ed.updateTabName(id, name);
+        const el = document.querySelector(`.tab[data-tab-id="${id}"] .tab-title`);
+        if (el) el.value = name;
+
+        const back = this.newId();
+        this.linksOf(src).push({ id: this.newId(), kind: 'variant', target: 'tab', uid: ed.tabUid(t), name, note: '', back });
+        const toSrc = { id: this.newId(), kind: 'variant', target: 'tab', uid: ed.tabUid(src), name: src.name || 'Schema', note: 'esercizio di partenza', back };
+        if (src.lib && src.lib.id) toSrc.libId = src.lib.id;
+        this.linksOf(t).push(toSrc);
+
+        ed.switchToTab(id);
+        this.render();
+        ed.saveState('Creata variante');
+        this.toast('Creata «' + name + '»: copia di «' + (src.name || 'Schema') + '», collegate tra loro come varianti.');
         return id;
     }
 
