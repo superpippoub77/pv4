@@ -694,3 +694,6 @@ const rightSidebarConfig = [
         }
     }
 ];
+
+// Forme classiche (forme base, diagramma a blocchi, frecce a blocco, fumetti): components/shapes/shapes.js
+if (typeof PV4Shapes !== 'undefined') sidebarConfig.push(...PV4Shapes.sidebarCategories());

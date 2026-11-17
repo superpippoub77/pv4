@@ -11,7 +11,7 @@
 
 // Versione e mese di rilascio (come in SpikeCut): da aggiornare a ogni rilascio,
 // insieme a CHANGELOG.md, package.json e alla sezione "Novità" della guida.
-const APP_VERSION = "1.15.2";
+const APP_VERSION = "1.16.0";
 const APP_RELEASE = "Nov 2026";
 
 // Icone in stile SpikeCut (viewBox 22, tratto 1.6)
@@ -45,6 +45,7 @@ const LAYOUT_ICONS = {
     pdf: SC_ICON("M6 3h7l4 4v12H6z M13 3v4h4 M8.5 12h6 M8.5 15h6"),
     calendar: SC_ICON("M4 6h14v13H4z M4 10h14 M8 3v5 M14 3v5 M7.5 13.5h2 M12.5 13.5h2 M7.5 16.5h2"),
     magic: SC_ICON("M4 18L14 8 M12 6l4 4 M16 3v3 M14.5 4.5h3 M19 8v2 M18 9h2 M8 3v2 M7 4h2"),
+    shapes: SC_ICON("M3 12h7v7H3z M16.5 3l4 7h-8z M17 13.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"),
     trash: SC_ICON("M4 6h14 M9 6V4h4v2 M6 6l1 13h8l1-13 M9.5 9.5v6 M12.5 9.5v6"),
     scout: SC_ICON("M4 4h14v14H4z M11 4v14 M7 8h.01 M7 12h.01 M7 16h.01 M14 9l1.5 1.5L18 7.5 M14 15h4"),
     clearAll: SC_ICON("M14 3l-6.5 9 M5 12.5h7l1.5 2.5-2 4.5H4.5l-1-4z M7 15.5l-.5 3 M10 15.5l-.3 3 M17 9h3 M16.5 13h3.5 M17 17h3")
@@ -107,6 +108,7 @@ const layoutConfig = {
         { id: "railPlayers", icon: "players", label: "Giocatori…", i18n: "rail_players", key: "G", title: "Galleria giocatori: clic per aggiungere, trascina per posizionare", onClick: (ed) => ed.layout.toggleFlyout("players") },
         { id: "railVideo", icon: "video", label: "Video…", i18n: "rail_video", title: "Inserisci un video (YouTube, Vimeo, file dal computer o un link) con anteprima; doppio clic per guardarlo", onClick: () => window.VideoObjects?.add() },
         { id: "railElements", icon: "court", label: "Campo e oggetti…", i18n: "rail_elements", key: "E", title: "Campo, materiale, figure, testo e icone", onClick: (ed) => ed.layout.toggleFlyout("elements") },
+        { id: "railShapes", icon: "shapes", label: "Forme…", i18n: "rail_shapes", title: "Forme classiche: rettangoli, rombi, stelle, diagramma a blocchi, frecce a blocco, fumetti (regolabili con i rombi gialli)", onClick: (ed) => { ed.layout.toggleFlyout("elements", true); setTimeout(() => { const g = document.querySelector('.shapes-flyout [data-shape]')?.closest('.sf-group'); if (g) g.scrollIntoView({ block: 'start' }); }, 60); } },
 
         { section: "Modifica", i18n: "rail_sec_edit" },
         { id: "clearSheetBtn", icon: "clearAll", cls: "danger", label: "Cancella tutto", i18n: "rail_clear_all", title: "Cancella tutto il contenuto del foglio (oggetti, frecce e disegni). Si annulla con Ctrl+Z", onClick: (ed) => ed.clearSheet() },
@@ -200,6 +202,14 @@ const layoutConfig = {
                 },
                 { type: "swatches", id: "quickColors" },
                 {
+                    label: "Bordo della forma", i18n: "panel_shape_stroke", row: [
+                        { type: "input", inputType: "color", id: "objectStroke", value: "#2c3e50", onInput: (ed, ev) => ed.changeSelectedShapeProp('stroke', ev.target.value, false), onChange: (ed, ev) => ed.changeSelectedShapeProp('stroke', ev.target.value) },
+                        { type: "input", inputType: "range", id: "objectStrokeWidth", min: "0", max: "12", step: "1", value: "2", title: "Spessore del bordo (0 = senza bordo)", onInput: (ed, ev) => { document.getElementById('objectStrokeWidthValue').textContent = ev.target.value; ed.changeSelectedShapeProp('strokeWidth', +ev.target.value, false); }, onChange: (ed, ev) => ed.changeSelectedShapeProp('strokeWidth', +ev.target.value) },
+                        { type: "div", id: "objectStrokeWidthValue", class: "range-value", html: "2" }
+                    ]
+                },
+                { item: { type: "input", inputType: "checkbox", id: "objectNoFill", text: "Senza riempimento (solo bordo)", i18n: "panel_shape_nofill", onChange: (ed, ev) => ed.changeSelectedShapeProp('noFill', ev.target.checked) } },
+                {
                     label: "Opacità", i18n: "panel_opacity", row: [
                         { type: "input", inputType: "range", id: "objectOpacity", min: "0", max: "1", value: "1", step: "0.05", onInput: (ed, ev) => { document.getElementById('objectOpacityValue').textContent = parseFloat(ev.target.value).toFixed(2); ed.changeSelectedObjectsOpacity(ev.target.value); } },
                         { type: "div", id: "objectOpacityValue", class: "range-value", html: "1.00" }
@@ -210,7 +220,12 @@ const layoutConfig = {
                     { type: "input", inputType: "number", id: "objectFontSize", min: "6", max: "300", step: "1", value: "18", onChange: (ed, ev) => ed.changeSelectedObjectsFontSize(ev.target.value) },
                     { type: "button", id: "objectFitText", text: "⤢ Adatta al testo", title: "La casella torna della misura del testo", onClick: (ed) => { const t = ed.getCurrentTab(); ed.selectedObjects.forEach((p, id) => { const o = t.objects.get(id); if (o && o.type === 'text') { o.manualSize = false; ed.fitTextBox(o); } }); ed.saveState('Casella adattata al testo'); } }
                 ] },
-                { label: "Carattere", i18n: "panel_font", item: { type: "select", id: "objectFont", options: [["", "font_default"], ["Nanum Pen Script", "Nanum Pen Script"], ["Schoolbell", "Schoolbell"], ["Architects Daughter", "Architects Daughter"]], onChange: (ed, value) => ed.changeSelectedObjectsTextStyle('fontFamily', value) } },
+                {
+                    label: "Carattere", i18n: "panel_font", row: [
+                        { type: "select", id: "objectFont", options: [["", "font_default"]], onChange: (ed, value) => ed.onFontSelect(value) },
+                        { type: "button", id: "objectFontRemove", text: "🗑", title: "Rimuovi questo carattere personalizzato", onClick: (ed) => ed.removeCustomFont(document.getElementById('objectFont').value) }
+                    ]
+                },
                 { label: "Evidenziatore", i18n: "panel_highlight", item: { type: "select", id: "objectHighlight", options: [["", "highlight_none"], ["#ffd84d", "highlight_yellow"], ["#9be38f", "highlight_green"], ["#8fd0ff", "highlight_blue"], ["#ffa3d1", "highlight_pink"], ["#ffbd7a", "highlight_orange"]], onChange: (ed, value) => ed.changeSelectedObjectsTextStyle('highlight', value) } },
                 {
                     label: "Numero etichetta", i18n: "panel_number", row: [

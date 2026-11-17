@@ -574,6 +574,7 @@ class SpikeLayout {
                 icon: item.dataset.icon || "",
                 src: item.dataset.src || "",
                 model3d: item.dataset.model3d || "",
+                shape: item.dataset.shape || "",
                 sprite: item.dataset.spriteSheet ? {
                     sheet: item.dataset.spriteSheet,
                     cols: +item.dataset.spriteCols, rows: +item.dataset.spriteRows, frame: +item.dataset.spriteFrame,

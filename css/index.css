@@ -1575,3 +1575,17 @@ body.resizing-canvas .canvas { transition: none !important; }
 
 /* Tratteggio sulla forma del pallone (non sul riquadro) */
 .ball-object.dashed { border: 2px dashed #333; box-sizing: border-box; }
+
+/* Forme classiche: disegno SVG nelle misure reali, testo al centro, maniglie gialle a rombo */
+.shape-object { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+.shape-object > .shape-svg { position: absolute; overflow: visible; pointer-events: none; }
+.shape-object > .editable-text { position: relative; z-index: 1; height: auto; max-height: 100%; overflow: hidden; color: #1c2430; }
+.shape-object > .adj-handle {
+    position: absolute; width: 12px; height: 12px; box-sizing: border-box; z-index: 13; display: none; cursor: pointer;
+    background: #f5c518; border: 1.5px solid #6b5300; transform: rotate(45deg) scale(.85);
+}
+.canvas-object.selected .shape-object > .adj-handle { display: block; }
+body.arrow-mode .shape-object > .adj-handle { display: none !important; }
+.shape-object > .adj-handle:hover { background: #ffd84d; transform: rotate(45deg) scale(1); }
+/* le forme (code dei fumetti, bordi spessi) possono uscire dalla casella, anche nell'esportazione */
+.canvas-object.obj-shape { overflow: visible; }

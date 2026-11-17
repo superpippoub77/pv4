@@ -263,6 +263,7 @@ class Sidebar {
             item.width ? `data-sprite-width="${item.width}"` : "",
             item.height ? `data-sprite-height="${item.height}"` : "",
             item.special ? `data-special="${item.special}"` : "",
+            item.shape ? `data-shape="${item.shape}"` : "",
             // modalità di disegno: 3D solo per i modelli 3D, 2D per disegni e figure piane
             (() => {
                 const m = item.mode || (item.type === "object" ? "3d" : (["sketch", "local-svg", "sprite", "volleyball-player-bagher"].includes(item.type) ? "2d" : ""));
@@ -270,7 +271,7 @@ class Sidebar {
             })()
         ].filter(Boolean).join(" ");
 
-        let iconHTML = item.iconHTML || (item.src ? `<img src="${item.src}" draggable="false" style="width:22px;height:22px;object-fit:contain;">` : (item.icon ? `<i class="${item.icon}"></i>` : "🃏"));
+        let iconHTML = item.iconHTML || (item.type === "shape" && window.PV4Shapes ? PV4Shapes.icon(item.shape) : null) || (item.src ? `<img src="${item.src}" draggable="false" style="width:22px;height:22px;object-fit:contain;">` : (item.icon ? `<i class="${item.icon}"></i>` : "🃏"));
         // Per i giocatori mostra la sigla dentro il cerchio colorato
         if (item.type === "player") {
             iconHTML = `<span class="player-chip">${item.text || ""}</span>`;
@@ -319,6 +320,7 @@ class Sidebar {
                 render: item.dataset.render || "2d",
                 src: item.dataset.src || "",
                 model3d: item.dataset.model3d || "",
+                shape: item.dataset.shape || "",
                 sprite: item.dataset.spriteSheet
                     ? {
                         sheet: item.dataset.spriteSheet,
